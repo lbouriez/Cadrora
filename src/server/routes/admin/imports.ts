@@ -1,0 +1,571 @@
+import { Hono } from 'hono';
+import type { Context } from 'hono';
+import type { z } from 'zod';
+
+import {
+  FinalizePhotoRequestSchema,
+  FinalizePhotoResponseSchema,
+  ImportCreateRequestSchema,
+  ImportCreateResponseSchema,
+  ImportDeclarePhotosRequestSchema,
+  ImportDeclarePhotosResponseSchema,
+  ImportSchema,
+  IdSchema,
+  PhotoSchema,
+  PhotoVariantNameSchema,
+  RequiredPhotoVariantNames,
+  VariantUploadHeadersSchema,
+  VariantUploadResponseSchema,
+  type Import,
+  type Photo,
+  type PhotoDeclaration,
+  type PhotoVariant,
+} from '../../../shared/schemas';
+import { ApiException } from '../../../shared/errors/ApiError';
+import { requireAdmin } from '../../middleware';
+import type { AppEnv } from '../../types';
+
+interface ImportRow {
+  completed_photos: number;
+  created_at: string;
+  event_id: string;
+  id: string;
+  state: Import['state'];
+  total_photos: number;
+  updated_at: string;
+}
+
+interface PhotoRow {
+  captured_at: string | null;
+  content_type: Photo['contentType'];
+  created_at: string;
+  event_id: string;
+  face_state: Photo['faceState'];
+  filename: string;
+  height: number;
+  id: string;
+  import_id: string;
+  moment_id: string | null;
+  revision: number;
+  sort_key: string;
+  state: Photo['state'];
+  updated_at: string;
+  width: number;
+}
+
+interface PhotoVariantRow {
+  byte_size: number;
+  checksum_sha256: string;
+  content_type: PhotoVariant['contentType'];
+  created_at: string;
+  height: number;
+  photo_id: string;
+  storage_key: string;
+  variant: PhotoVariant['variant'];
+  width: number;
+}
+
+interface CountRow {
+  value: number;
+}
+
+interface IdRow {
+  id: string;
+}
+
+interface ChunkRow {
+  photo_ids_json: string;
+}
+
+const adminImportRoutes = new Hono<AppEnv>();
+
+// PA owns one fail-closed authorization middleware for every admin feature.
+adminImportRoutes.use('*', requireAdmin);
+
+adminImportRoutes.post('/events/:eventId/imports', async (context) => {
+  const eventId = parseInput(IdSchema, context.req.param('eventId'));
+  const payload = parseInput(ImportCreateRequestSchema, await readJson(context));
+  const existing = await getImport(context.env.DB, payload.id);
+  if (existing) {
+    if (existing.eventId !== eventId || existing.totalPhotos !== payload.totalPhotos) {
+      throw new ApiException('IMPORT_ID_CONFLICT', 'errors.importIdConflict', 409);
+    }
+    return context.json(ImportCreateResponseSchema.parse({ import: existing }));
+  }
+
+  const event = await context.env.DB.prepare('SELECT id FROM events WHERE id = ?').bind(eventId).first<IdRow>();
+  if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+
+  const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
+  const currentCount = await countEventPhotos(context.env.DB, eventId);
+  if (currentCount + payload.totalPhotos > limit) {
+    throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
+  }
+
+  const now = new Date().toISOString();
+  await context.env.DB.prepare(
+    'INSERT INTO imports (id, event_id, state, total_photos, completed_photos, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+  )
+    .bind(payload.id, eventId, 'pending', payload.totalPhotos, 0, now, now)
+    .run();
+  const created = await getImport(context.env.DB, payload.id);
+  if (!created) throw new ApiException('IMPORT_CREATE_FAILED', 'errors.importCreateFailed', 500);
+  return context.json(ImportCreateResponseSchema.parse({ import: created }));
+});
+
+adminImportRoutes.post('/imports/:importId/photos', async (context) => {
+  const importId = parseInput(IdSchema, context.req.param('importId'));
+  const payload = parseInput(ImportDeclarePhotosRequestSchema, await readJson(context));
+  const imported = await getImport(context.env.DB, importId);
+  if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
+  if (imported.state === 'cancelled' || imported.state === 'completed') {
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
+
+  const existingChunk = await context.env.DB
+    .prepare('SELECT photo_ids_json FROM import_chunks WHERE import_id = ? AND chunk_number = ?')
+    .bind(importId, payload.chunkNumber)
+    .first<ChunkRow>();
+  if (existingChunk && !samePhotoIds(existingChunk.photo_ids_json, payload.photos.map((photo) => photo.id))) {
+    throw new ApiException('IMPORT_CHUNK_CONFLICT', 'errors.importChunkConflict', 409);
+  }
+
+  const existingPhotos = await getPhotosByIds(context.env.DB, payload.photos.map((photo) => photo.id));
+  const existingIds = new Set(existingPhotos.map((photo) => photo.id));
+  if (existingPhotos.some((photo) => photo.event_id !== imported.eventId || photo.import_id !== importId)) {
+    throw new ApiException('PHOTO_ID_CONFLICT', 'errors.photoIdConflict', 409);
+  }
+  const newPhotos = payload.photos.filter((photo) => !existingIds.has(photo.id));
+  if ((await countImportPhotos(context.env.DB, importId)) + newPhotos.length > imported.totalPhotos) {
+    throw new ApiException('IMPORT_TOTAL_EXCEEDED', 'errors.importTotalExceeded', 409);
+  }
+  const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
+  if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit) {
+    throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
+  }
+
+  const now = new Date().toISOString();
+  const statements: D1PreparedStatement[] = [
+    context.env.DB
+      .prepare(
+        `INSERT INTO import_chunks (import_id, chunk_number, state, photo_ids_json, updated_at)
+         VALUES (?, ?, 'uploading', ?, ?)
+         ON CONFLICT(import_id, chunk_number) DO UPDATE SET
+           state = CASE WHEN import_chunks.state = 'finalized' THEN 'finalized' ELSE 'uploading' END,
+           updated_at = excluded.updated_at`,
+      )
+      .bind(importId, payload.chunkNumber, JSON.stringify(payload.photos.map((photo) => photo.id)), now),
+    context.env.DB
+      .prepare("UPDATE imports SET state = 'processing', updated_at = ? WHERE id = ? AND state IN ('pending', 'paused', 'processing')")
+      .bind(now, importId),
+  ];
+  for (const photo of newPhotos) statements.push(insertPhoto(context.env.DB, imported.eventId, importId, photo, now));
+  await context.env.DB.batch(statements);
+
+  const refreshed = await getImport(context.env.DB, importId);
+  if (!refreshed) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
+  return context.json(
+    ImportDeclarePhotosResponseSchema.parse({ import: refreshed, photoIds: payload.photos.map((photo) => photo.id) }),
+  );
+});
+
+/** Binary media ingress: only a small magic-byte prefix is inspected before the body streams to private R2. */
+adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
+  const photoId = parseInput(IdSchema, context.req.param('photoId'));
+  const variant = parseInput(PhotoVariantNameSchema, context.req.param('variant'));
+  const headers = parseInput(VariantUploadHeadersSchema, {
+    byteSize: context.req.header('X-Cadrora-Byte-Size'),
+    checksumSha256: context.req.header('X-Cadrora-Checksum-Sha256'),
+    contentType: contentTypeWithoutParameters(context.req.header('Content-Type')),
+    height: context.req.header('X-Cadrora-Height'),
+    width: context.req.header('X-Cadrora-Width'),
+  });
+  const photo = await getPhoto(context.env.DB, photoId);
+  if (!photo || photo.state === 'deleted' || photo.state === 'deleting') {
+    throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  }
+
+  const declaredContentLength = parseContentLength(context.req.header('Content-Length'));
+  if (declaredContentLength !== undefined && declaredContentLength !== headers.byteSize) {
+    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+  }
+
+  const existing = await context.env.DB
+    .prepare('SELECT byte_size FROM photo_variants WHERE photo_id = ? AND variant = ?')
+    .bind(photoId, variant)
+    .first<{ byte_size: number }>();
+  const usedBytes = await totalStoredBytes(context.env.DB);
+  const limit = requiredLimit(context.env.MAX_STORAGE_BYTES, 'MAX_STORAGE_BYTES');
+  if (usedBytes - (existing?.byte_size ?? 0) + headers.byteSize > limit) {
+    throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
+  }
+
+  // Fetch request bodies are byte streams; Hono's DOM typing widens their chunk type at this external boundary.
+  const requestBody = context.req.raw.body as unknown as ReadableStream<Uint8Array> | null;
+  if (!requestBody) throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+  const inspected = await inspectStreamPrefix(requestBody, 12);
+  if (sniffEncodedMime(inspected.prefix) !== headers.contentType) {
+    await inspected.stream.cancel();
+    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+  }
+
+  const extension = headers.contentType === 'image/webp' ? 'webp' : 'jpg';
+  const storageKey = `events/${photo.eventId}/photos/${photo.id}/${photo.revision}/${variant}.${extension}`;
+  let stored: R2Object | null;
+  try {
+    stored = await context.env.MEDIA_BUCKET.put(storageKey, inspected.stream, {
+      customMetadata: { checksumSha256: headers.checksumSha256 },
+      httpMetadata: { contentType: headers.contentType },
+      // R2 validates the digest while consuming the stream, avoiding a second full-body buffer in the Worker.
+      sha256: headers.checksumSha256,
+    });
+  } catch (error) {
+    if (isR2ChecksumMismatch(error)) {
+      throw new ApiException('VARIANT_CHECKSUM_MISMATCH', 'errors.variantChecksumMismatch', 422, { cause: error });
+    }
+    throw error;
+  }
+  if (!stored || stored.size !== headers.byteSize || inspected.streamedByteSize() !== headers.byteSize) {
+    if (stored) await context.env.MEDIA_BUCKET.delete(storageKey);
+    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+  }
+
+  const now = new Date().toISOString();
+  await context.env.DB
+    .prepare(
+      `INSERT INTO photo_variants (photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(photo_id, variant) DO UPDATE SET
+         storage_key = excluded.storage_key,
+         content_type = excluded.content_type,
+         byte_size = excluded.byte_size,
+         width = excluded.width,
+         height = excluded.height,
+         checksum_sha256 = excluded.checksum_sha256`,
+    )
+    .bind(
+      photoId,
+      variant,
+      storageKey,
+      headers.contentType,
+      headers.byteSize,
+      headers.width,
+      headers.height,
+      headers.checksumSha256,
+      now,
+    )
+    .run();
+  const saved = await getVariant(context.env.DB, photoId, variant);
+  if (!saved) throw new ApiException('VARIANT_SAVE_FAILED', 'errors.variantSaveFailed', 500);
+  return context.json(VariantUploadResponseSchema.parse({ variant: saved }));
+});
+
+adminImportRoutes.post('/photos/:photoId/finalize', async (context) => {
+  parseInput(FinalizePhotoRequestSchema, await readJson(context));
+  const photoId = parseInput(IdSchema, context.req.param('photoId'));
+  const photo = await getPhoto(context.env.DB, photoId);
+  if (!photo) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  const variants = await context.env.DB
+    .prepare('SELECT variant FROM photo_variants WHERE photo_id = ?')
+    .bind(photoId)
+    .all<{ variant: string }>();
+  const names = new Set(variants.results.map((variant) => variant.variant));
+  if (!RequiredPhotoVariantNames.every((name) => names.has(name))) {
+    throw new ApiException('VARIANTS_INCOMPLETE', 'errors.variantsIncomplete', 409);
+  }
+
+  const now = new Date().toISOString();
+  await context.env.DB
+    .prepare("UPDATE photos SET state = 'variants_ready', updated_at = ? WHERE id = ? AND state IN ('pending', 'variants_ready')")
+    .bind(now, photoId)
+    .run();
+  const completed = await context.env.DB
+    .prepare("SELECT COUNT(*) AS value FROM photos WHERE import_id = ? AND state IN ('variants_ready', 'published')")
+    .bind(photo.importId)
+    .first<CountRow>();
+  const imported = await getImport(context.env.DB, photo.importId);
+  if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
+  const completedPhotos = Math.min(completed?.value ?? 0, imported.totalPhotos);
+  const state = completedPhotos >= imported.totalPhotos ? 'completed' : 'processing';
+  await context.env.DB
+    .prepare('UPDATE imports SET completed_photos = ?, state = ?, updated_at = ? WHERE id = ?')
+    .bind(completedPhotos, state, now, imported.id)
+    .run();
+  const finalized = await getPhoto(context.env.DB, photoId);
+  const refreshedImport = await getImport(context.env.DB, photo.importId);
+  if (!finalized || !refreshedImport) throw new ApiException('FINALIZE_FAILED', 'errors.finalizeFailed', 500);
+  return context.json(FinalizePhotoResponseSchema.parse({ import: refreshedImport, photo: finalized }));
+});
+
+/** Root integration hook. Register after auth middleware and before cache middleware. */
+export function registerAdminImportRoutes(app: Hono<AppEnv>): void {
+  app.route('/api/v1/admin', adminImportRoutes);
+}
+
+export { adminImportRoutes };
+
+async function readJson(context: Context<AppEnv>): Promise<unknown> {
+  try {
+    return await context.req.json();
+  } catch (error) {
+    throw new ApiException('INVALID_JSON', 'errors.invalidJson', 422, { cause: error });
+  }
+}
+
+function parseInput<T>(schema: z.ZodType<T>, value: unknown): T {
+  const parsed = schema.safeParse(value);
+  if (!parsed.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 422);
+  return parsed.data;
+}
+
+function requiredLimit(value: string | undefined, binding: string): number {
+  if (!value || !/^[1-9]\d*$/.test(value)) {
+    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, { cause: new Error(`${binding} is invalid`) });
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, { cause: new Error(`${binding} is unsafe`) });
+  }
+  return parsed;
+}
+
+async function getImport(database: D1Database, importId: string): Promise<Import | undefined> {
+  const row = await database
+    .prepare('SELECT id, event_id, state, total_photos, completed_photos, created_at, updated_at FROM imports WHERE id = ?')
+    .bind(importId)
+    .first<ImportRow>();
+  return row ? importFromRow(row) : undefined;
+}
+
+async function getPhoto(database: D1Database, photoId: string): Promise<Photo | undefined> {
+  const row = await database
+    .prepare(
+      `SELECT id, event_id, import_id, filename, content_type, width, height, captured_at, moment_id, sort_key,
+       revision, state, face_state, created_at, updated_at FROM photos WHERE id = ?`,
+    )
+    .bind(photoId)
+    .first<PhotoRow>();
+  return row ? photoFromRow(row) : undefined;
+}
+
+async function getPhotosByIds(database: D1Database, ids: string[]): Promise<(PhotoRow & { import_id: string })[]> {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => '?').join(', ');
+  const result = await database
+    .prepare(`SELECT id, event_id, import_id FROM photos WHERE id IN (${placeholders})`)
+    .bind(...ids)
+    .all<PhotoRow & { import_id: string }>();
+  return result.results;
+}
+
+function insertPhoto(
+  database: D1Database,
+  eventId: string,
+  importId: string,
+  photo: PhotoDeclaration,
+  now: string,
+): D1PreparedStatement {
+  return database
+    .prepare(
+      `INSERT INTO photos (
+        id, event_id, import_id, filename, content_type, width, height, captured_at, moment_id, sort_key,
+        revision, state, face_state, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'pending', 'disabled', ?, ?)`,
+    )
+    .bind(
+      photo.id,
+      eventId,
+      importId,
+      photo.filename,
+      photo.contentType,
+      photo.width,
+      photo.height,
+      photo.capturedAt ?? null,
+      null,
+      photo.sortKey,
+      now,
+      now,
+    );
+}
+
+async function countEventPhotos(database: D1Database, eventId: string): Promise<number> {
+  return (
+    (await database
+      .prepare("SELECT COUNT(*) AS value FROM photos WHERE event_id = ? AND state != 'deleted'")
+      .bind(eventId)
+      .first<CountRow>())?.value ?? 0
+  );
+}
+
+async function countImportPhotos(database: D1Database, importId: string): Promise<number> {
+  return (
+    (await database.prepare('SELECT COUNT(*) AS value FROM photos WHERE import_id = ?').bind(importId).first<CountRow>())
+      ?.value ?? 0
+  );
+}
+
+async function totalStoredBytes(database: D1Database): Promise<number> {
+  return (await database.prepare('SELECT COALESCE(SUM(byte_size), 0) AS value FROM photo_variants').first<CountRow>())?.value ?? 0;
+}
+
+function importFromRow(row: ImportRow): Import {
+  return ImportSchema.parse({
+    completedPhotos: row.completed_photos,
+    createdAt: row.created_at,
+    eventId: row.event_id,
+    id: row.id,
+    state: row.state,
+    totalPhotos: row.total_photos,
+    updatedAt: row.updated_at,
+  });
+}
+
+function photoFromRow(row: PhotoRow): Photo {
+  return PhotoSchema.parse({
+    capturedAt: row.captured_at,
+    contentType: row.content_type,
+    createdAt: row.created_at,
+    eventId: row.event_id,
+    faceState: row.face_state,
+    filename: row.filename,
+    height: row.height,
+    id: row.id,
+    importId: row.import_id,
+    momentId: row.moment_id,
+    revision: row.revision,
+    sortKey: row.sort_key,
+    state: row.state,
+    updatedAt: row.updated_at,
+    width: row.width,
+  });
+}
+
+async function getVariant(
+  database: D1Database,
+  photoId: string,
+  variant: PhotoVariant['variant'],
+): Promise<PhotoVariant | undefined> {
+  const row = await database
+    .prepare(
+      `SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256, created_at
+       FROM photo_variants WHERE photo_id = ? AND variant = ?`,
+    )
+    .bind(photoId, variant)
+    .first<PhotoVariantRow>();
+  if (!row) return undefined;
+  return {
+    byteSize: row.byte_size,
+    checksumSha256: row.checksum_sha256,
+    contentType: row.content_type,
+    createdAt: row.created_at,
+    height: row.height,
+    photoId: row.photo_id,
+    storageKey: row.storage_key,
+    variant: row.variant,
+    width: row.width,
+  };
+}
+
+function samePhotoIds(serialized: string, expected: string[]): boolean {
+  try {
+    const parsed: unknown = JSON.parse(serialized);
+    return Array.isArray(parsed) && parsed.length === expected.length && parsed.every((id, index) => id === expected[index]);
+  } catch {
+    return false;
+  }
+}
+
+function contentTypeWithoutParameters(value: string | undefined): string | undefined {
+  return value?.split(';', 1)[0]?.trim().toLowerCase();
+}
+
+function parseContentLength(value: string | undefined): number | undefined {
+  if (value === undefined || !/^\d+$/.test(value)) return undefined;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+interface InspectedStream {
+  prefix: Uint8Array;
+  stream: ReadableStream<Uint8Array>;
+  streamedByteSize: () => number;
+}
+
+async function inspectStreamPrefix(body: ReadableStream<Uint8Array>, prefixLength: number): Promise<InspectedStream> {
+  const reader = body.getReader();
+  const bufferedChunks: Uint8Array[] = [];
+  const prefix = new Uint8Array(prefixLength);
+  let prefixBytes = 0;
+  let sourceFinished = false;
+
+  while (prefixBytes < prefixLength) {
+    const next = await reader.read();
+    if (next.done) {
+      sourceFinished = true;
+      break;
+    }
+    bufferedChunks.push(next.value);
+    const copied = Math.min(next.value.byteLength, prefixLength - prefixBytes);
+    prefix.set(next.value.subarray(0, copied), prefixBytes);
+    prefixBytes += copied;
+  }
+
+  let streamedBytes = 0;
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      const chunk = bufferedChunks.shift();
+      if (chunk) {
+        streamedBytes += chunk.byteLength;
+        controller.enqueue(chunk);
+        return;
+      }
+      if (sourceFinished) {
+        controller.close();
+        return;
+      }
+      try {
+        const next = await reader.read();
+        if (next.done) {
+          sourceFinished = true;
+          controller.close();
+          return;
+        }
+        streamedBytes += next.value.byteLength;
+        controller.enqueue(next.value);
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+    async cancel(reason) {
+      await reader.cancel(reason);
+    },
+  });
+
+  return {
+    prefix: prefix.subarray(0, prefixBytes),
+    stream,
+    streamedByteSize: () => streamedBytes,
+  };
+}
+
+function sniffEncodedMime(bytes: Uint8Array): 'image/jpeg' | 'image/webp' | undefined {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return 'image/webp';
+  }
+  return undefined;
+}
+
+function isR2ChecksumMismatch(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 10037;
+}

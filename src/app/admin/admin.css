@@ -1,0 +1,236 @@
+.admin-shell {
+  min-height: 100vh;
+  padding: var(--space-4);
+}
+
+.admin-shell__frame {
+  width: min(100%, var(--content-max-width));
+  margin: 0 auto;
+}
+
+.admin-shell__skip {
+  position: fixed;
+  z-index: 10;
+  top: var(--space-2);
+  left: var(--space-2);
+  transform: translateY(-200%);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.admin-shell__skip:focus {
+  transform: translateY(0);
+}
+
+.admin-shell__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-5);
+}
+
+.admin-shell__brand {
+  color: var(--color-text);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.admin-shell__controls,
+.admin-shell__identity,
+.admin-shell__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-shell__identity {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.admin-shell__nav {
+  margin-bottom: var(--space-5);
+  padding: var(--space-2);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.admin-shell__nav-link {
+  display: inline-flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-shell__nav-link[aria-current='page'] {
+  background: var(--color-surface-raised);
+  color: var(--color-primary);
+}
+
+.admin-card {
+  padding: var(--space-5);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-card__title {
+  margin: 0;
+  font-size: var(--text-lg);
+}
+
+.admin-card__description {
+  margin: var(--space-3) 0 0;
+  color: var(--color-text-muted);
+}
+
+.admin-login {
+  display: grid;
+  min-height: 100vh;
+  padding: var(--space-4);
+  place-items: center;
+}
+
+.admin-login__card {
+  display: grid;
+  width: min(100%, 30rem);
+  gap: var(--space-5);
+}
+
+.admin-login__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1;
+}
+
+.admin-login__form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.admin-login__error {
+  margin: 0;
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
+.admin-events {
+  display: grid;
+  align-items: start;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(22rem, 1.2fr);
+  gap: var(--space-5);
+}
+
+.admin-workspace {
+  display: grid;
+  align-items: start;
+  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.6fr);
+  gap: var(--space-5);
+}
+
+.admin-event-form {
+  display: grid;
+  margin-top: var(--space-5);
+  gap: var(--space-4);
+}
+
+.admin-event-form__textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.admin-event-form__options {
+  display: grid;
+  margin: 0;
+  padding: var(--space-4);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-md);
+  gap: var(--space-3);
+}
+
+.admin-event-list {
+  display: grid;
+  margin-top: var(--space-5);
+  gap: var(--space-3);
+}
+
+.admin-event-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-md);
+  gap: var(--space-4);
+}
+
+.admin-event-row h3,
+.admin-event-row p {
+  margin: var(--space-2) 0 0;
+}
+
+.admin-event-row p,
+.admin-event-row__state {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.admin-event-row__state {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-event-row__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-event-row__actions .button {
+  text-decoration: none;
+}
+
+.turnstile-challenge {
+  min-height: 1.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.admin-login + .turnstile-challenge {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+}
+
+@media (max-width: 30rem) {
+  .admin-shell__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 60rem) {
+  .admin-events,
+  .admin-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-event-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

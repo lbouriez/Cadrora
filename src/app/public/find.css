@@ -1,0 +1,71 @@
+.face-find {
+  display: grid;
+  max-width: 54rem;
+  margin: 0 auto;
+  gap: var(--space-5);
+}
+
+.face-find__consent {
+  display: flex;
+  min-height: var(--control-min-size);
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.face-find__consent input,
+.face-find__faces input {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.face-find__actions,
+.face-find__faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.face-find__preview {
+  width: min(100%, 36rem);
+  max-height: 60vh;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+.face-find__faces {
+  padding: var(--space-4);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.face-find__faces label {
+  display: flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.face-results {
+  display: grid;
+  margin-bottom: var(--space-4);
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: var(--space-3);
+}
+
+.face-result {
+  min-height: var(--control-min-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.face-results img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}

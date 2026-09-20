@@ -1,0 +1,78 @@
+@import './tokens.css';
+@import './components.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 20rem;
+  background: var(--color-background);
+  font-family: var(--font-sans);
+  color: var(--color-text);
+}
+
+body {
+  min-width: 20rem;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--color-primary) 15%, transparent), transparent 35%),
+    var(--color-background);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 0.125rem solid var(--color-focus);
+  outline-offset: 0.125rem;
+  box-shadow: var(--focus-ring);
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--space-5);
+}
+
+.app-shell__content {
+  width: min(100%, var(--content-max-width));
+  text-align: center;
+}
+
+.app-shell__logo {
+  width: min(48vw, 12rem);
+  height: auto;
+  border-radius: 24%;
+  box-shadow: var(--shadow-lg);
+}
+
+.app-shell__eyebrow {
+  margin: var(--space-6) 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.app-shell__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 0.95;
+}
+
+.app-shell__status {
+  margin: var(--space-4) auto 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+}
+

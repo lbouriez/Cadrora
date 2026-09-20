@@ -1,0 +1,97 @@
+# Frozen technical contracts
+
+Status: accepted on 2026-09-20. Changes require an ADR and explicit human validation.
+
+## Platform boundaries
+
+- React + TypeScript + Vite with the official Cloudflare plugin.
+- Hono in one Worker; no SSR, microservices, ORM, Docker, CLI product surface, or Redux.
+- Shared Zod validation for every API request and response.
+- Raw D1 SQL, private R2 media, optional Vectorize, and browser-side heavy processing.
+- TanStack Query for server state; React Context only for auth, theme, i18n, and UI hosts such as toasts.
+
+## API routes
+
+Public routes:
+
+```text
+GET    /api/v1/site
+GET    /api/v1/events
+GET    /api/v1/events/:eventId
+POST   /api/v1/events/:eventId/unlock
+GET    /api/v1/events/:eventId/photos?cursor=...
+POST   /api/v1/events/:eventId/face-search
+GET    /api/v1/events/:eventId/photos/:photoId/related
+GET    /media/:eventId/:photoId/:revision/:variant
+```
+
+Admin routes:
+
+```text
+POST   /api/v1/admin/login
+POST   /api/v1/admin/logout
+GET    /api/v1/admin/session
+GET    /api/v1/admin/events
+POST   /api/v1/admin/events
+PATCH  /api/v1/admin/events/:eventId
+POST   /api/v1/admin/events/:eventId/imports
+POST   /api/v1/admin/imports/:importId/photos
+PUT    /api/v1/admin/photos/:photoId/variants/:variant
+POST   /api/v1/admin/photos/:photoId/faces
+POST   /api/v1/admin/photos/:photoId/finalize
+POST   /api/v1/admin/events/:eventId/publish
+DELETE /api/v1/admin/photos/:photoId
+POST   /api/v1/admin/events/:eventId/purge-faces
+GET    /api/v1/admin/usage
+```
+
+All API errors are JSON `{ code, message, requestId }`. `message` is an i18n key. `/api/*` never falls back to HTML.
+
+## Worker middleware
+
+The conceptual order is fixed:
+
+```text
+requestId -> errorBoundary -> securityHeaders -> authContext -> turnstile -> rateLimit -> route -> cacheHeaders
+```
+
+Hono implements the error boundary through `app.onError`; its module occupies the same boundary in the chain. Each other middleware is isolated in `src/server/middleware/`. New orthogonal behavior gets a new module and one registration in `app.ts`.
+
+`authContext` resolves optional verified admin and event-grant state without throwing for absence. Turnstile runs only for admin login and event unlock. Rate limiting is best-effort, process-local protection and is not a global quota.
+
+## Cache policy
+
+| Content | Public event | Protected event |
+| --- | --- | --- |
+| Revisioned `/media/*` | `public, max-age=31536000, immutable` | `private, max-age=3600` |
+| Public event API | `public, max-age=60` keyed by revision | `private, no-store` |
+| Admin API | `no-store` | `no-store` |
+| Hashed app assets | `public, immutable` | `public, immutable` |
+
+Unknown access classification fails closed as `private, no-store`. Changing an event from public to protected cannot revoke copies already downloaded.
+
+## Authentication
+
+- `ADMIN_AUTH_MODE` is `password` or `cloudflare-access`; there is no `none` mode.
+- Password sessions are opaque. D1 stores only a token hash. Cookies are `__Host-*; HttpOnly; Secure; SameSite=Strict; Path=/` with an eight-hour default TTL.
+- Cloudflare Access JWTs are verified in the Worker for signature, issuer, audience, and expiry on every hostname.
+- Event grants contain only `eventId` and `accessVersion`. A password change increments the version and invalidates old grants.
+- State-changing admin requests verify `Origin` for CSRF protection.
+
+## D1 and cross-service consistency
+
+D1 contains `site_settings`, `events`, `event_credentials`, `photos`, `photo_variants`, `imports`, `import_chunks`, `faces`, `face_partitions`, `sessions`, `maintenance_jobs`, and `usage_counters`.
+
+Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Natural-key upserts make variant and face declarations idempotent. D1 is updated before access is removed; R2 and Vectorize cleanup is retried from `maintenance_jobs`.
+
+## UI and localization
+
+Semantic values live in `src/app/styles/tokens.css`. Reusable typed components live in `src/app/components/` and carry a short contract/example comment. Interactive targets are at least 44 px. Modals trap focus, close on Escape, and restore focus. Every user-visible string ships in FR and EN.
+
+## Import and facial-search privacy
+
+- The browser accepts decodable JPEG, PNG, and WebP only in v1. It corrects all eight EXIF orientations and strips GPS, serial numbers, and private comments.
+- Variant widths are 480, 960, 1600, 2560, and 3840 pixels, without upscaling. WebP is used only after runtime encoding and MIME verification; otherwise use JPEG.
+- A visitor selfie remains local. The Worker receives an embedding only and never returns embeddings or face coordinates.
+- Models load only on the find route. Facial search is disabled by default, event-scoped, expiring, and described as possible matches rather than identity confidence.
+

@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# Generate real values during setup; there are deliberately no defaults.
+ADMIN_SECRET_HASH=
+TURNSTILE_SECRET_KEY=
+
+# Required only when ADMIN_AUTH_MODE=cloudflare-access.
+CF_ACCESS_TEAM_DOMAIN=
+CF_ACCESS_AUD=
+

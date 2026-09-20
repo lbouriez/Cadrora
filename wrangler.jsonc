@@ -1,0 +1,72 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cadrora",
+  "main": "./src/server/app.ts",
+  "compatibility_date": "2026-09-20",
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/media/*", "/e/*", "/admin", "/admin/*", "/models/*"]
+  },
+  "vars": {
+    "ADMIN_AUTH_MODE": "password",
+    "SESSION_TTL_H": "8",
+    "MAX_PHOTOS_PER_EVENT": "2000",
+    "MAX_EVENTS": "50",
+    "MAX_STORAGE_BYTES": "10737418240",
+    "MAX_FACES_PER_EVENT": "10000",
+    "SITE_DEFAULT_LANG": "fr"
+  },
+  "secrets": {
+    "required": ["ADMIN_SECRET_HASH", "TURNSTILE_SECRET_KEY"]
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cadrora",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_BUCKET"
+    },
+    {
+      "binding": "MODELS_BUCKET"
+    }
+  ],
+  "env": {
+    "preview": {
+      "vars": {
+        "ADMIN_AUTH_MODE": "password",
+        "SESSION_TTL_H": "8",
+        "MAX_PHOTOS_PER_EVENT": "2000",
+        "MAX_EVENTS": "50",
+        "MAX_STORAGE_BYTES": "10737418240",
+        "MAX_FACES_PER_EVENT": "10000",
+        "SITE_DEFAULT_LANG": "fr"
+      },
+      "secrets": {
+        "required": ["ADMIN_SECRET_HASH", "TURNSTILE_SECRET_KEY"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cadrora-preview",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA_BUCKET"
+        },
+        {
+          "binding": "MODELS_BUCKET"
+        }
+      ]
+    }
+  }
+}

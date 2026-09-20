@@ -1,0 +1,209 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ImageEncoder } from '../../../src/browser/images';
+import type { ImportApi } from '../../../src/browser/jobs/ImportApi';
+import type {
+  ImportJournal,
+  ImportJournalChunk,
+  ImportJournalJob,
+  NewImportJournal,
+} from '../../../src/browser/jobs/ImportJournal';
+import { ImportPipeline, type ImportPipelineSnapshot } from '../../../src/browser/jobs/ImportPipeline';
+import type { Import, ImportCreateRequest, ImportDeclarePhotosRequest } from '../../../src/shared/schemas';
+
+const TIMESTAMP = '2026-09-20T16:00:00.000Z';
+
+class MemoryImportJournal implements ImportJournal {
+  readonly chunks = new Map<number, ImportJournalChunk>();
+  readonly files = new Map<number, File>();
+  job: ImportJournalJob | undefined;
+
+  create(value: NewImportJournal): Promise<void> {
+    this.job = value.job;
+    for (const chunk of value.chunks) this.chunks.set(chunk.number, chunk);
+    for (const record of value.files) this.files.set(record.sourceIndex, record.file);
+    return Promise.resolve();
+  }
+
+  getChunks(importId: string): Promise<ImportJournalChunk[]> {
+    return Promise.resolve([...this.chunks.values()]
+      .filter((chunk) => chunk.importId === importId)
+      .sort((left, right) => left.number - right.number));
+  }
+
+  getFiles(_importId: string, sourceIndexes: number[]): Promise<Map<number, File>> {
+    return Promise.resolve(new Map(
+      sourceIndexes.flatMap((sourceIndex) => {
+        const file = this.files.get(sourceIndex);
+        return file ? ([[sourceIndex, file]] satisfies [number, File][]) : [];
+      }),
+    ));
+  }
+
+  getJob(importId: string): Promise<ImportJournalJob | undefined> {
+    return Promise.resolve(this.job?.id === importId ? this.job : undefined);
+  }
+
+  async getNextUnfinishedChunk(importId: string): Promise<ImportJournalChunk | undefined> {
+    return (await this.getChunks(importId)).find((chunk) => chunk.state !== 'finalized');
+  }
+
+  getResumable(eventId: string): Promise<ImportJournalJob | undefined> {
+    return Promise.resolve(this.job?.eventId === eventId && (this.job.state === 'paused' || this.job.state === 'processing')
+      ? this.job
+      : undefined);
+  }
+
+  saveChunk(chunk: ImportJournalChunk): Promise<void> {
+    this.chunks.set(chunk.number, chunk);
+    return Promise.resolve();
+  }
+
+  saveJob(job: ImportJournalJob): Promise<void> {
+    this.job = job;
+    return Promise.resolve();
+  }
+}
+
+class RecordingImportApi implements ImportApi {
+  readonly declared: ImportDeclarePhotosRequest[] = [];
+
+  constructor(private readonly failChunk?: number) {}
+
+  createImport(eventId: string, request: ImportCreateRequest): Promise<Import> {
+    return Promise.resolve({
+      completedPhotos: 0,
+      createdAt: TIMESTAMP,
+      eventId,
+      id: request.id,
+      state: 'processing',
+      totalPhotos: request.totalPhotos,
+      updatedAt: TIMESTAMP,
+    });
+  }
+
+  declarePhotos(_importId: string, request: ImportDeclarePhotosRequest): Promise<string[]> {
+    this.declared.push(request);
+    if (request.chunkNumber === this.failChunk) return Promise.reject(new Error('simulated tab or network interruption'));
+    return Promise.resolve(request.photos.map((photo) => photo.id));
+  }
+
+  async finalizePhoto(): Promise<void> {}
+
+  async uploadVariant(): Promise<void> {}
+}
+
+function makeFiles(count: number): File[] {
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+  return Array.from({ length: count }, (_, index) => new File([jpeg], `photo-${index + 1}.jpg`, { type: 'image/jpeg' }));
+}
+
+function createEncoder(encodedFiles: string[]): ImageEncoder {
+  return {
+    dispose: vi.fn(),
+    encode: (file) => {
+      encodedFiles.push(file.name);
+      const blob = new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' });
+      return Promise.resolve({
+        height: 800,
+        sourceContentType: 'image/jpeg',
+        variants: [
+          {
+            blob,
+            byteSize: blob.size,
+            checksumSha256: '0'.repeat(64),
+            contentType: 'image/jpeg',
+            height: 480,
+            name: 'thumb',
+            width: 640,
+          },
+        ],
+        width: 1_200,
+      });
+    },
+  };
+}
+
+describe('ImportPipeline chunk journal and resume', () => {
+  beforeEach(() => {
+    vi.stubGlobal('createImageBitmap', () => Promise.resolve({ close: vi.fn(), height: 800, width: 1_200 }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('declares a 200-photo journal as exactly four ordered chunks of 50', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const encodedFiles: string[] = [];
+    const snapshots: ImportPipelineSnapshot[] = [];
+    const pipeline = new ImportPipeline({
+      api,
+      createEncoder: () => createEncoder(encodedFiles),
+      journal,
+      now: () => new Date(TIMESTAMP),
+      onChange: (snapshot) => snapshots.push(snapshot),
+    });
+
+    await pipeline.start('event-200', makeFiles(200));
+
+    expect(api.declared.map(({ chunkNumber, photos }) => ({ chunkNumber, size: photos.length }))).toEqual([
+      { chunkNumber: 0, size: 50 },
+      { chunkNumber: 1, size: 50 },
+      { chunkNumber: 2, size: 50 },
+      { chunkNumber: 3, size: 50 },
+    ]);
+    expect([...journal.chunks.values()].map((chunk) => chunk.photos.length)).toEqual([50, 50, 50, 50]);
+    expect([...journal.chunks.values()].every((chunk) => chunk.state === 'finalized')).toBe(true);
+    expect(encodedFiles).toHaveLength(200);
+    expect(journal.job).toMatchObject({ state: 'completed', totalPhotos: 200 });
+    expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 200, failedPhotos: 0, state: 'completed', totalPhotos: 200 });
+  });
+
+  it('resumes a 200-photo journal at the first unfinished 50-photo chunk after interruption', async () => {
+    const journal = new MemoryImportJournal();
+    const firstApi = new RecordingImportApi(2);
+    const firstEncodedFiles: string[] = [];
+    const interrupted = new ImportPipeline({
+      api: firstApi,
+      createEncoder: () => createEncoder(firstEncodedFiles),
+      journal,
+      now: () => new Date(TIMESTAMP),
+    });
+
+    await expect(interrupted.start('event-resume-200', makeFiles(200))).rejects.toThrow('simulated tab or network interruption');
+    const importId = journal.job?.id;
+    expect(importId).toBeDefined();
+    expect(firstApi.declared.map((request) => request.chunkNumber)).toEqual([0, 1, 2]);
+    expect(firstEncodedFiles).toHaveLength(100);
+    expect([...journal.chunks.values()].map((chunk) => chunk.state)).toEqual([
+      'finalized',
+      'finalized',
+      'uploading',
+      'pending',
+    ]);
+    expect(journal.job?.state).toBe('paused');
+
+    const resumeApi = new RecordingImportApi();
+    const resumedEncodedFiles: string[] = [];
+    const resumedSnapshots: ImportPipelineSnapshot[] = [];
+    const resumed = new ImportPipeline({
+      api: resumeApi,
+      createEncoder: () => createEncoder(resumedEncodedFiles),
+      journal,
+      now: () => new Date(TIMESTAMP),
+      onChange: (snapshot) => resumedSnapshots.push(snapshot),
+    });
+    await resumed.resume(importId!);
+
+    expect(resumeApi.declared.map(({ chunkNumber, photos }) => ({ chunkNumber, size: photos.length }))).toEqual([
+      { chunkNumber: 2, size: 50 },
+      { chunkNumber: 3, size: 50 },
+    ]);
+    expect(resumedEncodedFiles).toHaveLength(100);
+    expect(journal.job).toMatchObject({ id: importId, state: 'completed', totalPhotos: 200 });
+    expect(resumedSnapshots).toContainEqual(expect.objectContaining({ completedPhotos: 100, state: 'processing', totalPhotos: 200 }));
+    expect(resumedSnapshots.at(-1)).toMatchObject({ completedPhotos: 200, failedPhotos: 0, state: 'completed' });
+  });
+});

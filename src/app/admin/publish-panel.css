@@ -1,0 +1,33 @@
+.publish-panel {
+  display: grid;
+  padding: var(--space-5);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  gap: var(--space-4);
+}
+
+.publish-panel progress {
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.publish-panel__status {
+  display: grid;
+  margin: 0;
+  gap: var(--space-3);
+}
+
+.publish-panel__status div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.publish-panel__status dd {
+  margin: 0;
+  font-weight: 700;
+}
+

@@ -1,0 +1,36 @@
+# Privacy and data handling
+
+This document describes the current implementation. It is not legal advice, a privacy notice tailored to a jurisdiction, or a promise of regulatory compliance. An operator remains responsible for lawful basis, notices, retention choices, and data-subject handling.
+
+## What the system processes
+
+| Data category | Current handling |
+| --- | --- |
+| Public website profile | Photographer name, email, telephone, address, and service area are optional `VITE_*` build values. They are public static content by design. |
+| Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
+| Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
+| Source metadata | The browser’s pixel re-encode strips source EXIF/XMP metadata from the normal import path, including GPS, serial, and comments. |
+| Event passwords | D1 stores a salted PBKDF2 hash, never the clear password. |
+| Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
+| Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
+| Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores event-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |
+
+## What the system does not do by design
+
+- It does not upload a visitor selfie for facial search.
+- It does not expose embeddings, face coordinates, or vector IDs in public API responses.
+- It does not create cross-event biometric profiles or claim to identify a person.
+- It does not put event photos into build assets or a shared public cache when access is protected.
+- `/contact` has direct contact details only. It has no contact form, tracker, remote font, map, or third-party contact service by default.
+
+## Access and retention
+
+Protected event access needs a current event grant and the current access version. Rotating an event password increments that version. Admin state-changing routes require both Worker authentication and a same-origin `Origin` header.
+
+Facial embeddings are event-scoped and may expire. With a configured event retention period, the server rejects an expiry later than the allowed event window. D1 excludes expired matches from every response even if Vectorize returns one during the short interval before provider cleanup. A 15-minute Worker Cron Trigger enqueues cutoff-scoped expired-face purges and runs maintenance, but a queued cleanup must not be represented as immediate physical deletion; verify the specific job completed.
+
+## Operator responsibilities and gaps
+
+The repository does not currently include a privacy-request workflow, consent-record export, account deletion flow, remote backup policy, legal notice template, or automatic retention scheduler. Before collecting gallery or biometric data in production, establish those operator processes outside this source tree and confirm the deployed data locations, subcontractors, and retention practices.
+
+For an incident, avoid copying passwords, raw vectors, cookies, selfies, or private EXIF into tickets. Preserve request IDs and non-sensitive error codes, restrict access to the affected Cloudflare account, and follow [`SECURITY.md`](../SECURITY.md).
