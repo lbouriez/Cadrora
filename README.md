@@ -10,13 +10,15 @@ The core platform, wave-2 product packages, and local wave-3 integration coverag
 
 The normal installation path is the button above:
 
-1. Once per installation, enable R2 in the target Cloudflare account if it has never been used there, then run `npm ci` and `npm run setup:admin-credentials`. Keep the generated password in a password manager and keep the generated `ADMIN_SECRET_HASH` ready for Cloudflare. Create a Turnstile widget for the intended hostname and keep its public site key and secret key ready.
-2. Select **Deploy to Cloudflare**, sign in, and accept or rename the proposed Worker, D1, and R2 resources. Enter the public `VITE_*` photographer/contact values, `VITE_TURNSTILE_SITE_KEY`, `ADMIN_SECRET_HASH`, and `TURNSTILE_SECRET_KEY` when prompted.
-3. Select **Deploy**. Cloudflare clones the repository, provisions and binds the D1 database and two private R2 buckets, applies the ordered D1 migrations by the `DB` binding, builds the static website and Worker, and publishes them to the new account.
+1. In the target Cloudflare account, open **Storage & databases → R2 Object Storage**. If Cloudflare shows **Get started with R2**, the account owner must review the current usage pricing and add the R2 subscription. This is a manual account/billing acknowledgement; do not delegate the final acceptance blindly.
+2. Run `npm ci` and `npm run setup:admin-credentials`. Keep the generated password in a password manager and keep the generated `ADMIN_SECRET_HASH` ready for Cloudflare.
+3. In Cloudflare, create a production Turnstile widget for the intended hostname. Keep its public site key and secret key ready; never use the test keys created by `npm run setup:local` in a deployment.
+4. Select **Deploy to Cloudflare**, sign in, and accept or rename the proposed Worker, D1, and R2 resources. Enter the public `VITE_*` photographer/contact values, `VITE_TURNSTILE_SITE_KEY`, `ADMIN_SECRET_HASH`, and `TURNSTILE_SECRET_KEY` when prompted.
+5. Select **Deploy**. Cloudflare clones the repository, provisions and binds the D1 database and two private R2 buckets, applies the ordered D1 migrations by the `DB` binding, builds the static website and Worker, and publishes them to the new account.
 
 No account ID, database ID, bucket name, or API token needs to be committed. Facial search remains optional and is not provisioned by the quick path. After deployment, open `/`, `/contact`, and `/admin/login`, then complete the remote verification checklist in [`docs/deployment.md`](docs/deployment.md) before attaching a production domain.
 
-R2 activation is an account-level prerequisite that Cloudflare may present as a billing or service-enablement step; the Deploy Button cannot accept it on the account owner's behalf. If it is missing, Wrangler exits with Cloudflare error `10042` before listing or provisioning buckets.
+R2 activation is an account-level prerequisite that Cloudflare may present as a billing or service-enablement step; the Deploy Button cannot accept it on the account owner's behalf. If it is missing, Wrangler exits with Cloudflare error `10042` before listing or provisioning buckets. The complete human-action checklist, multi-account Wrangler guidance, post-deploy domain steps, and verification commands are in [`docs/deployment.md`](docs/deployment.md#fresh-account-manual-checklist).
 
 Cloudflare's button is the recommended few-click path. The reproducible Wrangler fallback is `npm run release:deploy -- --production --confirm` after `wrangler login`, resource/secret configuration, and the same preflight; it deliberately refuses an implicit target. See [Cloudflare's Deploy Button documentation](https://developers.cloudflare.com/workers/platform/deploy-buttons/) for the provider-owned flow.
 

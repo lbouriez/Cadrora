@@ -12,6 +12,21 @@ The button invokes `npm run deploy`, which builds the production target, runs `w
 
 The checked-in configuration has one Cron Trigger, every 15 minutes. Its Worker handler enqueues expired face purges and runs up to 25 maintenance jobs. Confirm the trigger is active on the deployed Worker; source presence is not runtime evidence.
 
+## Fresh-account manual checklist
+
+Complete these account-owner actions before the first Deploy Button run. They are intentionally not hidden inside a script because they select an external account, accept usage-based billing, or create credentials that the owner must retain.
+
+1. **Select the intended Cloudflare account.** In the Dashboard account picker, choose the account that owns the production domain. From the repository, run `npx wrangler whoami` and confirm the displayed account name before any remote command. If a machine that uses several Cloudflare accounts keeps selecting a stale account, create an ignored `.env.local` containing `CLOUDFLARE_ACCOUNT_ID=<target-account-id>`; never commit it.
+2. **Enable R2 once.** Open **Storage & databases → R2 Object Storage**. If the page says **Get started with R2**, review the payment method, current free allowance, overage pricing, renewal terms, and then have the account owner select **Add R2 subscription to my account**. This is a usage-billed renewable subscription even when the amount due at activation is zero. Verify activation with `npx wrangler r2 bucket list`; an empty list is valid, while Cloudflare error `10042` means R2 is still disabled.
+3. **Publish a clonable GitHub source.** The Deploy Button URL must reference a public repository with a default branch containing `package.json`, `package-lock.json`, and `wrangler.jsonc`. The upstream button uses `https://github.com/lbouriez/Cadrora`. Maintainers deploying their own modifications should push a public fork, set its default branch, and update the encoded repository URL in that fork's README. Confirm with `git ls-remote origin refs/heads/main` and by opening the repository page while signed out or in a private window.
+4. **Generate the production admin credential.** Run `npm ci` and `npm run setup:admin-credentials` on a trusted workstation. Open the ignored `.artifacts/setup/admin-credentials.env` locally, store `ADMIN_PASSWORD` in a password manager, and provide only `ADMIN_SECRET_HASH` to Cloudflare. Do not upload the artifact or paste the password into a build variable.
+5. **Create the production Turnstile widget.** In the same Cloudflare account, create a widget for the public hostnames that will serve Cadrora, at minimum `cadrora.com` and any `www` hostname that will actually be routed. Record the public site key as `VITE_TURNSTILE_SITE_KEY` and the private key as `TURNSTILE_SECRET_KEY`. The official test pair installed by `npm run setup:local` is for localhost only and must never be submitted to a deployment.
+6. **Prepare the public profile values.** Decide the photographer/studio name, public phone, email, address, and service area. These become `VITE_PHOTOGRAPHER_NAME`, `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA`; they are intentionally public and empty values are omitted from the site.
+7. **Run the Deploy Button flow.** Open the button from the README, authenticate to the intended Cloudflare account, review the proposed Worker, D1 database, and two private R2 buckets, enter the public values and two server secrets, and select **Deploy**. Do not reuse local test secrets. Record the resulting resource names outside the public repository.
+8. **Attach and verify the domain only after the Worker succeeds.** In the deployed Worker's **Settings → Domains & Routes**, add `cadrora.com` as a custom domain and add or redirect `www.cadrora.com` only if that hostname is part of the intended public surface. Confirm the generated DNS record and TLS state in Cloudflare before changing any pre-existing record. Run the verification checklist later in this document before advertising the site.
+
+The account owner must personally review any billing confirmation, domain replacement warning, or secret value. A successful local build or a visible GitHub repository does not prove that these manual account steps are complete.
+
 ## Local validation
 
 Use only the project commands before a deployment:
@@ -41,7 +56,7 @@ Provision and bind the resources named in `wrangler.jsonc` before setting deploy
 
 For a new public fork, use the [Deploy to Cloudflare button](https://developers.cloudflare.com/workers/platform/deploy-buttons/). Its provisioning flow reads these bindings and can create D1/R2 resources from the repository configuration. A manual release script assumes approved remote resources are already bound; do not use it to bootstrap an empty account because it migrates D1 before deployment. Keep preview and production resources separate—never point a preview at production media or D1. Cloudflare binding configuration and non-inherited environment rules are documented in the [Wrangler configuration reference](https://developers.cloudflare.com/workers/wrangler/configuration/) and [environment guide](https://developers.cloudflare.com/workers/wrangler/environments/).
 
-Before the first deployment to a fresh account, enable R2 once in the Cloudflare Dashboard. This is an account-owner service or billing acknowledgement and cannot be completed by the repository; Wrangler reports Cloudflare error `10042` while it remains disabled. D1 and Turnstile must also be accessible in the selected account. If a workstation has used several Cloudflare accounts, verify `wrangler whoami`; use an ignored `.env.local` containing `CLOUDFLARE_ACCOUNT_ID=<target-account-id>` only when Wrangler keeps selecting a stale account. Never commit that local selection.
+Before the first deployment to a fresh account, complete the [manual checklist](#fresh-account-manual-checklist). D1 and Turnstile must be accessible in the selected account and R2 must already be enabled.
 
 ## Variables and secrets
 
