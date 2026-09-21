@@ -32,6 +32,40 @@
   object-fit: contain;
 }
 
+.face-find__camera,
+.face-find__test-portraits {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-raised) 72%, transparent);
+}
+
+.face-find__camera p,
+.face-find__test-portraits h2,
+.face-find__test-portraits p {
+  margin: 0;
+}
+
+.face-find__camera video {
+  width: min(100%, 32rem);
+  max-height: 60vh;
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+}
+
+.face-find__camera-message {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.face-find__test-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
 .face-find__faces {
   padding: var(--space-4);
   border: 0.0625rem solid var(--color-border);
@@ -68,4 +102,9 @@
   aspect-ratio: 1;
   border-radius: var(--radius-sm);
   object-fit: cover;
+}
+
+.face-results a {
+  display: block;
+  border-bottom: 0;
 }

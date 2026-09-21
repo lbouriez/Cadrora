@@ -41,6 +41,23 @@ a:hover {
   color: var(--color-primary-hover);
 }
 
+/* Plain content links inherit a deliberate text-link treatment from the theme.
+ * Navigation, logo, cards, and explicit button links keep their own components. */
+.public-main a:not(.button) {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 0.125rem solid color-mix(in srgb, var(--color-primary) 38%, transparent);
+  transition: border-color 160ms ease, color 160ms ease;
+}
+
+.public-main a:not(.button):hover {
+  color: var(--color-primary-hover);
+  border-bottom-color: currentcolor;
+}
+
 :focus-visible {
   outline: 0.125rem solid var(--color-focus);
   outline-offset: 0.125rem;

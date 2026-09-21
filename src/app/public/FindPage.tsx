@@ -25,12 +25,49 @@ export function FindPage() {
   const [related, setRelated] = useState<RelatedPhoto[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraSupported] = useState(() => (
+    typeof navigator !== 'undefined'
+    && typeof navigator.mediaDevices !== 'undefined'
+    && 'getUserMedia' in navigator.mediaDevices
+  ));
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const video = useRef<HTMLVideoElement>(null);
+  const cameraStream = useRef<MediaStream | null>(null);
 
   useEffect(() => () => {
     image?.close();
     if (preview) URL.revokeObjectURL(preview);
   }, [image, preview]);
+
+  useEffect(() => () => cameraStream.current?.getTracks().forEach((track) => track.stop()), []);
+
+  useEffect(() => {
+    if (!cameraOpen || !video.current || !cameraStream.current) return;
+    video.current.srcObject = cameraStream.current;
+    void video.current.play().catch(() => undefined);
+  }, [cameraOpen]);
+
+  const stopCamera = () => {
+    cameraStream.current?.getTracks().forEach((track) => track.stop());
+    cameraStream.current = null;
+    setCameraOpen(false);
+  };
+
+  const startCamera = async () => {
+    if (!cameraSupported) {
+      setCameraError(t('faceFind.cameraUnavailable'));
+      return;
+    }
+    setCameraError(null);
+    try {
+      cameraStream.current = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'user' } });
+      setCameraOpen(true);
+    } catch {
+      setCameraError(t('faceFind.cameraFailed'));
+    }
+  };
 
   const chooseFile = async (file: File | undefined) => {
     if (!file || !consent) return;
@@ -70,6 +107,25 @@ export function FindPage() {
     }
   };
 
+  const captureCamera = async () => {
+    const source = video.current;
+    if (!source?.videoWidth || !source.videoHeight) {
+      setCameraError(t('faceFind.cameraFailed'));
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = source.videoWidth;
+    canvas.height = source.videoHeight;
+    canvas.getContext('2d')?.drawImage(source, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+    if (!blob) {
+      setCameraError(t('faceFind.cameraFailed'));
+      return;
+    }
+    await chooseFile(new File([blob], 'selfie.jpg', { type: 'image/jpeg' }));
+    stopCamera();
+  };
+
   const runSearch = async (nextCursor?: string) => {
     const face = faces[selected];
     if (!image || !engine || !face) return;
@@ -106,13 +162,21 @@ export function FindPage() {
           <span>{t('faceFind.consent')}</span>
         </label>
         <div className="face-find__actions">
-          <label className="button button--primary">
-            {t('faceFind.selfie')}
-            <input accept="image/jpeg,image/png,image/webp" capture="user" disabled={!consent} hidden onChange={(event) => void chooseFile(event.target.files?.[0])} type="file" />
-          </label>
+          <Button disabled={!consent || !cameraSupported} onClick={() => void startCamera()}>{t('faceFind.selfie')}</Button>
           <Button disabled={!consent} onClick={() => fileInput.current?.click()} variant="secondary">{t('faceFind.choose')}</Button>
           <input accept="image/jpeg,image/png,image/webp" disabled={!consent} hidden onChange={(event) => void chooseFile(event.target.files?.[0])} ref={fileInput} type="file" />
         </div>
+        {!cameraSupported ? <p className="face-find__camera-message">{t('faceFind.cameraUnavailable')}</p> : null}
+        {cameraError ? <p className="face-find__camera-message" role="alert">{cameraError}</p> : null}
+        {cameraOpen ? <section className="face-find__camera"><p>{t('faceFind.cameraAccess')}</p><video autoPlay muted playsInline ref={video} /><div className="face-find__actions"><Button onClick={() => void captureCamera()}>{t('faceFind.capture')}</Button><Button onClick={stopCamera} variant="secondary">{t('faceFind.cancelCamera')}</Button></div></section> : null}
+        <aside className="face-find__test-portraits">
+          <h2>{t('faceFind.testPortraits')}</h2>
+          <p>{t('faceFind.testPortraitsHelp')}</p>
+          <div className="face-find__test-links">
+            <a download href="/demo/face-search/test-portrait-amelia.webp">{t('faceFind.testPortraitAmelia')}</a>
+            <a download href="/demo/face-search/test-portrait-daniel.webp">{t('faceFind.testPortraitDaniel')}</a>
+          </div>
+        </aside>
         {preview ? <img alt={t('faceFind.imageAlt')} className="face-find__preview" src={preview} /> : null}
         {image ? <Button disabled={busy} onClick={() => void analyze()}>{t('faceFind.analyze')}</Button> : null}
         {busy ? <><Spinner label={t('faceFind.loadingModels')} /><p>{t('faceFind.loadingModels')}</p></> : null}

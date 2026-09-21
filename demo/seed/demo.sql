@@ -20,7 +20,7 @@ INSERT INTO events (
     '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'
   ),
   (
-    'demo-ai-face-search', 'trouver-vos-photos', 'Retrouvez vos photos',
+    'demo-ai-face-search', 'find-your-photos', 'Retrouvez vos photos',
     'Démonstration IA : dix images fictives, créées pour présenter la recherche de photos par selfie. Deux invités réapparaissent au fil de la journée — essayez le parcours « Trouver mes photos ».',
     '2026-08-30T18:00:00.000Z', 'America/Toronto', 'demo-ai-01',
     'published', 'public', 0, 1, 0, NULL, 1,
