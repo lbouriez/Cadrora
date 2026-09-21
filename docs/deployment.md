@@ -23,11 +23,26 @@ Use this path when `lbouriez/Cadrora` (or a fork you maintain) must remain the o
 5. **Create Turnstile for the real hostname.** Use a Managed widget with `cadrora.com`; add `www.cadrora.com` only if it will be served. The root hostname allows its subdomains; a subdomain does not allow the root. Record the public site key and private secret key. Localhost test keys are not production keys.
 6. **Import the existing repository.** In **Workers & Pages**, choose **Create application → Continue with GitHub**, select `lbouriez/Cadrora`, then **Next**. This connects the existing repository; it does not fork or create another repository.
 7. **Complete the setup page.** Set Project name `cadrora`; Build command `npm run build`; Deploy command `npm run deploy`; turn **off** *Builds for non-production branches*. Leave Cloudflare Access off for the first release.
-8. **Complete Advanced settings.** Create/select a dedicated Workers Builds API token. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
+8. **Complete Advanced settings.** Create/select a dedicated Workers Builds API token. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. Use the field map below so a secret is not accidentally placed in a public `VITE_*` value. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
 9. **Deploy and verify the Worker hostname.** Select **Deploy**, wait for the build to finish, then run the verification list below. A later push to `main` builds production automatically. Keep branch builds off until preview gets its own D1/R2 values and secret pair.
 10. **Attach the domain after the Worker works.** In the Worker's **Settings → Domains & Routes**, add `cadrora.com` as a custom domain. Confirm DNS and TLS are active, then repeat the verification list on that hostname. Adding `www` serves the Worker but does not make it redirect; add a redirect rule only if that is desired.
 
 The account owner must personally review any billing confirmation, API-token creation, domain replacement warning, and secret transmission. A successful local build or visible GitHub repository does not prove those manual account steps are complete.
+
+### Cloudflare setup form: exact field map
+
+Do not place actual values in this public repository or in a ticket/screenshot. The table identifies where each value comes from and whether the Cloudflare setup page's **Encrypt** action is required.
+
+| Cloudflare setup field | Value to enter | Encrypt? | Where to retrieve it safely |
+| --- | --- | --- | --- |
+| `CADRORA_D1_DATABASE_ID` | The UUID of the production `cadrora` D1 database | No | **Storage & databases → D1 → cadrora → Overview** |
+| `CADRORA_MEDIA_BUCKET_NAME` | `cadrora-media` (or the exact private media bucket name chosen for this deployment) | No | **Storage & databases → R2** |
+| `CADRORA_MODELS_BUCKET_NAME` | `cadrora-models` (or the exact private models bucket name chosen for this deployment) | No | **Storage & databases → R2** |
+| `ADMIN_SECRET_HASH` | The value after `ADMIN_SECRET_HASH=` in the ignored `.artifacts/setup/admin-credentials.env` produced by `npm run setup:admin-credentials` | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Do **not** enter `ADMIN_PASSWORD`; store that password in a password manager. |
+| `TURNSTILE_SECRET_KEY` | The private **Secret key** for the production Cadrora widget | **Yes**: paste it, then select **Encrypt** | **Application security → Turnstile → Cadrora Production**. Open the existing widget and copy **Secret key**. If the initial creation page was closed, this is the normal recovery path. |
+| `VITE_TURNSTILE_SITE_KEY` | The matching public **Site key** for that widget | **No**: normal build variable | **Application security → Turnstile → Cadrora Production**. This value is intentionally sent to the browser build. |
+
+After entering a secret, the setup page should show it as encrypted/hidden. If it does not, do not deploy: remove the value and enter it again using **Encrypt**. A Turnstile secret key, admin password, API token, or local credential artifact must never be committed, sent as a public build variable, or copied into documentation.
 
 ## Local validation
 
