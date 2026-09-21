@@ -13,6 +13,12 @@ const TOKEN_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
+export function eventGrantSigningSecret(
+  bindings: Pick<CloudflareBindings, 'ADMIN_SECRET_HASH' | 'TURNSTILE_SECRET_KEY'>,
+): string | undefined {
+  return bindings.ADMIN_SECRET_HASH ?? bindings.TURNSTILE_SECRET_KEY;
+}
+
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);

@@ -4,6 +4,7 @@ import {
   EVENT_GRANT_COOKIE,
   createEventGrantToken,
   eventGrantCookie,
+  eventGrantSigningSecret,
   readEventGrantToken,
   verifyEventGrantToken,
 } from '../../../src/server/auth/eventGrant';
@@ -42,5 +43,11 @@ describe('event grant', () => {
       verifyEventGrantToken(token!, 'turnstile-secret', new Date('2030-01-01T09:00:00.000Z')),
     ).resolves.toBeNull();
   });
-});
 
+  it('prefers the stable admin secret and falls back for Access deployments', () => {
+    expect(eventGrantSigningSecret({ ADMIN_SECRET_HASH: 'admin-secret', TURNSTILE_SECRET_KEY: 'turnstile-secret' }))
+      .toBe('admin-secret');
+    expect(eventGrantSigningSecret({ TURNSTILE_SECRET_KEY: 'turnstile-secret' }))
+      .toBe('turnstile-secret');
+  });
+});

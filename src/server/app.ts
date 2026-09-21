@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 
-import { eventGrantCookie } from './auth';
+import { eventGrantCookie, eventGrantSigningSecret } from './auth';
 import { ApiException } from '../shared/errors/ApiError';
 import { apiErrorResponse } from './http/apiErrorResponse';
 import {
@@ -52,7 +52,7 @@ app.use('/api/v1/admin/*', demoReadOnly);
 app.route('/api/v1/admin', adminAuthRouter);
 registerPublicRoutes(app, {
   issueEventGrant: async (context, grant) => {
-    const secret = context.env.TURNSTILE_SECRET_KEY;
+    const secret = eventGrantSigningSecret(context.env);
     if (!secret) throw new ApiException('EVENT_GRANT_UNAVAILABLE', 'errors.serviceUnavailable', 503);
     context.header(
       'Set-Cookie',

@@ -27,6 +27,7 @@ export {
   EVENT_GRANT_COOKIE,
   createEventGrantToken,
   eventGrantCookie,
+  eventGrantSigningSecret,
   readEventGrantToken,
   verifyEventGrantToken,
 } from './eventGrant';

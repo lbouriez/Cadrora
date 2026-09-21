@@ -2,6 +2,7 @@ import { createMiddleware } from 'hono/factory';
 
 import {
   getPasswordSession,
+  eventGrantSigningSecret,
   readDemoSessionToken,
   readEventGrantToken,
   readSessionToken,
@@ -42,8 +43,9 @@ export const authContext = createMiddleware<AppEnv>(async (context, next) => {
   }
 
   const grantToken = readEventGrantToken(context.req.header('Cookie'));
-  if (grantToken && bindings?.TURNSTILE_SECRET_KEY) {
-    const eventGrant = await verifyEventGrantToken(grantToken, bindings.TURNSTILE_SECRET_KEY);
+  const grantSecret = bindings ? eventGrantSigningSecret(bindings) : undefined;
+  if (grantToken && grantSecret) {
+    const eventGrant = await verifyEventGrantToken(grantToken, grantSecret);
     if (eventGrant) context.set('auth', { ...context.get('auth'), eventGrant });
   }
 
