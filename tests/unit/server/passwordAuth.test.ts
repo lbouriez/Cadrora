@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { PASSWORD_HASH_FORMAT, createPasswordHash, verifyPassword } from '../../../src/server/auth';
 
 describe('password authentication', () => {
-  it('uses a salted PBKDF2 WebCrypto hash and rejects incorrect passwords', async () => {
+  it('uses a salted PBKDF2 hash and rejects incorrect passwords', async () => {
     const hash = await createPasswordHash('a long test password that is not a production secret');
 
     expect(hash).toMatch(/^pbkdf2-sha256\$600000\$[A-Za-z0-9_-]+\$[A-Za-z0-9_-]+$/);

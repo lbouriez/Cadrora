@@ -10,6 +10,8 @@ Set `ADMIN_AUTH_MODE=password` and provide `ADMIN_SECRET_HASH` only as a Cloudfl
 
 Protected-gallery passwords use the same audited hash parser and verifier. D1 stores only this salted 600,000-iteration PBKDF2 hash; the clear password is accepted transiently by the unlock endpoint and is never persisted.
 
+The Worker derives PBKDF2 keys with Cloudflare's native `node:crypto` implementation. The repository targets a compatibility date where Node.js compatibility is enabled by default; setup tooling uses the same algorithm and byte lengths, so generated and runtime hashes are interoperable.
+
 The Worker stores only SHA-256 hashes of opaque 256-bit session tokens in D1. Password-session reads rotate the token, and logout revokes the D1 row and clears the `__Host-cadrora-admin` cookie. Cookie attributes are `Path=/; HttpOnly; Secure; SameSite=Strict`; there is deliberately no `Domain` attribute. `SESSION_TTL_H` defaults to eight hours and accepts only 1 through 24.
 
 ### Published read-only demo

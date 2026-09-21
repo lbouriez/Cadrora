@@ -4,8 +4,6 @@ const PASSWORD_HASH_BYTES = 32;
 const PASSWORD_SALT_BYTES = 16;
 const BASE64URL = /^[A-Za-z0-9_-]+$/;
 
-const encoder = new TextEncoder();
-
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -35,13 +33,15 @@ function equalBytes(left: Uint8Array, right: Uint8Array): boolean {
 }
 
 async function derive(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
-  const material = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', iterations, salt },
-    material,
-    PASSWORD_HASH_BYTES * 8,
-  );
-  return new Uint8Array(bits);
+  return new Promise((resolve, reject) => {
+    pbkdf2(password, salt, iterations, PASSWORD_HASH_BYTES, 'sha256', (error, derived) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve(new Uint8Array(derived));
+    });
+  });
 }
 
 interface ParsedPasswordHash {
@@ -88,3 +88,4 @@ export async function verifyPassword(password: string, configuredHash: string | 
 }
 
 export const PASSWORD_HASH_FORMAT = `${PASSWORD_HASH_PREFIX}$${PASSWORD_HASH_ITERATIONS}$base64url-salt$base64url-derived-key`;
+import { pbkdf2 } from 'node:crypto';
