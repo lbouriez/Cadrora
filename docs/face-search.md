@@ -4,7 +4,7 @@ Face search is optional, event-scoped, and not an identity system. It is designe
 
 ## Data and access boundary
 
-The visitor consents, chooses or captures an image, and processes it in the browser. The raw image remains a browser `ImageBitmap`; it is not sent to the Worker. YuNet detects faces locally, the visitor selects one face, and SFace emits a 128-value finite, L2-normalized embedding. Only that embedding is posted to the search endpoint.
+The visitor consents, chooses or captures an image, and processes it in the browser. The raw image remains a browser `ImageBitmap`; it is not sent to the Worker. YuNet detects faces locally. A single face is selected automatically; when several real faces are present, numbered boxes on the photo let the visitor choose the intended one. SFace then emits a 128-value finite, L2-normalized embedding. Only that embedding is posted to the search endpoint.
 
 The Worker still independently checks event visibility, protected-event grant/version, event face-search enablement, active generation, expiry, and vector availability. A search never issues an event grant. Responses include bounded score, photo ID, revisioned thumbnail URL, moment, and capture time—not embeddings, coordinates, vector IDs, or identity claims.
 
@@ -37,6 +37,8 @@ On a browser exposing `navigator.mediaDevices.getUserMedia`, **Take a selfie** o
 ## Browser runtime compatibility
 
 The pinned YuNet artifact has a fixed `640 × 640` input. The browser must resize the selected image to that exact size before invoking the detector, and must scale the detected boxes and landmarks back to the original image dimensions. Do not change this to `320 × 320` merely to reduce client work: ONNX Runtime rejects that tensor shape and the visitor sees the feature-unavailable fallback.
+
+Each raw stride head uses the OpenCV `FaceDetectorYN` geometry: the first two box values are center offsets, and width and height are `exp(value) × stride`. They are not left, top, right, and bottom distances. Clamp class and object scores to `[0, 1]`, combine them with the square root, then apply IoU NMS after decoding all three stride heads. A one-person portrait must normally yield one selected face; repeated boxes around that person are a decoder or NMS regression, not additional people.
 
 The detector is initialized before SFace. SFace is downloaded and initialized only after a visitor selects a detected face and presses **Search this event**. This keeps ordinary face detection available if the larger recognition model cannot initialize, and avoids downloading the recognition model for a visitor who stops before searching.
 

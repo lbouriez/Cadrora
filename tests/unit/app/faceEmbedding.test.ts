@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { normalizeEmbedding } from '../../../src/browser/faces/embedding';
-import { canUseWebGpuRuntime, YUNET_INPUT_SIZE } from '../../../src/browser/faces/inference';
+import { canUseWebGpuRuntime, decodeYuNetHead, YUNET_INPUT_SIZE } from '../../../src/browser/faces/inference';
 import { FACE_MODEL_MANIFEST } from '../../../src/browser/faces/modelManifest';
 import { ModelManifestSchema } from '../../../src/shared/schemas';
 
@@ -42,5 +42,29 @@ describe('face embedding boundary', () => {
 
   it('uses the fixed input shape required by the pinned YuNet detector artifact', () => {
     expect(YUNET_INPUT_SIZE).toBe(640);
+  });
+
+  it('decodes YuNet center offsets and logarithmic box dimensions using OpenCV geometry', () => {
+    const stride = 8;
+    const columns = YUNET_INPUT_SIZE / stride;
+    const index = 5 * columns + 6;
+    const cls = new Float32Array(columns * columns);
+    const obj = new Float32Array(columns * columns);
+    const bbox = new Float32Array(columns * columns * 4);
+    const kps = new Float32Array(columns * columns * 10);
+    cls[index] = 0.81;
+    obj[index] = 1;
+    bbox.set([0.5, 0.25, Math.log(4), Math.log(6)], index * 4);
+    kps.set([5, 3, 8, 3, 6.5, 5, 5.25, 7, 7.75, 7], index * 10);
+
+    const faces = decodeYuNetHead({ bbox, cls, kps, obj, stride }, 640, 640);
+
+    expect(faces).toHaveLength(1);
+    expect(faces[0]?.score).toBeCloseTo(0.9);
+    expect(faces[0]?.box.x).toBeCloseTo(36);
+    expect(faces[0]?.box.y).toBeCloseTo(18);
+    expect(faces[0]?.box.width).toBeCloseTo(32);
+    expect(faces[0]?.box.height).toBeCloseTo(48);
+    expect(faces[0]?.landmarks[0]).toEqual({ x: 88, y: 64 });
   });
 });

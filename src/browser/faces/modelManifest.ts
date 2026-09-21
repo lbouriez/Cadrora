@@ -25,7 +25,7 @@ export const FACE_MODEL_MANIFEST = {
       immutableUrl: 'https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx',
       dimensions: 15,
       metric: 'cosine',
-      preprocessing: 'BGR NCHW float32 at 320x320; YuNet stride 8, 16, and 32 heads; score threshold 0.75; NMS IoU 0.3.',
+      preprocessing: 'BGR NCHW float32 at the pinned 640x640 input; YuNet stride 8, 16, and 32 heads decoded as center offsets plus exponential width/height; score threshold 0.75; NMS IoU 0.3.',
       sizeBudgetBytes: 250_000,
     },
     {

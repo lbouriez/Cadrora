@@ -151,10 +151,17 @@ export function FindPage() {
     }
   };
 
+  const selectFace = (index: number) => {
+    setSelected(index);
+    setEmbedding(null);
+    setMatches([]);
+    setRelated([]);
+  };
+
   return (
     <PublicLayout>
       <section className="face-find">
-        <Link to={`/e/${slug}`}>{t('faceFind.back')}</Link>
+        <Link className="button button--secondary face-find__back" to={`/e/${slug}`}>{t('faceFind.back')}</Link>
         <h1>{t('faceFind.title')}</h1>
         <p>{t('faceFind.privacy')}</p>
         <label className="face-find__consent">
@@ -177,21 +184,45 @@ export function FindPage() {
             <a download href="/demo/face-search/test-portrait-daniel.webp">{t('faceFind.testPortraitDaniel')}</a>
           </div>
         </aside>
-        {preview ? <img alt={t('faceFind.imageAlt')} className="face-find__preview" src={preview} /> : null}
+        {preview ? (
+          <div className="face-find__preview-stage">
+            <img alt={t('faceFind.imageAlt')} className="face-find__preview" src={preview} />
+            {image && faces.length > 0 ? (
+              <div aria-label={t('faceFind.detectedFaces')} className="face-find__face-overlay">
+                {faces.map((face, index) => (
+                  <button
+                    aria-label={t('faceFind.faceNumber', { number: index + 1 })}
+                    aria-pressed={selected === index}
+                    className="face-find__face-box"
+                    key={`${face.box.x}-${face.box.y}`}
+                    onClick={() => selectFace(index)}
+                    style={{
+                      height: `${Math.min(100, (face.box.height / image.height) * 100)}%`,
+                      left: `${Math.max(0, (face.box.x / image.width) * 100)}%`,
+                      top: `${Math.max(0, (face.box.y / image.height) * 100)}%`,
+                      width: `${Math.min(100, (face.box.width / image.width) * 100)}%`,
+                    }}
+                    type="button"
+                  >
+                    <span>{faces.length === 1 ? '✓' : index + 1}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {image ? <Button disabled={busy} onClick={() => void analyze()}>{t('faceFind.analyze')}</Button> : null}
         {busy ? <><Spinner label={t('faceFind.loadingModels')} /><p>{t('faceFind.loadingModels')}</p></> : null}
         {error ? <p role="alert">{error}</p> : null}
         {faces.length > 0 ? (
-          <fieldset className="face-find__faces">
-            <legend>{t('faceFind.chooseFace')}</legend>
-            {faces.map((face, index) => (
-              <label key={`${face.box.x}-${face.box.y}`}>
-                <input checked={selected === index} name="selected-face" onChange={() => { setSelected(index); setEmbedding(null); setMatches([]); }} type="radio" />
-                <span>{t('faceFind.faceNumber', { number: index + 1 })}</span>
-              </label>
-            ))}
+          <section aria-live="polite" className="face-find__faces">
+            <div>
+              <h2>{faces.length === 1 ? t('faceFind.oneFaceFound') : t('faceFind.facesFound', { count: faces.length })}</h2>
+              <p>{faces.length === 1 ? t('faceFind.oneFaceHelp') : t('faceFind.chooseFace')}</p>
+            </div>
+            {faces.length > 1 ? <p className="face-find__selected-face">{t('faceFind.selectedFace', { number: selected + 1 })}</p> : null}
             <Button disabled={busy} onClick={() => void runSearch()}>{t('faceFind.search')}</Button>
-          </fieldset>
+          </section>
         ) : null}
         {matches.length > 0 ? (
           <section>

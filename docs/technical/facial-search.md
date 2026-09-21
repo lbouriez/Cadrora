@@ -12,7 +12,7 @@ The public `/` and `/contact` showcase pages remain static and public. They do n
 
 ## Privacy and access boundary
 
-The visitor explicitly consents before choosing or capturing an image. The image remains a browser `ImageBitmap`; it is never included in an API request. YuNet detects candidate faces locally, the visitor selects the intended face, and SFace produces exactly 128 finite, L2-normalized values. Only that embedding is submitted.
+The visitor explicitly consents before choosing or capturing an image. The image remains a browser `ImageBitmap`; it is never included in an API request. YuNet detects candidate faces locally. One detected face is selected automatically; multiple faces are identified by numbered boxes positioned over the local preview so the visitor can choose the intended face. SFace produces exactly 128 finite, L2-normalized values. Only that embedding is submitted.
 
 The Worker independently checks event publication, protected-event grant/version, face-search opt-in, and whether an active generation remains before querying Vectorize. During the short interval between an individual expiry and its scheduled provider purge, Vectorize may still return that vector; the D1 result join filters it out before any response is built. Search never creates a grant. Responses contain photo IDs, revisioned thumbnail URLs, moments, timestamps, and bounded cosine scores; they never contain embeddings, face coordinates, vector IDs, or identity claims. UI copy consistently says “possible matches” and “nearby moment.”
 
@@ -37,6 +37,8 @@ node scripts/models/download.mjs
 The idempotent script reuses only checksum-valid files and writes `.artifacts/models/upload-manifest.json`. Upload those files to the exact `models/v1/...` keys in `MODELS_BUCKET`. `.artifacts/` is ignored.
 
 The find route dynamically imports `onnxruntime-web`. WASM is the default; WebGPU is opt-in and uses the package's JSPI entry only when both WebGPU and WebAssembly JSPI are available, otherwise it falls back to WASM. This keeps both emitted runtime binaries below Cloudflare's 25 MiB per-static-asset deployment limit; do not switch the WebGPU path back to the larger Asyncify entry without changing the hosting design. Vite resolves and emits the ONNX package WASM assets. Model responses are downloaded once, checked for size and SHA-256, then stored in a versioned browser Cache API cache before session creation. SFace input uses a least-squares affine transform across all five YuNet landmarks.
+
+The pinned YuNet model accepts `640 × 640` BGR NCHW float32 input. For each stride head, decode `bbox[0..1]` as center offsets and `bbox[2..3]` as logarithmic width and height, matching OpenCV `FaceDetectorYN`: `center=(cell+offset)×stride`, `size=exp(value)×stride`. Scale the resulting box and five landmarks back to the source bitmap, reject non-finite or empty boxes, and run IoU NMS across all heads. Unit coverage must preserve this formula; treating the four values as edge distances creates several false “faces” around one person.
 
 The build must contain the regular `ort-wasm-simd-threaded` binary and may contain the `jspi` binary, but no emitted static asset may exceed 26,214,400 bytes. WebGPU-capable browsers without JSPI intentionally use WASM; real-device JSPI/WebGPU behavior remains part of the wave-3 validation matrix.
 

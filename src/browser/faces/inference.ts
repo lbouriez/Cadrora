@@ -95,14 +95,74 @@ function overlap(left: DetectedFace, right: DetectedFace): number {
 
 function nms(faces: DetectedFace[], threshold = 0.3): DetectedFace[] {
   const selected: DetectedFace[] = [];
-  for (const face of faces.sort((left, right) => right.score - left.score)) {
+  for (const face of [...faces].sort((left, right) => right.score - left.score)) {
     if (selected.every((candidate) => overlap(face, candidate) < threshold)) selected.push(face);
   }
   return selected;
 }
 
+interface YuNetHead {
+  bbox: Float32Array;
+  cls: Float32Array;
+  kps: Float32Array;
+  obj: Float32Array;
+  stride: number;
+}
+
+/** Decode one raw YuNet feature-map head using OpenCV's FaceDetectorYN geometry. */
+export function decodeYuNetHead(
+  { bbox, cls, kps, obj, stride }: YuNetHead,
+  sourceWidth: number,
+  sourceHeight: number,
+  scoreThreshold = 0.75,
+): DetectedFace[] {
+  const columns = Math.ceil(YUNET_INPUT_SIZE / stride);
+  const rows = Math.ceil(YUNET_INPUT_SIZE / stride);
+  const candidateCount = Math.min(rows * columns, cls.length, obj.length, Math.floor(bbox.length / 4), Math.floor(kps.length / 10));
+  const scaleX = sourceWidth / YUNET_INPUT_SIZE;
+  const scaleY = sourceHeight / YUNET_INPUT_SIZE;
+  const found: DetectedFace[] = [];
+
+  for (let index = 0; index < candidateCount; index += 1) {
+    const classScore = Math.min(1, Math.max(0, cls[index] ?? 0));
+    const objectScore = Math.min(1, Math.max(0, obj[index] ?? 0));
+    const score = Math.sqrt(classScore * objectScore);
+    if (score < scoreThreshold) continue;
+
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const bboxOffset = index * 4;
+    const centerX = (column + (bbox[bboxOffset] ?? 0)) * stride;
+    const centerY = (row + (bbox[bboxOffset + 1] ?? 0)) * stride;
+    const boxWidth = Math.exp(bbox[bboxOffset + 2] ?? 0) * stride;
+    const boxHeight = Math.exp(bbox[bboxOffset + 3] ?? 0) * stride;
+    const left = Math.max(0, (centerX - boxWidth / 2) * scaleX);
+    const top = Math.max(0, (centerY - boxHeight / 2) * scaleY);
+    const right = Math.min(sourceWidth, (centerX + boxWidth / 2) * scaleX);
+    const bottom = Math.min(sourceHeight, (centerY + boxHeight / 2) * scaleY);
+    if (![left, top, right, bottom, score].every(Number.isFinite) || right <= left || bottom <= top) continue;
+
+    const landmarks: FaceLandmark[] = [];
+    for (let point = 0; point < 5; point += 1) {
+      const landmarkOffset = index * 10 + point * 2;
+      landmarks.push({
+        x: (column + (kps[landmarkOffset] ?? 0)) * stride * scaleX,
+        y: (row + (kps[landmarkOffset + 1] ?? 0)) * stride * scaleY,
+      });
+    }
+    if (!landmarks.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y))) continue;
+
+    found.push({
+      score,
+      box: { x: left, y: top, width: right - left, height: bottom - top },
+      landmarks,
+    });
+  }
+
+  return found;
+}
+
 function decodeYuNet(outputs: InferenceSession.OnnxValueMapType, sourceWidth: number, sourceHeight: number): DetectedFace[] {
-  const modelSize = YUNET_INPUT_SIZE;
   const found: DetectedFace[] = [];
   for (const stride of [8, 16, 32]) {
     const cls = floatData(outputs[`cls_${stride}`]);
@@ -110,40 +170,9 @@ function decodeYuNet(outputs: InferenceSession.OnnxValueMapType, sourceWidth: nu
     const bbox = floatData(outputs[`bbox_${stride}`]);
     const kps = floatData(outputs[`kps_${stride}`]);
     if (!cls || !obj || !bbox || !kps) continue;
-    const columns = Math.ceil(modelSize / stride);
-    for (let index = 0; index < cls.length; index += 1) {
-      const score = Math.sqrt(Math.max(0, (cls[index] ?? 0) * (obj[index] ?? 0)));
-      if (score < 0.75) continue;
-      const row = Math.floor(index / columns);
-      const column = index % columns;
-      const bboxOffset = index * 4;
-      const left = (column - (bbox[bboxOffset] ?? 0)) * stride;
-      const top = (row - (bbox[bboxOffset + 1] ?? 0)) * stride;
-      const right = (column + (bbox[bboxOffset + 2] ?? 0)) * stride;
-      const bottom = (row + (bbox[bboxOffset + 3] ?? 0)) * stride;
-      const scaleX = sourceWidth / modelSize;
-      const scaleY = sourceHeight / modelSize;
-      const landmarks: FaceLandmark[] = [];
-      for (let point = 0; point < 5; point += 1) {
-        const landmarkOffset = index * 10 + point * 2;
-        landmarks.push({
-          x: (column + (kps[landmarkOffset] ?? 0)) * stride * scaleX,
-          y: (row + (kps[landmarkOffset + 1] ?? 0)) * stride * scaleY,
-        });
-      }
-      found.push({
-        score,
-        box: {
-          x: Math.max(0, left * scaleX),
-          y: Math.max(0, top * scaleY),
-          width: Math.min(sourceWidth, right * scaleX) - Math.max(0, left * scaleX),
-          height: Math.min(sourceHeight, bottom * scaleY) - Math.max(0, top * scaleY),
-        },
-        landmarks,
-      });
-    }
+    found.push(...decodeYuNetHead({ bbox, cls, kps, obj, stride }, sourceWidth, sourceHeight));
   }
-  return nms(found).filter((face) => face.box.width > 0 && face.box.height > 0);
+  return nms(found);
 }
 
 function solve3(matrix: number[][], values: number[]): number[] {

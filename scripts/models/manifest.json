@@ -12,7 +12,7 @@
       "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
       ,"dimensions": 15,
       "metric": "cosine",
-      "preprocessing": "BGR NCHW float32 at 320x320; score 0.75; NMS IoU 0.3",
+      "preprocessing": "BGR NCHW float32 at the pinned 640x640 input; center-offset and exponential-size box decoding; score 0.75; NMS IoU 0.3",
       "sizeBudgetBytes": 250000
     },
     {
