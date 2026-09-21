@@ -38,7 +38,7 @@ export const FACE_MODEL_MANIFEST = {
       immutableUrl: 'https://github.com/opencv/opencv_zoo/raw/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx',
       dimensions: 128,
       metric: 'cosine',
-      preprocessing: 'Five-landmark affine alignment to 112x112, BGR NCHW float32 normalized with (pixel - 127.5) / 128; L2-normalized output.',
+      preprocessing: 'Five-landmark affine alignment to 112x112, RGB NCHW float32 with raw 0-255 pixels (OpenCV blobFromImage swapRB=true, scale=1); L2-normalized output.',
       sizeBudgetBytes: 39_000_000,
     },
   ] satisfies FaceModelAsset[],

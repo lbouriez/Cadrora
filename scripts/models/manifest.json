@@ -26,7 +26,7 @@
       "sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79"
       ,"dimensions": 128,
       "metric": "cosine",
-      "preprocessing": "Five-landmark affine 112x112 BGR; (pixel - 127.5) / 128; L2-normalized",
+      "preprocessing": "Five-landmark affine 112x112 RGB; raw 0-255 pixels (OpenCV swapRB=true, scale=1); L2-normalized output",
       "sizeBudgetBytes": 39000000
     }
   ]

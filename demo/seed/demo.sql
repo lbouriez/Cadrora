@@ -154,31 +154,6 @@ ON CONFLICT(photo_id, variant) DO UPDATE SET
   checksum_sha256 = excluded.checksum_sha256,
   created_at = excluded.created_at;
 
--- These calibration vectors exercise the complete Vectorize search path while
--- deliberately not representing a person's biometric embedding. The showcase
--- must never claim that a visitor selfie identifies either fictional guest.
-INSERT INTO face_partitions (id, event_id, generation, partition_number, face_count, created_at)
-VALUES ('demo-ai-face-partition-0', 'demo-ai-face-search', 0, 0, 10, '2026-09-21T00:00:00.000Z')
-ON CONFLICT(id) DO UPDATE SET face_count = excluded.face_count;
-
-INSERT INTO faces (id, event_id, photo_id, face_number, partition_id, vector_id, model_id, expires_at, created_at)
-VALUES
-  ('demo-ai-face-01', 'demo-ai-face-search', 'demo-ai-01', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-01', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-02', 'demo-ai-face-search', 'demo-ai-02', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-02', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-03', 'demo-ai-face-search', 'demo-ai-03', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-03', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-04', 'demo-ai-face-search', 'demo-ai-04', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-04', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-05', 'demo-ai-face-search', 'demo-ai-05', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-05', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-06', 'demo-ai-face-search', 'demo-ai-06', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-06', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-07', 'demo-ai-face-search', 'demo-ai-07', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-07', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-08', 'demo-ai-face-search', 'demo-ai-08', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-08', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-09', 'demo-ai-face-search', 'demo-ai-09', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-09', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z'),
-  ('demo-ai-face-10', 'demo-ai-face-search', 'demo-ai-10', 0, 'demo-ai-face-partition-0', 'demo-ai-face-search:0:demo-face-10', 'demo-calibration-v1', NULL, '2026-09-21T00:00:00.000Z')
-ON CONFLICT(id) DO UPDATE SET
-  partition_id = excluded.partition_id,
-  vector_id = excluded.vector_id,
-  model_id = excluded.model_id,
-  expires_at = excluded.expires_at;
-
 DELETE FROM usage_counters WHERE key = '__demo_seed_assertion__';
 
 INSERT INTO usage_counters (key, value, updated_at)

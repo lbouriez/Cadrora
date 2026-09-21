@@ -209,9 +209,9 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
     const rows = await this.database.prepare(
       `SELECT p.id AS photo_id, p.revision, p.captured_at, p.moment_id, f.vector_id
        FROM photos p JOIN faces f ON f.photo_id = p.id
-       WHERE p.event_id = ?1 AND p.state = 'published' AND f.vector_id IN (${placeholders})
-         AND (f.expires_at IS NULL OR f.expires_at > ?2)`,
-    ).bind(eventId, now, ...ids).all<SearchPhotoRow>();
+       WHERE p.event_id = ? AND p.state = 'published' AND f.vector_id IN (${placeholders})
+         AND (f.expires_at IS NULL OR f.expires_at > ?)`,
+    ).bind(eventId, ...ids, now).all<SearchPhotoRow>();
     const bestByPhoto = new Map<string, { row: SearchPhotoRow; score: number }>();
     for (const row of rows.results as Array<SearchPhotoRow & { vector_id: string }>) {
       const score = bestByVector.get(row.vector_id) ?? 0;

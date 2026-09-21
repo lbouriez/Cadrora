@@ -60,23 +60,33 @@ function canvasFor(width: number, height: number): HTMLCanvasElement {
   return canvas;
 }
 
-function imageTensorData(image: CanvasImageSource, width: number, height: number, normalize: boolean): Float32Array {
+export function rgbaToNchw(
+  pixels: ArrayLike<number>,
+  width: number,
+  height: number,
+  channelOrder: 'bgr' | 'rgb',
+): Float32Array {
+  const plane = width * height;
+  if (pixels.length !== plane * 4) throw new Error('IMAGE_PIXEL_DIMENSIONS');
+  const output = new Float32Array(plane * 3);
+  for (let index = 0; index < plane; index += 1) {
+    const offset = index * 4;
+    const red = pixels[offset] ?? 0;
+    const green = pixels[offset + 1] ?? 0;
+    const blue = pixels[offset + 2] ?? 0;
+    output[index] = channelOrder === 'rgb' ? red : blue;
+    output[plane + index] = green;
+    output[2 * plane + index] = channelOrder === 'rgb' ? blue : red;
+  }
+  return output;
+}
+
+function imageTensorData(image: CanvasImageSource, width: number, height: number, channelOrder: 'bgr' | 'rgb'): Float32Array {
   const canvas = canvasFor(width, height);
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('CANVAS_UNAVAILABLE');
   context.drawImage(image, 0, 0, width, height);
-  const pixels = context.getImageData(0, 0, width, height).data;
-  const plane = width * height;
-  const output = new Float32Array(plane * 3);
-  for (let index = 0; index < plane; index += 1) {
-    const offset = index * 4;
-    const scale = normalize ? 1 / 128 : 1;
-    const center = normalize ? 127.5 : 0;
-    output[index] = ((pixels[offset + 2] ?? 0) - center) * scale;
-    output[plane + index] = ((pixels[offset + 1] ?? 0) - center) * scale;
-    output[2 * plane + index] = ((pixels[offset] ?? 0) - center) * scale;
-  }
-  return output;
+  return rgbaToNchw(context.getImageData(0, 0, width, height).data, width, height, channelOrder);
 }
 
 function floatData(tensor: Tensor | undefined): Float32Array | null {
@@ -251,18 +261,18 @@ export class FaceInference {
     ort.env.logLevel = 'error';
 
     const yunetBytes = await verifiedModel(yunet);
-    const detector = await ort.InferenceSession.create(yunetBytes, { executionProviders });
+    const detector = await ort.InferenceSession.create(yunetBytes, { executionProviders, logSeverityLevel: 4 });
     let recognizer: Promise<InferenceSession> | null = null;
     const loadRecognizer = () => {
       recognizer ??= verifiedModel(sface)
-        .then((sfaceBytes) => ort.InferenceSession.create(sfaceBytes, { executionProviders }));
+        .then((sfaceBytes) => ort.InferenceSession.create(sfaceBytes, { executionProviders, logSeverityLevel: 4 }));
       return recognizer;
     };
     return new FaceInference(detector, ort.Tensor, loadRecognizer);
   }
 
   async detect(image: ImageBitmap): Promise<DetectedFace[]> {
-    const data = imageTensorData(image, YUNET_INPUT_SIZE, YUNET_INPUT_SIZE, false);
+    const data = imageTensorData(image, YUNET_INPUT_SIZE, YUNET_INPUT_SIZE, 'bgr');
     const input = new this.TensorConstructor('float32', data, [1, 3, YUNET_INPUT_SIZE, YUNET_INPUT_SIZE]);
     const outputs = await this.detector.run({ [this.detector.inputNames[0] ?? 'input']: input });
     return decodeYuNet(outputs, image.width, image.height);
@@ -270,7 +280,7 @@ export class FaceInference {
 
   async embed(image: ImageBitmap, face: DetectedFace): Promise<number[]> {
     const crop = alignedFace(image, face);
-    const data = imageTensorData(crop, 112, 112, true);
+    const data = imageTensorData(crop, 112, 112, 'rgb');
     const input = new this.TensorConstructor('float32', data, [1, 3, 112, 112]);
     const recognizer = await this.loadRecognizer();
     const outputs = await recognizer.run({ [recognizer.inputNames[0] ?? 'input']: input });

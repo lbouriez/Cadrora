@@ -69,6 +69,40 @@ describe('face search privacy and pagination', () => {
     });
   });
 
+  it('binds matched vector IDs to D1 without mixing numbered and anonymous placeholders', async () => {
+    const bind = vi.fn();
+    const statement = {
+      all: vi.fn().mockResolvedValue({ results: [{
+        captured_at: '2030-01-01T00:00:00.000Z',
+        moment_id: 'arrival',
+        photo_id: 'photo-1',
+        revision: 2,
+        vector_id: 'vector-1',
+      }] }),
+      bind,
+    };
+    bind.mockReturnValue(statement);
+    const prepare = vi.fn().mockReturnValue(statement);
+    const faceRepository = new D1FaceSearchRepository({ prepare } as unknown as D1Database);
+
+    await expect(faceRepository.resultsForMatches('event-1', [
+      { score: 0.8, vectorId: 'vector-1' },
+      { score: 0.7, vectorId: 'vector-2' },
+    ], '2030-01-02T00:00:00.000Z')).resolves.toEqual([expect.objectContaining({
+      photoId: 'photo-1',
+      score: 0.8,
+    })]);
+
+    expect(prepare).toHaveBeenCalledWith(expect.stringContaining('p.event_id = ?'));
+    expect(prepare.mock.calls[0]?.[0]).not.toContain('?1');
+    expect(bind).toHaveBeenCalledWith(
+      'event-1',
+      'vector-1',
+      'vector-2',
+      '2030-01-02T00:00:00.000Z',
+    );
+  });
+
   it('blocks search immediately when no unexpired generation remains', async () => {
     const faceRepository = repository({ currentGeneration: vi.fn().mockResolvedValue(null) });
     const query = vi.fn();

@@ -20,6 +20,7 @@ export function FindPage() {
   const [selected, setSelected] = useState(0);
   const [engine, setEngine] = useState<FaceInference | null>(null);
   const [embedding, setEmbedding] = useState<number[] | null>(null);
+  const [searchCompleted, setSearchCompleted] = useState(false);
   const [matches, setMatches] = useState<FaceSearchMatch[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [related, setRelated] = useState<RelatedPhoto[]>([]);
@@ -83,6 +84,7 @@ export function FindPage() {
       setMatches([]);
       setRelated([]);
       setEmbedding(null);
+      setSearchCompleted(false);
     } catch {
       URL.revokeObjectURL(nextPreview);
       setError(t('faceFind.unavailable'));
@@ -144,7 +146,9 @@ export function FindPage() {
         return [...deduplicated.values()].sort((left, right) => right.score - left.score);
       });
       setCursor(response.nextCursor);
+      setSearchCompleted(true);
     } catch {
+      setSearchCompleted(false);
       setError(t('faceFind.unavailable'));
     } finally {
       setBusy(false);
@@ -154,6 +158,7 @@ export function FindPage() {
   const selectFace = (index: number) => {
     setSelected(index);
     setEmbedding(null);
+    setSearchCompleted(false);
     setMatches([]);
     setRelated([]);
   };
@@ -237,7 +242,7 @@ export function FindPage() {
             </div>
             {cursor ? <Button disabled={busy} onClick={() => void runSearch(cursor)}>{t('faceFind.more')}</Button> : null}
           </section>
-        ) : embedding && !busy ? <p>{t('faceFind.noMatches')}</p> : null}
+        ) : searchCompleted && !busy ? <p>{t('faceFind.noMatches')}</p> : null}
         {related.length > 0 ? <section><h2>{t('faceFind.nearby')}</h2><div className="face-results">{related.map((photo) => <Link key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}`}><img alt={t('faceFind.matchAlt')} loading="lazy" src={photo.thumbnailUrl} /></Link>)}</div></section> : null}
       </section>
     </PublicLayout>

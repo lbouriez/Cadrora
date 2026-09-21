@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiException } from '../../../src/shared/errors/ApiError';
 import { ApiErrorSchema } from '../../../src/shared/schemas';
@@ -8,6 +8,10 @@ import { requestId } from '../../../src/server/middleware/requestId';
 import type { AppEnv } from '../../../src/server/types';
 
 describe('errorBoundary middleware', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('returns a stable API error without a stack', async () => {
     const app = new Hono<AppEnv>();
     app.use('*', requestId);
@@ -22,5 +26,25 @@ describe('errorBoundary middleware', () => {
     expect(response.status).toBe(403);
     expect(body.code).toBe('NOPE');
     expect(JSON.stringify(body)).not.toContain('stack');
+  });
+
+  it('logs safe diagnostics for unexpected errors without exposing a stack', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const app = new Hono<AppEnv>();
+    app.use('*', requestId);
+    app.onError(errorBoundary);
+    app.get('/test', () => {
+      throw new Error('database mapping failed');
+    });
+
+    const response = await app.request('/test', { headers: { 'x-request-id': 'error-test' } });
+
+    expect(response.status).toBe(500);
+    expect(log).toHaveBeenCalledWith('cadrora_unhandled_request_error', {
+      errorMessage: 'database mapping failed',
+      errorName: 'Error',
+      requestId: 'error-test',
+    });
+    expect(JSON.stringify(log.mock.calls)).not.toContain('stack');
   });
 });

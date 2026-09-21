@@ -3,8 +3,13 @@ import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 
 import { runWrangler } from '../release/target.mjs';
+import { buildDemoFaceIndex } from './faceVectors.mjs';
 
 const mediaDirectory = 'demo/seed/media';
+const legacyCalibrationVectorIds = Array.from(
+  { length: 10 },
+  (_, index) => `demo-ai-face-search:0:demo-face-${String(index + 1).padStart(2, '0')}`,
+);
 const objectKeyByFile = new Map([
   ['public-dance-thumb.webp', 'demo/public/dance/1/thumb.webp'],
   ['public-dance-medium.webp', 'demo/public/dance/1/medium.webp'],
@@ -42,20 +47,36 @@ function faceIndexName(target) {
   return target.cloudflareEnv ? 'cadrora-preview-face-index' : 'cadrora-face-index';
 }
 
-export async function seedFaceSearchDemo(target) {
+export async function seedFaceSearchDemo(target, configPath, environment = process.env) {
   const directory = '.artifacts/demo';
   const vectorFile = join(directory, 'ai-face-search-vectors.ndjson');
-  const namespace = 'face:demo-ai-face-search:generation:0';
-  const partitionId = 'demo-ai-face-partition-0';
-  const vectors = Array.from({ length: 10 }, (_, index) => ({
-    id: `demo-ai-face-search:0:demo-face-${String(index + 1).padStart(2, '0')}`,
-    namespace,
-    values: Array.from({ length: 128 }, (_, dimension) => (dimension === index ? 1 : 0)),
-    metadata: { partition_id: partitionId },
-  }));
+  const sqlFile = join(directory, 'ai-face-search-records.sql');
+  const generated = await buildDemoFaceIndex({
+    mediaDirectory,
+    modelDirectory: '.artifacts/models',
+    portraitDirectory: 'public/demo/face-search',
+  });
   await mkdir(directory, { recursive: true });
-  await writeFile(vectorFile, `${vectors.map((vector) => JSON.stringify(vector)).join('\n')}\n`, 'utf8');
-  runWrangler(['vectorize', 'upsert', faceIndexName(target), '--file', vectorFile]);
+  await writeFile(vectorFile, generated.vectors, 'utf8');
+  await writeFile(sqlFile, generated.sql, 'utf8');
+  const summary = Object.entries(generated.portraitMatches)
+    .map(([name, matches]) => `${name}: ${matches.length} matches, best ${matches[0].score.toFixed(3)}`)
+    .join('; ');
+  const skipped = generated.photosWithoutFaces.length > 0
+    ? `; no clear face in ${generated.photosWithoutFaces.join(', ')}`
+    : '';
+  process.stdout.write(`Generated ${generated.faceCount} fictional demo face embeddings (${summary}${skipped}).\n`);
+  // Remove the non-biometric vectors used by showcase releases before real
+  // gallery-derived embeddings were available. Missing IDs are harmless, so
+  // this remains safe and idempotent for fresh deployments and redeployments.
+  runWrangler([
+    'vectorize', 'delete-vectors', faceIndexName(target), '--ids', ...legacyCalibrationVectorIds,
+  ], environment);
+  runWrangler(['vectorize', 'upsert', faceIndexName(target), '--file', vectorFile], environment);
+  runWrangler([
+    'd1', 'execute', 'DB', '--remote', '--file', sqlFile,
+    '--config', configPath, ...target.migrationArgs,
+  ], environment);
 }
 
 function syncFaceModels(target, configPath, environment) {
@@ -105,5 +126,5 @@ export async function seedDemoContent(target, configPath, environment = process.
     'd1', 'execute', 'DB', '--remote', '--file', 'demo/seed/demo.sql',
     '--config', configPath, ...target.migrationArgs,
   ], environment);
-  await seedFaceSearchDemo(target);
+  await seedFaceSearchDemo(target, configPath, environment);
 }

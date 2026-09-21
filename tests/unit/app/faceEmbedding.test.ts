@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { normalizeEmbedding } from '../../../src/browser/faces/embedding';
-import { canUseWebGpuRuntime, decodeYuNetHead, YUNET_INPUT_SIZE } from '../../../src/browser/faces/inference';
+import { canUseWebGpuRuntime, decodeYuNetHead, rgbaToNchw, YUNET_INPUT_SIZE } from '../../../src/browser/faces/inference';
 import { FACE_MODEL_MANIFEST } from '../../../src/browser/faces/modelManifest';
 import { ModelManifestSchema } from '../../../src/shared/schemas';
 
@@ -42,6 +42,13 @@ describe('face embedding boundary', () => {
 
   it('uses the fixed input shape required by the pinned YuNet detector artifact', () => {
     expect(YUNET_INPUT_SIZE).toBe(640);
+  });
+
+  it('feeds YuNet as BGR and SFace as raw RGB without pixel normalization', () => {
+    const pixel = new Uint8ClampedArray([10, 20, 30, 255]);
+
+    expect([...rgbaToNchw(pixel, 1, 1, 'bgr')]).toEqual([30, 20, 10]);
+    expect([...rgbaToNchw(pixel, 1, 1, 'rgb')]).toEqual([10, 20, 30]);
   });
 
   it('decodes YuNet center offsets and logarithmic box dimensions using OpenCV geometry', () => {

@@ -14,5 +14,11 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
     );
   }
 
+  console.error('cadrora_unhandled_request_error', {
+    errorMessage: error instanceof Error ? error.message : 'Unknown error',
+    errorName: error instanceof Error ? error.name : typeof error,
+    requestId: context.get('requestId'),
+  });
+
   return apiErrorResponse(context, 500, 'INTERNAL_ERROR', 'errors.internal');
 };
