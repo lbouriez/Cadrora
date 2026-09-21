@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
 import { Button, Carousel, Spinner } from '../components';
-import { saveFaceSearchResults } from './faceSearchSession';
+import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
 import { PublicLayout } from './PublicLayout';
 
@@ -14,6 +14,7 @@ type RelatedPhoto = Awaited<ReturnType<typeof getRelatedPhotos>>['photos'][numbe
 export function FindPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const { t } = useTranslation();
+  const restoredResults = useMemo(() => readFaceSearchResults(slug), [slug]);
   const [consent, setConsent] = useState(false);
   const [image, setImage] = useState<ImageBitmap | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -21,10 +22,12 @@ export function FindPage() {
   const [selected, setSelected] = useState(0);
   const [engine, setEngine] = useState<FaceInference | null>(null);
   const [embedding, setEmbedding] = useState<number[] | null>(null);
-  const [searchCompleted, setSearchCompleted] = useState(false);
-  const [matches, setMatches] = useState<FaceSearchMatch[]>([]);
+  const [searchCompleted, setSearchCompleted] = useState(restoredResults.matchedPhotos.length > 0);
+  const [matches, setMatches] = useState<FaceSearchMatch[]>(() => (
+    restoredResults.matchedPhotos.map((photo) => ({ ...photo, score: 0 }))
+  ));
   const [cursor, setCursor] = useState<string | null>(null);
-  const [related, setRelated] = useState<RelatedPhoto[]>([]);
+  const [related, setRelated] = useState<RelatedPhoto[]>(restoredResults.nearbyPhotos);
   const [relatedBusy, setRelatedBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -146,7 +149,7 @@ export function FindPage() {
       }
       const nextMatches = [...deduplicated.values()].sort((left, right) => right.score - left.score);
       setMatches(nextMatches);
-      saveFaceSearchResults(slug, nextMatches.map((match) => match.photoId));
+      saveFaceSearchResults(slug, nextMatches, related);
       setCursor(response.nextCursor);
       setSearchCompleted(true);
       setRelatedBusy(true);
@@ -161,7 +164,9 @@ export function FindPage() {
                 if (!matchIds.has(candidate.photoId)) deduplicatedRelated.set(candidate.photoId, candidate);
               }
             }
-            return [...deduplicatedRelated.values()];
+            const nextRelated = [...deduplicatedRelated.values()];
+            saveFaceSearchResults(slug, nextMatches, nextRelated);
+            return nextRelated;
           });
         })
         .finally(() => setRelatedBusy(false));
@@ -248,7 +253,7 @@ export function FindPage() {
           </section>
         ) : null}
         {matches.length > 0 ? (
-          <section className="face-find__results">
+          <section className="face-find__results" id="face-search-results">
             <div className="face-find__results-heading">
               <div>
                 <h2>{t('faceFind.possibleMatches')}</h2>
@@ -259,7 +264,7 @@ export function FindPage() {
             <p>{t('faceFind.possibleHelp')}</p>
             <Carousel className="face-results-carousel" label={t('faceFind.possibleMatches')} nextLabel={t('faceFind.nextResult')} previousLabel={t('faceFind.previousResult')}>
               {matches.map((match) => (
-                <Link className="face-result" key={match.photoId} to={`/e/${slug}/photo/${match.photoId}?view=matches`}>
+                <Link className="face-result" key={match.photoId} to={`/e/${slug}/photo/${match.photoId}?view=matches&return=find`}>
                   <img alt={t('faceFind.matchAlt')} loading="lazy" src={match.thumbnailUrl} />
                   <span>{t('faceFind.openMatch')}</span>
                 </Link>
@@ -275,7 +280,7 @@ export function FindPage() {
             <p>{t('faceFind.nearbyFound', { count: related.length })}</p>
             <Carousel className="face-results-carousel" label={t('faceFind.nearby')} nextLabel={t('faceFind.nextNearby')} previousLabel={t('faceFind.previousNearby')}>
               {related.map((photo) => (
-                <Link className="face-result" key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}`}>
+                <Link className="face-result" key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}?view=matches&return=find`}>
                   <img alt={t('faceFind.nearbyAlt')} loading="lazy" src={photo.thumbnailUrl} />
                   <span>{t('faceFind.openNearby')}</span>
                 </Link>

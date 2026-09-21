@@ -105,4 +105,4 @@ Gallery links never acquire browser-default underlines or layout-changing hover 
 - Variant widths are 480, 960, 1600, 2560, and 3840 pixels, without upscaling. WebP is used only after runtime encoding and MIME verification; otherwise use JPEG.
 - A visitor selfie remains local. The Worker receives an embedding only and never returns embeddings or face coordinates.
 - Models load only on the find route. Facial search is disabled by default, event-scoped, expiring, and described as possible matches rather than identity confidence.
-- Search and related-photo calls remain bound to the current event. The gallery's **Found for me** filter can contain only photo IDs returned as direct matches for that same event; nearby-moment photos remain a separate contextual collection.
+- Search and related-photo calls remain bound to the current event. The gallery's **Found for me** view may contain both direct matches and same-event nearby photos, but they must render as separate labelled groups. Session persistence is limited to sanitized event-photo references and must omit selfies, embeddings, scores, and vector IDs.

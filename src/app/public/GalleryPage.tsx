@@ -14,6 +14,37 @@ import { readFaceSearchResults } from './faceSearchSession';
 import { PhotoViewer } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
+import type { PublicPhoto } from '../../shared/schemas/gallery';
+
+interface GalleryPhotoGridProps {
+  photos: PublicPhoto[];
+  slug: string;
+  viewerQuery: string;
+}
+
+function GalleryPhotoGrid({ photos, slug, viewerQuery }: GalleryPhotoGridProps) {
+  return (
+    <div className="photo-grid">
+      {photos.map((photo) => {
+        const sources = [...photo.sources].sort((left, right) => left.width - right.width);
+        const fallback = sources[0];
+        return (
+          <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
+            <img
+              alt={photo.filename}
+              height={photo.height}
+              loading="lazy"
+              sizes="(max-width: 40rem) 50vw, (max-width: 70rem) 33vw, 25vw"
+              src={fallback?.url}
+              srcSet={sources.map((source) => `${source.url} ${source.width}w`).join(', ')}
+              width={photo.width}
+            />
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 export function GalleryPage() {
   const { slug = '', photoId } = useParams<{ slug: string; photoId?: string }>();
@@ -49,16 +80,36 @@ export function GalleryPage() {
     },
   });
   const allPhotos = useMemo(() => photos.data?.pages.flatMap((page) => page.photos) ?? [], [photos.data]);
-  const matchedPhotoIds = useMemo(() => readFaceSearchResults(slug), [slug]);
-  const matchesView = searchParams.get('view') === 'matches' && matchedPhotoIds.length > 0;
+  const searchResults = useMemo(() => readFaceSearchResults(slug), [slug]);
+  const matchedPhotoIds = searchResults.matchedPhotoIds;
+  const nearbyPhotoIds = useMemo(() => {
+    const matched = new Set(matchedPhotoIds);
+    return searchResults.nearbyPhotoIds.filter((id) => !matched.has(id));
+  }, [matchedPhotoIds, searchResults.nearbyPhotoIds]);
+  const foundPhotoIds = useMemo(() => [...matchedPhotoIds, ...nearbyPhotoIds], [matchedPhotoIds, nearbyPhotoIds]);
+  const matchesView = searchParams.get('view') === 'matches' && foundPhotoIds.length > 0;
+  const photosById = useMemo(() => new Map(allPhotos.map((photo) => [photo.id, photo])), [allPhotos]);
+  const matchedPhotos = useMemo(() => matchedPhotoIds.flatMap((id) => {
+    const photo = photosById.get(id);
+    return photo ? [photo] : [];
+  }), [matchedPhotoIds, photosById]);
+  const nearbyPhotos = useMemo(() => nearbyPhotoIds.flatMap((id) => {
+    const photo = photosById.get(id);
+    return photo ? [photo] : [];
+  }), [nearbyPhotoIds, photosById]);
   const visiblePhotos = useMemo(() => {
     if (!matchesView) return allPhotos;
     const byId = new Map(allPhotos.map((photo) => [photo.id, photo]));
-    return matchedPhotoIds.flatMap((id) => {
+    return foundPhotoIds.flatMap((id) => {
       const photo = byId.get(id);
       return photo ? [photo] : [];
     });
-  }, [allPhotos, matchedPhotoIds, matchesView]);
+  }, [allPhotos, foundPhotoIds, matchesView]);
+  const returnToFind = searchParams.get('return') === 'find';
+  const viewerSearch = new URLSearchParams();
+  if (matchesView) viewerSearch.set('view', 'matches');
+  if (returnToFind) viewerSearch.set('return', 'find');
+  const viewerQuery = viewerSearch.size > 0 ? `?${viewerSearch.toString()}` : '';
   const selected = photoId ? allPhotos.find((photo) => photo.id === photoId) : undefined;
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
@@ -96,9 +147,9 @@ export function GalleryPage() {
   }, [allPhotos, fetchNextPage, hasNextPage, isFetchingNextPage, photoId, selected]);
 
   useEffect(() => {
-    if (!matchesView || visiblePhotos.length >= matchedPhotoIds.length || !hasNextPage || isFetchingNextPage) return;
+    if (!matchesView || visiblePhotos.length >= foundPhotoIds.length || !hasNextPage || isFetchingNextPage) return;
     void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, matchedPhotoIds.length, matchesView, visiblePhotos.length]);
+  }, [fetchNextPage, foundPhotoIds.length, hasNextPage, isFetchingNextPage, matchesView, visiblePhotos.length]);
 
   useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
@@ -124,11 +175,11 @@ export function GalleryPage() {
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
         {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
-        {matchedPhotoIds.length > 0 ? (
+        {foundPhotoIds.length > 0 ? (
           <div aria-label={t('gallery.photoFilter.label')} className="gallery-filter" role="group">
             <button aria-pressed={!matchesView} onClick={() => setSearchParams({})} type="button">{t('gallery.photoFilter.all')}</button>
             <button aria-pressed={matchesView} onClick={() => setSearchParams({ view: 'matches' })} type="button">
-              {t('gallery.photoFilter.matches', { count: matchedPhotoIds.length })}
+              {t('gallery.photoFilter.matches', { count: foundPhotoIds.length })}
             </button>
           </div>
         ) : null}
@@ -141,34 +192,39 @@ export function GalleryPage() {
       {photos.isPending ? <Spinner label={t('gallery.loading')} /> : null}
       {!accessRequired && photos.isError ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photos.isSuccess && allPhotos.length === 0 ? <p>{t('gallery.empty')}</p> : null}
-      {matchesView ? <p className="gallery-filter__summary">{t('gallery.photoFilter.summary', { count: matchedPhotoIds.length })}</p> : null}
-      {matchesView && photos.hasNextPage && visiblePhotos.length < matchedPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
-      <div className="photo-grid">
-        {visiblePhotos.map((photo) => {
-          const sources = [...photo.sources].sort((left, right) => left.width - right.width);
-          const fallback = sources[0];
-          return (
-            <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${event.data.slug}/photo/${photo.id}${matchesView ? '?view=matches' : ''}`}>
-              <img
-                alt={photo.filename}
-                height={photo.height}
-                loading="lazy"
-                sizes="(max-width: 40rem) 50vw, (max-width: 70rem) 33vw, 25vw"
-                src={fallback?.url}
-                srcSet={sources.map((source) => `${source.url} ${source.width}w`).join(', ')}
-                width={photo.width}
-              />
-            </Link>
-          );
-        })}
-      </div>
+      {matchesView ? (
+        <>
+          <p className="gallery-filter__summary">{t('gallery.photoFilter.summary', { matchCount: matchedPhotoIds.length, nearbyCount: nearbyPhotoIds.length })}</p>
+          <section aria-labelledby="gallery-matches-heading" className="gallery-found-group">
+            <div className="gallery-found-group__heading">
+              <h2 id="gallery-matches-heading">{t('gallery.photoFilter.matchesHeading')}</h2>
+              <span>{matchedPhotoIds.length}</span>
+            </div>
+            <p>{t('gallery.photoFilter.matchesHelp')}</p>
+            <GalleryPhotoGrid photos={matchedPhotos} slug={event.data.slug} viewerQuery={viewerQuery} />
+          </section>
+          {nearbyPhotoIds.length > 0 ? (
+            <section aria-labelledby="gallery-nearby-heading" className="gallery-found-group gallery-found-group--nearby">
+              <div className="gallery-found-group__heading">
+                <h2 id="gallery-nearby-heading">{t('gallery.photoFilter.nearbyHeading')}</h2>
+                <span>{nearbyPhotoIds.length}</span>
+              </div>
+              <p>{t('gallery.photoFilter.nearbyHelp')}</p>
+              <GalleryPhotoGrid photos={nearbyPhotos} slug={event.data.slug} viewerQuery={viewerQuery} />
+            </section>
+          ) : null}
+        </>
+      ) : <GalleryPhotoGrid photos={allPhotos} slug={event.data.slug} viewerQuery={viewerQuery} />}
+      {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
       {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
       {photoId && !selected && !photos.hasNextPage && !photos.isPending ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photoId && selected ? (
         <PhotoViewer
-          onClose={() => { void navigate(`/e/${event.data.slug}${matchesView ? '?view=matches' : ''}`); }}
-          onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}${matchesView ? '?view=matches' : ''}`); }}
+          onClose={() => {
+            void navigate(returnToFind ? `/e/${event.data.slug}/find#face-search-results` : `/e/${event.data.slug}${matchesView ? '?view=matches' : ''}`);
+          }}
+          onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}${viewerQuery}`); }}
           photo={selected}
           photos={matchesView ? visiblePhotos : allPhotos}
           showMetadata={event.data.showPhotoMetadata}

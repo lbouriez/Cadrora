@@ -117,16 +117,13 @@
 .carousel__arrow {
   position: absolute;
   z-index: 2;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.carousel__arrow:not(:disabled):hover {
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  margin-block: auto;
 }
 
 .carousel__arrow:not(:disabled):active {
-  transform: translateY(-50%) scale(0.94);
+  transform: scale(0.94);
 }
 
 .carousel__arrow--previous { left: 0; }
