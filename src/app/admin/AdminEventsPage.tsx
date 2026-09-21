@@ -65,6 +65,7 @@ export function AdminEventsPage() {
         ? values.get('description')
         : null,
       faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
+      showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       password: access === 'protected' ? values.get('password') : undefined,
       retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
@@ -102,6 +103,7 @@ export function AdminEventsPage() {
             <legend>{t('admin.events.options')}</legend>
             <label><input name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
             <label><input name="faceSearchEnabled" type="checkbox" /> {t('admin.events.faceSearch')}</label>
+            <label><input name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
             <label><input name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
           </fieldset>
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
@@ -190,6 +192,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       allowDownloads: values.get('allowDownloads') === 'on',
       description: formString(values, 'description').trim() || null,
       faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
+      showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       ...(password ? { password } : {}),
       retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
@@ -243,6 +246,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
           <legend>{t('admin.events.options')}</legend>
           <label><input defaultChecked={event.allowDownloads} name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
           <label><input defaultChecked={event.faceSearchEnabled} name="faceSearchEnabled" type="checkbox" /> {t('admin.events.faceSearch')}</label>
+          <label><input defaultChecked={event.showPhotoMetadata} name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
           <label><input defaultChecked={event.keepOriginals} name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
         </fieldset>
         {update.isError ? <p role="alert">{t('admin.events.updateError')}</p> : null}

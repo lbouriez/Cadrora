@@ -1,15 +1,17 @@
 import useEmblaCarousel from 'embla-carousel-react';
-import { useEffect } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
-import { IconButton, Modal } from '../components';
+import { ChevronLeftIcon, ChevronRightIcon, IconButton, InfoIcon, Modal } from '../components';
 
 interface PhotoViewerProps {
   onClose: () => void;
   onSelect: (photo: PublicPhoto) => void;
   photo: PublicPhoto;
   photos: PublicPhoto[];
+  showMetadata: boolean;
+  timezone: string;
 }
 
 function imageAttributes(photo: PublicPhoto) {
@@ -21,12 +23,25 @@ function imageAttributes(photo: PublicPhoto) {
   };
 }
 
-export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerProps) {
-  const { t } = useTranslation();
+function formatCapturedAt(value: string | null, language: string, timezone: string): string | null {
+  if (!value) return null;
+  try {
+    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'short', timeZone: timezone }).format(new Date(value));
+  } catch {
+    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));
+  }
+}
+
+export function PhotoViewer({ onClose, onSelect, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
+  const { i18n, t } = useTranslation();
+  const metadataId = useId();
+  const [metadataState, setMetadataState] = useState({ open: false, photoId: photo.id });
+  const metadataOpen = metadataState.photoId === photo.id && metadataState.open;
   const index = photos.findIndex((candidate) => candidate.id === photo.id);
   const previous = index > 0 ? photos[index - 1] : undefined;
   const next = index >= 0 ? photos[index + 1] : undefined;
   const [carouselRef, carousel] = useEmblaCarousel({ align: 'center', loop: false });
+  const capturedAt = formatCapturedAt(photo.capturedAt, i18n.language, timezone);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -70,12 +85,33 @@ export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerPro
             })}
           </div>
         </div>
-        <IconButton aria-label={t('gallery.previousPhoto')} className="photo-viewer__arrow photo-viewer__arrow--previous" disabled={!previous} onClick={() => carousel?.scrollPrev()}>←</IconButton>
-        <IconButton aria-label={t('gallery.nextPhoto')} className="photo-viewer__arrow photo-viewer__arrow--next" disabled={!next} onClick={() => carousel?.scrollNext()}>→</IconButton>
+        <IconButton aria-label={t('gallery.previousPhoto')} className="photo-viewer__arrow photo-viewer__arrow--previous" disabled={!previous} onClick={() => carousel?.scrollPrev()}><ChevronLeftIcon /></IconButton>
+        <IconButton aria-label={t('gallery.nextPhoto')} className="photo-viewer__arrow photo-viewer__arrow--next" disabled={!next} onClick={() => carousel?.scrollNext()}><ChevronRightIcon /></IconButton>
+        {showMetadata && metadataOpen ? (
+          <aside className="photo-viewer__metadata" id={metadataId}>
+            <h3>{t('gallery.metadata.title')}</h3>
+            <dl>
+              <div><dt>{t('gallery.metadata.filename')}</dt><dd>{photo.filename}</dd></div>
+              {capturedAt ? <div><dt>{t('gallery.metadata.capturedAt')}</dt><dd>{capturedAt}</dd></div> : null}
+              <div><dt>{t('gallery.metadata.dimensions')}</dt><dd>{t('gallery.metadata.dimensionsValue', { width: photo.width, height: photo.height })}</dd></div>
+            </dl>
+          </aside>
+        ) : null}
         <div className="photo-viewer__controls">
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__progress">
             <span style={{ width: `${((index + 1) / photos.length) * 100}%` }} />
           </div>
+          {showMetadata ? (
+            <IconButton
+              aria-controls={metadataId}
+              aria-expanded={metadataOpen}
+              aria-label={metadataOpen ? t('gallery.metadata.hide') : t('gallery.metadata.show')}
+              className="photo-viewer__info"
+              onClick={() => setMetadataState({ open: !metadataOpen, photoId: photo.id })}
+            >
+              <InfoIcon />
+            </IconButton>
+          ) : null}
           {photo.downloadUrl ? <a className="photo-viewer__download" download href={photo.downloadUrl}>{t('gallery.download')} <span aria-hidden="true">↓</span></a> : null}
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {

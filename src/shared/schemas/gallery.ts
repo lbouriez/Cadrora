@@ -15,6 +15,7 @@ export const PublicEventSchema = EventSchema.pick({
   access: true,
   allowDownloads: true,
   faceSearchEnabled: true,
+  showPhotoMetadata: true,
   retentionDays: true,
   revision: true,
   updatedAt: true,
@@ -65,6 +66,7 @@ export const CreateEventRequestSchema = z.object({
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().default(false),
   faceSearchEnabled: z.boolean().default(false),
+  showPhotoMetadata: z.boolean().default(false),
   keepOriginals: z.boolean().default(false),
   retentionDays: z.number().int().positive().nullable().default(null),
 }).superRefine((value, context) => {
@@ -84,6 +86,7 @@ export const UpdateEventRequestSchema = z.object({
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().optional(),
   faceSearchEnabled: z.boolean().optional(),
+  showPhotoMetadata: z.boolean().optional(),
   keepOriginals: z.boolean().optional(),
   retentionDays: z.number().int().positive().nullable().optional(),
 }).refine((value) => Object.keys(value).length > 0, { message: 'at least one field is required' });

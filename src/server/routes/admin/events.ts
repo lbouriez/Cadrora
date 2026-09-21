@@ -91,14 +91,15 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     const eventStatement = context.env.DB.prepare(
       `INSERT INTO events (
         id, slug, title, description, starts_at, timezone, cover_photo_id,
-        visibility, access, allow_downloads, face_search_enabled, keep_originals,
-        retention_days, revision, created_at, updated_at
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, 0, ?13, ?13)`,
+        visibility, access, allow_downloads, face_search_enabled, show_photo_metadata,
+        keep_originals, retention_days, revision, created_at, updated_at
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, 0, ?14, ?14)`,
     ).bind(
       id, slug, input.data.title, input.data.description ?? null, input.data.startsAt,
       input.data.timezone, input.data.visibility, input.data.access,
       Number(input.data.allowDownloads), Number(input.data.faceSearchEnabled),
-      Number(input.data.keepOriginals), input.data.retentionDays, now,
+      Number(input.data.showPhotoMetadata), Number(input.data.keepOriginals),
+      input.data.retentionDays, now,
     );
     const statements: D1PreparedStatement[] = [eventStatement];
     if (input.data.access === 'protected' && input.data.password) {
@@ -140,6 +141,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.access !== undefined) add('access', input.data.access);
     if (input.data.allowDownloads !== undefined) add('allow_downloads', Number(input.data.allowDownloads));
     if (input.data.faceSearchEnabled !== undefined) add('face_search_enabled', Number(input.data.faceSearchEnabled));
+    if (input.data.showPhotoMetadata !== undefined) add('show_photo_metadata', Number(input.data.showPhotoMetadata));
     if (input.data.keepOriginals !== undefined) add('keep_originals', Number(input.data.keepOriginals));
     if (input.data.retentionDays !== undefined) add('retention_days', input.data.retentionDays);
     const now = new Date().toISOString();

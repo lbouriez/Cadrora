@@ -17,7 +17,7 @@ The official Cadrora showcase also exposes a clearly labelled **demo** sign-in w
 
 ## Admin UI
 
-The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/events/:eventId/import`. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists events and, for an owner, starts with **New event**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, and originals. **Import photos** opens the browser import and publication workspace.
+The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/events/:eventId/import`. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists events and, for an owner, starts with **New event**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, viewer metadata, and originals. The viewer-metadata choice is per gallery, defaults off, and reveals only filename, capture time, and dimensions. **Import photos** opens the browser import and publication workspace.
 
 **Site settings** controls the public colour policy: choose light, dark, or let each visitor choose. The latter shows the Light / Dark switch in the public header and remembers each visitor preference locally; a fixed choice removes that switch. The choice is stored in D1 and is not a build variable.
 
@@ -35,7 +35,7 @@ The live admin API can create, list, and update events. An event has a stable sl
 - A protected event needs a password. Updating that password increments the access version and invalidates existing event grants.
 - Setting access to public removes its event credential.
 
-Create an event before declaring an import. Event creation accepts title, optional slug/description, start time, timezone, visibility, access, downloads, face-search choice, originals choice, and an optional retention period. Leave retention empty to select **unlimited** retention; this stores `NULL` rather than a hidden default expiry. The server creates a slug from the title if no valid slug is supplied; it resolves collisions by adding a suffix.
+Create an event before declaring an import. Event creation accepts title, optional slug/description, start time, timezone, visibility, access, downloads, face-search choice, viewer-metadata choice, originals choice, and an optional retention period. Leave retention empty to select **unlimited** retention; this stores `NULL` rather than a hidden default expiry. The server creates a slug from the title if no valid slug is supplied; it resolves collisions by adding a suffix.
 
 ## Import and publication sequence
 

@@ -57,7 +57,17 @@
   transition: transform var(--motion-fast) var(--motion-spring), background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 
-.icon-button:not(:disabled):hover { transform: translateY(-0.0625rem); }
+.icon-button > svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.icon-button:not(:disabled):hover { background-color: var(--color-surface-raised); }
 .icon-button:not(:disabled):active { transform: scale(0.94); }
 
 .icon-button:disabled {
@@ -81,6 +91,49 @@
   border: 0;
   background: var(--color-danger);
   color: var(--color-primary-contrast);
+}
+
+.carousel {
+  position: relative;
+  padding: 0 calc(var(--control-min-size) + var(--space-2));
+}
+
+.carousel__viewport {
+  overflow: hidden;
+}
+
+.carousel__container {
+  display: flex;
+  margin-left: calc(-1 * var(--space-3));
+  touch-action: pan-y pinch-zoom;
+}
+
+.carousel__slide {
+  min-width: 0;
+  flex: 0 0 min(72vw, 17rem);
+  padding-left: var(--space-3);
+}
+
+.carousel__arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.carousel__arrow:not(:disabled):hover {
+  transform: translateY(-50%);
+}
+
+.carousel__arrow:not(:disabled):active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.carousel__arrow--previous { left: 0; }
+.carousel__arrow--next { right: 0; }
+
+@media (min-width: 44rem) {
+  .carousel__slide { flex-basis: 33.333%; }
 }
 
 .field {

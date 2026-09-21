@@ -9,6 +9,7 @@ export const publicEvent = {
   coverPhotoId: 'photo-1',
   description: 'Une journee lumineuse au bord du fleuve.',
   faceSearchEnabled: true,
+  showPhotoMetadata: true,
   id: 'event-1',
   retentionDays: 30,
   revision: 3,

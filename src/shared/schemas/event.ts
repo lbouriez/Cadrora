@@ -17,6 +17,7 @@ export const EventSchema = z.object({
   access: EventAccessSchema,
   allowDownloads: z.boolean(),
   faceSearchEnabled: z.boolean(),
+  showPhotoMetadata: z.boolean(),
   keepOriginals: z.boolean(),
   retentionDays: z.number().int().positive().nullable(),
   revision: z.number().int().nonnegative(),
@@ -33,4 +34,3 @@ export const EventCredentialsSchema = z.object({
 
 export type Event = z.infer<typeof EventSchema>;
 export type EventCredentials = z.infer<typeof EventCredentialsSchema>;
-

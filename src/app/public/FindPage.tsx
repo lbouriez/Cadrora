@@ -4,7 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
-import { Button, Spinner } from '../components';
+import { Button, Carousel, Spinner } from '../components';
+import { saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
 import { PublicLayout } from './PublicLayout';
 
@@ -24,6 +25,7 @@ export function FindPage() {
   const [matches, setMatches] = useState<FaceSearchMatch[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [related, setRelated] = useState<RelatedPhoto[]>([]);
+  const [relatedBusy, setRelatedBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -137,16 +139,32 @@ export function FindPage() {
       const vector = embedding ?? await engine.embed(image, face);
       setEmbedding(vector);
       const response = await searchEventFaces(slug, vector, nextCursor);
-      setMatches((current) => {
-        const deduplicated = new Map(current.map((match) => [match.photoId, match]));
-        for (const match of response.matches) {
-          const prior = deduplicated.get(match.photoId);
-          if (!prior || match.score > prior.score) deduplicated.set(match.photoId, match);
-        }
-        return [...deduplicated.values()].sort((left, right) => right.score - left.score);
-      });
+      const deduplicated = new Map(matches.map((match) => [match.photoId, match]));
+      for (const match of response.matches) {
+        const prior = deduplicated.get(match.photoId);
+        if (!prior || match.score > prior.score) deduplicated.set(match.photoId, match);
+      }
+      const nextMatches = [...deduplicated.values()].sort((left, right) => right.score - left.score);
+      setMatches(nextMatches);
+      saveFaceSearchResults(slug, nextMatches.map((match) => match.photoId));
       setCursor(response.nextCursor);
       setSearchCompleted(true);
+      setRelatedBusy(true);
+      void Promise.allSettled(response.matches.map((match) => getRelatedPhotos(slug, match.photoId)))
+        .then((responses) => {
+          const matchIds = new Set(nextMatches.map((match) => match.photoId));
+          setRelated((current) => {
+            const deduplicatedRelated = new Map(current.map((candidate) => [candidate.photoId, candidate]));
+            for (const result of responses) {
+              if (result.status !== 'fulfilled') continue;
+              for (const candidate of result.value.photos) {
+                if (!matchIds.has(candidate.photoId)) deduplicatedRelated.set(candidate.photoId, candidate);
+              }
+            }
+            return [...deduplicatedRelated.values()];
+          });
+        })
+        .finally(() => setRelatedBusy(false));
     } catch {
       setSearchCompleted(false);
       setError(t('faceFind.unavailable'));
@@ -230,20 +248,41 @@ export function FindPage() {
           </section>
         ) : null}
         {matches.length > 0 ? (
-          <section>
-            <h2>{t('faceFind.possibleMatches')}</h2>
-            <p>{t('faceFind.possibleHelp')}</p>
-            <div className="face-results">
-              {matches.map((match) => (
-                <button className="face-result" key={match.photoId} onClick={() => void getRelatedPhotos(slug, match.photoId).then((response) => setRelated(response.photos))} type="button">
-                  <img alt={t('faceFind.matchAlt')} loading="lazy" src={match.thumbnailUrl} />
-                </button>
-              ))}
+          <section className="face-find__results">
+            <div className="face-find__results-heading">
+              <div>
+                <h2>{t('faceFind.possibleMatches')}</h2>
+                <p>{t('faceFind.resultCount', { count: matches.length })}</p>
+              </div>
+              <Link className="button button--secondary" to={`/e/${slug}?view=matches`}>{t('faceFind.seeAll')}</Link>
             </div>
+            <p>{t('faceFind.possibleHelp')}</p>
+            <Carousel className="face-results-carousel" label={t('faceFind.possibleMatches')} nextLabel={t('faceFind.nextResult')} previousLabel={t('faceFind.previousResult')}>
+              {matches.map((match) => (
+                <Link className="face-result" key={match.photoId} to={`/e/${slug}/photo/${match.photoId}?view=matches`}>
+                  <img alt={t('faceFind.matchAlt')} loading="lazy" src={match.thumbnailUrl} />
+                  <span>{t('faceFind.openMatch')}</span>
+                </Link>
+              ))}
+            </Carousel>
             {cursor ? <Button disabled={busy} onClick={() => void runSearch(cursor)}>{t('faceFind.more')}</Button> : null}
           </section>
         ) : searchCompleted && !busy ? <p>{t('faceFind.noMatches')}</p> : null}
-        {related.length > 0 ? <section><h2>{t('faceFind.nearby')}</h2><div className="face-results">{related.map((photo) => <Link key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}`}><img alt={t('faceFind.matchAlt')} loading="lazy" src={photo.thumbnailUrl} /></Link>)}</div></section> : null}
+        {relatedBusy ? <p role="status">{t('faceFind.loadingNearby')}</p> : null}
+        {related.length > 0 ? (
+          <section className="face-find__nearby">
+            <h2>{t('faceFind.nearby')}</h2>
+            <p>{t('faceFind.nearbyFound', { count: related.length })}</p>
+            <Carousel className="face-results-carousel" label={t('faceFind.nearby')} nextLabel={t('faceFind.nextNearby')} previousLabel={t('faceFind.previousNearby')}>
+              {related.map((photo) => (
+                <Link className="face-result" key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}`}>
+                  <img alt={t('faceFind.nearbyAlt')} loading="lazy" src={photo.thumbnailUrl} />
+                  <span>{t('faceFind.openNearby')}</span>
+                </Link>
+              ))}
+            </Carousel>
+          </section>
+        ) : null}
       </section>
     </PublicLayout>
   );

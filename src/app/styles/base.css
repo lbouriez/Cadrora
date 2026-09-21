@@ -33,29 +33,35 @@ select {
 a {
   color: var(--color-primary);
   text-decoration: none;
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.18em;
 }
 
 a:hover {
   color: var(--color-primary-hover);
 }
 
-/* Plain content links inherit a deliberate text-link treatment from the theme.
- * Navigation, logo, cards, and explicit button links keep their own components. */
-.public-main a:not(.button) {
-  display: inline-flex;
-  align-items: center;
+/* Links use colour and focus state without underline or layout movement. */
+.public-main :where(a:not(.button)) {
   color: var(--color-primary);
   font-weight: 700;
   text-decoration: none;
-  border-bottom: 0.125rem solid color-mix(in srgb, var(--color-primary) 38%, transparent);
-  transition: border-color 160ms ease, color 160ms ease;
+  border-bottom: 0;
+  transition: color var(--motion-fast) ease;
 }
 
-.public-main a:not(.button):hover {
+.public-main :where(a:not(.button)):hover {
   color: var(--color-primary-hover);
-  border-bottom-color: currentcolor;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  padding: 0;
+  border: 0;
+  margin: -0.0625rem;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 :focus-visible {

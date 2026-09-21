@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { useEffect, useMemo, useState } from 'react';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button, Input, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
@@ -10,6 +10,7 @@ import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
+import { readFaceSearchResults } from './faceSearchSession';
 import { PhotoViewer } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
@@ -18,6 +19,7 @@ export function GalleryPage() {
   const { slug = '', photoId } = useParams<{ slug: string; photoId?: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const turnstile = useRef<TurnstileChallengeHandle>(null);
   const [password, setPassword] = useState('');
@@ -47,6 +49,16 @@ export function GalleryPage() {
     },
   });
   const allPhotos = useMemo(() => photos.data?.pages.flatMap((page) => page.photos) ?? [], [photos.data]);
+  const matchedPhotoIds = useMemo(() => readFaceSearchResults(slug), [slug]);
+  const matchesView = searchParams.get('view') === 'matches' && matchedPhotoIds.length > 0;
+  const visiblePhotos = useMemo(() => {
+    if (!matchesView) return allPhotos;
+    const byId = new Map(allPhotos.map((photo) => [photo.id, photo]));
+    return matchedPhotoIds.flatMap((id) => {
+      const photo = byId.get(id);
+      return photo ? [photo] : [];
+    });
+  }, [allPhotos, matchedPhotoIds, matchesView]);
   const selected = photoId ? allPhotos.find((photo) => photo.id === photoId) : undefined;
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
@@ -84,6 +96,11 @@ export function GalleryPage() {
   }, [allPhotos, fetchNextPage, hasNextPage, isFetchingNextPage, photoId, selected]);
 
   useEffect(() => {
+    if (!matchesView || visiblePhotos.length >= matchedPhotoIds.length || !hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, matchedPhotoIds.length, matchesView, visiblePhotos.length]);
+
+  useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
     if (!robots.parentNode) {
       robots.name = 'robots';
@@ -107,6 +124,14 @@ export function GalleryPage() {
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
         {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
+        {matchedPhotoIds.length > 0 ? (
+          <div aria-label={t('gallery.photoFilter.label')} className="gallery-filter" role="group">
+            <button aria-pressed={!matchesView} onClick={() => setSearchParams({})} type="button">{t('gallery.photoFilter.all')}</button>
+            <button aria-pressed={matchesView} onClick={() => setSearchParams({ view: 'matches' })} type="button">
+              {t('gallery.photoFilter.matches', { count: matchedPhotoIds.length })}
+            </button>
+          </div>
+        ) : null}
       </header>
 
       {accessRequired ? (
@@ -116,12 +141,14 @@ export function GalleryPage() {
       {photos.isPending ? <Spinner label={t('gallery.loading')} /> : null}
       {!accessRequired && photos.isError ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photos.isSuccess && allPhotos.length === 0 ? <p>{t('gallery.empty')}</p> : null}
+      {matchesView ? <p className="gallery-filter__summary">{t('gallery.photoFilter.summary', { count: matchedPhotoIds.length })}</p> : null}
+      {matchesView && photos.hasNextPage && visiblePhotos.length < matchedPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
       <div className="photo-grid">
-        {allPhotos.map((photo) => {
+        {visiblePhotos.map((photo) => {
           const sources = [...photo.sources].sort((left, right) => left.width - right.width);
           const fallback = sources[0];
           return (
-            <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${event.data.slug}/photo/${photo.id}`}>
+            <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${event.data.slug}/photo/${photo.id}${matchesView ? '?view=matches' : ''}`}>
               <img
                 alt={photo.filename}
                 height={photo.height}
@@ -135,14 +162,17 @@ export function GalleryPage() {
           );
         })}
       </div>
-      {photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
+      {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
+      {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
       {photoId && !selected && !photos.hasNextPage && !photos.isPending ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photoId && selected ? (
         <PhotoViewer
-          onClose={() => { void navigate(`/e/${event.data.slug}`); }}
-          onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}`); }}
+          onClose={() => { void navigate(`/e/${event.data.slug}${matchesView ? '?view=matches' : ''}`); }}
+          onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}${matchesView ? '?view=matches' : ''}`); }}
           photo={selected}
-          photos={allPhotos}
+          photos={matchesView ? visiblePhotos : allPhotos}
+          showMetadata={event.data.showPhotoMetadata}
+          timezone={event.data.timezone}
         />
       ) : null}
     </PublicLayout>

@@ -18,6 +18,8 @@ The Worker independently checks event publication, protected-event grant/version
 
 Vectorize namespaces are `face:{eventId}:generation:{generation}`. Only `partition_id` must be configured as an indexed metadata field. Queries initially use `topK=100`; a saturated result enables signed partition fan-out. Cursor HMAC material is domain-separated from `TURNSTILE_SECRET_KEY`; the feature fails closed when it is unavailable. Matches below cosine `0.363` are discarded. Every Vectorize query adds 128 to `vector_dimensions_queried`.
 
+The result experience remains event-scoped after the API call. The client stores only the deduplicated matched photo IDs for that event in `sessionStorage`, so the visitor can switch the gallery between all photos and possible matches during the current browser session. It never stores the visitor image, crop, embedding, score, or vector ID. Related-photo requests are issued automatically for every newly returned direct match, deduplicated across moments, and presented separately because temporal proximity is not a facial match.
+
 ## Indexing and retention
 
 D1 remains authoritative. Face/vector IDs are deterministic for retry safety, natural face keys are idempotent, and a retry does not consume quota again. Partition capacity is conditionally reserved in D1 and cannot exceed 100. A new D1 face reference is recorded before its Vectorize upsert; if the provider call fails, the reference remains in `indexing` state for an idempotent retry instead of leaving an untracked provider vector. Model generation is part of the Vectorize namespace and partition record.

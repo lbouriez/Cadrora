@@ -55,12 +55,13 @@ Event creation accepts:
   "password": "required when protected",
   "allowDownloads": false,
   "faceSearchEnabled": false,
+  "showPhotoMetadata": false,
   "keepOriginals": false,
   "retentionDays": null
 }
 ```
 
-Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
+Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture-time, and dimensions panel and defaults to `false`. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
 
 ## Imports and media ingress
 

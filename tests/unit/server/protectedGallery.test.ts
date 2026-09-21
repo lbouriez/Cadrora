@@ -21,6 +21,7 @@ const protectedEvent: EventRow = {
   visibility: 'published',
   access: 'protected',
   allow_downloads: 0,
+  show_photo_metadata: 0,
   face_search_enabled: 0,
   keep_originals: 0,
   retention_days: null,

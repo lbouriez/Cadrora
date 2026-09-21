@@ -27,7 +27,7 @@ function repository(overrides: Partial<FaceSearchRepository> = {}): FaceSearchRe
 const eventRow = {
   id: 'event-1', slug: 'event-one', title: 'Event', description: null,
   starts_at: '2030-01-01T00:00:00.000Z', timezone: 'UTC', cover_photo_id: null,
-  visibility: 'published', access: 'public', allow_downloads: 0, face_search_enabled: 1,
+  visibility: 'published', access: 'public', allow_downloads: 0, face_search_enabled: 1, show_photo_metadata: 0,
   keep_originals: 0, retention_days: 30, revision: 1,
   created_at: '2030-01-01T00:00:00.000Z', updated_at: '2030-01-01T00:00:00.000Z',
 };

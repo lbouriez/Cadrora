@@ -8,6 +8,8 @@ The visitor consents, chooses or captures an image, and processes it in the brow
 
 The Worker still independently checks event visibility, protected-event grant/version, event face-search enablement, active generation, expiry, and vector availability. A search never issues an event grant. Responses include bounded score, photo ID, revisioned thumbnail URL, moment, and capture time—not embeddings, coordinates, vector IDs, or identity claims.
 
+Search is strictly per gallery. The Vectorize namespace contains the event ID and the Worker joins every candidate back to D1 with that same event ID, so a result from another gallery cannot be returned. After a successful search, the browser keeps only the matching photo IDs in event-keyed `sessionStorage`; this powers the gallery's **All photos / Found for me** toggle for the current browser session. It does not store the selfie, embedding, scores, or nearby-moment photos. Nearby moments are loaded automatically for all direct matches and displayed as a separate contextual carousel.
+
 ## Indexing
 
 The client may submit faces only through an authenticated admin route. D1 uses deterministic face/vector IDs, natural keys, and partitions no larger than 100 faces. Vector namespaces are `face:{eventId}:generation:{generation}` and only `partition_id` is stored as indexed metadata.

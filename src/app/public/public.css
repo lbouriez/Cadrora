@@ -851,11 +851,49 @@
   height: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  transition: transform 180ms ease;
+  transition: filter var(--motion-fast) ease;
 }
 
 .photo-tile:hover img {
-  transform: scale(1.02);
+  filter: brightness(0.94) saturate(1.04);
+}
+
+.gallery-filter {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.25rem;
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-surface-raised) 84%, transparent);
+  gap: 0.25rem;
+}
+
+.gallery-filter button {
+  min-height: var(--control-min-size);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-round);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-weight: 800;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.gallery-filter button:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.gallery-filter button[aria-pressed='true'] {
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.gallery-filter__summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .modal-backdrop.modal-backdrop--photo-viewer {
@@ -901,6 +939,12 @@
   backdrop-filter: blur(0.75rem);
 }
 
+.modal--photo-viewer .icon-button--secondary:not(:disabled):hover,
+.photo-viewer__info:not(:disabled):hover {
+  background: rgb(255 255 255 / 18%);
+  color: #fff;
+}
+
 .photo-viewer {
   position: relative;
   height: 100%;
@@ -940,6 +984,14 @@
   transform: translateY(-50%);
 }
 
+.photo-viewer__arrow:not(:disabled):hover {
+  transform: translateY(-50%);
+}
+
+.photo-viewer__arrow:not(:disabled):active {
+  transform: translateY(-50%) scale(0.94);
+}
+
 .photo-viewer__arrow--previous {
   left: var(--space-4);
 }
@@ -959,6 +1011,49 @@
   margin: 0;
   gap: var(--space-3);
 }
+
+.photo-viewer__info {
+  flex: 0 0 auto;
+  border-color: rgb(255 255 255 / 28%);
+  background: rgb(0 0 0 / 42%);
+  color: #fff;
+  backdrop-filter: blur(0.75rem);
+}
+
+.photo-viewer__metadata {
+  position: absolute;
+  z-index: 4;
+  bottom: calc(var(--control-min-size) + 2 * var(--space-4));
+  left: var(--space-5);
+  width: min(calc(100% - 2 * var(--space-5)), 26rem);
+  padding: var(--space-4);
+  border: 0.0625rem solid rgb(255 255 255 / 22%);
+  border-radius: var(--radius-md);
+  background: rgb(8 6 10 / 78%);
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(1rem);
+}
+
+.photo-viewer__metadata h3 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-lg);
+}
+
+.photo-viewer__metadata dl {
+  display: grid;
+  margin: 0;
+  gap: var(--space-3);
+}
+
+.photo-viewer__metadata dl > div {
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.7fr) minmax(0, 1.3fr);
+  gap: var(--space-3);
+}
+
+.photo-viewer__metadata dt { color: rgb(255 255 255 / 68%); }
+.photo-viewer__metadata dd { margin: 0; overflow-wrap: anywhere; }
 
 .photo-viewer__progress {
   width: 4rem;
