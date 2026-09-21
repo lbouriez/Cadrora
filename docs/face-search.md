@@ -26,9 +26,11 @@ node scripts/models/download.mjs
 
 The script reuses only checksum-valid artifacts and writes an ignored upload manifest. Use your authorized Cloudflare upload process to place the verified files at those exact `models/v1/...` keys. The Worker serves only the two allowlisted names and marks them immutable.
 
-## Current deployment status
+## Deployment status and showcase
 
-The Worker currently registers model and face-search routes. However, `FACE_INDEX` is optional in the generated binding type and is **not configured in the current `wrangler.jsonc`**. Without an explicit Vectorize binding, facial search returns an unavailable error and galleries continue normally. Do not enable user-facing marketing for the feature until the binding, model objects, protected-event path, and real-device checks are complete.
+`wrangler.jsonc` binds the production `cadrora-face-index` and isolated `cadrora-preview-face-index`, both configured at 128 dimensions with cosine similarity. Each must have the `partition_id` string metadata index. The official `CADRORA_SEED_DEMO=true` flow uploads checksum-verified model objects, creates the fictional public **Retrouvez vos photos** gallery, and upserts ten calibration vectors.
+
+The calibration vectors intentionally are not biometric embeddings and must not be described as recognition. They let a visitor complete the local selfie, consent, model-download, face-selection, request, and empty-result path without asserting that an unprovided selfie belongs to either fictional person. A real event needs owner-authorized photo indexing through the authenticated admin route before it can return possible matches.
 
 The SPA includes a public find-route object, but its quality and privacy behavior require manual release validation on iPhone Safari: model-cache persistence, WASM memory, camera/file selection, multi-face selection, protected-event grants, expiry, and failure behavior. Desktop unit tests do not establish that evidence.
 

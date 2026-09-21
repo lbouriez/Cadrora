@@ -45,6 +45,6 @@ It is the Deploy Button production entry point: it builds, applies the remote `D
 
 - Preview is a named Wrangler environment with separate configured D1/R2 bindings and separately managed secrets; verify its generated resources before use.
 - No CI/release approval, backup, or application rollback automation is checked in.
-- `FACE_INDEX` is not bound in the checked-in Wrangler configuration.
+- `FACE_INDEX` is bound in the checked-in Wrangler configuration to the named production and preview Vectorize indexes. Before adopting this release, create those isolated indexes at 128 dimensions with cosine similarity and the `partition_id` string metadata index.
 
 Resolve or consciously defer each item in a release record; do not silently treat it as solved by a successful build.

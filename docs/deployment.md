@@ -17,8 +17,9 @@ The checked-in configuration has one Cron Trigger, every 15 minutes. Its Worker 
 | Cloudflare term | Plain-language meaning in Cadrora | What belongs there |
 | --- | --- | --- |
 | D1 database | A small SQL database, similar to the application's catalog and control panel | Events, visibility/access rules, photo metadata, hashes, sessions, import state, counters, and cleanup jobs. No image files. |
-| R2 bucket | Private object/file storage, similar to a cloud hard drive | `cadrora-media` stores gallery image variants; `cadrora-models` stores optional face-search model files. |
-| Binding | The named connection from the Worker code to a D1/R2 resource | `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` are the names used by the code. The dashboard connects each name to the resource you created. |
+| R2 bucket | Private object/file storage, similar to a cloud hard drive | `cadrora-media` stores gallery image variants; `cadrora-models` stores checksum-pinned face-search model files. |
+| Vectorize index | A numeric similarity index, not file storage | `cadrora-face-index` stores 128-value face vectors for one event-scoped search namespace at a time. It never stores a selfie image. |
+| Binding | The named connection from the Worker code to a D1/R2/Vectorize resource | `DB`, `MEDIA_BUCKET`, `MODELS_BUCKET`, and `FACE_INDEX` are the names used by the code. The configuration connects each name to the resource you created. |
 | D1 UUID | Cloudflare's unique identifier for one database | Copy it from the D1 Overview page into `CADRORA_D1_DATABASE_ID`; it is not the display name. |
 
 R2 buckets stay private. Cadrora's Worker reads from them and checks gallery authorization before returning media. Never enable an R2 public development URL or custom bucket domain for `cadrora-media`.
@@ -29,7 +30,7 @@ Use this path when `lbouriez/Cadrora` (or a fork you maintain) must remain the o
 
 1. **Select the intended Cloudflare account.** It must own the production zone. `npx wrangler whoami` should show that account. If a multi-account workstation selects the wrong one, use ignored `.env.local` with `CLOUDFLARE_ACCOUNT_ID=<target-account-id>`; never commit it.
 2. **Enable R2 once.** Open **Storage & databases → R2 Object Storage**. If the page says **Get started with R2**, the account owner must review the current pricing and accept that account-level service/billing action. `npx wrangler r2 bucket list` may validly return an empty list; error `10042` means R2 is disabled.
-3. **Create the production resources.** Create D1 `cadrora`, R2 `cadrora-media`, and R2 `cadrora-models`. Both buckets must show **Public Access: Disabled**. Copy the D1 UUID from its Overview page; record the two bucket names exactly.
+3. **Create the production resources.** Create D1 `cadrora`, R2 `cadrora-media`, and R2 `cadrora-models`. Both buckets must show **Public Access: Disabled**. Create Vectorize `cadrora-face-index` with **128** dimensions and the **cosine** metric, then create its string metadata index `partition_id`. Copy the D1 UUID from its Overview page; record the two bucket names exactly. The first party configuration binds `FACE_INDEX` to that exact index name.
 4. **Create the admin credential and pepper.** Run `npm ci` then `npm run setup:admin-credentials` on a trusted workstation. Store `ADMIN_PASSWORD` from the ignored artifact in a password manager. Cloudflare gets the matching `ADMIN_SECRET_HASH` and random `AUTH_PEPPER` as two separate encrypted secrets—never the password or the artifact itself.
 5. **Create Turnstile for the real hostname.** Use a Managed widget with `cadrora.com`; add `www.cadrora.com` only if it will be served. The root hostname allows its subdomains; a subdomain does not allow the root. Record the public site key and private secret key. Localhost test keys are not production keys.
 6. **Import the existing repository.** In **Workers & Pages**, choose **Create application → Continue with GitHub**, select `lbouriez/Cadrora`, then **Next**. This connects the existing repository; it does not fork or create another repository.
@@ -91,7 +92,7 @@ Provision and bind the resources named in `wrangler.jsonc` before setting deploy
 | `DB` | Authoritative D1 data, sessions, events, imports, jobs | Required |
 | `MEDIA_BUCKET` | Private image variants | Required |
 | `MODELS_BUCKET` | Immutable YuNet and SFace model objects | Required private R2 binding; objects are added only if face search is enabled |
-| `FACE_INDEX` | Optional Vectorize facial-search index | Optional in types, absent from current Wrangler configuration |
+| `FACE_INDEX` | Event-scoped Vectorize facial-search index | Bound to `cadrora-face-index`; production needs the `partition_id` metadata index. |
 
 The [Deploy to Cloudflare button](https://developers.cloudflare.com/workers/platform/deploy-buttons/) is an independent-clone path, not the existing-repository path. It creates a generated repository in the deployer's Git provider account. Keep preview and production resources separate—never point a preview at production media or D1. Cloudflare binding configuration and non-inherited environment rules are documented in the [Wrangler configuration reference](https://developers.cloudflare.com/workers/wrangler/configuration/) and [environment guide](https://developers.cloudflare.com/workers/wrangler/environments/).
 
@@ -130,7 +131,7 @@ Run the repository’s model verification script before any authorized upload:
 node scripts/models/download.mjs
 ```
 
-It writes verified artifacts under ignored `.artifacts/models/` and records exact destination keys in `upload-manifest.json`. The deployed Worker serves only the two allowlisted `models/v1/...` keys. Facial search also needs an explicit `FACE_INDEX` Vectorize binding, which is **not present in the current `wrangler.jsonc`**. Without it, galleries continue to work and facial-search requests fail closed.
+It writes verified artifacts under ignored `.artifacts/models/` and records exact destination keys in `upload-manifest.json`. The official demo release runs that verification and uploads the exact two allowlisted `models/v1/...` objects automatically. The Worker serves only these public immutable routes while the bucket itself remains private. Facial search also needs `FACE_INDEX` and the `partition_id` Vectorize metadata index; a gallery remains available when an operator leaves its per-event face-search option off.
 
 ## Deployment and release checks
 

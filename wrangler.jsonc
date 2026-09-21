@@ -43,6 +43,12 @@
       "binding": "MODELS_BUCKET"
     }
   ],
+  "vectorize": [
+    {
+      "binding": "FACE_INDEX",
+      "index_name": "cadrora-face-index"
+    }
+  ],
   "env": {
     "preview": {
       "vars": {
@@ -73,6 +79,12 @@
         },
         {
           "binding": "MODELS_BUCKET"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "FACE_INDEX",
+          "index_name": "cadrora-preview-face-index"
         }
       ]
     }
