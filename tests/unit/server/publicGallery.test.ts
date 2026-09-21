@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { CACHE_CONTROL_BY_POLICY } from '../../../src/server/middleware/cacheHeaders';
-import { hashEventPassword, verifyEventPassword } from '../../../src/server/routes/public/credentials';
+import {
+  hashEventPassword,
+  verifyEventPassword,
+  verifyEventPasswordDetailed,
+} from '../../../src/server/routes/public/credentials';
 import { photosFromRows } from '../../../src/server/routes/public/data';
 import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/events';
 
@@ -17,6 +21,8 @@ describe('public gallery contracts', () => {
     expect(encoded).not.toContain('correct horse battery staple');
     await expect(verifyEventPassword('correct horse battery staple', encoded)).resolves.toBe(true);
     await expect(verifyEventPassword('wrong password', encoded)).resolves.toBe(false);
+    await expect(verifyEventPasswordDetailed('wrong password', encoded)).resolves.toBe('mismatch');
+    await expect(verifyEventPasswordDetailed('password', 'not-a-supported-hash')).resolves.toBe('invalid-hash');
   });
 
   it('builds revisioned responsive sources and hides downloads when disabled', () => {

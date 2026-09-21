@@ -1,5 +1,7 @@
 const ITERATIONS = 210_000;
 
+export type EventPasswordVerification = 'valid' | 'mismatch' | 'invalid-hash' | 'crypto-error';
+
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -34,22 +36,29 @@ export async function hashEventPassword(password: string): Promise<string> {
   return `pbkdf2-sha256$${ITERATIONS}$${bytesToBase64Url(salt)}$${bytesToBase64Url(hash)}`;
 }
 
-export async function verifyEventPassword(password: string, encoded: string): Promise<boolean> {
+export async function verifyEventPasswordDetailed(
+  password: string,
+  encoded: string,
+): Promise<EventPasswordVerification> {
   const [algorithm, iterationsText, saltText, expectedText] = encoded.split('$');
   const iterations = Number(iterationsText);
   if (algorithm !== 'pbkdf2-sha256' || !Number.isInteger(iterations) || iterations < 100_000 || !saltText || !expectedText) {
-    return false;
+    return 'invalid-hash';
   }
   try {
     const actual = await derive(password, base64UrlToBytes(saltText), iterations);
     const expected = base64UrlToBytes(expectedText);
-    if (actual.length !== expected.length) return false;
+    if (actual.length !== expected.length) return 'invalid-hash';
     let difference = 0;
     for (let index = 0; index < actual.length; index += 1) {
       difference |= (actual[index] ?? 0) ^ (expected[index] ?? 0);
     }
-    return difference === 0;
+    return difference === 0 ? 'valid' : 'mismatch';
   } catch {
-    return false;
+    return 'crypto-error';
   }
+}
+
+export async function verifyEventPassword(password: string, encoded: string): Promise<boolean> {
+  return (await verifyEventPasswordDetailed(password, encoded)) === 'valid';
 }

@@ -16,7 +16,7 @@ import type { AppEnv } from '../../types';
 import { readEventGrantToken } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { currentAccessVersion, hasCurrentEventAccess } from './access';
-import { verifyEventPassword } from './credentials';
+import { verifyEventPasswordDetailed } from './credentials';
 import { eventFromRow, findEvent, photosFromRows, toPublicEvent } from './data';
 import type { EventRow, PhotoWithVariantRow } from './data';
 
@@ -107,8 +107,16 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const credential = await context.env.DB.prepare(
       'SELECT password_hash, access_version FROM event_credentials WHERE event_id = ?1',
     ).bind(event.id).first<{ password_hash: string; access_version: number }>();
-    const verify = services.verifyPassword ?? verifyEventPassword;
-    if (!credential || !(await verify(body.data.password, credential.password_hash))) {
+    if (!credential) {
+      throw new ApiException('EVENT_PASSWORD_UNAVAILABLE', 'errors.serviceUnavailable', 503);
+    }
+    const verification = services.verifyPassword
+      ? await services.verifyPassword(body.data.password, credential.password_hash) ? 'valid' : 'mismatch'
+      : await verifyEventPasswordDetailed(body.data.password, credential.password_hash);
+    if (verification === 'invalid-hash' || verification === 'crypto-error') {
+      throw new ApiException('EVENT_PASSWORD_UNAVAILABLE', 'errors.serviceUnavailable', 503);
+    }
+    if (verification !== 'valid') {
       throw new ApiException('INVALID_EVENT_PASSWORD', 'errors.invalidEventPassword', 401);
     }
     if (!services.issueEventGrant) {
