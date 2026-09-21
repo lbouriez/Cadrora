@@ -31,7 +31,7 @@ The live admin API can create, list, and update events. An event has a stable sl
 - A protected event needs a password. Updating that password increments the access version and invalidates existing event grants.
 - Setting access to public removes its event credential.
 
-Create an event before declaring an import. Event creation accepts title, optional slug/description, start time, timezone, visibility, access, downloads, face-search choice, originals choice, and optional retention days. The server creates a slug from the title if no valid slug is supplied; it resolves collisions by adding a suffix.
+Create an event before declaring an import. Event creation accepts title, optional slug/description, start time, timezone, visibility, access, downloads, face-search choice, originals choice, and an optional retention period. Leave retention empty to select **unlimited** retention; this stores `NULL` rather than a hidden default expiry. The server creates a slug from the title if no valid slug is supplied; it resolves collisions by adding a suffix.
 
 ## Import and publication sequence
 

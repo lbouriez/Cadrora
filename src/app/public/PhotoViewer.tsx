@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
-import { Button, Modal } from '../components';
+import { IconButton, Modal } from '../components';
 
 interface PhotoViewerProps {
   onClose: () => void;
@@ -38,7 +38,7 @@ export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerPro
 
   const image = imageAttributes(photo);
   return (
-    <Modal closeLabel={t('gallery.closeViewer')} onClose={onClose} open title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
+    <Modal className="modal--photo-viewer" closeLabel={t('gallery.closeViewer')} onClose={onClose} open title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
       <div
         className="photo-viewer"
         onTouchEnd={(event) => {
@@ -51,11 +51,26 @@ export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerPro
         }}
         onTouchStart={(event) => { touchStart.current = event.changedTouches[0]?.clientX ?? null; }}
       >
-        <img alt={photo.filename} height={photo.height} sizes="100vw" src={image.src} srcSet={image.srcSet} width={photo.width} />
-        <div className="photo-viewer__actions">
-          <Button aria-label={t('gallery.previousPhoto')} disabled={!previous} onClick={() => previous && onSelect(previous)} variant="secondary">←</Button>
-          {photo.downloadUrl ? <a className="button button--primary" download href={photo.downloadUrl}>{t('gallery.download')}</a> : null}
-          <Button aria-label={t('gallery.nextPhoto')} disabled={!next} onClick={() => next && onSelect(next)} variant="secondary">→</Button>
+        <div className="photo-viewer__stage">
+          <img alt={photo.filename} height={photo.height} sizes="(min-width: 70rem) 80vw, 100vw" src={image.src} srcSet={image.srcSet} width={photo.width} />
+          <IconButton aria-label={t('gallery.previousPhoto')} className="photo-viewer__arrow photo-viewer__arrow--previous" disabled={!previous} onClick={() => previous && onSelect(previous)}>←</IconButton>
+          <IconButton aria-label={t('gallery.nextPhoto')} className="photo-viewer__arrow photo-viewer__arrow--next" disabled={!next} onClick={() => next && onSelect(next)}>→</IconButton>
+        </div>
+        <div className="photo-viewer__controls">
+          <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__progress">
+            <span style={{ width: `${((index + 1) / photos.length) * 100}%` }} />
+          </div>
+          {photo.downloadUrl ? <a className="photo-viewer__download" download href={photo.downloadUrl}>{t('gallery.download')} <span aria-hidden="true">↓</span></a> : null}
+          <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
+            {photos.map((candidate) => {
+              const thumbnail = imageAttributes(candidate);
+              return (
+                <button aria-current={candidate.id === photo.id ? 'true' : undefined} aria-label={candidate.filename} key={candidate.id} onClick={() => onSelect(candidate)} type="button">
+                  <img alt="" height={candidate.height} src={thumbnail.src} width={candidate.width} />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </Modal>

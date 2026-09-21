@@ -101,7 +101,7 @@ export function GalleryPage() {
   return (
     <PublicLayout>
       <header className="gallery-heading">
-        <p><Link to="/">{t('gallery.backHome')}</Link></p>
+        <Link className="gallery-back" to="/"><span aria-hidden="true">←</span>{t('gallery.backHome')}</Link>
         <h1>{event.data.title}</h1>
         {event.data.description ? <p>{event.data.description}</p> : null}
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}

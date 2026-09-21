@@ -10,6 +10,7 @@ import { IconButton } from './IconButton';
  */
 export interface ModalProps {
   children: ReactNode;
+  className?: string;
   closeLabel: string;
   onClose: () => void;
   open: boolean;
@@ -18,7 +19,7 @@ export interface ModalProps {
 
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ children, closeLabel, onClose, open, title }: ModalProps) {
+export function Modal({ children, className = '', closeLabel, onClose, open, title }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +63,7 @@ export function Modal({ children, closeLabel, onClose, open, title }: ModalProps
       <div
         aria-labelledby={titleId}
         aria-modal="true"
-        className="modal"
+        className={`modal ${className}`.trim()}
         onKeyDown={trapFocus}
         ref={dialogRef}
         role="dialog"

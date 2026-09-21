@@ -42,6 +42,7 @@ export function AdminEventsPage() {
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const [access, setAccess] = useState<'protected' | 'public'>('public');
+  const [unlimitedRetention, setUnlimitedRetention] = useState(true);
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
   const creation = useMutation({
     mutationFn: createEvent,
@@ -66,7 +67,7 @@ export function AdminEventsPage() {
       faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       password: access === 'protected' ? values.get('password') : undefined,
-      retentionDays: typeof retention === 'string' && retention ? Number(retention) : null,
+      retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
       startsAt: new Date(startsAt).toISOString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       title: values.get('title'),
@@ -75,6 +76,7 @@ export function AdminEventsPage() {
       onSuccess: () => {
         form.reset();
         setAccess('public');
+        setUnlimitedRetention(true);
       },
     });
   };
@@ -93,7 +95,9 @@ export function AdminEventsPage() {
               <option value="protected">{t('admin.events.protected')}</option>
           </Select>
           {access === 'protected' ? <Input label={t('admin.events.password')} minLength={8} name="password" required type="password" /> : null}
-          <Input label={t('admin.events.retention')} min={1} name="retentionDays" type="number" />
+          <Input disabled={unlimitedRetention} label={t('admin.events.retention')} min={1} name="retentionDays" type="number" />
+          <p className="field__hint">{t('admin.events.retentionHint')}</p>
+          <label><input checked={unlimitedRetention} onChange={(event) => setUnlimitedRetention(event.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
             <label><input name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
@@ -155,6 +159,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const [access, setAccess] = useState(event.access);
+  const [unlimitedRetention, setUnlimitedRetention] = useState(event.retentionDays === null);
   const [saved, setSaved] = useState(false);
   const update = useMutation({
     mutationFn: (payload: unknown) => updateEvent(event.id, payload),
@@ -178,7 +183,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       ...(password ? { password } : {}),
-      retentionDays: retention ? Number(retention) : null,
+      retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
       startsAt: new Date(startsAt).toISOString(),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || event.timezone,
       title: values.get('title'),
@@ -194,7 +199,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <dl className="admin-demo-details">
           <div><dt>{t('admin.events.description')}</dt><dd>{event.description ?? '—'}</dd></div>
           <div><dt>{t('admin.events.access')}</dt><dd>{t(`admin.events.${event.access}`)}</dd></div>
-          <div><dt>{t('admin.events.retention')}</dt><dd>{event.retentionDays ?? '—'}</dd></div>
+          <div><dt>{t('admin.events.retention')}</dt><dd>{event.retentionDays ?? t('admin.events.unlimited')}</dd></div>
           <div><dt>{t('admin.demo.status')}</dt><dd>{t(`admin.events.visibility.${event.visibility}`)}</dd></div>
         </dl>
       </section>
@@ -222,7 +227,9 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             type="password"
           />
         ) : null}
-        <Input defaultValue={event.retentionDays ?? ''} label={t('admin.events.retention')} min={1} name="retentionDays" type="number" />
+        <Input defaultValue={event.retentionDays ?? ''} disabled={unlimitedRetention} label={t('admin.events.retention')} min={1} name="retentionDays" type="number" />
+        <p className="field__hint">{t('admin.events.retentionHint')}</p>
+        <label><input checked={unlimitedRetention} onChange={(changeEvent) => setUnlimitedRetention(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
           <label><input defaultChecked={event.allowDownloads} name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>

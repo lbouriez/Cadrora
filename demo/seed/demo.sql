@@ -9,14 +9,14 @@ INSERT INTO events (
     'demo-public', 'lumiere-et-promesses', 'Lumière et promesses',
     'Une célébration d''été racontée avec naturel, de la cérémonie jusqu''aux éclats de rire sur la piste de danse. Contenu entièrement généré pour la démonstration Cadrora.',
     '2026-06-14T20:00:00.000Z', 'America/Toronto', 'demo-public-ceremony',
-    'published', 'public', 0, 0, 0, 365, 1,
+    'published', 'public', 0, 0, 0, NULL, 1,
     '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'
   ),
   (
     'demo-private', 'instants-en-famille', 'Instants en famille',
     'Galerie privée de démonstration — mot de passe : cadrora-demo. Les personnes présentées sont générées et ne sont pas de vrais clients.',
     '2026-10-04T15:00:00.000Z', 'America/Toronto', 'demo-private-family',
-    'published', 'protected', 0, 0, 0, 90, 1,
+    'published', 'protected', 0, 0, 0, NULL, 1,
     '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'
   )
 ON CONFLICT(id) DO UPDATE SET

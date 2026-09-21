@@ -98,6 +98,10 @@ export const publicResources = {
       },
       demo: {
         adminAction: 'Open read-only admin',
+        aiAction: 'See how it stays private',
+        aiBody: 'Optional face search lets a guest find possible photos in one event. The selected selfie stays on the device; only a numeric representation is searched when the photographer enables it.',
+        aiEyebrow: 'Consent-first AI',
+        aiTitle: 'An AI photo finder, built for privacy',
         adminBody: 'Explore the photographer workflow with changes, uploads, publishing, and deletion blocked by the server.',
         adminEyebrow: 'Behind the scenes',
         adminTitle: 'Read-only admin demo',
@@ -297,6 +301,10 @@ export const publicResources = {
       },
       demo: {
         adminAction: "Ouvrir l'admin en lecture seule",
+        aiAction: 'Voir comment elle reste privée',
+        aiBody: "La recherche faciale facultative aide un invité à retrouver des photos possibles dans un événement. L'égoportrait reste sur l'appareil; seule une représentation numérique est recherchée lorsque le photographe l'active.",
+        aiEyebrow: 'IA avec consentement',
+        aiTitle: 'Un chercheur de photos IA, pensé pour la vie privée',
         adminBody: "Explorez le parcours photographe; les changements, téléversements, publications et suppressions sont bloqués par le serveur.",
         adminEyebrow: 'Dans les coulisses',
         adminTitle: 'Démo admin en lecture seule',

@@ -42,6 +42,15 @@ export function DemoExperienceCards() {
           {t('gallery.demo.adminAction')}
         </Link>
       </article>
+      <article className="demo-experience-card demo-experience-card--ai">
+        <span className="demo-experience-card__number">04</span>
+        <p className="site-eyebrow">{t('gallery.demo.aiEyebrow')}</p>
+        <h3>{t('gallery.demo.aiTitle')}</h3>
+        <p>{t('gallery.demo.aiBody')}</p>
+        <Link className="button button--secondary" to="/privacy#privacy-ai">
+          {t('gallery.demo.aiAction')}
+        </Link>
+      </article>
     </div>
   );
 }
