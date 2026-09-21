@@ -8,6 +8,18 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/photo\/photo-1$/);
   await expect(page.getByRole('dialog')).toBeVisible();
+  const closeButton = page.getByRole('button', { name: /fermer la visionneuse|close viewer/i });
+  const closeBox = await closeButton.boundingBox();
+  const closeIconBox = await closeButton.locator('svg').boundingBox();
+  expect(closeBox).not.toBeNull();
+  expect(closeIconBox).not.toBeNull();
+  expect(Math.abs((closeBox?.x ?? 0) + (closeBox?.width ?? 0) / 2 - ((closeIconBox?.x ?? 0) + (closeIconBox?.width ?? 0) / 2))).toBeLessThan(1);
+  expect(Math.abs((closeBox?.y ?? 0) + (closeBox?.height ?? 0) / 2 - ((closeIconBox?.y ?? 0) + (closeIconBox?.height ?? 0) / 2))).toBeLessThan(1);
+  const nextButton = page.getByRole('button', { name: /photo suivante|next photo/i });
+  const nextBeforeHover = await nextButton.boundingBox();
+  await nextButton.hover();
+  const nextAfterHover = await nextButton.boundingBox();
+  expect(nextAfterHover).toEqual(nextBeforeHover);
   await page.getByRole('button', { name: /afficher les informations|show photo information/i }).click();
   await expect(page.getByText('danse-au-coucher-du-soleil.jpg')).toBeVisible();
   await expect(page.getByText('1800 × 1200 px')).toBeVisible();

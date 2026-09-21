@@ -122,7 +122,16 @@ export async function mockGallery(page: Page, options: { protected?: boolean } =
       await fulfillJson(route, {
         eventRevision: event.revision,
         nextCursor: null,
-        photos: [{ ...publicPhoto, eventId: event.id }],
+        photos: [
+          { ...publicPhoto, eventId: event.id },
+          {
+            ...publicPhoto,
+            eventId: event.id,
+            filename: 'portrait-au-jardin.jpg',
+            id: 'photo-2',
+            sortKey: '00000002',
+          },
+        ],
       });
       return;
     }
