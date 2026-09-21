@@ -34,6 +34,14 @@ The calibration vectors intentionally are not biometric embeddings and must not 
 
 On a browser exposing `navigator.mediaDevices.getUserMedia`, **Take a selfie** opens a live front-camera preview and produces an in-memory JPEG only when the visitor selects **Use this photo**. On browsers without that API, or when permission is refused, that action is disabled or reports the fallback and the visitor can still use **Choose a photo**. The captured image follows the same local-only path as a chosen file.
 
+## Browser runtime compatibility
+
+The pinned YuNet artifact has a fixed `640 × 640` input. The browser must resize the selected image to that exact size before invoking the detector, and must scale the detected boxes and landmarks back to the original image dimensions. Do not change this to `320 × 320` merely to reduce client work: ONNX Runtime rejects that tensor shape and the visitor sees the feature-unavailable fallback.
+
+The detector is initialized before SFace. SFace is downloaded and initialized only after a visitor selects a detected face and presses **Search this event**. This keeps ordinary face detection available if the larger recognition model cannot initialize, and avoids downloading the recognition model for a visitor who stops before searching.
+
+The WASM runtime is deliberately constrained to one thread. This works in browsers that do not expose cross-origin isolation / `SharedArrayBuffer` (including privacy-oriented browser configurations) without weakening the application-wide security headers. It trades some speed for a reliable local-only fallback. ONNX Runtime can print `Initializer … appears in graph inputs` while parsing the upstream SFace file; these are exporter optimization warnings, not a user-visible failure. Investigate the actual thrown error and tensor dimensions before changing model artifacts.
+
 The SPA includes a public find-route object, but its quality and privacy behavior require manual release validation on iPhone Safari: model-cache persistence, WASM memory, camera/file selection, multi-face selection, protected-event grants, expiry, and failure behavior. Desktop unit tests do not establish that evidence.
 
 ## Operator response

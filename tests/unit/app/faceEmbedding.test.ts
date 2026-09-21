@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { normalizeEmbedding } from '../../../src/browser/faces/embedding';
-import { canUseWebGpuRuntime } from '../../../src/browser/faces/inference';
+import { canUseWebGpuRuntime, YUNET_INPUT_SIZE } from '../../../src/browser/faces/inference';
 import { FACE_MODEL_MANIFEST } from '../../../src/browser/faces/modelManifest';
 import { ModelManifestSchema } from '../../../src/shared/schemas';
 
@@ -38,5 +38,9 @@ describe('face embedding boundary', () => {
     expect(canUseWebGpuRuntime(false, webGpu, jspi)).toBe(false);
     expect(canUseWebGpuRuntime(true, {}, jspi)).toBe(false);
     expect(canUseWebGpuRuntime(true, webGpu, {})).toBe(false);
+  });
+
+  it('uses the fixed input shape required by the pinned YuNet detector artifact', () => {
+    expect(YUNET_INPUT_SIZE).toBe(640);
   });
 });

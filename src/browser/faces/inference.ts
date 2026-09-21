@@ -14,6 +14,9 @@ export interface FaceInferenceOptions {
   preferWebGpu?: boolean;
 }
 
+/** Fixed spatial input required by the checksum-pinned YuNet artifact. */
+export const YUNET_INPUT_SIZE = 640;
+
 /** The compact upstream WebGPU runtime requires WebAssembly JSPI as well as WebGPU. */
 export function canUseWebGpuRuntime(
   preferWebGpu: boolean,
@@ -99,7 +102,7 @@ function nms(faces: DetectedFace[], threshold = 0.3): DetectedFace[] {
 }
 
 function decodeYuNet(outputs: InferenceSession.OnnxValueMapType, sourceWidth: number, sourceHeight: number): DetectedFace[] {
-  const modelSize = 320;
+  const modelSize = YUNET_INPUT_SIZE;
   const found: DetectedFace[] = [];
   for (const stride of [8, 16, 32]) {
     const cls = floatData(outputs[`cls_${stride}`]);
@@ -198,8 +201,8 @@ function alignedFace(image: CanvasImageSource, face: DetectedFace): HTMLCanvasEl
 export class FaceInference {
   private constructor(
     private readonly detector: InferenceSession,
-    private readonly recognizer: InferenceSession,
     private readonly TensorConstructor: typeof Tensor,
+    private readonly loadRecognizer: () => Promise<InferenceSession>,
   ) {}
 
   static async load(options: FaceInferenceOptions = {}): Promise<FaceInference> {
@@ -211,17 +214,27 @@ export class FaceInference {
     const yunet = FACE_MODEL_MANIFEST.models[0];
     const sface = FACE_MODEL_MANIFEST.models[1];
     if (!yunet || !sface) throw new Error('FACE_MODEL_MANIFEST');
-    const [yunetBytes, sfaceBytes] = await Promise.all([verifiedModel(yunet), verifiedModel(sface)]);
-    const [detector, recognizer] = await Promise.all([
-      ort.InferenceSession.create(yunetBytes, { executionProviders }),
-      ort.InferenceSession.create(sfaceBytes, { executionProviders }),
-    ]);
-    return new FaceInference(detector, recognizer, ort.Tensor);
+
+    // A single WASM thread works without cross-origin isolation and is the
+    // most portable option for privacy-first, on-device processing. It also
+    // avoids a browser-specific worker/SAB failure from blocking the gallery.
+    ort.env.wasm.numThreads = 1;
+    ort.env.logLevel = 'error';
+
+    const yunetBytes = await verifiedModel(yunet);
+    const detector = await ort.InferenceSession.create(yunetBytes, { executionProviders });
+    let recognizer: Promise<InferenceSession> | null = null;
+    const loadRecognizer = () => {
+      recognizer ??= verifiedModel(sface)
+        .then((sfaceBytes) => ort.InferenceSession.create(sfaceBytes, { executionProviders }));
+      return recognizer;
+    };
+    return new FaceInference(detector, ort.Tensor, loadRecognizer);
   }
 
   async detect(image: ImageBitmap): Promise<DetectedFace[]> {
-    const data = imageTensorData(image, 320, 320, false);
-    const input = new this.TensorConstructor('float32', data, [1, 3, 320, 320]);
+    const data = imageTensorData(image, YUNET_INPUT_SIZE, YUNET_INPUT_SIZE, false);
+    const input = new this.TensorConstructor('float32', data, [1, 3, YUNET_INPUT_SIZE, YUNET_INPUT_SIZE]);
     const outputs = await this.detector.run({ [this.detector.inputNames[0] ?? 'input']: input });
     return decodeYuNet(outputs, image.width, image.height);
   }
@@ -230,8 +243,9 @@ export class FaceInference {
     const crop = alignedFace(image, face);
     const data = imageTensorData(crop, 112, 112, true);
     const input = new this.TensorConstructor('float32', data, [1, 3, 112, 112]);
-    const outputs = await this.recognizer.run({ [this.recognizer.inputNames[0] ?? 'input']: input });
-    const tensor = outputs[this.recognizer.outputNames[0] ?? 'output'];
+    const recognizer = await this.loadRecognizer();
+    const outputs = await recognizer.run({ [recognizer.inputNames[0] ?? 'input']: input });
+    const tensor = outputs[recognizer.outputNames[0] ?? 'output'];
     const values = floatData(tensor);
     if (!values) throw new Error('FACE_EMBEDDING_OUTPUT');
     return normalizeEmbedding(values);
