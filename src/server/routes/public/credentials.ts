@@ -15,19 +15,23 @@ function base64UrlToBytes(value: string): Uint8Array {
 }
 
 async function derive(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
-  const key = await crypto.subtle.importKey(
+  const passwordKey = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
     'PBKDF2',
     false,
-    ['deriveBits'],
+    ['deriveKey'],
   );
-  const bits = await crypto.subtle.deriveBits(
+  const derivedKey = await crypto.subtle.deriveKey(
     { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
-    key,
-    256,
+    passwordKey,
+    { name: 'HMAC', hash: 'SHA-256', length: 256 },
+    true,
+    ['sign'],
   );
-  return new Uint8Array(bits);
+  const raw = await crypto.subtle.exportKey('raw', derivedKey);
+  if (!(raw instanceof ArrayBuffer)) throw new Error('PBKDF2 export did not return bytes');
+  return new Uint8Array(raw);
 }
 
 export async function hashEventPassword(password: string): Promise<string> {
