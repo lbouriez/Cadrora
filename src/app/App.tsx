@@ -10,6 +10,7 @@ const AdminDashboardRoute = lazy(async () => ({ default: (await import('./admin/
 const AdminEventSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminEventSettingsRoute }));
 const AdminImportRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminImportRoute }));
 const AdminLoginRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminLoginRoute }));
+const AdminSiteSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminSiteSettingsRoute }));
 
 function adminElement(element: ReactNode) {
   return <Suspense fallback={<main className="admin-login"><Spinner label="Cadrora" /></main>}>{element}</Suspense>;
@@ -40,6 +41,7 @@ export function App() {
   return useRoutes([
     { path: '/admin/login', element: adminElement(<AdminLoginRoute />) },
     { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
+    { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
     { path: '/admin/events/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
     { path: '/admin/events/:eventId/import', element: adminElement(<AdminImportRoute />) },
     ...publicRouteObjects,

@@ -16,6 +16,7 @@ import { AdminEventsPage, AdminEventSettingsPage } from './AdminEventsPage';
 import { AdminAccessProvider, useAdminAccess } from './AdminAccessContext';
 import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
+import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
 import { PublishPanel } from './PublishPanel';
 import { adminResourceFragment } from './resources';
 import './admin.css';
@@ -127,4 +128,8 @@ export function AdminImportRoute() {
 export function AdminEventSettingsRoute() {
   const { eventId = '' } = useParams<{ eventId: string }>();
   return <AdminFrame><AdminEventSettingsPage eventId={eventId} /></AdminFrame>;
+}
+
+export function AdminSiteSettingsRoute() {
+  return <AdminFrame><AdminSiteSettingsPage /></AdminFrame>;
 }

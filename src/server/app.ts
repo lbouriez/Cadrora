@@ -20,6 +20,7 @@ import { runMaintenance } from './maintenance';
 import { registerAdminEventRoutes } from './routes/admin/events';
 import { adminAuthRouter } from './routes/admin/auth';
 import { registerAdminImportRoutes } from './routes/admin/imports';
+import { registerAdminSiteRoutes } from './routes/admin/site';
 import { registerPublicationRoutes } from './routes/admin/publication';
 import { registerFaceModelRoutes } from './routes/faceModels';
 import { registerFaceSearchRoutes } from './routes/faceSearch';
@@ -62,6 +63,7 @@ registerPublicRoutes(app, {
 });
 registerAdminEventRoutes(app);
 registerAdminImportRoutes(app);
+registerAdminSiteRoutes(app);
 registerMediaRoutes(app);
 registerPublicationRoutes(app);
 registerFaceSearchRoutes(app);

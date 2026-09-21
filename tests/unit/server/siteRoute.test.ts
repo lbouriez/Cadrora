@@ -14,6 +14,7 @@ describe('public site settings route', () => {
         contact_email: null,
         default_language: 'fr',
         site_name: 'Cadrora',
+        theme_mode: 'both',
         updated_at: '2026-09-20T00:00:00.000Z',
       }),
     };
@@ -32,6 +33,7 @@ describe('public site settings route', () => {
       contactEmail: null,
       defaultLanguage: 'fr',
       siteName: 'Cadrora',
+      themeMode: 'both',
       updatedAt: '2026-09-20T00:00:00.000Z',
     });
   });

@@ -9,6 +9,7 @@ import { IconButton } from './IconButton';
  * Example: <Modal open title={t('title')} closeLabel={t('close')} onClose={close}>…</Modal>.
  */
 export interface ModalProps {
+  backdropClassName?: string;
   children: ReactNode;
   className?: string;
   closeLabel: string;
@@ -19,7 +20,7 @@ export interface ModalProps {
 
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ children, className = '', closeLabel, onClose, open, title }: ModalProps) {
+export function Modal({ backdropClassName = '', children, className = '', closeLabel, onClose, open, title }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +60,7 @@ export function Modal({ children, className = '', closeLabel, onClose, open, tit
   };
 
   return createPortal(
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div className={`modal-backdrop ${backdropClassName}`.trim()} onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div
         aria-labelledby={titleId}
         aria-modal="true"

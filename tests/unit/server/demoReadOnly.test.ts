@@ -33,8 +33,10 @@ describe('demo read-only API boundary', () => {
     const app = demoApp();
     app.get('/api/v1/admin/events', (context) => context.json({ ok: true }));
     app.get('/api/v1/admin/events/:eventId/publication', (context) => context.json({ ok: true }));
+    app.get('/api/v1/admin/site', (context) => context.json({ ok: true }));
     expect((await app.request('/api/v1/admin/events')).status).toBe(200);
     expect((await app.request('/api/v1/admin/events/event-1/publication')).status).toBe(200);
+    expect((await app.request('/api/v1/admin/site')).status).toBe(200);
   });
 
   it('rejects mutations before a repository handler can run', async () => {

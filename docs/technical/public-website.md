@@ -33,6 +33,10 @@ The checked-in Cadrora showcase deliberately provides fictional, clearly labelle
 
 The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations.
 
+## Runtime appearance setting
+
+An authenticated owner can choose the visitor-facing appearance at `/admin/settings`: `light`, `dark`, or `both`. This is a tiny D1-backed runtime setting (`site_settings.theme_mode`), not a Vite variable, so it can be changed without rebuilding the public content. `both` displays a Light / Dark switch and preserves a visitor’s local choice. A fixed policy removes that switch. The public shell treats this read as optional and falls back to `both` if `/api/v1/site` is unavailable; the static website therefore remains available during an API outage.
+
 ## Design and content rules
 
 - Keep all user-facing copy in both FR and EN resources.

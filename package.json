@@ -84,6 +84,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.103.1",
+    "embla-carousel-react": "^8.6.0",
     "hono": "4.13.8",
     "i18next": "26.4.2",
     "onnxruntime-web": "1.30.0",

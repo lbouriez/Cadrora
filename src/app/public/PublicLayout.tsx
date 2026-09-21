@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink } from 'react-router-dom';
@@ -6,10 +7,19 @@ import { openPrivacyPreferences } from './consent';
 import { GoogleAnalytics } from './GoogleAnalytics';
 import { PrivacyConsent } from './PrivacyConsent';
 import { siteProfile } from './siteProfile';
+import { getPublicSiteSettings } from './api';
+import { useTheme } from '../useTheme';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   const { i18n, t } = useTranslation();
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
+  const settings = useQuery({
+    queryFn: getPublicSiteSettings,
+    queryKey: ['public-site-settings'],
+    retry: false,
+    staleTime: 60_000,
+  });
+  const { canChooseTheme, theme, toggleTheme } = useTheme(settings.data?.themeMode ?? 'both');
 
   return (
     <div className="public-shell">
@@ -23,6 +33,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <NavLink to="/services">{t('gallery.services')}</NavLink>
           <NavLink to="/events">{t('gallery.events')}</NavLink>
           <NavLink to="/contact">{t('gallery.contact')}</NavLink>
+          {canChooseTheme ? <button
+            aria-label={theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
+            className="public-language"
+            onClick={toggleTheme}
+            type="button"
+          >
+            {theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
+          </button> : null}
           <button
             aria-label={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
             className="public-language"

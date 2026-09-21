@@ -110,9 +110,18 @@ export function AdminEventsPage() {
       </section> : (
         <section className="admin-card admin-demo-intro" aria-labelledby="admin-demo-title">
           <p className="admin-demo-intro__eyebrow">{t('admin.demo.eyebrow')}</p>
-          <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
-          <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
+        <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
+        <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
+        <section aria-labelledby="admin-demo-capabilities-title" className="admin-demo-capabilities">
+          <h2 className="admin-card__title" id="admin-demo-capabilities-title">{t('admin.demo.capabilitiesTitle')}</h2>
+          <p className="admin-card__description">{t('admin.demo.capabilitiesBody')}</p>
+          <div className="admin-demo-capabilities__actions">
+            <Button disabled type="button">{t('admin.demo.createGallery')}</Button>
+            <Button disabled type="button" variant="secondary">{t('admin.demo.importPhotos')}</Button>
+            <Button disabled type="button" variant="secondary">{t('admin.demo.publishGallery')}</Button>
+          </div>
         </section>
+      </section>
       )}
 
       <section aria-labelledby="event-list-title" className="admin-card">

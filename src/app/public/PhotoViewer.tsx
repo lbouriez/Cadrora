@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
@@ -22,10 +23,10 @@ function imageAttributes(photo: PublicPhoto) {
 
 export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerProps) {
   const { t } = useTranslation();
-  const touchStart = useRef<number | null>(null);
   const index = photos.findIndex((candidate) => candidate.id === photo.id);
   const previous = index > 0 ? photos[index - 1] : undefined;
   const next = index >= 0 ? photos[index + 1] : undefined;
+  const [carouselRef, carousel] = useEmblaCarousel({ align: 'center', loop: false });
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -36,26 +37,41 @@ export function PhotoViewer({ onClose, onSelect, photo, photos }: PhotoViewerPro
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [next, onSelect, previous]);
 
-  const image = imageAttributes(photo);
+  useEffect(() => {
+    if (!carousel || index < 0) return;
+    carousel.scrollTo(index, true);
+  }, [carousel, index]);
+
+  useEffect(() => {
+    if (!carousel) return undefined;
+    const selectPhoto = () => {
+      const selected = photos[carousel.selectedScrollSnap()];
+      if (selected && selected.id !== photo.id) onSelect(selected);
+    };
+    carousel.on('select', selectPhoto);
+    return () => {
+      carousel.off('select', selectPhoto);
+    };
+  }, [carousel, onSelect, photo.id, photos]);
+
   return (
-    <Modal className="modal--photo-viewer" closeLabel={t('gallery.closeViewer')} onClose={onClose} open title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
-      <div
-        className="photo-viewer"
-        onTouchEnd={(event) => {
-          const start = touchStart.current;
-          const end = event.changedTouches[0]?.clientX;
-          touchStart.current = null;
-          if (start === null || end === undefined || Math.abs(end - start) < 50) return;
-          if (end > start && previous) onSelect(previous);
-          if (end < start && next) onSelect(next);
-        }}
-        onTouchStart={(event) => { touchStart.current = event.changedTouches[0]?.clientX ?? null; }}
-      >
-        <div className="photo-viewer__stage">
-          <img alt={photo.filename} height={photo.height} sizes="(min-width: 70rem) 80vw, 100vw" src={image.src} srcSet={image.srcSet} width={photo.width} />
-          <IconButton aria-label={t('gallery.previousPhoto')} className="photo-viewer__arrow photo-viewer__arrow--previous" disabled={!previous} onClick={() => previous && onSelect(previous)}>←</IconButton>
-          <IconButton aria-label={t('gallery.nextPhoto')} className="photo-viewer__arrow photo-viewer__arrow--next" disabled={!next} onClick={() => next && onSelect(next)}>→</IconButton>
+    <Modal backdropClassName="modal-backdrop--photo-viewer" className="modal--photo-viewer" closeLabel={t('gallery.closeViewer')} onClose={onClose} open title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
+      <div className="photo-viewer">
+        <div className="photo-viewer__viewport" ref={carouselRef}>
+          <div className="photo-viewer__container">
+            {photos.map((candidate) => {
+              const candidateImage = imageAttributes(candidate);
+              const selected = candidate.id === photo.id;
+              return (
+                <div aria-hidden={!selected} className="photo-viewer__slide" key={candidate.id}>
+                  <img alt={selected ? candidate.filename : ''} height={candidate.height} sizes="100vw" src={candidateImage.src} srcSet={candidateImage.srcSet} width={candidate.width} />
+                </div>
+              );
+            })}
+          </div>
         </div>
+        <IconButton aria-label={t('gallery.previousPhoto')} className="photo-viewer__arrow photo-viewer__arrow--previous" disabled={!previous} onClick={() => carousel?.scrollPrev()}>←</IconButton>
+        <IconButton aria-label={t('gallery.nextPhoto')} className="photo-viewer__arrow photo-viewer__arrow--next" disabled={!next} onClick={() => carousel?.scrollNext()}>→</IconButton>
         <div className="photo-viewer__controls">
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__progress">
             <span style={{ width: `${((index + 1) / photos.length) * 100}%` }} />

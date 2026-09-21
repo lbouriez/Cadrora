@@ -1,11 +1,9 @@
-import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../components';
-
-type Theme = 'dark' | 'light';
+import { useTheme } from '../useTheme';
 
 export interface AdminLayoutProps {
   children: ReactNode;
@@ -14,23 +12,10 @@ export interface AdminLayoutProps {
   subject?: string;
 }
 
-function startingTheme(): Theme {
-  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-}
-
 /** Shared admin frame with keyboard skip navigation and local theme/language controls. */
 export function AdminLayout({ children, onLogout, readOnly = false, subject }: AdminLayoutProps) {
   const { i18n, t } = useTranslation();
-  const [theme, setTheme] = useState<Theme>(startingTheme);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem('cadrora-theme', theme);
-    } catch {
-      // Preferences are optional; a blocked storage area must not block admin use.
-    }
-  }, [theme]);
+  const { theme, toggleTheme } = useTheme();
 
   const switchLanguage = () => {
     void i18n.changeLanguage(i18n.language.startsWith('fr') ? 'en' : 'fr');
@@ -48,7 +33,7 @@ export function AdminLayout({ children, onLogout, readOnly = false, subject }: A
             </Button>
             <Button
               aria-label={theme === 'dark' ? t('admin.themeLight') : t('admin.theme')}
-              onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+              onClick={toggleTheme}
               variant="secondary"
             >
               {theme === 'dark' ? t('admin.themeLight') : t('admin.theme')}
@@ -61,6 +46,9 @@ export function AdminLayout({ children, onLogout, readOnly = false, subject }: A
         <nav aria-label={t('admin.navigation.dashboard')} className="admin-shell__nav">
           <NavLink className="admin-shell__nav-link" end to="/admin">
             {t('admin.navigation.dashboard')}
+          </NavLink>
+          <NavLink className="admin-shell__nav-link" to="/admin/settings">
+            {t('admin.navigation.settings')}
           </NavLink>
         </nav>
         <main id="admin-main">{children}</main>

@@ -9,6 +9,7 @@ interface SiteSettingsRow {
   contact_email: string | null;
   default_language: 'fr' | 'en';
   site_name: string;
+  theme_mode: 'dark' | 'light' | 'both';
   updated_at: string;
 }
 
@@ -18,7 +19,7 @@ export function createPublicSiteRoutes(): Hono<AppEnv> {
 
   routes.get('/site', async (context) => {
     const row = await context.env.DB.prepare(
-      'SELECT site_name, default_language, contact_email, updated_at FROM site_settings WHERE id = 1',
+      'SELECT site_name, default_language, contact_email, theme_mode, updated_at FROM site_settings WHERE id = 1',
     ).first<SiteSettingsRow>();
     if (!row) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
 
@@ -27,6 +28,7 @@ export function createPublicSiteRoutes(): Hono<AppEnv> {
       contactEmail: row.contact_email,
       defaultLanguage: row.default_language,
       siteName: row.site_name,
+      themeMode: row.theme_mode,
       updatedAt: row.updated_at,
     }));
   });

@@ -115,7 +115,8 @@
 
 .admin-login__card {
   display: grid;
-  width: min(100%, 30rem);
+  width: min(100%, 42rem);
+  max-width: 100%;
   gap: var(--space-5);
 }
 
@@ -232,6 +233,20 @@
 .admin-demo-details {
   display: grid;
   margin: var(--space-5) 0 0;
+  gap: var(--space-3);
+}
+
+.admin-demo-capabilities {
+  display: grid;
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 0.0625rem solid var(--color-border);
+  gap: var(--space-3);
+}
+
+.admin-demo-capabilities__actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
 }
 

@@ -80,6 +80,8 @@
 }
 
 .field__input {
+  width: 100%;
+  max-width: 100%;
   min-height: var(--control-min-size);
   padding: var(--space-3) var(--space-4);
   border: 0.0625rem solid var(--color-border);

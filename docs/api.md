@@ -20,6 +20,8 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-20.
 | `POST /admin/login` | JSON `{ password, turnstileToken }` | A `Session` JSON object and a secure opaque session cookie in password mode. Disabled in Cloudflare Access mode. |
 | `POST /admin/logout` | No body | `204`; revokes a password session and clears the cookie. |
 | `GET /admin/session` | None | Current `Session`; password sessions rotate. |
+| `GET /admin/site` | None | Owner-facing `SiteSettings`, including `themeMode`. The showcase demo may read this exact endpoint but cannot update it. |
+| `PATCH /admin/site` | `{ "themeMode": "light" \| "dark" \| "both" }` | Persists the public colour policy. |
 
 `password` is 1–200 characters at the transport boundary; strength belongs in operator provisioning. `turnstileToken` is required and at most 2,048 characters. Never send credentials from a cross-origin client.
 
@@ -105,4 +107,4 @@ Media variant is one of `thumb`, `small`, `medium`, `large`, `download`, or `ori
 
 ## Site settings
 
-`GET /api/v1/site` uses a 60-second public cache policy. The portfolio and contact pages remain build-time static and deliberately do not depend on this endpoint, so an API outage cannot blank the photographer website.
+`GET /api/v1/site` uses a 60-second public cache policy. The public shell reads its optional `themeMode` from this endpoint; if it fails, it preserves the visitor-choice fallback. Portfolio content and contact details remain build-time static, so an API outage cannot blank the photographer website.

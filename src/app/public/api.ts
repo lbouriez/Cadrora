@@ -1,4 +1,5 @@
 import { ApiErrorSchema } from '../../shared/schemas/apiError';
+import { SiteSettingsSchema } from '../../shared/schemas/site';
 import {
   PublicEventListSchema,
   PublicEventSchema,
@@ -6,6 +7,7 @@ import {
   UnlockEventResponseSchema,
 } from '../../shared/schemas/gallery';
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
+import type { SiteSettings } from '../../shared/schemas/site';
 
 export class GalleryApiError extends Error {
   constructor(readonly status: number, readonly code?: string) {
@@ -25,6 +27,11 @@ async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T
 
 export async function getPublicEvents(): Promise<PublicEvent[]> {
   return (await validatedFetch('/api/v1/events', PublicEventListSchema)).events;
+}
+
+/** Optional runtime presentation setting; public pages retain a safe local fallback if it is unavailable. */
+export async function getPublicSiteSettings(): Promise<SiteSettings> {
+  return validatedFetch('/api/v1/site', SiteSettingsSchema);
 }
 
 export async function getPublicEvent(locator: string): Promise<PublicEvent> {
