@@ -12,7 +12,7 @@ test('garde la photo locale avant toute recherche faciale', async ({ page }) => 
   });
 
   await page.goto('/e/mariage-lumiere/find');
-  const fileInput = page.locator('input[type="file"]').nth(1);
+  const fileInput = page.locator('input[type="file"]').first();
   await expect(fileInput).toBeDisabled();
 
   await page.getByRole('checkbox').check();

@@ -34,8 +34,9 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
     renderPage(<HomePage />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Des instants vrais, magnifiquement cadrés.' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Chaque photo. Plus facile à retrouver.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Une photographie profondément personnelle.' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Essayer le chercheur IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
     await waitFor(() => expect(screen.getByText(/galeries publiques sont temporairement indisponibles/i)).toBeTruthy());
   });
 

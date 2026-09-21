@@ -14,10 +14,10 @@ test.describe('site vitrine statique', () => {
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/instants vrais|true moments/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/chaque photo|every photo/i);
     await expect(page.getByRole('heading', { name: /photographie profondément personnelle|photography made personal/i })).toBeVisible();
     await expect(page.getByRole('status')).toContainText(/temporairement indisponibles|temporarily unavailable/i);
-    await expect(page.getByRole('link', { name: /parler de votre projet|talk about your project/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /essayer le chercheur ia|try the ai photo finder/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
 
@@ -48,7 +48,7 @@ test.describe('site vitrine statique', () => {
 
     await page.goto('/events');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/beauté de la livraison|beautiful delivery/i);
-    await expect(page.getByText('cadrora-demo').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /tester le chercheur de photos ia|test the ai photo finder/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /admin en lecture seule|read-only admin/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
 

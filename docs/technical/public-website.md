@@ -46,6 +46,14 @@ An authenticated owner can choose the visitor-facing appearance at `/admin/setti
 - A protected or unlisted event is never promoted by the public landing-page query.
 - Treat the supplied logo at `public/brand/cadrora-logo.png` as the canonical brand asset.
 
+## Public experience system
+
+The public shell is deliberately touch-first: controls meet the shared `--control-min-size` target, the header is a compact frosted surface, and theme/language actions use the shared `IconButton` primitive rather than page-specific controls. `tokens.css` owns colour, spacing, elevation, and motion values; `components.css` owns button and icon-button interaction states. Do not add an isolated colour, radius, or animation to a public page when a semantic token or shared primitive can express it.
+
+`public.css` defines the public card family used by the landing page and `/events`: compact demo journeys, image-led service cards, and image-led live-gallery cards. The gallery card renderer is shared in `PublicEventCards.tsx`, so a CTA is always a themed button rather than an underlined text link. The optional AI journey is the primary demo action and must point to `/e/find-your-photos/find`; demo credentials belong only on the protected-gallery unlock or demo-login screen where they are needed, never in a promotional card.
+
+Motion is limited to press feedback, small elevation changes, and image zooms, all using the shared motion tokens. Respect `prefers-reduced-motion`; no transition is required to understand or operate the site. The fictional triptych at `public/brand/demo-services-triptych.png` is project-owned demonstration media: it may be replaced by an operator's licensed imagery, but it must not imply that its fictional people are clients.
+
 ## Validation
 
 After changing the public site, run `npm run check`, `npm run test`, and `npm run build`. Also inspect `/` and `/contact` at a 390-pixel viewport and a desktop viewport, in FR and EN, with contact values both configured and empty.

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Spinner } from '../components';
 import { getPublicEvents } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
+import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
 
@@ -17,12 +18,15 @@ export function HomePage() {
         <div className="site-hero__copy">
           <p className="site-eyebrow">{t('gallery.heroEyebrow')}</p>
           <h1>{t('gallery.heroTitle')}</h1>
-          <p className="site-hero__lead">{t('gallery.heroLead', {
-            photographer: siteProfile.photographerName ?? siteProfile.siteName,
-          })}</p>
+          <p className="site-hero__lead">{t('gallery.heroLead')}</p>
           <div className="site-actions">
-            <a className="button button--primary" href="#galleries">{t('gallery.discoverGalleries')}</a>
-            <Link className="button button--secondary" to="/contact">{t('gallery.talkAboutProject')}</Link>
+            <Link className="button button--primary" to="/e/find-your-photos/find">{t('gallery.tryAi')}</Link>
+            <a className="button button--secondary" href="#galleries">{t('gallery.discoverGalleries')}</a>
+          </div>
+          <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
+            <span>{t('gallery.productProof.private')}</span>
+            <span>{t('gallery.productProof.free')}</span>
+            <span>{t('gallery.productProof.open')}</span>
           </div>
         </div>
         <figure className="site-hero__art">
@@ -33,6 +37,10 @@ export function HomePage() {
             width="1536"
           />
           <figcaption>{t('gallery.heroArtCaption')}</figcaption>
+          <div className="site-hero__ai-card">
+            <img alt="" src="/demo/face-search/test-portrait-amelia.webp" />
+            <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
+          </div>
         </figure>
       </section>
 
@@ -47,6 +55,15 @@ export function HomePage() {
         <DemoExperienceCards />
       </section> : null}
 
+      <section aria-labelledby="stack-title" className="product-stack">
+        <div>
+          <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
+          <h2 id="stack-title">{t('gallery.stack.title')}</h2>
+        </div>
+        <p>{t('gallery.stack.body')}</p>
+        <a className="button button--secondary" href="https://github.com/lbouriez/Cadrora" rel="noreferrer" target="_blank">{t('gallery.stack.github')} <span aria-hidden="true">↗</span></a>
+      </section>
+
       <section aria-labelledby="services-title" className="site-section" id="services">
         <div className="site-section__heading">
           <p className="site-eyebrow">{t('gallery.servicesEyebrow')}</p>
@@ -56,9 +73,8 @@ export function HomePage() {
         <div className="service-grid">
           {(['events', 'portraits', 'stories'] as const).map((service, index) => (
             <article className="service-card" key={service}>
-              <span aria-hidden="true">0{index + 1}</span>
-              <h3>{t(`gallery.service.${service}.title`)}</h3>
-              <p>{t(`gallery.service.${service}.body`)}</p>
+              <img alt="" className={`service-card__image service-card__image--${service}`} loading="lazy" src="/brand/demo-services-triptych.png" />
+              <div className="service-card__copy"><span aria-hidden="true">0{index + 1}</span><h3>{t(`gallery.service.${service}.title`)}</h3><p>{t(`gallery.service.${service}.body`)}</p></div>
             </article>
           ))}
         </div>
@@ -81,16 +97,7 @@ export function HomePage() {
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
         {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
         {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <div className="event-list">
-          {events.data?.map((event) => (
-            <article className="event-card" key={event.id}>
-              <p className="event-card__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(event.startsAt))}</p>
-              <h3>{event.title}</h3>
-              {event.description ? <p>{event.description}</p> : null}
-              <Link className="event-card__link" to={`/e/${event.slug}`}>{t('gallery.openEvent')} <span aria-hidden="true">→</span></Link>
-            </article>
-          ))}
-        </div>
+        <PublicEventCards events={events.data} language={i18n.language} />
       </section>
 
       <section className="site-contact-callout">

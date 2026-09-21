@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Spinner } from '../components';
 import { getPublicEvents } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
+import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
 
@@ -77,16 +78,7 @@ export function EventsPage() {
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
         {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
         {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <div className="event-list">
-          {events.data?.map((event) => (
-            <article className="event-card" key={event.id}>
-              <p className="event-card__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(event.startsAt))}</p>
-              <h3>{event.title}</h3>
-              {event.description ? <p>{event.description}</p> : null}
-              <Link className="event-card__link" to={`/e/${event.slug}`}>{t('gallery.openEvent')} <span aria-hidden="true">→</span></Link>
-            </article>
-          ))}
-        </div>
+        <PublicEventCards events={events.data} language={i18n.language} />
       </section>
     </PublicLayout>
   );

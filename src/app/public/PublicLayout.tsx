@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink } from 'react-router-dom';
 
+import { IconButton } from '../components';
 import { openPrivacyPreferences } from './consent';
 import { GoogleAnalytics } from './GoogleAnalytics';
 import { PrivacyConsent } from './PrivacyConsent';
@@ -28,28 +29,33 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <img alt="" height="1600" src="/brand/cadrora-logo.png" width="1600" />
           <span>{siteProfile.siteName}</span>
         </Link>
-        <nav aria-label={t('gallery.primaryNavigation')} className="public-nav">
-          <NavLink end to="/">{t('gallery.home')}</NavLink>
-          <NavLink to="/services">{t('gallery.services')}</NavLink>
-          <NavLink to="/events">{t('gallery.events')}</NavLink>
-          <NavLink to="/contact">{t('gallery.contact')}</NavLink>
+        <div className="public-header__actions">
+          <nav aria-label={t('gallery.primaryNavigation')} className="public-nav">
+            <NavLink end to="/">{t('gallery.home')}</NavLink>
+            <NavLink to="/services">{t('gallery.services')}</NavLink>
+            <NavLink to="/events">{t('gallery.events')}</NavLink>
+            <NavLink to="/contact">{t('gallery.contact')}</NavLink>
+          </nav>
+          <div className="public-header__controls">
           {canChooseTheme ? <button
             aria-label={theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
-            className="public-language"
+            className="public-header__theme"
             onClick={toggleTheme}
+            title={theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
             type="button"
           >
-            {theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
+            <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
           </button> : null}
-          <button
+          <IconButton
             aria-label={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
-            className="public-language"
+            className="public-header__language"
             onClick={() => { void i18n.changeLanguage(nextLanguage); }}
-            type="button"
+            title={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
           >
             {nextLanguage.toUpperCase()}
-          </button>
-        </nav>
+          </IconButton>
+          </div>
+        </div>
       </header>
       <main className="public-main">{children}</main>
       <footer className="public-footer">

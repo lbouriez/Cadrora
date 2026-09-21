@@ -9,6 +9,17 @@
   cursor: pointer;
   font-weight: 700;
   gap: var(--space-2);
+  text-decoration: none;
+  transition: transform var(--motion-fast) var(--motion-spring), box-shadow var(--motion-standard) var(--motion-spring), background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
+}
+
+.button:not(:disabled):hover {
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.0625rem);
+}
+
+.button:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 .button:disabled {
@@ -43,7 +54,11 @@
   font-size: var(--text-lg);
   line-height: 1;
   place-items: center;
+  transition: transform var(--motion-fast) var(--motion-spring), background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
+
+.icon-button:not(:disabled):hover { transform: translateY(-0.0625rem); }
+.icon-button:not(:disabled):active { transform: scale(0.94); }
 
 .icon-button:disabled {
   cursor: not-allowed;
@@ -392,5 +407,10 @@
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation-duration: 2s;
+  }
+
+  .button,
+  .icon-button {
+    transition: none;
   }
 }
