@@ -38,7 +38,7 @@ ON CONFLICT(id) DO UPDATE SET
 INSERT INTO event_credentials (event_id, password_hash, access_version, updated_at)
 VALUES (
   'demo-private',
-  'pbkdf2-sha256$210000$7vgSh0keQcI2CR5mNCkChg$ulb4Crz8q_qXlLPekYxcdMpJ4OdCHBqEQ-87Ks_-IbU',
+  'pbkdf2-sha256$600000$7vgSh0keQcI2CR5mNCkChg$2XNowDScabS_ody0CFquhZfHX33RCrLEMh41GYrVGbk',
   1,
   '2026-09-20T00:00:00.000Z'
 )

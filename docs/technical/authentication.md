@@ -8,6 +8,8 @@ The integration owner also installs `adminPageGuard` after `authContext` and con
 
 Set `ADMIN_AUTH_MODE=password` and provide `ADMIN_SECRET_HASH` only as a Cloudflare secret. Its accepted format is `pbkdf2-sha256$600000$base64url-salt$base64url-derived-key`; it uses a random 16-byte salt, PBKDF2-SHA-256, and a 32-byte derived key. Generate the value in a trusted local setup path with `createPasswordHash`; never place the password or resulting hash in source, browser variables, request logs, or issue comments.
 
+Protected-gallery passwords use the same audited hash parser and verifier. D1 stores only this salted 600,000-iteration PBKDF2 hash; the clear password is accepted transiently by the unlock endpoint and is never persisted.
+
 The Worker stores only SHA-256 hashes of opaque 256-bit session tokens in D1. Password-session reads rotate the token, and logout revokes the D1 row and clears the `__Host-cadrora-admin` cookie. Cookie attributes are `Path=/; HttpOnly; Secure; SameSite=Strict`; there is deliberately no `Domain` attribute. `SESSION_TTL_H` defaults to eight hours and accepts only 1 through 24.
 
 ### Published read-only demo

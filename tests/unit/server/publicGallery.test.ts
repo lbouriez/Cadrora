@@ -19,6 +19,7 @@ describe('public gallery contracts', () => {
   it('hashes event passwords with a salt and verifies without storing plaintext', async () => {
     const encoded = await hashEventPassword('correct horse battery staple');
     expect(encoded).not.toContain('correct horse battery staple');
+    expect(encoded).toMatch(/^pbkdf2-sha256\$600000\$/u);
     await expect(verifyEventPassword('correct horse battery staple', encoded)).resolves.toBe(true);
     await expect(verifyEventPassword('wrong password', encoded)).resolves.toBe(false);
     await expect(verifyEventPasswordDetailed('wrong password', encoded)).resolves.toBe('mismatch');
