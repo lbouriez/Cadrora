@@ -984,10 +984,17 @@
 }
 
 .modal--photo-viewer .icon-button--secondary {
+  width: var(--control-min-size);
+  height: var(--control-min-size);
   border-color: rgb(255 255 255 / 28%);
   background: rgb(0 0 0 / 42%);
   color: #fff;
   backdrop-filter: blur(0.75rem);
+}
+
+.modal--photo-viewer .icon-button > svg {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .modal--photo-viewer .icon-button--secondary:not(:disabled):hover,
@@ -999,7 +1006,11 @@
 .photo-viewer {
   position: relative;
   height: 100%;
-  background: #050407;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 50% 40%, rgb(255 255 255 / 6%), transparent 48%),
+    #050407;
+  overflow: hidden;
 }
 
 .photo-viewer__viewport {
@@ -1157,6 +1168,72 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+@media (min-width: 64rem) {
+  .modal-backdrop.modal-backdrop--photo-viewer {
+    padding: clamp(1.5rem, 3vw, 3rem);
+    background: rgb(18 12 22 / 44%);
+    backdrop-filter: blur(1.5rem) saturate(0.82);
+  }
+
+  .modal.modal--photo-viewer {
+    width: min(94vw, 92rem);
+    height: min(90dvh, 58rem);
+    border: 0.0625rem solid rgb(255 255 255 / 16%);
+    border-radius: clamp(1.5rem, 2.5vw, 2rem);
+    box-shadow: 0 2rem 7rem rgb(11 6 15 / 58%), 0 0.25rem 1rem rgb(11 6 15 / 28%);
+    animation: photo-viewer-enter var(--motion-standard) var(--motion-spring) both;
+  }
+
+  .modal--photo-viewer .modal__header {
+    top: var(--space-4);
+    right: var(--space-4);
+    left: var(--space-4);
+  }
+
+  .modal--photo-viewer .modal__header h2,
+  .modal--photo-viewer .icon-button--secondary,
+  .photo-viewer__info,
+  .photo-viewer__controls {
+    border: 0.0625rem solid rgb(255 255 255 / 18%);
+    background: rgb(16 12 19 / 58%);
+    box-shadow: 0 0.5rem 1.75rem rgb(0 0 0 / 24%);
+    backdrop-filter: blur(1.25rem) saturate(1.2);
+  }
+
+  .photo-viewer__controls {
+    right: auto;
+    bottom: var(--space-4);
+    left: 50%;
+    width: max-content;
+    max-width: calc(100% - 2 * var(--space-4));
+    padding: var(--space-2);
+    border-radius: var(--radius-round);
+    transform: translateX(-50%);
+  }
+
+  .photo-viewer__rail {
+    max-width: min(48vw, 30rem);
+    margin-left: 0;
+    scrollbar-width: none;
+  }
+
+  .photo-viewer__rail::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes photo-viewer-enter {
+  from {
+    opacity: 0;
+    scale: 0.985;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
 }
 
 @media (min-width: 40rem) {
@@ -1318,6 +1395,10 @@
 @media (prefers-reduced-motion: reduce) {
   .photo-tile img {
     transition: none;
+  }
+
+  .modal.modal--photo-viewer {
+    animation: none;
   }
 }
 

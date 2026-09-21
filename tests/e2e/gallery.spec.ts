@@ -7,7 +7,16 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Mariage Lumiere' })).toBeVisible();
   await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/photo\/photo-1$/);
-  await expect(page.getByRole('dialog')).toBeVisible();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate(async (element) => Promise.all(element.getAnimations().map(async (animation) => animation.finished)));
+  const desktopDialogBox = await dialog.boundingBox();
+  expect(desktopDialogBox?.x).toBeGreaterThan(16);
+  expect(desktopDialogBox?.y).toBeGreaterThan(16);
+  expect(desktopDialogBox?.width).toBeLessThan(1_440);
+  expect(desktopDialogBox?.height).toBeLessThan(900);
+  await expect(dialog).not.toHaveCSS('border-radius', '0px');
+  await expect(page.locator('.modal-backdrop--photo-viewer')).not.toHaveCSS('backdrop-filter', 'none');
   const closeButton = page.getByRole('button', { name: /fermer la visionneuse|close viewer/i });
   const closeBox = await closeButton.boundingBox();
   const closeIconBox = await closeButton.locator('svg').boundingBox();
@@ -27,6 +36,10 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await page.getByRole('button', { name: /afficher les informations|show photo information/i }).click();
   await expect(page.getByText('danse-au-coucher-du-soleil.jpg')).toBeVisible();
   await expect(page.getByText('1800 × 1200 px')).toBeVisible();
+  await page.setViewportSize({ height: 844, width: 390 });
+  const mobileDialogBox = await dialog.boundingBox();
+  expect(mobileDialogBox).toEqual({ height: 844, width: 390, x: 0, y: 0 });
+  await expect(dialog).toHaveCSS('border-radius', '0px');
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/e\/mariage-lumiere$/);
 });

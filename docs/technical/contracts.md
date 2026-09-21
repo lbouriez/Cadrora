@@ -95,7 +95,7 @@ Semantic values live in `src/app/styles/tokens.css`. Reusable typed components l
 
 The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, starts only after explicit analytics consent, and is allowlisted to the five public marketing routes. Gallery, admin, media, API, and facial-search routes never emit analytics events.
 
-Gallery links never acquire browser-default underlines or layout-changing hover movement. Full-screen and result carousels use the shared SVG icon controls and retain a 44 px minimum target. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
+Gallery links never acquire browser-default underlines or layout-changing hover movement. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
 
 `site_settings.theme_mode` is `light`, `dark`, or `both`. Only an authenticated owner can update it. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch. The public shell falls back to `both` when the settings read is unavailable.
 
