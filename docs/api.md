@@ -23,6 +23,8 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-20.
 
 `password` is 1–200 characters at the transport boundary; strength belongs in operator provisioning. `turnstileToken` is required and at most 2,048 characters. Never send credentials from a cross-origin client.
 
+Authentication failures expose only application-safe codes and a request ID. `TURNSTILE_FAILED` means the submitted challenge was rejected; `TURNSTILE_UNAVAILABLE` means verification could not be completed. Protected-event unlock can additionally return `INVALID_EVENT_PASSWORD`, `EVENT_PASSWORD_UNAVAILABLE`, or `EVENT_GRANT_UNAVAILABLE`. Provider tokens, secrets, visitor IPs, submitted passwords, the auth pepper, and stored verifiers are never API diagnostics.
+
 ## Events
 
 | Method and path | Access | Input/result |

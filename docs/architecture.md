@@ -51,7 +51,7 @@ The React SPA is static. It contains a public photographer website at `/` and `/
 
 Import declares an import and photo records, encodes bounded chunks in the browser, upserts each variant, optionally adds face references, finalizes photos, and finally publishes an event. Every step is retry-safe on natural keys.
 
-Protected access exchanges an event password plus Turnstile proof for a grant scoped to the event and current `accessVersion`. The same grant is checked for metadata and media. Password rotation increments the version.
+Protected access exchanges an event password plus Turnstile proof for a grant scoped to the event and current `accessVersion`. Admin and event password verifiers are domain-separated HMAC-SHA-256 values keyed by a Worker-only `AUTH_PEPPER`; this avoids the former PBKDF2 cost exceeding the Workers Free 10 ms CPU allowance. The same grant is checked for metadata and media. Password rotation increments the version. The reserved seeded demo credential may bypass verification only when the explicit showcase gate is enabled.
 
 Deletion removes access in D1 first. R2 and Vectorize cleanup follows asynchronously through idempotent maintenance jobs, so a failed provider call cannot resurrect public access.
 

@@ -53,10 +53,11 @@ export async function prepareRemoteConfig(target, environment = process.env) {
 
 export async function prepareRemoteSecrets(environment = process.env) {
   const adminHash = requiredEnvironment('ADMIN_SECRET_HASH', environment);
+  const authPepper = requiredEnvironment('AUTH_PEPPER', environment);
   const turnstileSecret = requiredEnvironment('TURNSTILE_SECRET_KEY', environment);
   await writeFile(
     generatedSecretsPath,
-    `ADMIN_SECRET_HASH=${JSON.stringify(adminHash)}\nTURNSTILE_SECRET_KEY=${JSON.stringify(turnstileSecret)}\n`,
+    `ADMIN_SECRET_HASH=${JSON.stringify(adminHash)}\nAUTH_PEPPER=${JSON.stringify(authPepper)}\nTURNSTILE_SECRET_KEY=${JSON.stringify(turnstileSecret)}\n`,
     'utf8',
   );
 

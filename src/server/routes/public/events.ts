@@ -16,7 +16,7 @@ import type { AppEnv } from '../../types';
 import { readEventGrantToken } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { currentAccessVersion, hasCurrentEventAccess } from './access';
-import { verifyEventPasswordDetailed } from './credentials';
+import { isShowcasePrivateEventPassword, verifyEventPasswordDetailed } from './credentials';
 import { eventFromRow, findEvent, photosFromRows, toPublicEvent } from './data';
 import type { EventRow, PhotoWithVariantRow } from './data';
 
@@ -110,10 +110,12 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     if (!credential) {
       throw new ApiException('EVENT_PASSWORD_UNAVAILABLE', 'errors.serviceUnavailable', 503);
     }
-    const verification = services.verifyPassword
-      ? await services.verifyPassword(body.data.password, credential.password_hash) ? 'valid' : 'mismatch'
-      : await verifyEventPasswordDetailed(body.data.password, credential.password_hash);
-    if (verification === 'invalid-hash' || verification === 'crypto-error') {
+    const verification = isShowcasePrivateEventPassword(event.id, body.data.password, context.env.DEMO_SHOWCASE_ENABLED)
+      ? 'valid'
+      : services.verifyPassword
+        ? await services.verifyPassword(body.data.password, credential.password_hash) ? 'valid' : 'mismatch'
+        : await verifyEventPasswordDetailed(body.data.password, credential.password_hash, context.env.AUTH_PEPPER);
+    if (verification === 'invalid-hash' || verification === 'missing-pepper' || verification === 'crypto-error') {
       throw new ApiException('EVENT_PASSWORD_UNAVAILABLE', 'errors.serviceUnavailable', 503);
     }
     if (verification !== 'valid') {

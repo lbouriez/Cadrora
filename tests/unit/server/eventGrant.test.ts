@@ -44,10 +44,8 @@ describe('event grant', () => {
     ).resolves.toBeNull();
   });
 
-  it('prefers the stable admin secret and falls back for Access deployments', () => {
-    expect(eventGrantSigningSecret({ ADMIN_SECRET_HASH: 'admin-secret', TURNSTILE_SECRET_KEY: 'turnstile-secret' }))
-      .toBe('admin-secret');
-    expect(eventGrantSigningSecret({ TURNSTILE_SECRET_KEY: 'turnstile-secret' }))
-      .toBe('turnstile-secret');
+  it('uses the stable pepper so an admin-password rotation does not revoke grants', () => {
+    expect(eventGrantSigningSecret({ AUTH_PEPPER: 'stable-auth-pepper' })).toBe('stable-auth-pepper');
+    expect(eventGrantSigningSecret({})).toBeUndefined();
   });
 });

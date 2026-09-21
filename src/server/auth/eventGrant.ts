@@ -14,9 +14,9 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 export function eventGrantSigningSecret(
-  bindings: Pick<CloudflareBindings, 'ADMIN_SECRET_HASH' | 'TURNSTILE_SECRET_KEY'>,
+  bindings: Pick<CloudflareBindings, 'AUTH_PEPPER'>,
 ): string | undefined {
-  return bindings.ADMIN_SECRET_HASH ?? bindings.TURNSTILE_SECRET_KEY;
+  return bindings.AUTH_PEPPER;
 }
 
 function base64UrlEncode(bytes: Uint8Array): string {

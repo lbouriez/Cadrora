@@ -31,7 +31,7 @@ describe('stateless read-only demo sessions', () => {
     app.get('/', (context) => context.json({ session: context.get('auth').admin ?? null }));
     const base = {
       ADMIN_AUTH_MODE: 'password',
-      ADMIN_SECRET_HASH: secret,
+      AUTH_PEPPER: secret,
       DB: {} as D1Database,
     } as CloudflareBindings;
 

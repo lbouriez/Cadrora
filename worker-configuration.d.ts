@@ -5,6 +5,7 @@ interface CloudflareBindings {
   MODELS_BUCKET: R2Bucket;
   FACE_INDEX?: VectorizeIndex;
   ADMIN_AUTH_MODE: 'password' | 'cloudflare-access';
+  AUTH_PEPPER?: string;
   ADMIN_SECRET_HASH?: string;
   DEMO_ADMIN_PASSWORD?: string;
   DEMO_ADMIN_USERNAME?: string;

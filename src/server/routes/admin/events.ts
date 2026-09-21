@@ -8,6 +8,7 @@ import {
   UpdateEventRequestSchema,
 } from '../../../shared/schemas/gallery';
 import type { AppEnv } from '../../types';
+import { isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { hashEventPassword } from '../public/credentials';
 import { eventFromRow, findEvent } from '../public/data';
@@ -30,6 +31,15 @@ function requiredPositiveLimit(value: string | undefined, name: string): number 
     });
   }
   return parsed;
+}
+
+function requiredAuthPepper(value: string | undefined): string {
+  if (!isAuthPepper(value)) {
+    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, {
+      cause: new Error('AUTH_PEPPER is missing or too short'),
+    });
+  }
+  return value;
 }
 
 function slugify(title: string): string {
@@ -94,7 +104,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.access === 'protected' && input.data.password) {
       statements.push(context.env.DB.prepare(
         'INSERT INTO event_credentials (event_id, password_hash, access_version, updated_at) VALUES (?1, ?2, 1, ?3)',
-      ).bind(id, await hashEventPassword(input.data.password), now));
+      ).bind(id, await hashEventPassword(input.data.password, requiredAuthPepper(context.env.AUTH_PEPPER)), now));
     }
     await context.env.DB.batch(statements);
     const created = await findEvent(context.env.DB, id);
@@ -149,7 +159,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (nextAccess === 'public') {
       statements.push(context.env.DB.prepare('DELETE FROM event_credentials WHERE event_id = ?1').bind(event.id));
     } else if (input.data.password) {
-      const hash = await hashEventPassword(input.data.password);
+      const hash = await hashEventPassword(input.data.password, requiredAuthPepper(context.env.AUTH_PEPPER));
       statements.push(existingVersion
         ? context.env.DB.prepare(
             'UPDATE event_credentials SET password_hash = ?1, access_version = access_version + 1, updated_at = ?2 WHERE event_id = ?3',

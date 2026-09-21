@@ -51,15 +51,15 @@ function parseDotenvKeys(content) {
 }
 
 function hasPasswordHashFormat(value) {
-  const [algorithm, iterationsText, salt, derivedKey, extra] = value.split('$');
-  const iterations = Number(iterationsText);
-  return algorithm === 'pbkdf2-sha256'
+  const [algorithm, salt, mac, extra] = value.split('$');
+  return algorithm === 'hmac-sha256'
     && extra === undefined
-    && Number.isSafeInteger(iterations)
-    && iterations >= 600_000
-    && iterations <= 2_000_000
-    && /^[A-Za-z0-9_-]{22,}$/u.test(salt ?? '')
-    && /^[A-Za-z0-9_-]{43}$/u.test(derivedKey ?? '');
+    && /^[A-Za-z0-9_-]{43,}$/u.test(salt ?? '')
+    && /^[A-Za-z0-9_-]{43}$/u.test(mac ?? '');
+}
+
+function hasAuthPepper(value) {
+  return Buffer.byteLength(value, 'utf8') >= 32;
 }
 
 const nodeMajor = Number(process.versions.node.split('.')[0]);
@@ -103,9 +103,12 @@ if (!devVarsPath) {
 } else {
   const values = parseDotenvKeys(await readFile(devVarsPath, 'utf8'));
   const passwordHash = values.get('ADMIN_SECRET_HASH') ?? '';
+  const authPepper = values.get('AUTH_PEPPER') ?? '';
   const turnstileSecret = values.get('TURNSTILE_SECRET_KEY') ?? '';
-  if (hasPasswordHashFormat(passwordHash)) report('ok', 'ADMIN_SECRET_HASH', 'present with accepted PBKDF2 format');
+  if (hasPasswordHashFormat(passwordHash)) report('ok', 'ADMIN_SECRET_HASH', 'present with accepted HMAC format');
   else fail('ADMIN_SECRET_HASH', 'missing or invalid; generate private credentials with npm run setup:admin-credentials');
+  if (hasAuthPepper(authPepper)) report('ok', 'AUTH_PEPPER', 'present with accepted minimum length');
+  else fail('AUTH_PEPPER', 'missing or too short; generate private credentials with npm run setup:admin-credentials');
   if (turnstileSecret.length > 0) report('ok', 'TURNSTILE_SECRET_KEY', 'present (value not inspected or printed)');
   else fail('TURNSTILE_SECRET_KEY', 'missing; the Worker intentionally rejects login and event-unlock requests without it');
 }

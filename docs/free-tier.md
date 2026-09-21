@@ -14,6 +14,8 @@
 
 Sources checked on 2026-09-20: [Workers limits](https://developers.cloudflare.com/workers/platform/limits/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/), [R2 pricing](https://developers.cloudflare.com/r2/pricing/), [Vectorize pricing](https://developers.cloudflare.com/vectorize/platform/pricing/), and [Turnstile plans](https://developers.cloudflare.com/turnstile/plans/).
 
+The 10 ms Workers Free CPU allowance is also an authentication design constraint, not just a capacity number. A 600,000-iteration PBKDF2 check can exceed that request budget even when the password is correct. Cadrora therefore uses domain-separated HMAC-SHA-256 verifiers keyed by a random, Worker-only `AUTH_PEPPER` of at least 32 bytes. This keeps verification within the target budget while Turnstile, per-IP limiting, strong generated passwords, and pepper confidentiality provide the surrounding protection.
+
 ## Application limits are separate
 
 `MAX_PHOTOS_PER_EVENT`, `MAX_EVENTS`, `MAX_STORAGE_BYTES`, and `MAX_FACES_PER_EVENT` are runtime guards set in `wrangler.jsonc`; `MAX_EVENTS` is enforced when an administrator creates an event. They do not reserve Cloudflare capacity, create billing alerts, prevent all provider charges, or account for every operation.

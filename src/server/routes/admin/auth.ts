@@ -6,6 +6,7 @@ import {
   demoSessionCookie,
   expiredDemoSessionCookie,
   expiredSessionCookie,
+  isAuthPepper,
   isPasswordHashFormat,
   revokePasswordSession,
   rotatePasswordSession,
@@ -55,7 +56,8 @@ export function createAdminAuthRouter(
       throw new ApiException('PASSWORD_LOGIN_DISABLED', 'errors.passwordLoginDisabled', 403);
     }
     const adminSecretHash = context.env.ADMIN_SECRET_HASH;
-    if (typeof adminSecretHash !== 'string' || !isPasswordHashFormat(adminSecretHash)) {
+    const authPepper = context.env.AUTH_PEPPER;
+    if (typeof adminSecretHash !== 'string' || !isPasswordHashFormat(adminSecretHash) || !isAuthPepper(authPepper)) {
       throw new ApiException('ADMIN_AUTH_NOT_CONFIGURED', 'errors.adminAuthNotConfigured', 503);
     }
 
@@ -72,7 +74,7 @@ export function createAdminAuthRouter(
         recordFailedLogin(client, dependencies.now().getTime());
         throw new ApiException('INVALID_CREDENTIALS', 'errors.invalidCredentials', 401);
       }
-      const created = await createDemoSession(adminSecretHash, dependencies.now());
+      const created = await createDemoSession(authPepper, dependencies.now());
       clearFailedLogins(client);
       context.set('cachePolicy', 'admin');
       context.header('Set-Cookie', demoSessionCookie(created.token, created.session.expiresAt, dependencies.now()));
@@ -80,7 +82,7 @@ export function createAdminAuthRouter(
       return context.json(AdminSessionResponseSchema.parse(created.session));
     }
 
-    const passwordValid = await dependencies.verifyConfiguredPassword(input.data.password, adminSecretHash);
+    const passwordValid = await dependencies.verifyConfiguredPassword(input.data.password, adminSecretHash, authPepper);
     if (!passwordValid) {
       recordFailedLogin(client, dependencies.now().getTime());
       throw new ApiException('INVALID_CREDENTIALS', 'errors.invalidCredentials', 401);

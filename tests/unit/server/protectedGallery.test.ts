@@ -87,7 +87,7 @@ describe('protected gallery metadata', () => {
       { headers: { Cookie: '__Host-cadrora-event-grant=invalid.signature' } },
       {
         ...bindings(databaseReturning(protectedEvent)),
-        ADMIN_SECRET_HASH: 'configured-signing-secret',
+        AUTH_PEPPER: 'configured-signing-secret',
       },
     );
 

@@ -24,11 +24,11 @@ Before selecting **Deploy**, complete the short, explicit checklist:
 
 1. Enable R2 in **Storage & databases → R2 Object Storage** if Cloudflare offers **Get started with R2**. The account owner must review and accept that account-level billing/service step. Error `10042` means it is still disabled.
 2. Create one D1 database and two private R2 buckets: `cadrora`, `cadrora-media`, and `cadrora-models`. Keep the R2 buckets private.
-3. Run `npm ci` and `npm run setup:admin-credentials` locally. Store the generated password in a password manager; Cloudflare receives only `ADMIN_SECRET_HASH`.
+3. Run `npm ci` and `npm run setup:admin-credentials` locally. Store the generated password in a password manager. The ignored artifact contains both `ADMIN_SECRET_HASH` and a random `AUTH_PEPPER` of at least 32 bytes; Cloudflare needs both values, but never the clear password.
 4. Create a Managed Turnstile widget for the final hostnames (for example, `cadrora.com` and `www.cadrora.com` only if it will be served). Keep the widget site key and secret key together.
 5. In the repository setup screen, keep **Project name** `cadrora`, **Build command** `npm run build`, and set **Deploy command** to `npm run deploy`. Turn **off** builds for non-production branches for the first release.
 6. In **Advanced settings**, create/select a dedicated Workers Builds API token, then add the three non-secret build variables: `CADRORA_D1_DATABASE_ID`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. The D1 ID is displayed on that database's Overview page.
-7. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets: paste each value, then select **Encrypt**. `ADMIN_SECRET_HASH` is the `ADMIN_SECRET_HASH` line in the ignored `.artifacts/setup/admin-credentials.env` file; never paste `ADMIN_PASSWORD`. To recover the Turnstile values later, open **Application security → Turnstile → Cadrora Production**: its **Secret key** goes into `TURNSTILE_SECRET_KEY`, while its **Site key** goes into the normal (not encrypted) `VITE_TURNSTILE_SITE_KEY` variable. `VITE_*` values are public client-build data; do not put a password or secret in them.
+7. Add `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` as three encrypted build secrets: paste each value, then select **Encrypt**. The first two are the matching lines in the ignored `.artifacts/setup/admin-credentials.env` file; never paste `ADMIN_PASSWORD`. To recover the Turnstile values later, open **Application security → Turnstile → Cadrora Production**: its **Secret key** goes into `TURNSTILE_SECRET_KEY`, while its **Site key** goes into the normal (not encrypted) `VITE_TURNSTILE_SITE_KEY` variable. `VITE_*` values are public client-build data; do not put a password, pepper, or secret in them.
 8. For the official Cadrora showcase only, add the normal build variable `CADRORA_SEED_DEMO=true`; this single opt-in enables the read-only demo identity and links, uploads the tracked generated sample media to private R2, and repairs the two reserved sample events in D1. It defaults to off: leave it unset for a real photographer site. `VITE_GA_MEASUREMENT_ID` is also optional: Google Analytics remains disabled unless it contains a valid GA4 ID and the visitor consents.
 9. Select **Deploy**, wait for the production build to succeed, then attach the custom domain. Verify `/`, `/services`, `/events`, `/contact`, `/privacy`, `/api/v1/site`, and `/admin/login` on the Workers hostname before repeating the checks on the domain.
 
@@ -46,7 +46,7 @@ npm run setup:local
 npm run dev
 ```
 
-`setup:local` creates the ignored `.dev.vars` and `.env` files, generates a private admin password and PBKDF2 hash, installs Cloudflare's official always-pass Turnstile test-key pair, and applies the local D1 migrations. It refuses to overwrite any existing local setup file and never prints credential values. Open `.artifacts/setup/admin-credentials.env` only in a trusted local editor to retrieve the local admin password.
+`setup:local` creates the ignored `.dev.vars` and `.env` files, generates a private admin password, its HMAC-SHA-256 verifier, and a random `AUTH_PEPPER` of at least 32 bytes, installs Cloudflare's official always-pass Turnstile test-key pair, and applies the local D1 migrations. It refuses to overwrite any existing local setup file and never prints credential values. Open `.artifacts/setup/admin-credentials.env` only in a trusted local editor to retrieve the local admin password and the two matching deployment secrets.
 
 The Turnstile keys created by `setup:local` are intentionally limited to development and work on localhost; never deploy them. See [Cloudflare's Turnstile testing documentation](https://developers.cloudflare.com/turnstile/troubleshooting/testing/). For a manual setup or an existing environment, copy `.dev.vars.example` to `.dev.vars` and `.env.example` to `.env`, generate credentials with `npm run setup:admin-credentials`, add the matching values, then run `npm run setup`.
 
@@ -64,9 +64,11 @@ Before a public launch, replace the clearly labelled demonstration profile with 
 
 ## Deployment details
 
-Cloudflare requires a D1 `database_id` and R2 `bucket_name` for a remote Worker binding. To keep this open-source repository portable, those account-specific values are not committed. `npm run deploy` reads the three `CADRORA_*` build variables, writes an ignored temporary Wrangler file, applies migrations through its `DB` binding, deploys with an ignored two-secret file, then deletes both files. The build therefore remains reproducible without coupling the repository to one Cloudflare account.
+Cloudflare requires a D1 `database_id` and R2 `bucket_name` for a remote Worker binding. To keep this open-source repository portable, those account-specific values are not committed. `npm run deploy` reads the three `CADRORA_*` build variables, writes an ignored temporary Wrangler file, applies migrations through its `DB` binding, deploys with an ignored three-secret file, then deletes both files. The build therefore remains reproducible without coupling the repository to one Cloudflare account.
 
-Before selecting **Deploy**, generate and retain the admin password locally with `npm run setup:admin-credentials`; provide the resulting PBKDF2 hash—not the password—as `ADMIN_SECRET_HASH`, the widget's public key as `VITE_TURNSTILE_SITE_KEY`, and the matching private key as `TURNSTILE_SECRET_KEY`. The two server secrets are required and the Worker fails closed without them. `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` are required bindings; `FACE_INDEX` is intentionally optional, so no Vectorize resource is provisioned by this repository.
+Before selecting **Deploy**, generate and retain the admin password locally with `npm run setup:admin-credentials`; provide the resulting HMAC verifier—not the password—as `ADMIN_SECRET_HASH`, its matching random pepper as `AUTH_PEPPER`, the widget's public key as `VITE_TURNSTILE_SITE_KEY`, and the matching private key as `TURNSTILE_SECRET_KEY`. The three server secrets are required and the Worker fails closed without them. The HMAC verifier uses separate domains for admin and event credentials and is intentionally inexpensive enough for the Workers Free 10 ms CPU allowance; the former 600,000-iteration PBKDF2 verifier exceeded that per-request budget. `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` are required bindings; `FACE_INDEX` is intentionally optional, so no Vectorize resource is provisioned by this repository.
+
+When upgrading an existing pre-HMAC checkout, run `npm run setup:admin-credentials -- --migrate`. It preserves the recorded `ADMIN_PASSWORD`, adds a stable `AUTH_PEPPER`, and rewrites only the verifier in the ignored artifact without printing any value. Replace both encrypted Cloudflare secrets from that same artifact before deploying the new code.
 
 Use the named preview environment only for isolated practice, with its own D1/R2 resources and its own required secrets:
 
@@ -84,7 +86,7 @@ For a manual production release after authenticating Wrangler, exporting the sam
 | `npm run setup` | Validate required local secrets and apply idempotent local D1 migrations |
 | `npm run setup -- --diagnose` | Read-only local prerequisite and binding diagnostic |
 | `npm run setup:local` | One-command first local setup with generated credentials, official Turnstile test keys, and D1 migrations |
-| `npm run setup:admin-credentials` | Write a long password and PBKDF2 hash to ignored local artifacts without printing values |
+| `npm run setup:admin-credentials` | Write a long password, HMAC-SHA-256 verifier, and 32-byte-or-longer pepper to ignored local artifacts without printing values |
 | `npm run dev` | Run the React SPA and Worker in the Workers runtime |
 | `npm run check` | Type-check and lint |
 | `npm run test` | Run the unit suite once |

@@ -1,7 +1,10 @@
 export {
   PASSWORD_HASH_FORMAT,
+  createEventPasswordHash,
   createPasswordHash,
+  isAuthPepper,
   isPasswordHashFormat,
+  verifyEventPasswordHash,
   verifyPassword,
 } from './password';
 export {

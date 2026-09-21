@@ -11,7 +11,7 @@ Cadrora's primary domain must demonstrate the whole product rather than show an 
 
 Ship generated, repository-owned showcase media and an idempotent opt-in seed controlled by `CADRORA_SEED_DEMO=true`. The same flag compiles the demo links into the public client and materializes the runtime demo-auth gate; every checked-in default is off. The deploy script uploads the image variants to private R2 before upserting and validating the matching D1 records. A normal photographer deployment leaves the variable unset and receives no sample events or demo login.
 
-In password mode, expose a dedicated demo identity with published, non-secret credentials. It receives a separate one-hour stateless session, HMAC-signed with a domain-separated key derived from the configured admin hash. Add an explicit `Session.access` capability and enforce `read-only` on the server with an exact safe-read allowlist. Unknown routes fail closed; no demo request may create a D1 session or perform a provider mutation. Owner password and Cloudflare Access sessions retain `manage` capability.
+In password mode, expose a dedicated demo identity with published, non-secret credentials. It receives a separate one-hour stateless session, HMAC-signed with a domain-separated key derived from the stable `AUTH_PEPPER`. Add an explicit `Session.access` capability and enforce `read-only` on the server with an exact safe-read allowlist. Unknown routes fail closed; no demo request may create a D1 session or perform a provider mutation. Owner password and Cloudflare Access sessions retain `manage` capability.
 
 Support GA4 only as optional public build configuration. Default to no analytics. After explicit consent, load it only on the marketing-route allowlist; never measure gallery, admin, API, media, or face-search paths. Keep necessary storage usable when analytics is refused, and expose privacy settings from the footer.
 
@@ -20,7 +20,7 @@ Support GA4 only as optional public build configuration. Default to no analytics
 - The official domain can demonstrate real D1/R2 gallery delivery without using client photographs.
 - Published demo credentials are safe to share because the server capability, not credential secrecy or hidden controls, limits access.
 - Adding a future admin read requires an explicit allowlist decision; it does not become demo-visible automatically.
-- Demo sessions cannot be individually revoked, but expire after one hour and become invalid when the admin hash changes. They write no session records.
+- Demo sessions cannot be individually revoked, but expire after one hour and become invalid when `AUTH_PEPPER` rotates. They write no session records.
 - GA4 remains disabled until an operator supplies a valid Measurement ID and each browser grants analytics consent.
 - Showcase deployments re-upload a small, fixed generated asset set idempotently on release; real deployments do not.
 

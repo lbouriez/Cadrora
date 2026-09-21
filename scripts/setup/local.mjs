@@ -1,12 +1,9 @@
-import { pbkdf2, randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { promisify } from 'node:util';
 
-const deriveKey = promisify(pbkdf2);
-const iterations = 600_000;
 const testTurnstileSiteKey = '1x00000000000000000000AA';
 const testTurnstileSecretKey = '1x0000000000000000000000000000000AA';
 const targets = [
@@ -34,21 +31,26 @@ if (existingTargets.length > 0) {
 }
 
 const password = randomBytes(32).toString('base64url');
-const salt = randomBytes(16);
-const derivedKey = await deriveKey(password, salt, iterations, 32, 'sha256');
-const passwordHash = `pbkdf2-sha256$${iterations}$${salt.toString('base64url')}$${derivedKey.toString('base64url')}`;
+const authPepper = randomBytes(32).toString('base64url');
+const salt = randomBytes(32).toString('base64url');
+const mac = createHmac('sha256', `cadrora-password-admin-v1:${authPepper}`)
+  .update(`${salt}:${password}`, 'utf8')
+  .digest('base64url');
+const passwordHash = `hmac-sha256$${salt}$${mac}`;
 
 const files = new Map([
   ['.artifacts/setup/admin-credentials.env', [
     '# Generated locally by scripts/setup/local.mjs.',
     '# Keep this file private; it is ignored by Git. Store ADMIN_PASSWORD in a password manager.',
     `ADMIN_PASSWORD=${password}`,
+    `AUTH_PEPPER=${authPepper}`,
     `ADMIN_SECRET_HASH=${passwordHash}`,
     '',
   ].join('\n')],
   ['.dev.vars', [
     '# Local development only. Never deploy these Cloudflare test credentials to production.',
     `ADMIN_SECRET_HASH=${passwordHash}`,
+    `AUTH_PEPPER=${authPepper}`,
     `TURNSTILE_SECRET_KEY=${testTurnstileSecretKey}`,
     '',
   ].join('\n')],

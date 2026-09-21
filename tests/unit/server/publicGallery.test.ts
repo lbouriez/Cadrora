@@ -3,27 +3,39 @@ import { describe, expect, it } from 'vitest';
 import { CACHE_CONTROL_BY_POLICY } from '../../../src/server/middleware/cacheHeaders';
 import {
   hashEventPassword,
+  isShowcasePrivateEventPassword,
   verifyEventPassword,
   verifyEventPasswordDetailed,
 } from '../../../src/server/routes/public/credentials';
+import { verifyPassword } from '../../../src/server/auth';
 import { photosFromRows } from '../../../src/server/routes/public/data';
 import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/events';
 
 describe('public gallery contracts', () => {
+  const authPepper = 'test-auth-pepper-that-is-at-least-thirty-two-bytes';
+
   it('round trips a stable sort key, id, and revision cursor', () => {
     const cursor = { sortKey: '2026-09-20T10:00:00.000Z', id: 'photo-2', revision: 7 };
     expect(decodePhotoCursor(encodePhotoCursor(cursor))).toEqual(cursor);
     expect(() => decodePhotoCursor('not-json')).toThrowError('errors.invalidCursor');
   });
 
-  it('hashes event passwords with a salt and verifies without storing plaintext', async () => {
-    const encoded = await hashEventPassword('correct horse battery staple');
+  it('hashes event passwords with a salt and distinct HMAC domain without storing plaintext', async () => {
+    const encoded = await hashEventPassword('correct horse battery staple', authPepper);
     expect(encoded).not.toContain('correct horse battery staple');
-    expect(encoded).toMatch(/^pbkdf2-sha256\$600000\$/u);
-    await expect(verifyEventPassword('correct horse battery staple', encoded)).resolves.toBe(true);
-    await expect(verifyEventPassword('wrong password', encoded)).resolves.toBe(false);
-    await expect(verifyEventPasswordDetailed('wrong password', encoded)).resolves.toBe('mismatch');
-    await expect(verifyEventPasswordDetailed('password', 'not-a-supported-hash')).resolves.toBe('invalid-hash');
+    expect(encoded).toMatch(/^hmac-sha256\$/u);
+    await expect(verifyEventPassword('correct horse battery staple', encoded, authPepper)).resolves.toBe(true);
+    await expect(verifyEventPassword('wrong password', encoded, authPepper)).resolves.toBe(false);
+    await expect(verifyPassword('correct horse battery staple', encoded, authPepper)).resolves.toBe(false);
+    await expect(verifyEventPasswordDetailed('wrong password', encoded, authPepper)).resolves.toBe('mismatch');
+    await expect(verifyEventPasswordDetailed('password', 'not-a-supported-hash', authPepper)).resolves.toBe('invalid-hash');
+    await expect(verifyEventPasswordDetailed('password', encoded, undefined)).resolves.toBe('missing-pepper');
+  });
+
+  it('accepts the public showcase password only for the reserved event and explicit gate', () => {
+    expect(isShowcasePrivateEventPassword('demo-private', 'cadrora-demo', 'true')).toBe(true);
+    expect(isShowcasePrivateEventPassword('event-1', 'cadrora-demo', 'true')).toBe(false);
+    expect(isShowcasePrivateEventPassword('demo-private', 'cadrora-demo', 'false')).toBe(false);
   });
 
   it('builds revisioned responsive sources and hides downloads when disabled', () => {

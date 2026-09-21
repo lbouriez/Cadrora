@@ -10,7 +10,7 @@ This document describes the current implementation. It is not legal advice, a pr
 | Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
 | Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
 | Source metadata | The browser’s pixel re-encode strips source EXIF/XMP metadata from the normal import path, including GPS, serial, and comments. |
-| Event passwords | D1 stores a salted PBKDF2 hash, never the clear password. |
+| Event passwords | D1 stores a domain-separated HMAC-SHA-256 verifier, never the clear password. Its key is the separate Worker-only `AUTH_PEPPER`; admin and event credentials use different domains. |
 | Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
 | Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores event-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |

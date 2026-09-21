@@ -35,9 +35,9 @@ Inspect the queue only with approved, least-privilege D1 access. Preserve job ID
 
 Treat as a security incident. Capture only URL, timestamp, hostname, response status/headers, and request ID. Do not download or redistribute the asset. Check whether the event is public, whether its revision/access version changed, and whether the route was reached through an unexpected hostname. Disable public exposure through the authenticated event path when available, then follow [`SECURITY.md`](../SECURITY.md).
 
-### Admin sign-in fails
+### Admin sign-in or protected-gallery unlock fails
 
-Check the configured auth mode, presence of required secret/bindings, correct Turnstile hostname configuration, and `Origin` behavior. Password mode requires a valid configured PBKDF2 hash; Cloudflare Access mode requires a valid assertion, issuer, and audience. Do not test by sharing a password or session cookie.
+Check the configured auth mode, presence of required secret/bindings, correct Turnstile hostname configuration, and `Origin` behavior. Password mode requires a matching versioned `ADMIN_SECRET_HASH` and `AUTH_PEPPER`; protected-event credentials use the same pepper under a separate HMAC domain. Cloudflare Access mode requires a valid assertion, issuer, and audience. Record only the request ID and safe API code: `TURNSTILE_FAILED` means a challenge was rejected, `TURNSTILE_UNAVAILABLE` means verification could not be performed, and `EVENT_PASSWORD_UNAVAILABLE` or `EVENT_GRANT_UNAVAILABLE` means the Worker failed closed around event credential/grant handling. Do not share a password, pepper, Turnstile token/secret, stored verifier, or session cookie.
 
 ### Import fails or stops
 

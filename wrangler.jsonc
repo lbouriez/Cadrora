@@ -23,7 +23,7 @@
     "SITE_DEFAULT_LANG": "fr"
   },
   "secrets": {
-    "required": ["ADMIN_SECRET_HASH", "TURNSTILE_SECRET_KEY"]
+    "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
   },
   "triggers": {
     "crons": ["*/15 * * * *"]
@@ -58,7 +58,7 @@
         "SITE_DEFAULT_LANG": "fr"
       },
       "secrets": {
-        "required": ["ADMIN_SECRET_HASH", "TURNSTILE_SECRET_KEY"]
+        "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
       },
       "d1_databases": [
         {

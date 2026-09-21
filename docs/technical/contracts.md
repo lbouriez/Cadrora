@@ -73,10 +73,12 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 ## Authentication
 
 - `ADMIN_AUTH_MODE` is `password` or `cloudflare-access`; there is no `none` mode.
+- Password mode requires a versioned admin-domain HMAC-SHA-256 verifier plus a separate Worker-only `AUTH_PEPPER` of at least 32 random bytes. Protected-event verifiers use the same pepper under a distinct event domain. Clear passwords are never persisted.
 - Password sessions are opaque. D1 stores only a token hash. Cookies are `__Host-*; HttpOnly; Secure; SameSite=Strict; Path=/` with an eight-hour default TTL.
 - In password mode only and only with the explicit showcase gate, the published demo identity receives a separate one-hour, HMAC-signed `__Host-cadrora-demo` session with `access=read-only`. It is not an owner session and cannot mutate provider state. The gate defaults to false.
 - Cloudflare Access JWTs are verified in the Worker for signature, issuer, audience, and expiry on every hostname.
 - Event grants contain only `eventId` and `accessVersion`. A password change increments the version and invalidates old grants.
+- The reserved `demo-private` password bypass exists only behind the explicit showcase gate; it is forbidden for normal events and real photographer deployments.
 - State-changing admin requests verify `Origin` for CSRF protection.
 
 ## D1 and cross-service consistency

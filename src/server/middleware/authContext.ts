@@ -24,10 +24,10 @@ export const authContext = createMiddleware<AppEnv>(async (context, next) => {
       const session = await getPasswordSession(bindings.DB, token);
       if (session) context.set('auth', { admin: session });
     }
-    if (!context.get('auth').admin && bindings.DEMO_SHOWCASE_ENABLED === 'true' && bindings.ADMIN_SECRET_HASH) {
+    if (!context.get('auth').admin && bindings.DEMO_SHOWCASE_ENABLED === 'true' && bindings.AUTH_PEPPER) {
       const demoToken = readDemoSessionToken(context.req.header('Cookie'));
       if (demoToken) {
-        const session = await verifyDemoSession(demoToken, bindings.ADMIN_SECRET_HASH);
+        const session = await verifyDemoSession(demoToken, bindings.AUTH_PEPPER);
         if (session) context.set('auth', { admin: session });
       }
     }
