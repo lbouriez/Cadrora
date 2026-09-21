@@ -4,7 +4,7 @@ This is a deployment preflight for Cadrora. It documents the repository-preservi
 
 ## Current deployment status
 
-`wrangler.jsonc` sends `/api/*`, `/media/*`, `/e/*`, `/admin`, `/admin/*`, and `/models/*` through the Worker first. Other paths, including `/` and `/contact`, use the static-assets binding and SPA fallback.
+`wrangler.jsonc` publishes Vite's `./dist/client` directory through the static-assets binding. It sends `/api/*`, `/media/*`, `/e/*`, `/admin`, `/admin/*`, and `/models/*` through the Worker first. Other paths, including `/` and `/contact`, use the static-assets binding and SPA fallback.
 
 The checked-in configuration deliberately omits the account-specific D1 ID and R2 bucket names. They are required by Wrangler for a remote binding, so the release scripts materialize an ignored `.cadrora.remote.wrangler.json` from three process/build variables, use it for migration and deploy, and remove it afterward. `wrangler.jsonc` has a production Worker (`cadrora`) and a named preview Worker (`cadrora-preview`). The preview environment explicitly redeclares its non-inherited variables, required secrets, D1 binding, and R2 bindings, so it does not point at production state.
 

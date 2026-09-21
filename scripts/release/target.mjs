@@ -25,7 +25,7 @@ export function parseReleaseTarget(argumentsList) {
   if (!argumentsList.includes('--confirm')) {
     throw new Error('Remote migration/deployment requires an explicit --confirm.');
   }
-  return production ? { cloudflareEnv: undefined, label: 'production', migrationArgs: [] } : {
+  return production ? { cloudflareEnv: undefined, label: 'production', migrationArgs: ['--env='] } : {
     cloudflareEnv: 'preview',
     label: 'preview',
     migrationArgs: ['--env', 'preview'],
