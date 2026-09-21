@@ -2,9 +2,11 @@ import { createMiddleware } from 'hono/factory';
 
 import {
   getPasswordSession,
+  readDemoSessionToken,
   readEventGrantToken,
   readSessionToken,
   verifyCloudflareAccessJwt,
+  verifyDemoSession,
   verifyEventGrantToken,
 } from '../auth';
 import type { AppEnv } from '../types';
@@ -20,6 +22,13 @@ export const authContext = createMiddleware<AppEnv>(async (context, next) => {
     if (token) {
       const session = await getPasswordSession(bindings.DB, token);
       if (session) context.set('auth', { admin: session });
+    }
+    if (!context.get('auth').admin && bindings.DEMO_SHOWCASE_ENABLED === 'true' && bindings.ADMIN_SECRET_HASH) {
+      const demoToken = readDemoSessionToken(context.req.header('Cookie'));
+      if (demoToken) {
+        const session = await verifyDemoSession(demoToken, bindings.ADMIN_SECRET_HASH);
+        if (session) context.set('auth', { admin: session });
+      }
     }
   } else if (bindings?.ADMIN_AUTH_MODE === 'cloudflare-access') {
     // Access always supplies this assertion to origins. Do not trust a browser

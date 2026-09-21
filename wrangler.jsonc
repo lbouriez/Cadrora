@@ -12,6 +12,9 @@
   },
   "vars": {
     "ADMIN_AUTH_MODE": "password",
+    "DEMO_SHOWCASE_ENABLED": "false",
+    "DEMO_ADMIN_USERNAME": "demo",
+    "DEMO_ADMIN_PASSWORD": "cadrora-demo",
     "SESSION_TTL_H": "8",
     "MAX_PHOTOS_PER_EVENT": "2000",
     "MAX_EVENTS": "50",
@@ -44,6 +47,9 @@
     "preview": {
       "vars": {
         "ADMIN_AUTH_MODE": "password",
+        "DEMO_SHOWCASE_ENABLED": "false",
+        "DEMO_ADMIN_USERNAME": "demo",
+        "DEMO_ADMIN_PASSWORD": "cadrora-demo",
         "SESSION_TTL_H": "8",
         "MAX_PHOTOS_PER_EVENT": "2000",
         "MAX_EVENTS": "50",

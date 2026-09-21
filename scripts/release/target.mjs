@@ -36,7 +36,7 @@ export function runWrangler(argumentsList, environment = process.env) {
   if (!existsSync(wranglerPath)) throw new Error('Wrangler is not installed. Run npm ci first.');
   const result = spawnSync(process.execPath, [wranglerPath, ...argumentsList], { env: environment, stdio: 'inherit' });
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  if (result.status !== 0) throw new Error(`Wrangler exited with status ${String(result.status ?? 1)}.`);
 }
 
 export function runNpmBuild(cloudflareEnv) {
@@ -46,5 +46,5 @@ export function runNpmBuild(cloudflareEnv) {
     stdio: 'inherit',
   });
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status ?? 1);
+  if (result.status !== 0) throw new Error(`Build exited with status ${String(result.status ?? 1)}.`);
 }

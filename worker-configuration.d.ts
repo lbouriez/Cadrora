@@ -6,6 +6,9 @@ interface CloudflareBindings {
   FACE_INDEX?: VectorizeIndex;
   ADMIN_AUTH_MODE: 'password' | 'cloudflare-access';
   ADMIN_SECRET_HASH?: string;
+  DEMO_ADMIN_PASSWORD?: string;
+  DEMO_ADMIN_USERNAME?: string;
+  DEMO_SHOWCASE_ENABLED?: string;
   TURNSTILE_SECRET_KEY?: string;
   CF_ACCESS_TEAM_DOMAIN?: string;
   CF_ACCESS_AUD?: string;
@@ -16,4 +19,3 @@ interface CloudflareBindings {
   MAX_FACES_PER_EVENT: string;
   SITE_DEFAULT_LANG: 'fr' | 'en';
 }
-

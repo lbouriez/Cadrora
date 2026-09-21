@@ -38,6 +38,7 @@ function asSession(row: unknown): Session | null {
   const parsed = storedSessionSchema.safeParse(row);
   if (!parsed.success) return null;
   const session = SessionSchema.safeParse({
+    access: 'manage',
     id: parsed.data.id,
     authMode: 'password',
     subject: parsed.data.subject,
@@ -95,6 +96,7 @@ export async function createPasswordSession(
   const token = newToken();
   const expiresAt = sessionExpiry(ttlHours, now).toISOString();
   const session: Session = SessionSchema.parse({
+    access: 'manage',
     id: crypto.randomUUID(),
     authMode: 'password',
     subject,

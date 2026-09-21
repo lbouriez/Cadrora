@@ -2,6 +2,9 @@ import { Hono } from 'hono';
 
 import {
   createPasswordSession,
+  createDemoSession,
+  demoSessionCookie,
+  expiredDemoSessionCookie,
   expiredSessionCookie,
   isPasswordHashFormat,
   revokePasswordSession,
@@ -51,12 +54,33 @@ export function createAdminAuthRouter(
     if (context.env.ADMIN_AUTH_MODE !== 'password') {
       throw new ApiException('PASSWORD_LOGIN_DISABLED', 'errors.passwordLoginDisabled', 403);
     }
-    if (!isPasswordHashFormat(context.env.ADMIN_SECRET_HASH)) {
+    const adminSecretHash = context.env.ADMIN_SECRET_HASH;
+    if (typeof adminSecretHash !== 'string' || !isPasswordHashFormat(adminSecretHash)) {
       throw new ApiException('ADMIN_AUTH_NOT_CONFIGURED', 'errors.adminAuthNotConfigured', 503);
     }
 
-    const client = loginClientKey(context);
-    const passwordValid = await dependencies.verifyConfiguredPassword(input.data.password, context.env.ADMIN_SECRET_HASH);
+    const client = loginClientKey(context, input.data.account);
+    if (input.data.account === 'demo') {
+      if (context.env.DEMO_SHOWCASE_ENABLED !== 'true') {
+        throw new ApiException('INVALID_CREDENTIALS', 'errors.invalidCredentials', 401);
+      }
+      const usernameValid = Boolean(context.env.DEMO_ADMIN_USERNAME)
+        && input.data.username === context.env.DEMO_ADMIN_USERNAME;
+      const passwordValid = Boolean(context.env.DEMO_ADMIN_PASSWORD)
+        && input.data.password === context.env.DEMO_ADMIN_PASSWORD;
+      if (!usernameValid || !passwordValid) {
+        recordFailedLogin(client, dependencies.now().getTime());
+        throw new ApiException('INVALID_CREDENTIALS', 'errors.invalidCredentials', 401);
+      }
+      const created = await createDemoSession(adminSecretHash, dependencies.now());
+      clearFailedLogins(client);
+      context.set('cachePolicy', 'admin');
+      context.header('Set-Cookie', demoSessionCookie(created.token, created.session.expiresAt, dependencies.now()));
+      context.header('Set-Cookie', expiredSessionCookie(), { append: true });
+      return context.json(AdminSessionResponseSchema.parse(created.session));
+    }
+
+    const passwordValid = await dependencies.verifyConfiguredPassword(input.data.password, adminSecretHash);
     if (!passwordValid) {
       recordFailedLogin(client, dependencies.now().getTime());
       throw new ApiException('INVALID_CREDENTIALS', 'errors.invalidCredentials', 401);
@@ -73,13 +97,20 @@ export function createAdminAuthRouter(
     clearFailedLogins(client);
     context.set('cachePolicy', 'admin');
     context.header('Set-Cookie', sessionCookie(created.token, created.session.expiresAt, dependencies.now()));
+    context.header('Set-Cookie', expiredDemoSessionCookie(), { append: true });
     return context.json(AdminSessionResponseSchema.parse(created.session));
   });
 
   router.post('/logout', requireAdmin, async (context) => {
     const session = context.get('auth').admin;
-    if (session?.authMode === 'password') await dependencies.revokeSession(context.env.DB, session.id, dependencies.now());
-    context.header('Set-Cookie', expiredSessionCookie());
+    if (session?.authMode === 'password') {
+      await dependencies.revokeSession(context.env.DB, session.id, dependencies.now());
+      context.header('Set-Cookie', expiredSessionCookie());
+      context.header('Set-Cookie', expiredDemoSessionCookie(), { append: true });
+    } else if (session?.authMode === 'demo') {
+      context.header('Set-Cookie', expiredDemoSessionCookie());
+      context.header('Set-Cookie', expiredSessionCookie(), { append: true });
+    }
     return context.body(null, 204);
   });
 

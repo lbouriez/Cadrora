@@ -8,6 +8,7 @@ const TEST_DATE = '2030-01-01T00:00:00.000Z';
 export function mockAdmin(overrides: Partial<Session> = {}) {
   return createMiddleware<AppEnv>(async (context, next) => {
     const session: Session = {
+      access: 'manage',
       id: 'test-admin-session',
       authMode: 'password',
       subject: 'test-admin',
@@ -30,4 +31,3 @@ export function mockEventGrant(eventId: string, accessVersion = 1) {
     await next();
   });
 }
-

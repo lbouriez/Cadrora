@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { Spinner } from '../components';
 import { getPublicEvents } from './api';
+import { DemoExperienceCards } from './DemoExperienceCards';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
 
@@ -24,14 +25,27 @@ export function HomePage() {
             <Link className="button button--secondary" to="/contact">{t('gallery.talkAboutProject')}</Link>
           </div>
         </div>
-        <div aria-hidden="true" className="site-hero__art">
-          <div className="site-hero__frame site-hero__frame--back" />
-          <div className="site-hero__frame site-hero__frame--front">
-            <img alt="" height="1600" src="/brand/cadrora-logo.png" width="1600" />
-          </div>
-          <span className="site-hero__caption">{t('gallery.heroArtCaption')}</span>
-        </div>
+        <figure className="site-hero__art">
+          <img
+            alt={t('gallery.heroImageAlt')}
+            height="1024"
+            src="/brand/demo-hero.webp"
+            width="1536"
+          />
+          <figcaption>{t('gallery.heroArtCaption')}</figcaption>
+        </figure>
       </section>
+
+      {siteProfile.demo.enabled ? <section aria-labelledby="demo-title" className="site-section site-section--demo">
+        <div className="site-section__heading site-section__heading--row">
+          <div>
+            <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
+            <h2 id="demo-title">{t('gallery.demo.sectionTitle')}</h2>
+          </div>
+          <p>{t('gallery.demo.sectionLead')}</p>
+        </div>
+        <DemoExperienceCards />
+      </section> : null}
 
       <section aria-labelledby="services-title" className="site-section" id="services">
         <div className="site-section__heading">

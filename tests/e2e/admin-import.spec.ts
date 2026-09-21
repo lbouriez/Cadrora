@@ -47,6 +47,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
     if (path.endsWith('/session')) {
       await route.fulfill({
         body: JSON.stringify({
+          access: 'manage',
           authMode: 'password',
           createdAt: '2026-09-20T15:00:00.000Z',
           expiresAt: '2026-09-20T23:00:00.000Z',

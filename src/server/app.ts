@@ -8,6 +8,7 @@ import {
   adminPageGuard,
   authContext,
   cacheHeaders,
+  demoReadOnly,
   errorBoundary,
   rateLimit,
   requestId,
@@ -45,6 +46,7 @@ app.use('*', cacheHeaders);
 
 // Every admin mutation, including feature-package routes, is same-origin only.
 app.use('/api/v1/admin/*', adminCsrf);
+app.use('/api/v1/admin/*', demoReadOnly);
 
 // Feature routes are registered centrally so middleware and authorization order stay reviewable.
 app.route('/api/v1/admin', adminAuthRouter);

@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
+import { openPrivacyPreferences } from './consent';
+import { GoogleAnalytics } from './GoogleAnalytics';
+import { PrivacyConsent } from './PrivacyConsent';
 import { siteProfile } from './siteProfile';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
@@ -16,10 +19,10 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <span>{siteProfile.siteName}</span>
         </Link>
         <nav aria-label={t('gallery.primaryNavigation')} className="public-nav">
-          <Link to="/">{t('gallery.home')}</Link>
-          <Link to="/#services">{t('gallery.services')}</Link>
-          <Link to="/#galleries">{t('gallery.events')}</Link>
-          <Link to="/contact">{t('gallery.contact')}</Link>
+          <NavLink end to="/">{t('gallery.home')}</NavLink>
+          <NavLink to="/services">{t('gallery.services')}</NavLink>
+          <NavLink to="/events">{t('gallery.events')}</NavLink>
+          <NavLink to="/contact">{t('gallery.contact')}</NavLink>
           <button
             aria-label={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
             className="public-language"
@@ -32,12 +35,21 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       </header>
       <main className="public-main">{children}</main>
       <footer className="public-footer">
-        <p>{t('gallery.footer', { siteName: siteProfile.siteName })}</p>
+        <div>
+          <p>{t('gallery.footer', { siteName: siteProfile.siteName })}</p>
+          {siteProfile.demo.enabled ? <p className="public-footer__note">{t('gallery.footerDemo')}</p> : null}
+        </div>
         <nav aria-label={t('gallery.footerNavigation')}>
           <Link to="/privacy">{t('gallery.privacy')}</Link>
+          <button className="public-footer__button" onClick={openPrivacyPreferences} type="button">
+            {t('gallery.consent.manage')}
+          </button>
+          {siteProfile.demo.enabled ? <Link to="/admin/login?demo=1">{t('gallery.adminDemo')}</Link> : null}
           <Link to="/contact">{t('gallery.contact')}</Link>
         </nav>
       </footer>
+      <GoogleAnalytics />
+      <PrivacyConsent />
     </div>
   );
 }

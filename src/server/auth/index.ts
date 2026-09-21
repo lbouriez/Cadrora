@@ -16,6 +16,14 @@ export {
 } from './sessions';
 export { verifyCloudflareAccessJwt } from './cloudflareAccess';
 export {
+  DEMO_SESSION_COOKIE,
+  createDemoSession,
+  demoSessionCookie,
+  expiredDemoSessionCookie,
+  readDemoSessionToken,
+  verifyDemoSession,
+} from './demoSession';
+export {
   EVENT_GRANT_COOKIE,
   createEventGrantToken,
   eventGrantCookie,

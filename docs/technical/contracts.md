@@ -52,12 +52,12 @@ All API errors are JSON `{ code, message, requestId }`. `message` is an i18n key
 The conceptual order is fixed:
 
 ```text
-requestId -> errorBoundary -> securityHeaders -> authContext -> turnstile -> rateLimit -> route -> cacheHeaders
+requestId -> errorBoundary -> securityHeaders -> authContext -> turnstile -> rateLimit -> demoReadOnly -> route -> cacheHeaders
 ```
 
 Hono implements the error boundary through `app.onError`; its module occupies the same boundary in the chain. Each other middleware is isolated in `src/server/middleware/`. New orthogonal behavior gets a new module and one registration in `app.ts`.
 
-`authContext` resolves optional verified admin and event-grant state without throwing for absence. Turnstile runs only for admin login and event unlock. Rate limiting is best-effort, process-local protection and is not a global quota.
+`authContext` resolves optional verified admin and event-grant state without throwing for absence. Turnstile runs only for admin login and event unlock. Rate limiting is best-effort, process-local protection and is not a global quota. `demoReadOnly` is a server capability boundary: a demo identity may use only the exact allowlisted admin reads plus login/logout. It rejects every other admin request before a route can touch D1, R2, or another provider.
 
 ## Cache policy
 
@@ -74,6 +74,7 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 
 - `ADMIN_AUTH_MODE` is `password` or `cloudflare-access`; there is no `none` mode.
 - Password sessions are opaque. D1 stores only a token hash. Cookies are `__Host-*; HttpOnly; Secure; SameSite=Strict; Path=/` with an eight-hour default TTL.
+- In password mode only and only with the explicit showcase gate, the published demo identity receives a separate one-hour, HMAC-signed `__Host-cadrora-demo` session with `access=read-only`. It is not an owner session and cannot mutate provider state. The gate defaults to false.
 - Cloudflare Access JWTs are verified in the Worker for signature, issuer, audience, and expiry on every hostname.
 - Event grants contain only `eventId` and `accessVersion`. A password change increments the version and invalidates old grants.
 - State-changing admin requests verify `Origin` for CSRF protection.
@@ -88,10 +89,11 @@ Photo state progresses `pending -> variants_ready -> published -> deleting -> de
 
 Semantic values live in `src/app/styles/tokens.css`. Reusable typed components live in `src/app/components/` and carry a short contract/example comment. Interactive targets are at least 44 px. Modals trap focus, close on Escape, and restore focus. Every user-visible string ships in FR and EN.
 
+The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, starts only after explicit analytics consent, and is allowlisted to the five public marketing routes. Gallery, admin, media, API, and facial-search routes never emit analytics events.
+
 ## Import and facial-search privacy
 
 - The browser accepts decodable JPEG, PNG, and WebP only in v1. It corrects all eight EXIF orientations and strips GPS, serial numbers, and private comments.
 - Variant widths are 480, 960, 1600, 2560, and 3840 pixels, without upscaling. WebP is used only after runtime encoding and MIME verification; otherwise use JPEG.
 - A visitor selfie remains local. The Worker receives an embedding only and never returns embeddings or face coordinates.
 - Models load only on the find route. Facial search is disabled by default, event-scoped, expiring, and described as possible matches rather than identity confidence.
-

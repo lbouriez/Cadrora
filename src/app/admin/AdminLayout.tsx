@@ -10,6 +10,7 @@ type Theme = 'dark' | 'light';
 export interface AdminLayoutProps {
   children: ReactNode;
   onLogout?: () => void;
+  readOnly?: boolean;
   subject?: string;
 }
 
@@ -18,7 +19,7 @@ function startingTheme(): Theme {
 }
 
 /** Shared admin frame with keyboard skip navigation and local theme/language controls. */
-export function AdminLayout({ children, onLogout, subject }: AdminLayoutProps) {
+export function AdminLayout({ children, onLogout, readOnly = false, subject }: AdminLayoutProps) {
   const { i18n, t } = useTranslation();
   const [theme, setTheme] = useState<Theme>(startingTheme);
 
@@ -56,6 +57,7 @@ export function AdminLayout({ children, onLogout, subject }: AdminLayoutProps) {
             {onLogout ? <Button onClick={onLogout} variant="secondary">{t('admin.logout')}</Button> : null}
           </div>
         </header>
+        {readOnly ? <div className="admin-read-only" role="status">{t('admin.demo.readOnlyBanner')}</div> : null}
         <nav aria-label={t('admin.navigation.dashboard')} className="admin-shell__nav">
           <NavLink className="admin-shell__nav-link" end to="/admin">
             {t('admin.navigation.dashboard')}

@@ -13,6 +13,8 @@ Login and protected-event unlock require server-side Turnstile verification. Fiv
 
 Logout revokes a password session in D1 and clears its cookie. A password session is also rotated when `GET /api/v1/admin/session` succeeds. Expired or revoked rows no longer authenticate.
 
+The official Cadrora showcase also exposes a clearly labelled **demo** sign-in when the deployment explicitly sets `CADRORA_SEED_DEMO=true`; the default is off. Its published credentials create a separate one-hour, stateless `read-only` session; they are intentionally not a secret and are not an operator credential. The Worker—not the disabled UI—allows only session, event-list, publication-readiness, and usage reads. Every mutation and every unrecognized admin read returns `DEMO_READ_ONLY` before D1 or R2 is touched. Do not reuse the demonstration password for `ADMIN_PASSWORD`, an event, or any other account.
+
 ## Admin UI
 
 The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, and `/admin/events/:eventId/import`. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists events, and the import route shows browser import plus publication readiness/publish controls.

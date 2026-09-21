@@ -1,16 +1,27 @@
 # Deployment guide
 
-This is a deployment preflight for Cadrora. It documents the repository-preserving Cloudflare Workers Builds flow and the separate Deploy Button clone flow. Cadrora is one Worker named `cadrora`, with Vite static assets, D1, private media R2, and a separate model R2 bucket. The public website at `/` and `/contact` remains a static asset route; do not place it behind the admin guard or make it depend on gallery availability.
+This is a deployment preflight for Cadrora. It documents the repository-preserving Cloudflare Workers Builds flow and the separate Deploy Button clone flow. Cadrora is one Worker named `cadrora`, with Vite static assets, D1, private media R2, and a separate model R2 bucket. The public website at `/`, `/services`, `/events`, `/contact`, and `/privacy` remains a static asset route; do not place it behind the admin guard or make it depend on gallery availability.
 
 ## Current deployment status
 
-`wrangler.jsonc` publishes Vite's `./dist/client` directory through the static-assets binding. It sends `/api/*`, `/media/*`, `/e/*`, `/admin`, `/admin/*`, and `/models/*` through the Worker first. Other paths, including `/` and `/contact`, use the static-assets binding and SPA fallback.
+`wrangler.jsonc` publishes Vite's `./dist/client` directory through the static-assets binding. It sends `/api/*`, `/media/*`, `/e/*`, `/admin`, `/admin/*`, and `/models/*` through the Worker first. Other paths, including the five marketing pages, use the static-assets binding and SPA fallback.
 
 The checked-in configuration deliberately omits the account-specific D1 ID and R2 bucket names. They are required by Wrangler for a remote binding, so the release scripts materialize an ignored `.cadrora.remote.wrangler.json` from three process/build variables, use it for migration and deploy, and remove it afterward. `wrangler.jsonc` has a production Worker (`cadrora`) and a named preview Worker (`cadrora-preview`). The preview environment explicitly redeclares its non-inherited variables, required secrets, D1 binding, and R2 bindings, so it does not point at production state.
 
 `npm run deploy` builds the production target, runs `wrangler d1 migrations apply DB --remote`, and invokes Wrangler with a temporary two-secret file. The manual release commands require an explicit target and `--confirm`; neither the local setup script nor diagnostic mode calls Cloudflare. Do not treat a command exit alone as evidence that custom hostnames, secrets, model objects, or Cron delivery work.
 
 The checked-in configuration has one Cron Trigger, every 15 minutes. Its Worker handler enqueues expired face purges and runs up to 25 maintenance jobs. Confirm the trigger is active on the deployed Worker; source presence is not runtime evidence.
+
+### Cloudflare resource glossary
+
+| Cloudflare term | Plain-language meaning in Cadrora | What belongs there |
+| --- | --- | --- |
+| D1 database | A small SQL database, similar to the application's catalog and control panel | Events, visibility/access rules, photo metadata, hashes, sessions, import state, counters, and cleanup jobs. No image files. |
+| R2 bucket | Private object/file storage, similar to a cloud hard drive | `cadrora-media` stores gallery image variants; `cadrora-models` stores optional face-search model files. |
+| Binding | The named connection from the Worker code to a D1/R2 resource | `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` are the names used by the code. The dashboard connects each name to the resource you created. |
+| D1 UUID | Cloudflare's unique identifier for one database | Copy it from the D1 Overview page into `CADRORA_D1_DATABASE_ID`; it is not the display name. |
+
+R2 buckets stay private. Cadrora's Worker reads from them and checks gallery authorization before returning media. Never enable an R2 public development URL or custom bucket domain for `cadrora-media`.
 
 ## Existing-repository Cloudflare Builds
 
@@ -23,7 +34,7 @@ Use this path when `lbouriez/Cadrora` (or a fork you maintain) must remain the o
 5. **Create Turnstile for the real hostname.** Use a Managed widget with `cadrora.com`; add `www.cadrora.com` only if it will be served. The root hostname allows its subdomains; a subdomain does not allow the root. Record the public site key and private secret key. Localhost test keys are not production keys.
 6. **Import the existing repository.** In **Workers & Pages**, choose **Create application → Continue with GitHub**, select `lbouriez/Cadrora`, then **Next**. This connects the existing repository; it does not fork or create another repository.
 7. **Complete the setup page.** Set Project name `cadrora`; Build command `npm run build`; Deploy command `npm run deploy`; turn **off** *Builds for non-production branches*. Leave Cloudflare Access off for the first release.
-8. **Complete Advanced settings.** Create/select a dedicated Workers Builds API token. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. Use the field map below so a secret is not accidentally placed in a public `VITE_*` value. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
+8. **Complete Advanced settings.** Create/select a dedicated Workers Builds API token. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. `VITE_GA_MEASUREMENT_ID` is an optional public GA4 ID; no Google resource loads before consent. `CADRORA_SEED_DEMO=true` is only for an intentional showcase deployment and defaults to off. The release materializes the matching runtime gate; do not add or enable `DEMO_SHOWCASE_ENABLED` manually. Use the field map below so a secret is not accidentally placed in a public `VITE_*` value. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
 9. **Deploy and verify the Worker hostname.** Select **Deploy**, wait for the build to finish, then run the verification list below. A later push to `main` builds production automatically. Keep branch builds off until preview gets its own D1/R2 values and secret pair.
 10. **Attach the domain after the Worker works.** In the Worker's **Settings → Domains & Routes**, add `cadrora.com` as a custom domain. Confirm DNS and TLS are active, then repeat the verification list on that hostname. Adding `www` serves the Worker but does not make it redirect; add a redirect rule only if that is desired.
 
@@ -41,6 +52,8 @@ Do not place actual values in this public repository or in a ticket/screenshot. 
 | `ADMIN_SECRET_HASH` | The value after `ADMIN_SECRET_HASH=` in the ignored `.artifacts/setup/admin-credentials.env` produced by `npm run setup:admin-credentials` | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Do **not** enter `ADMIN_PASSWORD`; store that password in a password manager. |
 | `TURNSTILE_SECRET_KEY` | The private **Secret key** for the production Cadrora widget | **Yes**: paste it, then select **Encrypt** | **Application security → Turnstile → Cadrora Production**. Open the existing widget and copy **Secret key**. If the initial creation page was closed, this is the normal recovery path. |
 | `VITE_TURNSTILE_SITE_KEY` | The matching public **Site key** for that widget | **No**: normal build variable | **Application security → Turnstile → Cadrora Production**. This value is intentionally sent to the browser build. |
+| `CADRORA_SEED_DEMO` | `true` only when the deployment should contain the generated public/private demo galleries and read-only demo login | No | Leave unset for a real photographer. The deploy script enables the gated demo, uploads tracked WebP variants to private R2, then repairs and validates the reserved D1 sample records. |
+| `VITE_GA_MEASUREMENT_ID` | Optional GA4 Measurement ID such as `G-XXXXXXXXXX` | No | Google Analytics → Web data stream. It is public configuration; the script loads only after explicit analytics consent. |
 
 After entering a secret, the setup page should show it as encrypted/hidden. If it does not, do not deploy: remove the value and enter it again using **Encrypt**. A Turnstile secret key, admin password, API token, or local credential artifact must never be committed, sent as a public build variable, or copied into documentation.
 
@@ -97,7 +110,7 @@ Set secrets only in Cloudflare secret/binding storage. Never place them in a `VI
 | `TURNSTILE_SECRET_KEY` | Admin login, protected-event unlock, signed event grants, and face-search cursor signing |
 | `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` | Cloudflare Access admin mode only |
 
-Public `VITE_*` values are compiled into the client bundle. Set them as Workers Builds variables in Advanced settings, or in an ignored local `.env`; `.env.example` is the documented key template and should retain no personal values. Empty contact values render as unavailable; the application does not invent contact information. `VITE_TURNSTILE_SITE_KEY` is public but must belong to the same widget as the private `TURNSTILE_SECRET_KEY`.
+Public `VITE_*` values are compiled into the client bundle. Set them as Workers Builds variables in Advanced settings, or in an ignored local `.env`; `.env.example` is the documented key template and should retain no personal values. The source includes clearly labelled fictional contact fallbacks for the showcase; replace them for a real deployment. `VITE_TURNSTILE_SITE_KEY` is public but must belong to the same widget as the private `TURNSTILE_SECRET_KEY`.
 
 ## Models and optional face search
 

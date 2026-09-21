@@ -124,6 +124,7 @@ export async function verifyCloudflareAccessJwt(
 
     const expiresAt = new Date(payload.data.exp * 1_000).toISOString();
     return SessionSchema.parse({
+      access: 'manage',
       id: `access:${payload.data.sub}`,
       authMode: 'cloudflare-access',
       subject: payload.data.email ?? payload.data.sub,

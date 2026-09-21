@@ -30,6 +30,7 @@ export default defineConfig({
     command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     env: {
       ...process.env,
+      CADRORA_SEED_DEMO: 'true',
       VITE_APP_NAME: 'Atelier Cadrora',
       VITE_PHOTOGRAPHER_NAME: 'Camille Cadrora',
       VITE_CONTACT_PHONE: '+1 514 555 0142',

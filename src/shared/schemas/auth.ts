@@ -7,13 +7,16 @@ export const TurnstileTokenSchema = z.string().min(1).max(2_048);
 /** Input for the password-admin login endpoint. The Turnstile proof is verified
  * by middleware before this route receives the password. */
 export const AdminLoginInputSchema = z.object({
+  account: z.enum(['demo', 'owner']).default('owner'),
   password: z.string().min(1).max(200),
   turnstileToken: TurnstileTokenSchema,
+  username: z.string().min(1).max(100).optional(),
 });
 
 export const SessionSchema = z.object({
+  access: z.enum(['manage', 'read-only']),
   id: IdSchema,
-  authMode: z.enum(['password', 'cloudflare-access']),
+  authMode: z.enum(['password', 'cloudflare-access', 'demo']),
   subject: z.string().min(1).max(320),
   createdAt: IsoDateTimeSchema,
   expiresAt: IsoDateTimeSchema,

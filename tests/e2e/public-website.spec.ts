@@ -39,4 +39,23 @@ test.describe('site vitrine statique', () => {
     await assertNoHorizontalOverflow(page);
     expect(remoteRequests).toEqual([]);
   });
+
+  test('relie les services, les demonstrations et la confidentialite', async ({ page }) => {
+    await page.goto('/services');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/images sensibles|photography with feeling/i);
+    await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+
+    await page.goto('/events');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/beauté de la livraison|beautiful delivery/i);
+    await expect(page.getByText('cadrora-demo').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /admin en lecture seule|read-only admin/i })).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+
+    await page.goto('/privacy');
+    await expect(page.getByRole('heading', { name: /IA facultative et recherche faciale|optional AI and face search/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /témoins et mesure d'audience|cookies and analytics/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /nécessaire seulement|necessary only/i })).toBeVisible();
+    await assertNoHorizontalOverflow(page);
+  });
 });

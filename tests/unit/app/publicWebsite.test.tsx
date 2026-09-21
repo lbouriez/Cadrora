@@ -7,6 +7,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
+import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
 import { installPublicResources } from '../../../src/app/public/i18n';
 
@@ -15,6 +16,7 @@ beforeAll(() => {
 });
 
 beforeEach(async () => {
+  localStorage.clear();
   await i18n.changeLanguage('fr');
 });
 
@@ -37,11 +39,21 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.getByText(/galeries publiques sont temporairement indisponibles/i)).toBeTruthy());
   });
 
-  it('never invents contact coordinates when the public profile is empty', () => {
+  it('ships clearly-labelled template contact details for the demonstration', () => {
     renderPage(<ContactPage />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Créons quelque chose de mémorable.' })).toBeTruthy();
-    expect(screen.getByText(/coordonnées seront publiées ici/i)).toBeTruthy();
-    expect(screen.queryByRole('link', { name: /@/ })).toBeNull();
+    expect(screen.getByRole('link', { name: 'bonjour@cadrora.com' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: '+1 514 555-0142' })).toBeTruthy();
+    expect(screen.getByText(/coordonnées sont fictives/i)).toBeTruthy();
+  });
+
+  it('explains AI, retention, analytics, and operator responsibility in the privacy notice', () => {
+    renderPage(<PrivacyPage />);
+
+    expect(screen.getByRole('heading', { name: 'IA facultative et recherche faciale' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Conservation et suppression' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: "Témoins et mesure d'audience" })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: "Responsabilités de l'exploitant" })).toBeTruthy();
   });
 });

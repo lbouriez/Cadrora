@@ -1,5 +1,6 @@
 export { authContext } from './authContext';
 export { requireAdmin } from './adminAuthorization';
+export { demoReadOnly } from './demoReadOnly';
 export { adminCsrf } from './adminCsrf';
 export { adminPageGuard } from './adminPageGuard';
 export { cacheHeaders } from './cacheHeaders';

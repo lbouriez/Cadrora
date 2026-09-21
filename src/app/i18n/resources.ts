@@ -11,6 +11,7 @@ export const resources = {
         close: 'Close',
       },
       errors: {
+        demoReadOnly: 'This demonstration account is read-only.',
         faceIndexBusy: 'This photo is being indexed or deleted. Please try again shortly.',
         internal: 'An unexpected error occurred.',
         rateLimited: 'Too many requests. Please try again shortly.',
@@ -34,6 +35,7 @@ export const resources = {
         close: 'Fermer',
       },
       errors: {
+        demoReadOnly: 'Ce compte de démonstration est en lecture seule.',
         faceIndexBusy: "Cette photo est en cours d’indexation ou de suppression. Réessayez dans un instant.",
         internal: 'Une erreur inattendue est survenue.',
         rateLimited: 'Trop de requêtes. Réessayez dans un instant.',

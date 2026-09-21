@@ -38,6 +38,9 @@ export async function prepareRemoteConfig(target, environment = process.env) {
   selectedConfig.d1_databases[0].database_id = requiredEnvironment(names.d1Id, environment);
   selectedConfig.r2_buckets[0].bucket_name = requiredEnvironment(names.mediaBucket, environment);
   selectedConfig.r2_buckets[1].bucket_name = requiredEnvironment(names.modelsBucket, environment);
+  selectedConfig.vars.DEMO_SHOWCASE_ENABLED = environment.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true'
+    ? 'true'
+    : 'false';
   await writeFile(generatedConfigPath, `${JSON.stringify(config, null, 2)}\n`, 'utf8');
 
   return {

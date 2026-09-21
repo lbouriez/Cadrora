@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { AdminEventListSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { Button, Input, Select, Spinner, Textarea } from '../components';
+import { useAdminAccess } from './AdminAccessContext';
 
 async function getAdminEvents(): Promise<Event[]> {
   const response = await fetch('/api/v1/admin/events', { credentials: 'same-origin' });
@@ -38,6 +39,7 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
 
 export function AdminEventsPage() {
   const { i18n, t } = useTranslation();
+  const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const [access, setAccess] = useState<'protected' | 'public'>('public');
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
@@ -79,7 +81,7 @@ export function AdminEventsPage() {
 
   return (
     <div className="admin-events">
-      <section aria-labelledby="event-create-title" className="admin-card">
+      {!readOnly ? <section aria-labelledby="event-create-title" className="admin-card">
         <h1 className="admin-card__title" id="event-create-title">{t('admin.events.createTitle')}</h1>
         <p className="admin-card__description">{t('admin.events.createDescription')}</p>
         <form className="admin-event-form" onSubmit={submit}>
@@ -101,7 +103,13 @@ export function AdminEventsPage() {
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
           <Button disabled={creation.isPending} type="submit">{t('admin.events.create')}</Button>
         </form>
-      </section>
+      </section> : (
+        <section className="admin-card admin-demo-intro" aria-labelledby="admin-demo-title">
+          <p className="admin-demo-intro__eyebrow">{t('admin.demo.eyebrow')}</p>
+          <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
+          <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
+        </section>
+      )}
 
       <section aria-labelledby="event-list-title" className="admin-card">
         <h2 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h2>
@@ -117,8 +125,10 @@ export function AdminEventsPage() {
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
               </div>
               <div className="admin-event-row__actions">
-                <Link className="button button--secondary" to={`/admin/events/${event.id}`}>{t('admin.events.settings')}</Link>
-                <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link>
+                <Link className="button button--secondary" to={`/admin/events/${event.id}`}>
+                  {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
+                </Link>
+                {!readOnly ? <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
                 {event.visibility !== 'draft' ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
             </article>
@@ -142,6 +152,7 @@ function formString(values: FormData, name: string): string {
 
 function AdminEventSettingsForm({ event }: { event: Event }) {
   const { t } = useTranslation();
+  const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const [access, setAccess] = useState(event.access);
   const [saved, setSaved] = useState(false);
@@ -173,6 +184,22 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       title: values.get('title'),
     });
   };
+
+  if (readOnly) {
+    return (
+      <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">
+        <p><Link to="/admin">← {t('admin.events.back')}</Link></p>
+        <p className="admin-demo-intro__eyebrow">{t('admin.demo.readOnlyLabel')}</p>
+        <h1 className="admin-card__title" id="event-settings-title">{event.title}</h1>
+        <dl className="admin-demo-details">
+          <div><dt>{t('admin.events.description')}</dt><dd>{event.description ?? '—'}</dd></div>
+          <div><dt>{t('admin.events.access')}</dt><dd>{t(`admin.events.${event.access}`)}</dd></div>
+          <div><dt>{t('admin.events.retention')}</dt><dd>{event.retentionDays ?? '—'}</dd></div>
+          <div><dt>{t('admin.demo.status')}</dt><dd>{t(`admin.events.visibility.${event.visibility}`)}</dd></div>
+        </dl>
+      </section>
+    );
+  }
 
   return (
     <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">

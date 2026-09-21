@@ -11,6 +11,7 @@ import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from '.
 import { getPublicGalleryConfiguration } from './config';
 import { PhotoViewer } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
+import { siteProfile } from './siteProfile';
 
 export function GalleryPage() {
   const { slug = '', photoId } = useParams<{ slug: string; photoId?: string }>();
@@ -46,10 +47,17 @@ export function GalleryPage() {
   const selected = photoId ? allPhotos.find((photo) => photo.id === photoId) : undefined;
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
+  const isPrivateDemo = siteProfile.demo.enabled && slug === siteProfile.demo.privateGallerySlug;
   const unlockForm = (
     <form className="unlock-card" onSubmit={(submitEvent) => { submitEvent.preventDefault(); unlock.mutate(); }}>
       <h2>{t('gallery.protectedTitle')}</h2>
       <p>{t('gallery.protectedHelp')}</p>
+      {isPrivateDemo ? (
+        <p className="demo-credential">
+          <span>{t('gallery.demo.password')}</span>
+          <code>{siteProfile.demo.privateGalleryPassword}</code>
+        </p>
+      ) : null}
       <Input autoComplete="current-password" label={t('gallery.password')} onChange={(changeEvent) => setPassword(changeEvent.target.value)} required type="password" value={password} />
       <TurnstileChallenge ref={turnstile} />
       {unlock.isError ? <p role="alert">{t('gallery.unlockError')}</p> : null}

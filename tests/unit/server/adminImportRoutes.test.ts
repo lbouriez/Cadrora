@@ -109,6 +109,7 @@ function authorizedApp(): Hono<AppEnv> {
   testApp.use('*', async (context, next) => {
     context.set('auth', {
       admin: {
+        access: 'manage',
         authMode: 'password',
         createdAt: '2026-09-20T12:00:00.000Z',
         expiresAt: '2026-09-20T20:00:00.000Z',

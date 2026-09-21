@@ -4,6 +4,18 @@ Cadrora is an open-source, self-hosted photographer website and event photo gall
 
 The core platform, wave-2 product packages, and local wave-3 integration coverage are present. A first deployment still needs its own Cloudflare account, required secrets, and release verification; a passing local build is not proof that a remote account is ready.
 
+### D1 and R2, in plain language
+
+You do not need to already know Cloudflare's product names. Cadrora uses two complementary storage services:
+
+Cloudflare uses product names that are easy to confuse on a first deployment:
+
+- **D1 is the database.** Cadrora stores the small structured records there: events, gallery visibility, photo metadata, password hashes, sessions, import progress, and cleanup jobs. The D1 database named `cadrora` is comparable to the application's catalog and control panel; it does **not** contain the image files themselves.
+- **R2 is private file storage.** It is comparable to a cloud hard drive. `cadrora-media` contains the actual gallery image variants. `cadrora-models` is a separate bucket reserved for the optional face-search model files. Both buckets must remain private: visitors receive media through the Worker only after Cadrora has checked access.
+- **A binding connects the Worker to one resource.** In the setup screen, `DB` must point to the D1 database, `MEDIA_BUCKET` to the media R2 bucket, and `MODELS_BUCKET` to the models R2 bucket. Production and preview must use different resources.
+
+The names are yours to choose, but the setup variables must contain their exact UUID/name. Creating the resources does not make them public and does not upload any gallery automatically.
+
 ## Deploy to your Cloudflare account
 
 For this repository, use the existing GitHub repository as the source of truth: **Cloudflare Dashboard → Workers & Pages → Create application → Continue with GitHub → `lbouriez/Cadrora`**. It does not create another GitHub repository; every reviewed push to `main` is a production build.
@@ -17,7 +29,8 @@ Before selecting **Deploy**, complete the short, explicit checklist:
 5. In the repository setup screen, keep **Project name** `cadrora`, **Build command** `npm run build`, and set **Deploy command** to `npm run deploy`. Turn **off** builds for non-production branches for the first release.
 6. In **Advanced settings**, create/select a dedicated Workers Builds API token, then add the three non-secret build variables: `CADRORA_D1_DATABASE_ID`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. The D1 ID is displayed on that database's Overview page.
 7. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets: paste each value, then select **Encrypt**. `ADMIN_SECRET_HASH` is the `ADMIN_SECRET_HASH` line in the ignored `.artifacts/setup/admin-credentials.env` file; never paste `ADMIN_PASSWORD`. To recover the Turnstile values later, open **Application security → Turnstile → Cadrora Production**: its **Secret key** goes into `TURNSTILE_SECRET_KEY`, while its **Site key** goes into the normal (not encrypted) `VITE_TURNSTILE_SITE_KEY` variable. `VITE_*` values are public client-build data; do not put a password or secret in them.
-8. Select **Deploy**, wait for the production build to succeed, then attach the custom domain. Verify `/`, `/contact`, `/api/v1/site`, and `/admin/login` on the Workers hostname before repeating the checks on the domain.
+8. For the official Cadrora showcase only, add the normal build variable `CADRORA_SEED_DEMO=true`; this single opt-in enables the read-only demo identity and links, uploads the tracked generated sample media to private R2, and repairs the two reserved sample events in D1. It defaults to off: leave it unset for a real photographer site. `VITE_GA_MEASUREMENT_ID` is also optional: Google Analytics remains disabled unless it contains a valid GA4 ID and the visitor consents.
+9. Select **Deploy**, wait for the production build to succeed, then attach the custom domain. Verify `/`, `/services`, `/events`, `/contact`, `/privacy`, `/api/v1/site`, and `/admin/login` on the Workers hostname before repeating the checks on the domain.
 
 The release script builds, migrates D1, creates a temporary Worker configuration from those three build variables, uploads only the two supplied secrets, and removes the temporary files. No account ID, database ID, bucket name, API token, or secret is committed. The detailed screen-by-screen checklist and verification steps are in [`docs/deployment.md`](docs/deployment.md#existing-repository-cloudflare-builds).
 
@@ -47,7 +60,7 @@ npm run setup -- --diagnose
 
 Diagnostic mode intentionally exits non-zero when required local secrets are absent or malformed, before it writes local D1 state. It reports only presence and accepted format, never secret values. Never prefix a secret with `VITE_`.
 
-Before a public launch, set the non-secret `VITE_PHOTOGRAPHER_NAME`, `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA` build variables described in [`docs/technical/public-website.md`](docs/technical/public-website.md). Empty values are omitted rather than replaced with fake contact details.
+Before a public launch, replace the clearly labelled demonstration profile with real non-secret `VITE_PHOTOGRAPHER_NAME`, `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA` build variables described in [`docs/technical/public-website.md`](docs/technical/public-website.md). The checked-in fallback values are fictional template content for the Cadrora showcase.
 
 ## Deployment details
 

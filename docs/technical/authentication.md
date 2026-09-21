@@ -10,6 +10,14 @@ Set `ADMIN_AUTH_MODE=password` and provide `ADMIN_SECRET_HASH` only as a Cloudfl
 
 The Worker stores only SHA-256 hashes of opaque 256-bit session tokens in D1. Password-session reads rotate the token, and logout revokes the D1 row and clears the `__Host-cadrora-admin` cookie. Cookie attributes are `Path=/; HttpOnly; Secure; SameSite=Strict`; there is deliberately no `Domain` attribute. `SESSION_TTL_H` defaults to eight hours and accepts only 1 through 24.
 
+### Published read-only demo
+
+The official showcase may publish the non-secret username and password configured as `DEMO_ADMIN_USERNAME` and `DEMO_ADMIN_PASSWORD` only when the release opt-in materializes `DEMO_SHOWCASE_ENABLED=true`. The checked-in default is false, and `CADRORA_SEED_DEMO=true` is the only documented way to enable it. These values identify a demonstration role; they do not grant owner access. After normal Turnstile and rate-limit checks, the Worker issues a distinct one-hour `__Host-cadrora-demo` cookie. Its stateless payload is signed with a domain-separated HMAC derived from `ADMIN_SECRET_HASH`; no raw secret or owner token reaches the browser and no demo session row is written to D1.
+
+`Session.access` is the authorization capability. `manage` is reserved for real password or Cloudflare Access sessions. `read-only` is accepted only by an exact server-side allowlist: session, event list, publication readiness, usage, login, and logout. All other admin requests—including future GET routes—return `DEMO_READ_ONLY` before a handler can access D1, R2, Vectorize, or Cloudflare administration. Hiding buttons in React is only presentation and is never the security boundary.
+
+Owner and demo login failures use separate per-IP limiter buckets. A successful login clears only its own bucket, so the published demo password cannot reset owner-password protection.
+
 ## Cloudflare Access mode
 
 Set `ADMIN_AUTH_MODE=cloudflare-access`, `CF_ACCESS_TEAM_DOMAIN`, and `CF_ACCESS_AUD` as bindings. The Worker accepts the `Cf-Access-Jwt-Assertion` header only, fetches the configured team's JWKS, imports the matching RSA signing key with WebCrypto, and verifies RS256 signature, exact issuer, configured audience, and expiry for every request. A Cloudflare edge policy is useful defense in depth but is not considered authorization by the Worker.
