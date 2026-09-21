@@ -48,6 +48,15 @@ export function GalleryPage() {
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
   const isPrivateDemo = siteProfile.demo.enabled && slug === siteProfile.demo.privateGallerySlug;
+  const unlockErrorKey = unlock.error instanceof GalleryApiError
+    ? unlock.error.status === 401
+      ? 'gallery.unlockPasswordError'
+      : unlock.error.status === 403 || unlock.error.status === 503
+        ? 'gallery.unlockSecurityError'
+        : unlock.error.status === 429
+          ? 'gallery.unlockRateLimitError'
+          : 'gallery.unlockError'
+    : 'gallery.unlockError';
   const unlockForm = (
     <form className="unlock-card" onSubmit={(submitEvent) => { submitEvent.preventDefault(); unlock.mutate(); }}>
       <h2>{t('gallery.protectedTitle')}</h2>
@@ -60,7 +69,7 @@ export function GalleryPage() {
       ) : null}
       <Input autoComplete="current-password" label={t('gallery.password')} onChange={(changeEvent) => setPassword(changeEvent.target.value)} required type="password" value={password} />
       <TurnstileChallenge ref={turnstile} />
-      {unlock.isError ? <p role="alert">{t('gallery.unlockError')}</p> : null}
+      {unlock.isError ? <p role="alert">{t(unlockErrorKey)}</p> : null}
       <Button disabled={unlock.isPending} type="submit">{t('gallery.unlock')}</Button>
     </form>
   );
