@@ -90,6 +90,7 @@ function syncFaceModels(target, configPath, environment) {
       'r2', 'object', 'put', `${bucketName}/models/v1/${filename}`,
       '--file', join('.artifacts/models', filename),
       '--content-type', 'application/octet-stream',
+      '--force',
       '--remote', '--config', configPath, ...target.migrationArgs,
     ], environment);
   }
@@ -114,6 +115,7 @@ export async function seedDemoContent(target, configPath, environment = process.
       'r2', 'object', 'put', `${bucketName}/${objectKey}`,
       '--file', join(mediaDirectory, file),
       '--content-type', 'image/webp',
+      '--force',
       '--remote', '--config', configPath,
       ...target.migrationArgs,
     ], environment);
