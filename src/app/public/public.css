@@ -858,12 +858,12 @@
   transform: scale(1.02);
 }
 
-.modal-backdrop--photo-viewer {
+.modal-backdrop.modal-backdrop--photo-viewer {
   padding: 0;
   background: #050407;
 }
 
-.modal--photo-viewer {
+.modal.modal--photo-viewer {
   width: 100vw;
   max-width: none;
   height: 100dvh;
