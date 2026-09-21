@@ -9,6 +9,7 @@ import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
+import { galleryUnlockErrorKey } from './galleryErrors';
 import { PhotoViewer } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
@@ -57,15 +58,7 @@ export function GalleryPage() {
       : null;
   const accessSessionError = accessError?.code === 'EVENT_GRANT_INVALID'
     || accessError?.code === 'EVENT_GRANT_STALE';
-  const unlockErrorKey = unlock.error instanceof GalleryApiError
-    ? unlock.error.status === 401
-      ? 'gallery.unlockPasswordError'
-      : unlock.error.status === 403 || unlock.error.status === 503
-        ? 'gallery.unlockSecurityError'
-        : unlock.error.status === 429
-          ? 'gallery.unlockRateLimitError'
-          : 'gallery.unlockError'
-    : 'gallery.unlockError';
+  const unlockErrorKey = galleryUnlockErrorKey(unlock.error);
   const unlockForm = (
     <form className="unlock-card" onSubmit={(submitEvent) => { submitEvent.preventDefault(); unlock.mutate(); }}>
       <h2>{t('gallery.protectedTitle')}</h2>
