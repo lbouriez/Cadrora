@@ -6,21 +6,22 @@ The core platform, wave-2 product packages, and local wave-3 integration coverag
 
 ## Deploy to your Cloudflare account
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Flbouriez%2FCadrora)
+For this repository, use the existing GitHub repository as the source of truth: **Cloudflare Dashboard → Workers & Pages → Create application → Continue with GitHub → `lbouriez/Cadrora`**. It does not create another GitHub repository; every reviewed push to `main` is a production build.
 
-The normal installation path is the button above:
+Before selecting **Deploy**, complete the short, explicit checklist:
 
-1. In the target Cloudflare account, open **Storage & databases → R2 Object Storage**. If Cloudflare shows **Get started with R2**, the account owner must review the current usage pricing and add the R2 subscription. This is a manual account/billing acknowledgement; do not delegate the final acceptance blindly.
-2. Run `npm ci` and `npm run setup:admin-credentials`. Keep the generated password in a password manager and keep the generated `ADMIN_SECRET_HASH` ready for Cloudflare.
-3. In Cloudflare, create a production Turnstile widget for the intended hostname. Keep its public site key and secret key ready; never use the test keys created by `npm run setup:local` in a deployment.
-4. Select **Deploy to Cloudflare**, sign in, and accept or rename the proposed Worker, D1, and R2 resources. Enter the public `VITE_*` photographer/contact values, `VITE_TURNSTILE_SITE_KEY`, `ADMIN_SECRET_HASH`, and `TURNSTILE_SECRET_KEY` when prompted.
-5. Select **Deploy**. Cloudflare clones the repository, provisions and binds the D1 database and two private R2 buckets, applies the ordered D1 migrations by the `DB` binding, builds the static website and Worker, and publishes them to the new account.
+1. Enable R2 in **Storage & databases → R2 Object Storage** if Cloudflare offers **Get started with R2**. The account owner must review and accept that account-level billing/service step. Error `10042` means it is still disabled.
+2. Create one D1 database and two private R2 buckets: `cadrora`, `cadrora-media`, and `cadrora-models`. Keep the R2 buckets private.
+3. Run `npm ci` and `npm run setup:admin-credentials` locally. Store the generated password in a password manager; Cloudflare receives only `ADMIN_SECRET_HASH`.
+4. Create a Managed Turnstile widget for the final hostnames (for example, `cadrora.com` and `www.cadrora.com` only if it will be served). Keep the widget site key and secret key together.
+5. In the repository setup screen, keep **Project name** `cadrora`, **Build command** `npm run build`, and set **Deploy command** to `npm run deploy`. Turn **off** builds for non-production branches for the first release.
+6. In **Advanced settings**, create/select a dedicated Workers Builds API token, then add the three non-secret build variables: `CADRORA_D1_DATABASE_ID`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. The D1 ID is displayed on that database's Overview page.
+7. Add `ADMIN_SECRET_HASH` and `TURNSTILE_SECRET_KEY` as encrypted build secrets, and `VITE_TURNSTILE_SITE_KEY` plus any desired public `VITE_*` profile values as build variables. `VITE_*` values are public client-build data; do not put a password or secret in them.
+8. Select **Deploy**, wait for the production build to succeed, then attach the custom domain. Verify `/`, `/contact`, `/api/v1/site`, and `/admin/login` on the Workers hostname before repeating the checks on the domain.
 
-No account ID, database ID, bucket name, or API token needs to be committed. Facial search remains optional and is not provisioned by the quick path. After deployment, open `/`, `/contact`, and `/admin/login`, then complete the remote verification checklist in [`docs/deployment.md`](docs/deployment.md) before attaching a production domain.
+The release script builds, migrates D1, creates a temporary Worker configuration from those three build variables, uploads only the two supplied secrets, and removes the temporary files. No account ID, database ID, bucket name, API token, or secret is committed. The detailed screen-by-screen checklist and verification steps are in [`docs/deployment.md`](docs/deployment.md#existing-repository-cloudflare-builds).
 
-R2 activation is an account-level prerequisite that Cloudflare may present as a billing or service-enablement step; the Deploy Button cannot accept it on the account owner's behalf. If it is missing, Wrangler exits with Cloudflare error `10042` before listing or provisioning buckets. The complete human-action checklist, multi-account Wrangler guidance, post-deploy domain steps, and verification commands are in [`docs/deployment.md`](docs/deployment.md#fresh-account-manual-checklist).
-
-Cloudflare's button is the recommended few-click path. The reproducible Wrangler fallback is `npm run release:deploy -- --production --confirm` after `wrangler login`, resource/secret configuration, and the same preflight; it deliberately refuses an implicit target. See [Cloudflare's Deploy Button documentation](https://developers.cloudflare.com/workers/platform/deploy-buttons/) for the provider-owned flow.
+The [Deploy to Cloudflare button](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Flbouriez%2FCadrora) is retained only for somebody who wants Cloudflare to make an independent cloned repository. It is not the maintainer path for this repository.
 
 ## Quick start
 
@@ -50,7 +51,7 @@ Before a public launch, set the non-secret `VITE_PHOTOGRAPHER_NAME`, `VITE_CONTA
 
 ## Deployment details
 
-For a public fork, the button reads `wrangler.jsonc`, provisions the configured D1 and two private R2 bindings when they have no existing resource IDs/names, prompts for required build variables and secrets, runs `npm run deploy`, and creates the production Worker. The repository deliberately does not include an account ID, database ID, bucket name, API token, or secret. Record the generated resource names in the account’s protected operator record.
+Cloudflare requires a D1 `database_id` and R2 `bucket_name` for a remote Worker binding. To keep this open-source repository portable, those account-specific values are not committed. `npm run deploy` reads the three `CADRORA_*` build variables, writes an ignored temporary Wrangler file, applies migrations through its `DB` binding, deploys with an ignored two-secret file, then deletes both files. The build therefore remains reproducible without coupling the repository to one Cloudflare account.
 
 Before selecting **Deploy**, generate and retain the admin password locally with `npm run setup:admin-credentials`; provide the resulting PBKDF2 hash—not the password—as `ADMIN_SECRET_HASH`, the widget's public key as `VITE_TURNSTILE_SITE_KEY`, and the matching private key as `TURNSTILE_SECRET_KEY`. The two server secrets are required and the Worker fails closed without them. `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` are required bindings; `FACE_INDEX` is intentionally optional, so no Vectorize resource is provisioned by this repository.
 
@@ -60,7 +61,7 @@ Use the named preview environment only for isolated practice, with its own D1/R2
 npm run release:deploy -- --env preview --confirm
 ```
 
-For a manual production release after authenticating Wrangler and setting the production secrets, use `npm run release:deploy -- --production --confirm`. The normal `npm run deploy` command is the non-interactive Deploy Button entry point: it builds, applies remote D1 migrations through the `DB` binding, then deploys. See [`docs/deployment.md`](docs/deployment.md) for the full preflight and verification sequence.
+For a manual production release after authenticating Wrangler, exporting the same three `CADRORA_*` resource values and the two production secrets, use `npm run release:deploy -- --production --confirm`. The normal `npm run deploy` command is the non-interactive Workers Builds entry point: it builds, applies remote D1 migrations through the generated `DB` binding, then deploys. See [`docs/deployment.md`](docs/deployment.md) for the full preflight and verification sequence.
 
 ## Commands
 
@@ -77,7 +78,7 @@ For a manual production release after authenticating Wrangler and setting the pr
 | `npm run build` | Build Worker and client artifacts |
 | `npm run release:migrate -- --production --confirm` | Apply remote D1 migrations via the `DB` binding only |
 | `npm run release:deploy -- --production --confirm` | Build, migrate, and deploy the explicit production target |
-| `npm run deploy` | Deploy Button entry point: build, migrate, and deploy production |
+| `npm run deploy` | Workers Builds entry point: build, migrate, and deploy production from configured `CADRORA_*` values |
 | `npm run deploy:preview` | Build, migrate, and deploy the isolated preview environment |
 
 ## Project map

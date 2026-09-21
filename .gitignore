@@ -8,6 +8,8 @@ test-results/
 .dev.vars
 .env
 .env.local
+.cadrora.remote.wrangler.json
+.cadrora.remote.secrets.env
 *.log
 *.tsbuildinfo
 .DS_Store

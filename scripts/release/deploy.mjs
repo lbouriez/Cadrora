@@ -1,4 +1,5 @@
 import { parseReleaseTarget, runNpmBuild, runWrangler, usage } from './target.mjs';
+import { prepareRemoteConfig, prepareRemoteSecrets } from './remoteConfig.mjs';
 
 const argumentsList = process.argv.slice(2);
 if (argumentsList.includes('--help')) {
@@ -9,12 +10,20 @@ if (argumentsList.includes('--help')) {
 
 try {
   const target = parseReleaseTarget(argumentsList);
-  process.stdout.write(`Building ${target.label}; no secrets are read or printed by this script.\n`);
-  runNpmBuild(target.cloudflareEnv);
-  process.stdout.write(`Applying D1 migrations to ${target.label} through the DB binding.\n`);
-  runWrangler(['d1', 'migrations', 'apply', 'DB', '--remote', ...target.migrationArgs]);
-  process.stdout.write(`Deploying ${target.label}.\n`);
-  runWrangler(['deploy']);
+  const remoteConfig = await prepareRemoteConfig(target);
+  let remoteSecrets;
+  try {
+    process.stdout.write(`Building ${target.label}; secret values are never printed.\n`);
+    runNpmBuild(target.cloudflareEnv);
+    process.stdout.write(`Applying D1 migrations to ${target.label} through the DB binding.\n`);
+    runWrangler(['d1', 'migrations', 'apply', 'DB', '--remote', '--config', remoteConfig.configPath, ...target.migrationArgs]);
+    remoteSecrets = await prepareRemoteSecrets();
+    process.stdout.write(`Deploying ${target.label}.\n`);
+    runWrangler(['deploy', '--config', remoteConfig.configPath, '--secrets-file', remoteSecrets.secretsPath, ...target.migrationArgs]);
+  } finally {
+    await remoteSecrets?.cleanup();
+    await remoteConfig.cleanup();
+  }
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : 'Release failed before deployment.'}\n`);
   process.exit(2);
