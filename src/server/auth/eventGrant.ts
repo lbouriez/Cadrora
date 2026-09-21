@@ -72,7 +72,7 @@ export async function verifyEventGrantToken(
   const valid = await crypto.subtle.verify(
     'HMAC',
     await signingKey(secret),
-    signature.buffer as ArrayBuffer,
+    signature,
     encoder.encode(payload),
   );
   if (!valid) return null;
@@ -108,4 +108,3 @@ export async function eventGrantCookie(
   const expires = new Date(now.getTime() + hours * 60 * 60 * 1_000);
   return `${EVENT_GRANT_COOKIE}=${token}; Path=/; Expires=${expires.toUTCString()}; Max-Age=${hours * 60 * 60}; HttpOnly; Secure; SameSite=Strict`;
 }
-
