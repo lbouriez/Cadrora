@@ -17,6 +17,8 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   expect(Math.abs((closeBox?.y ?? 0) + (closeBox?.height ?? 0) / 2 - ((closeIconBox?.y ?? 0) + (closeIconBox?.height ?? 0) / 2))).toBeLessThan(1);
   const nextButton = page.getByRole('button', { name: /photo suivante|next photo/i });
   const nextBeforeHover = await nextButton.boundingBox();
+  expect(nextBeforeHover?.width).toBe(44);
+  expect(nextBeforeHover?.height).toBe(44);
   await expect(nextButton).toHaveCSS('transform', 'none');
   await nextButton.hover();
   const nextAfterHover = await nextButton.boundingBox();

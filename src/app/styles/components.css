@@ -117,9 +117,11 @@
 .carousel__arrow {
   position: absolute;
   z-index: 2;
-  top: 0;
-  bottom: 0;
-  margin-block: auto;
+  top: 50%;
+  width: var(--control-min-size);
+  height: var(--control-min-size);
+  min-height: var(--control-min-size);
+  translate: 0 -50%;
 }
 
 .carousel__arrow:not(:disabled):active {
