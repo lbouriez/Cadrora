@@ -9,7 +9,7 @@ interface SiteSettingsRow {
   contact_email: string | null;
   default_language: 'fr' | 'en';
   site_name: string;
-  theme_mode: 'dark' | 'light' | 'both';
+  theme_mode: 'dark' | 'light' | 'both' | 'system';
   updated_at: string;
 }
 

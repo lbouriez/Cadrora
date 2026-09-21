@@ -35,7 +35,7 @@ The canonical reader is `src/app/public/siteProfile.ts`. Do not access public bu
 
 ## Runtime appearance setting
 
-An authenticated owner can choose the visitor-facing appearance at `/admin/settings`: `light`, `dark`, or `both`. This is a tiny D1-backed runtime setting (`site_settings.theme_mode`), not a Vite variable, so it can be changed without rebuilding the public content. `both` displays a Light / Dark switch and preserves a visitor’s local choice. A fixed policy removes that switch. The public shell treats this read as optional and falls back to `both` if `/api/v1/site` is unavailable; the static website therefore remains available during an API outage.
+An authenticated owner can choose the new-visitor language and visitor-facing appearance at `/admin/settings`. Theme policies are `light`, `dark`, `both`, or `system`. `both` displays a Light / Dark switch and preserves a visitor’s local choice; a fixed policy removes the switch; `system` follows live `prefers-color-scheme` changes without overwriting a saved visitor choice. These are small D1-backed runtime settings, not Vite variables, so they can change without rebuilding public content. The public shell treats this read as optional and falls back to the build language and `both` if `/api/v1/site` is unavailable.
 
 ## Design and content rules
 

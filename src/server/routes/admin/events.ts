@@ -91,14 +91,14 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     const eventStatement = context.env.DB.prepare(
       `INSERT INTO events (
         id, slug, title, description, starts_at, timezone, cover_photo_id,
-        visibility, access, allow_downloads, face_search_enabled, show_photo_metadata,
-        keep_originals, retention_days, revision, created_at, updated_at
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, 0, ?14, ?14)`,
+        visibility, access, allow_downloads, face_search_enabled, nearby_search_enabled,
+        show_photo_metadata, keep_originals, retention_days, revision, created_at, updated_at
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, 0, ?15, ?15)`,
     ).bind(
       id, slug, input.data.title, input.data.description ?? null, input.data.startsAt,
       input.data.timezone, input.data.visibility, input.data.access,
       Number(input.data.allowDownloads), Number(input.data.faceSearchEnabled),
-      Number(input.data.showPhotoMetadata), Number(input.data.keepOriginals),
+      Number(input.data.nearbySearchEnabled), Number(input.data.showPhotoMetadata), Number(input.data.keepOriginals),
       input.data.retentionDays, now,
     );
     const statements: D1PreparedStatement[] = [eventStatement];
@@ -120,6 +120,11 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
     if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    const nextFaceSearchEnabled = input.data.faceSearchEnabled ?? event.faceSearchEnabled;
+    const nextNearbySearchEnabled = input.data.nearbySearchEnabled ?? event.nearbySearchEnabled;
+    if (nextNearbySearchEnabled && !nextFaceSearchEnabled) {
+      throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    }
     const nextAccess = input.data.access ?? event.access;
     const existingVersion = await context.env.DB.prepare(
       'SELECT access_version FROM event_credentials WHERE event_id = ?1',
@@ -141,6 +146,8 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.access !== undefined) add('access', input.data.access);
     if (input.data.allowDownloads !== undefined) add('allow_downloads', Number(input.data.allowDownloads));
     if (input.data.faceSearchEnabled !== undefined) add('face_search_enabled', Number(input.data.faceSearchEnabled));
+    if (input.data.nearbySearchEnabled !== undefined) add('nearby_search_enabled', Number(input.data.nearbySearchEnabled));
+    else if (input.data.faceSearchEnabled === false) add('nearby_search_enabled', 0);
     if (input.data.showPhotoMetadata !== undefined) add('show_photo_metadata', Number(input.data.showPhotoMetadata));
     if (input.data.keepOriginals !== undefined) add('keep_originals', Number(input.data.keepOriginals));
     if (input.data.retentionDays !== undefined) add('retention_days', input.data.retentionDays);

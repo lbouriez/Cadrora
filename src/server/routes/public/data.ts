@@ -13,6 +13,7 @@ export interface EventRow {
   access: Event['access'];
   allow_downloads: number;
   face_search_enabled: number;
+  nearby_search_enabled: number;
   show_photo_metadata: number;
   keep_originals: number;
   retention_days: number | null;
@@ -34,6 +35,7 @@ export function eventFromRow(row: EventRow): Event {
     access: row.access,
     allowDownloads: row.allow_downloads === 1,
     faceSearchEnabled: row.face_search_enabled === 1,
+    nearbySearchEnabled: row.nearby_search_enabled === 1,
     showPhotoMetadata: row.show_photo_metadata === 1,
     keepOriginals: row.keep_originals === 1,
     retentionDays: row.retention_days,
@@ -56,6 +58,7 @@ export function toPublicEvent(event: Event): PublicEvent {
     access: event.access,
     allowDownloads: event.allowDownloads,
     faceSearchEnabled: event.faceSearchEnabled,
+    nearbySearchEnabled: event.nearbySearchEnabled,
     showPhotoMetadata: event.showPhotoMetadata,
     retentionDays: event.retentionDays,
     revision: event.revision,

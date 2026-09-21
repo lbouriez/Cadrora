@@ -21,7 +21,7 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-20.
 | `POST /admin/logout` | No body | `204`; revokes a password session and clears the cookie. |
 | `GET /admin/session` | None | Current `Session`; password sessions rotate. |
 | `GET /admin/site` | None | Owner-facing `SiteSettings`, including `themeMode`. The showcase demo may read this exact endpoint but cannot update it. |
-| `PATCH /admin/site` | `{ "themeMode": "light" \| "dark" \| "both" }` | Persists the public colour policy. |
+| `PATCH /admin/site` | `{ "defaultLanguage": "fr" \| "en", "themeMode": "light" \| "dark" \| "both" \| "system" }` | Persists the public language default and colour policy. |
 
 `password` is 1–200 characters at the transport boundary; strength belongs in operator provisioning. `turnstileToken` is required and at most 2,048 characters. Never send credentials from a cross-origin client.
 
@@ -55,6 +55,7 @@ Event creation accepts:
   "password": "required when protected",
   "allowDownloads": false,
   "faceSearchEnabled": false,
+  "nearbySearchEnabled": false,
   "showPhotoMetadata": false,
   "keepOriginals": false,
   "retentionDays": null
@@ -79,7 +80,7 @@ Variant headers are `Content-Type`, `X-Cadrora-Byte-Size`, `X-Cadrora-Checksum-S
 | Method and path | Access | Result |
 | --- | --- | --- |
 | `GET /admin/events/:eventId/publication` | Admin | Current readiness and publication summary for one event. |
-| `POST /admin/events/:eventId/publish` | Admin | `{ visibility: "published" \| "unlisted" }`; returns publication summary or `409` if media is not ready. |
+| `POST /admin/events/:eventId/publish` | Admin | `{ visibility: "published" \| "unlisted" }`; atomically promotes every ready photo variant and changes the draft event visibility. It does not upload or process images and does not wait for optional facial indexing. Returns the publication summary or `409` if media is not ready. |
 | `DELETE /admin/photos/:photoId` | Admin | `204`; removes access first and queues cleanup. |
 | `GET /admin/usage` | Admin | Application usage snapshot: events, photos, variant bytes, faces, and recorded vector-query dimensions. |
 

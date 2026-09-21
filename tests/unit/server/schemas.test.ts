@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { EventCredentialsSchema, EventSchema, ModelManifestSchema } from '../../../src/shared/schemas';
+import {
+  CreateEventRequestSchema,
+  EventCredentialsSchema,
+  EventSchema,
+  ModelManifestSchema,
+} from '../../../src/shared/schemas';
 
 describe('shared schemas', () => {
   it('keeps event credentials separate from public events', () => {
@@ -22,5 +27,17 @@ describe('shared schemas', () => {
     });
     expect(result.success).toBe(false);
   });
-});
 
+  it('only enables nearby moments when face search is enabled', () => {
+    const event = {
+      title: 'A gallery',
+      startsAt: '2030-01-01T00:00:00.000Z',
+      timezone: 'UTC',
+      faceSearchEnabled: false,
+      nearbySearchEnabled: true,
+    };
+
+    expect(CreateEventRequestSchema.safeParse(event).success).toBe(false);
+    expect(CreateEventRequestSchema.safeParse({ ...event, faceSearchEnabled: true }).success).toBe(true);
+  });
+});

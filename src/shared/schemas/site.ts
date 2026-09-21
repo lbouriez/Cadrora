@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { IdSchema, IsoDateTimeSchema, LanguageSchema } from './primitives';
 
-export const ThemeModeSchema = z.enum(['light', 'dark', 'both']);
+export const ThemeModeSchema = z.enum(['light', 'dark', 'both', 'system']);
 
 export const SiteSettingsSchema = z.object({
   siteName: z.string().min(1).max(120),
@@ -13,6 +13,7 @@ export const SiteSettingsSchema = z.object({
 });
 
 export const UpdateSiteSettingsSchema = z.object({
+  defaultLanguage: LanguageSchema,
   themeMode: ThemeModeSchema,
 }).strict();
 
@@ -38,6 +39,7 @@ export const ModelManifestSchema = z.object({
 });
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
+export type Language = z.infer<typeof LanguageSchema>;
 export type ThemeMode = z.infer<typeof ThemeModeSchema>;
 export type UsageSnapshot = z.infer<typeof UsageSnapshotSchema>;
 export type ModelManifest = z.infer<typeof ModelManifestSchema>;

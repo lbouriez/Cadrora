@@ -134,6 +134,7 @@ export function registerFaceSearchRoutes(
 
   app.get('/api/v1/events/:eventId/photos/:photoId/related', async (context) => {
     const event = await requireSearchableEvent(context, context.req.param('eventId'));
+    if (!event.nearbySearchEnabled) throw new ApiException('NEARBY_SEARCH_DISABLED', 'errors.faceSearchDisabled', 409);
     const photoId = IdSchema.safeParse(context.req.param('photoId'));
     if (!photoId.success) throw new ApiException('INVALID_PHOTO_ID', 'errors.invalidPhotoId', 400);
     const photos = await dependencies.repository(context).related(event.id, photoId.data);

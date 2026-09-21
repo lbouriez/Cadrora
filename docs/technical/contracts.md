@@ -97,7 +97,7 @@ The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, start
 
 Gallery links never acquire browser-default underlines or layout-changing hover movement. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
 
-`site_settings.theme_mode` is `light`, `dark`, or `both`. Only an authenticated owner can update it. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch. The public shell falls back to `both` when the settings read is unavailable.
+`site_settings.theme_mode` is `light`, `dark`, `both`, or `system`, and `default_language` is `fr` or `en`. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. The public shell falls back to build-time language selection and `both` when the settings read is unavailable.
 
 ## Import and facial-search privacy
 
@@ -105,4 +105,4 @@ Gallery links never acquire browser-default underlines or layout-changing hover 
 - Variant widths are 480, 960, 1600, 2560, and 3840 pixels, without upscaling. WebP is used only after runtime encoding and MIME verification; otherwise use JPEG.
 - A visitor selfie remains local. The Worker receives an embedding only and never returns embeddings or face coordinates.
 - Models load only on the find route. Facial search is disabled by default, event-scoped, expiring, and described as possible matches rather than identity confidence.
-- Search and related-photo calls remain bound to the current event. The gallery's **Found for me** view may contain both direct matches and same-event nearby photos, but they must render as separate labelled groups. Session persistence is limited to sanitized event-photo references and must omit selfies, embeddings, scores, and vector IDs.
+- Search and related-photo calls remain bound to the current event. `nearbySearchEnabled` requires `faceSearchEnabled`; the related-photo endpoint and client both enforce it. The gallery's **Found for me** view may contain both direct matches and same-event nearby photos, but they must render as separate labelled groups. Session persistence is limited to sanitized event-photo references and must omit selfies, embeddings, scores, and vector IDs.

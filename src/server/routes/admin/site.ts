@@ -9,7 +9,7 @@ interface SiteSettingsRow {
   contact_email: string | null;
   default_language: 'fr' | 'en';
   site_name: string;
-  theme_mode: 'dark' | 'light' | 'both';
+  theme_mode: 'dark' | 'light' | 'both' | 'system';
   updated_at: string;
 }
 
@@ -52,8 +52,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const updatedAt = new Date().toISOString();
     const result = await context.env.DB.prepare(
-      'UPDATE site_settings SET theme_mode = ?1, updated_at = ?2 WHERE id = 1',
-    ).bind(input.data.themeMode, updatedAt).run();
+      'UPDATE site_settings SET default_language = ?1, theme_mode = ?2, updated_at = ?3 WHERE id = 1',
+    ).bind(input.data.defaultLanguage, input.data.themeMode, updatedAt).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     const settings = await findSettings(context.env.DB);
     if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);

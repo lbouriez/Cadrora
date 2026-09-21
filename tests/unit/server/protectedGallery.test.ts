@@ -23,6 +23,7 @@ const protectedEvent: EventRow = {
   allow_downloads: 0,
   show_photo_metadata: 0,
   face_search_enabled: 0,
+  nearby_search_enabled: 0,
   keep_originals: 0,
   retention_days: null,
   revision: 1,

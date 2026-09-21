@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SiteSettingsSchema } from '../../shared/schemas';
-import type { ThemeMode } from '../../shared/schemas';
+import type { Language, ThemeMode } from '../../shared/schemas';
 import { Button, Select, Spinner } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
 
@@ -14,9 +14,9 @@ async function getAdminSiteSettings() {
   return SiteSettingsSchema.parse(await response.json());
 }
 
-async function updateAdminSiteSettings(themeMode: ThemeMode) {
+async function updateAdminSiteSettings(input: { defaultLanguage: Language; themeMode: ThemeMode }) {
   const response = await fetch('/api/v1/admin/site', {
-    body: JSON.stringify({ themeMode }),
+    body: JSON.stringify(input),
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
     method: 'PATCH',
@@ -47,8 +47,13 @@ export function AdminSiteSettingsPage() {
     event.preventDefault();
     if (readOnly) return;
     setSaved(false);
-    const value = new FormData(event.currentTarget).get('themeMode');
-    if (value === 'light' || value === 'dark' || value === 'both') update.mutate(value);
+    const values = new FormData(event.currentTarget);
+    const themeMode = values.get('themeMode');
+    const defaultLanguage = values.get('defaultLanguage');
+    if (
+      (themeMode === 'light' || themeMode === 'dark' || themeMode === 'both' || themeMode === 'system')
+      && (defaultLanguage === 'fr' || defaultLanguage === 'en')
+    ) update.mutate({ defaultLanguage, themeMode });
   };
 
   return (
@@ -57,10 +62,15 @@ export function AdminSiteSettingsPage() {
       <h1 className="admin-card__title" id="admin-site-settings-title">{t('admin.settings.title')}</h1>
       <p className="admin-card__description">{t('admin.settings.description')}</p>
       <form className="admin-event-form" onSubmit={submit}>
-        <Select defaultValue={settings.data.themeMode} disabled={readOnly} hint={t('admin.settings.themeHint')} label={t('admin.settings.themeMode')} name="themeMode">
+        <Select defaultValue={settings.data.defaultLanguage} hint={t('admin.settings.languageHint')} label={t('admin.settings.language')} name="defaultLanguage">
+          <option value="fr">{t('admin.settings.languageFr')}</option>
+          <option value="en">{t('admin.settings.languageEn')}</option>
+        </Select>
+        <Select defaultValue={settings.data.themeMode} hint={t('admin.settings.themeHint')} label={t('admin.settings.themeMode')} name="themeMode">
           <option value="both">{t('admin.settings.themeBoth')}</option>
           <option value="light">{t('admin.settings.themeLight')}</option>
           <option value="dark">{t('admin.settings.themeDark')}</option>
+          <option value="system">{t('admin.settings.themeSystem')}</option>
         </Select>
         {readOnly ? <p className="admin-card__description">{t('admin.settings.readOnly')}</p> : null}
         {update.isError ? <p role="alert">{t('admin.settings.error')}</p> : null}

@@ -4,6 +4,7 @@ export const publicationResources = {
   en: {
     publication: {
       error: 'Publication could not be completed. Please try again.',
+      description: 'Publishes every ready image variant and makes the draft gallery visible at its public URL. Uploading and image processing happen before this step; optional facial indexing may continue afterward.',
       galleryPublished: 'Gallery published',
       indexing: 'Facial indexing in progress',
       photosSent: 'Photos uploaded',
@@ -18,6 +19,7 @@ export const publicationResources = {
   fr: {
     publication: {
       error: "La publication n'a pas pu être terminée. Réessayez.",
+      description: "Publie toutes les variantes d’image prêtes et rend la galerie brouillon visible à son adresse publique. Le téléversement et le traitement ont lieu avant cette étape; l’indexation faciale facultative peut continuer ensuite.",
       galleryPublished: 'Galerie publiée',
       indexing: "Indexation faciale en cours",
       photosSent: 'Photos envoyées',

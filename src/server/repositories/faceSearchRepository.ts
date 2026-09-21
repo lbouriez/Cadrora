@@ -269,7 +269,7 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
     if (existing) return true;
     const jobId = crypto.randomUUID();
     await this.database.batch([
-      this.database.prepare('UPDATE events SET face_search_enabled = 0, revision = revision + 1, updated_at = ?2 WHERE id = ?1').bind(eventId, now),
+      this.database.prepare('UPDATE events SET face_search_enabled = 0, nearby_search_enabled = 0, revision = revision + 1, updated_at = ?2 WHERE id = ?1').bind(eventId, now),
       this.database.prepare("UPDATE photos SET face_state = 'deleting', updated_at = ?2 WHERE event_id = ?1 AND face_state <> 'disabled'").bind(eventId, now),
       this.database.prepare(
         `INSERT OR IGNORE INTO maintenance_jobs

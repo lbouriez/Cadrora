@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink } from 'react-router-dom';
@@ -21,6 +22,16 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     staleTime: 60_000,
   });
   const { canChooseTheme, theme, toggleTheme } = useTheme(settings.data?.themeMode ?? 'both');
+
+  useEffect(() => {
+    if (!settings.data?.defaultLanguage) return;
+    try {
+      if (localStorage.getItem('cadrora-language')) return;
+    } catch {
+      // The runtime default still applies when preference storage is blocked.
+    }
+    void i18n.changeLanguage(settings.data.defaultLanguage);
+  }, [i18n, settings.data?.defaultLanguage]);
 
   return (
     <div className="public-shell">

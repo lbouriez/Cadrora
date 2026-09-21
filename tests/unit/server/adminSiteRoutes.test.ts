@@ -47,12 +47,12 @@ describe('admin site settings routes', () => {
 
     await expect((await app.request('/api/v1/admin/site', undefined, { DB: database })).json()).resolves.toMatchObject({ themeMode: 'both' });
     const response = await app.request('/api/v1/admin/site', {
-      body: JSON.stringify({ themeMode: 'dark' }),
+      body: JSON.stringify({ defaultLanguage: 'en', themeMode: 'system' }),
       headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },
       method: 'PATCH',
     }, { DB: database });
 
     expect(response.status).toBe(200);
-    expect(update.bind).toHaveBeenCalledWith('dark', expect.any(String));
+    expect(update.bind).toHaveBeenCalledWith('en', 'system', expect.any(String));
   });
 });

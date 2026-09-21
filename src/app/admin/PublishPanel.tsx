@@ -46,6 +46,7 @@ export function PublishPanel({
   return (
     <section aria-labelledby="publication-title" className="publish-panel">
       <h2 id="publication-title">{t('publication.title')}</h2>
+      <p>{t('publication.description')}</p>
       <progress
         aria-label={t('publication.variantsReady')}
         max={1}

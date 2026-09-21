@@ -27,20 +27,43 @@ function repository(overrides: Partial<FaceSearchRepository> = {}): FaceSearchRe
 const eventRow = {
   id: 'event-1', slug: 'event-one', title: 'Event', description: null,
   starts_at: '2030-01-01T00:00:00.000Z', timezone: 'UTC', cover_photo_id: null,
-  visibility: 'published', access: 'public', allow_downloads: 0, face_search_enabled: 1, show_photo_metadata: 0,
+  visibility: 'published', access: 'public', allow_downloads: 0, face_search_enabled: 1, nearby_search_enabled: 1, show_photo_metadata: 0,
   keep_originals: 0, retention_days: 30, revision: 1,
   created_at: '2030-01-01T00:00:00.000Z', updated_at: '2030-01-01T00:00:00.000Z',
 };
 
-function databaseForEvent(): D1Database {
+function databaseForEvent(row = eventRow): D1Database {
   return {
     prepare: vi.fn().mockReturnValue({
-      bind: vi.fn().mockReturnValue({ first: vi.fn().mockResolvedValue(eventRow) }),
+      bind: vi.fn().mockReturnValue({ first: vi.fn().mockResolvedValue(row) }),
     }),
   } as unknown as D1Database;
 }
 
 describe('face search privacy and pagination', () => {
+  it('blocks nearby moments when that gallery option is disabled', async () => {
+    const related = vi.fn().mockResolvedValue([]);
+    const faceRepository = repository({ related });
+    const app = new Hono<AppEnv>();
+    app.use('*', requestId);
+    app.onError(errorBoundary);
+    app.use('*', async (context, next) => { context.set('auth', {}); await next(); });
+    registerFaceSearchRoutes(app, {
+      now: () => '2030-02-01T00:00:00.000Z',
+      repository: () => faceRepository,
+      vectors: () => ({ available: () => true, delete: vi.fn(), query: vi.fn(), upsert: vi.fn() }),
+    });
+
+    const response = await app.request(
+      '/api/v1/events/event-1/photos/photo-1/related',
+      {},
+      { DB: databaseForEvent({ ...eventRow, nearby_search_enabled: 0 }) },
+    );
+
+    expect(response.status).toBe(409);
+    expect(related).not.toHaveBeenCalled();
+  });
+
   it('signs domain-scoped cursors and rejects tampering or a missing secret', async () => {
     const payload = { eventId: 'event-1', generation: 2, nextPartition: 3 };
     const cursor = await signFaceSearchCursor(payload, 'test-secret');

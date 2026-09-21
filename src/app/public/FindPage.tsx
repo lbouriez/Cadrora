@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
@@ -5,6 +6,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
 import { Button, Carousel, Spinner } from '../components';
+import { getPublicEvent } from './api';
 import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
 import { PublicLayout } from './PublicLayout';
@@ -14,6 +16,8 @@ type RelatedPhoto = Awaited<ReturnType<typeof getRelatedPhotos>>['photos'][numbe
 export function FindPage() {
   const { slug = '' } = useParams<{ slug: string }>();
   const { t } = useTranslation();
+  const event = useQuery({ queryFn: () => getPublicEvent(slug), queryKey: ['public-event', slug], enabled: slug.length > 0 });
+  const nearbySearchEnabled = event.data?.nearbySearchEnabled ?? false;
   const restoredResults = useMemo(() => readFaceSearchResults(slug), [slug]);
   const [consent, setConsent] = useState(false);
   const [image, setImage] = useState<ImageBitmap | null>(null);
@@ -152,6 +156,11 @@ export function FindPage() {
       saveFaceSearchResults(slug, nextMatches, related);
       setCursor(response.nextCursor);
       setSearchCompleted(true);
+      if (!nearbySearchEnabled) {
+        setRelated([]);
+        saveFaceSearchResults(slug, nextMatches, []);
+        return;
+      }
       setRelatedBusy(true);
       void Promise.allSettled(response.matches.map((match) => getRelatedPhotos(slug, match.photoId)))
         .then((responses) => {
@@ -273,8 +282,8 @@ export function FindPage() {
             {cursor ? <Button disabled={busy} onClick={() => void runSearch(cursor)}>{t('faceFind.more')}</Button> : null}
           </section>
         ) : searchCompleted && !busy ? <p>{t('faceFind.noMatches')}</p> : null}
-        {relatedBusy ? <p role="status">{t('faceFind.loadingNearby')}</p> : null}
-        {related.length > 0 ? (
+        {nearbySearchEnabled && relatedBusy ? <p role="status">{t('faceFind.loadingNearby')}</p> : null}
+        {nearbySearchEnabled && related.length > 0 ? (
           <section className="face-find__nearby">
             <h2>{t('faceFind.nearby')}</h2>
             <p>{t('faceFind.nearbyFound', { count: related.length })}</p>

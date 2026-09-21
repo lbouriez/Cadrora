@@ -17,11 +17,11 @@ The official Cadrora showcase also exposes a clearly labelled **demo** sign-in w
 
 ## Admin UI
 
-The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/events/:eventId/import`. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists events and, for an owner, starts with **New event**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, viewer metadata, and originals. The viewer-metadata choice is per gallery, defaults off, and reveals only filename, capture time, and dimensions. **Import photos** opens the browser import and publication workspace.
+The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/events/:eventId/import`. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists events and, for an owner, starts with **New event**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, optional nearby-moment suggestions, viewer metadata, and originals. Nearby suggestions can be enabled only while face search is enabled. The viewer-metadata choice is per gallery, defaults off, and reveals only filename, capture time, and dimensions. **Import photos** opens the browser import and publication workspace.
 
-**Site settings** controls the public colour policy: choose light, dark, or let each visitor choose. The latter shows the Light / Dark switch in the public header and remembers each visitor preference locally; a fixed choice removes that switch. The choice is stored in D1 and is not a build variable.
+**Site settings** controls the public default language and colour policy. Choose a fixed light or dark theme, follow each visitor's system setting, or let visitors choose. Visitor choice shows the Light / Dark switch in the public header and remembers that preference locally; fixed and system policies remove the switch. These choices are stored in D1 and are not build variables. They configure the public experience, so language and theme controls are intentionally absent from the admin header.
 
-The showcase demo deliberately displays the same workflow—including disabled Create gallery, Import photos, Publish gallery, and Site settings controls—so it is possible to understand the product. Its Worker session remains read-only: it permits only the explicitly documented reads and rejects every update, upload, or publish request even if a visitor changes the browser UI.
+The showcase demo deliberately displays the same workflow—including Create gallery, gallery settings, Site settings, Import photos, and Publish gallery—so it is possible to understand the product. Form controls remain interactive locally, but their final save/create/publish controls are disabled. Its Worker session remains read-only: it permits only the explicitly documented reads and rejects every update, upload, or publish request even if a visitor changes the browser UI.
 
 The browser UI is still not a substitute for validating deployed authorization. Test the exact protected hostname and API response before relying on it operationally. Do not weaken `/admin` protection or expose a password/token in browser configuration.
 
@@ -46,6 +46,8 @@ The mounted browser import screen follows this server sequence; any compatible A
 3. Upload all five derived variants per photo: `thumb`, `small`, `medium`, `large`, and `download`.
 4. Finalize each photo only after all five variants exist.
 5. Review `GET /api/v1/admin/events/:eventId/publication`, then publish with `POST /api/v1/admin/events/:eventId/publish` and `visibility` of `published` or `unlisted`.
+
+**Publish gallery** is the final visibility transition, not an upload button. It requires every photo derivative to be ready, changes those ready photo rows to `published`, and changes the event from `draft` to public or unlisted in the same D1 batch. Optional facial indexing can finish later without delaying publication.
 
 The server enforces `MAX_PHOTOS_PER_EVENT`, `MAX_STORAGE_BYTES`, MIME/magic-byte agreement, byte size, dimensions, and SHA-256 checksum. An import is idempotent only when the same natural IDs and chunk contents are replayed; conflicting IDs return a conflict rather than being silently reused.
 

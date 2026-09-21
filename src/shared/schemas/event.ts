@@ -17,6 +17,7 @@ export const EventSchema = z.object({
   access: EventAccessSchema,
   allowDownloads: z.boolean(),
   faceSearchEnabled: z.boolean(),
+  nearbySearchEnabled: z.boolean(),
   showPhotoMetadata: z.boolean(),
   keepOriginals: z.boolean(),
   retentionDays: z.number().int().positive().nullable(),

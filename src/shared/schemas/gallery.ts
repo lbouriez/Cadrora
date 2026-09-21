@@ -15,6 +15,7 @@ export const PublicEventSchema = EventSchema.pick({
   access: true,
   allowDownloads: true,
   faceSearchEnabled: true,
+  nearbySearchEnabled: true,
   showPhotoMetadata: true,
   retentionDays: true,
   revision: true,
@@ -66,12 +67,16 @@ export const CreateEventRequestSchema = z.object({
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().default(false),
   faceSearchEnabled: z.boolean().default(false),
+  nearbySearchEnabled: z.boolean().default(false),
   showPhotoMetadata: z.boolean().default(false),
   keepOriginals: z.boolean().default(false),
   retentionDays: z.number().int().positive().nullable().default(null),
 }).superRefine((value, context) => {
   if (value.access === 'protected' && !value.password) {
     context.addIssue({ code: 'custom', message: 'password is required for protected events', path: ['password'] });
+  }
+  if (value.nearbySearchEnabled && !value.faceSearchEnabled) {
+    context.addIssue({ code: 'custom', message: 'nearby search requires face search', path: ['nearbySearchEnabled'] });
   }
 });
 
@@ -86,6 +91,7 @@ export const UpdateEventRequestSchema = z.object({
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().optional(),
   faceSearchEnabled: z.boolean().optional(),
+  nearbySearchEnabled: z.boolean().optional(),
   showPhotoMetadata: z.boolean().optional(),
   keepOriginals: z.boolean().optional(),
   retentionDays: z.number().int().positive().nullable().optional(),

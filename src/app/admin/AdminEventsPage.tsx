@@ -43,6 +43,8 @@ export function AdminEventsPage() {
   const queryClient = useQueryClient();
   const [access, setAccess] = useState<'protected' | 'public'>('public');
   const [unlimitedRetention, setUnlimitedRetention] = useState(true);
+  const [faceSearchEnabled, setFaceSearchEnabled] = useState(false);
+  const [nearbySearchEnabled, setNearbySearchEnabled] = useState(false);
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
   const creation = useMutation({
     mutationFn: createEvent,
@@ -53,6 +55,7 @@ export function AdminEventsPage() {
 
   const submit = (submitEvent: FormEvent<HTMLFormElement>) => {
     submitEvent.preventDefault();
+    if (readOnly) return;
     const form = submitEvent.currentTarget;
     const values = new FormData(form);
     const startsAt = values.get('startsAt');
@@ -64,7 +67,8 @@ export function AdminEventsPage() {
       description: typeof values.get('description') === 'string' && values.get('description')
         ? values.get('description')
         : null,
-      faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
+      faceSearchEnabled,
+      nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       password: access === 'protected' ? values.get('password') : undefined,
@@ -78,13 +82,31 @@ export function AdminEventsPage() {
         form.reset();
         setAccess('public');
         setUnlimitedRetention(true);
+        setFaceSearchEnabled(false);
+        setNearbySearchEnabled(false);
       },
     });
   };
 
   return (
     <div className="admin-events">
-      {!readOnly ? <section aria-labelledby="event-create-title" className="admin-card">
+      {readOnly ? (
+        <section className="admin-card admin-demo-intro" aria-labelledby="admin-demo-title">
+          <p className="admin-demo-intro__eyebrow">{t('admin.demo.eyebrow')}</p>
+          <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
+          <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
+          <section aria-labelledby="admin-demo-capabilities-title" className="admin-demo-capabilities">
+            <h2 className="admin-card__title" id="admin-demo-capabilities-title">{t('admin.demo.capabilitiesTitle')}</h2>
+            <p className="admin-card__description">{t('admin.demo.capabilitiesBody')}</p>
+            <div className="admin-demo-capabilities__actions">
+              <Button disabled type="button">{t('admin.demo.createGallery')}</Button>
+              <Button disabled type="button" variant="secondary">{t('admin.demo.importPhotos')}</Button>
+              <Button disabled type="button" variant="secondary">{t('admin.demo.publishGallery')}</Button>
+            </div>
+          </section>
+        </section>
+      ) : null}
+      <section aria-labelledby="event-create-title" className="admin-card">
         <h1 className="admin-card__title" id="event-create-title">{t('admin.events.createTitle')}</h1>
         <p className="admin-card__description">{t('admin.events.createDescription')}</p>
         <form className="admin-event-form" onSubmit={submit}>
@@ -102,29 +124,23 @@ export function AdminEventsPage() {
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
             <label><input name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
-            <label><input name="faceSearchEnabled" type="checkbox" /> {t('admin.events.faceSearch')}</label>
+            <FaceSearchOptions
+              faceSearchEnabled={faceSearchEnabled}
+              nearbySearchEnabled={nearbySearchEnabled}
+              onFaceSearchChange={(enabled) => {
+                setFaceSearchEnabled(enabled);
+                if (!enabled) setNearbySearchEnabled(false);
+              }}
+              onNearbySearchChange={setNearbySearchEnabled}
+            />
             <label><input name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
             <label><input name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
           </fieldset>
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
-          <Button disabled={creation.isPending} type="submit">{t('admin.events.create')}</Button>
+          {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
+          <Button disabled={readOnly || creation.isPending} type="submit">{t('admin.events.create')}</Button>
         </form>
-      </section> : (
-        <section className="admin-card admin-demo-intro" aria-labelledby="admin-demo-title">
-          <p className="admin-demo-intro__eyebrow">{t('admin.demo.eyebrow')}</p>
-        <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
-        <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
-        <section aria-labelledby="admin-demo-capabilities-title" className="admin-demo-capabilities">
-          <h2 className="admin-card__title" id="admin-demo-capabilities-title">{t('admin.demo.capabilitiesTitle')}</h2>
-          <p className="admin-card__description">{t('admin.demo.capabilitiesBody')}</p>
-          <div className="admin-demo-capabilities__actions">
-            <Button disabled type="button">{t('admin.demo.createGallery')}</Button>
-            <Button disabled type="button" variant="secondary">{t('admin.demo.importPhotos')}</Button>
-            <Button disabled type="button" variant="secondary">{t('admin.demo.publishGallery')}</Button>
-          </div>
-        </section>
       </section>
-      )}
 
       <section aria-labelledby="event-list-title" className="admin-card">
         <h2 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h2>
@@ -165,12 +181,41 @@ function formString(values: FormData, name: string): string {
   return typeof value === 'string' ? value : '';
 }
 
+interface FaceSearchOptionsProps {
+  faceSearchEnabled: boolean;
+  nearbySearchEnabled: boolean;
+  onFaceSearchChange: (enabled: boolean) => void;
+  onNearbySearchChange: (enabled: boolean) => void;
+}
+
+function FaceSearchOptions({
+  faceSearchEnabled,
+  nearbySearchEnabled,
+  onFaceSearchChange,
+  onNearbySearchChange,
+}: FaceSearchOptionsProps) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <label>
+        <input checked={faceSearchEnabled} name="faceSearchEnabled" onChange={(event) => onFaceSearchChange(event.target.checked)} type="checkbox" /> {t('admin.events.faceSearch')}
+      </label>
+      <label className="admin-event-form__dependent-option">
+        <input checked={nearbySearchEnabled} disabled={!faceSearchEnabled} name="nearbySearchEnabled" onChange={(event) => onNearbySearchChange(event.target.checked)} type="checkbox" /> {t('admin.events.nearbySearch')}
+        <span>{t('admin.events.nearbySearchHint')}</span>
+      </label>
+    </>
+  );
+}
+
 function AdminEventSettingsForm({ event }: { event: Event }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const [access, setAccess] = useState(event.access);
   const [unlimitedRetention, setUnlimitedRetention] = useState(event.retentionDays === null);
+  const [faceSearchEnabled, setFaceSearchEnabled] = useState(event.faceSearchEnabled);
+  const [nearbySearchEnabled, setNearbySearchEnabled] = useState(event.nearbySearchEnabled);
   const [saved, setSaved] = useState(false);
   const update = useMutation({
     mutationFn: (payload: unknown) => updateEvent(event.id, payload),
@@ -182,6 +227,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
 
   const submit = (submitEvent: FormEvent<HTMLFormElement>) => {
     submitEvent.preventDefault();
+    if (readOnly) return;
     setSaved(false);
     const values = new FormData(submitEvent.currentTarget);
     const startsAt = formString(values, 'startsAt');
@@ -191,7 +237,8 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       access,
       allowDownloads: values.get('allowDownloads') === 'on',
       description: formString(values, 'description').trim() || null,
-      faceSearchEnabled: values.get('faceSearchEnabled') === 'on',
+      faceSearchEnabled,
+      nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       keepOriginals: values.get('keepOriginals') === 'on',
       ...(password ? { password } : {}),
@@ -201,22 +248,6 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       title: values.get('title'),
     });
   };
-
-  if (readOnly) {
-    return (
-      <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">
-        <p><Link to="/admin">← {t('admin.events.back')}</Link></p>
-        <p className="admin-demo-intro__eyebrow">{t('admin.demo.readOnlyLabel')}</p>
-        <h1 className="admin-card__title" id="event-settings-title">{event.title}</h1>
-        <dl className="admin-demo-details">
-          <div><dt>{t('admin.events.description')}</dt><dd>{event.description ?? '—'}</dd></div>
-          <div><dt>{t('admin.events.access')}</dt><dd>{t(`admin.events.${event.access}`)}</dd></div>
-          <div><dt>{t('admin.events.retention')}</dt><dd>{event.retentionDays ?? t('admin.events.unlimited')}</dd></div>
-          <div><dt>{t('admin.demo.status')}</dt><dd>{t(`admin.events.visibility.${event.visibility}`)}</dd></div>
-        </dl>
-      </section>
-    );
-  }
 
   return (
     <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">
@@ -245,13 +276,22 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
           <label><input defaultChecked={event.allowDownloads} name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
-          <label><input defaultChecked={event.faceSearchEnabled} name="faceSearchEnabled" type="checkbox" /> {t('admin.events.faceSearch')}</label>
+          <FaceSearchOptions
+            faceSearchEnabled={faceSearchEnabled}
+            nearbySearchEnabled={nearbySearchEnabled}
+            onFaceSearchChange={(enabled) => {
+              setFaceSearchEnabled(enabled);
+              if (!enabled) setNearbySearchEnabled(false);
+            }}
+            onNearbySearchChange={setNearbySearchEnabled}
+          />
           <label><input defaultChecked={event.showPhotoMetadata} name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
           <label><input defaultChecked={event.keepOriginals} name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
         </fieldset>
         {update.isError ? <p role="alert">{t('admin.events.updateError')}</p> : null}
         {saved ? <p role="status">{t('admin.events.updated')}</p> : null}
-        <Button disabled={update.isPending} type="submit">{t('admin.events.save')}</Button>
+        {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
+        <Button disabled={readOnly || update.isPending} type="submit">{t('admin.events.save')}</Button>
       </form>
     </section>
   );

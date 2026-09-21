@@ -83,9 +83,10 @@ export function GalleryPage() {
   const searchResults = useMemo(() => readFaceSearchResults(slug), [slug]);
   const matchedPhotoIds = searchResults.matchedPhotoIds;
   const nearbyPhotoIds = useMemo(() => {
+    if (!event.data?.nearbySearchEnabled) return [];
     const matched = new Set(matchedPhotoIds);
     return searchResults.nearbyPhotoIds.filter((id) => !matched.has(id));
-  }, [matchedPhotoIds, searchResults.nearbyPhotoIds]);
+  }, [event.data?.nearbySearchEnabled, matchedPhotoIds, searchResults.nearbyPhotoIds]);
   const foundPhotoIds = useMemo(() => [...matchedPhotoIds, ...nearbyPhotoIds], [matchedPhotoIds, nearbyPhotoIds]);
   const matchesView = searchParams.get('view') === 'matches' && foundPhotoIds.length > 0;
   const photosById = useMemo(() => new Map(allPhotos.map((photo) => [photo.id, photo])), [allPhotos]);

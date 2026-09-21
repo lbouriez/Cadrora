@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../components';
-import { useTheme } from '../useTheme';
 
 export interface AdminLayoutProps {
   children: ReactNode;
@@ -12,14 +11,9 @@ export interface AdminLayoutProps {
   subject?: string;
 }
 
-/** Shared admin frame with keyboard skip navigation and local theme/language controls. */
+/** Shared admin frame. Public language and appearance policy live in Site settings. */
 export function AdminLayout({ children, onLogout, readOnly = false, subject }: AdminLayoutProps) {
-  const { i18n, t } = useTranslation();
-  const { theme, toggleTheme } = useTheme();
-
-  const switchLanguage = () => {
-    void i18n.changeLanguage(i18n.language.startsWith('fr') ? 'en' : 'fr');
-  };
+  const { t } = useTranslation();
 
   return (
     <div className="admin-shell">
@@ -28,16 +22,6 @@ export function AdminLayout({ children, onLogout, readOnly = false, subject }: A
         <header className="admin-shell__header">
           <NavLink className="admin-shell__brand" to="/admin">Cadrora</NavLink>
           <div className="admin-shell__controls">
-            <Button aria-label={t('admin.language')} onClick={switchLanguage} variant="secondary">
-              {t('admin.language')}
-            </Button>
-            <Button
-              aria-label={theme === 'dark' ? t('admin.themeLight') : t('admin.theme')}
-              onClick={toggleTheme}
-              variant="secondary"
-            >
-              {theme === 'dark' ? t('admin.themeLight') : t('admin.theme')}
-            </Button>
             {subject ? <span className="admin-shell__identity">{t('admin.signedInAs', { subject })}</span> : null}
             {onLogout ? <Button onClick={onLogout} variant="secondary">{t('admin.logout')}</Button> : null}
           </div>
