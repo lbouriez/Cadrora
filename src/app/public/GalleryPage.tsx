@@ -37,10 +37,12 @@ export function GalleryPage() {
       if (!token) throw new Error('Turnstile is unavailable');
       await unlockEvent(slug, password, token);
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       setPassword('');
-      await queryClient.invalidateQueries({ queryKey: ['public-event', slug] });
-      await queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
+      // A successful password exchange must remain successful even if the
+      // following protected refetch detects an expired or rejected cookie.
+      void queryClient.invalidateQueries({ queryKey: ['public-event', slug] });
+      void queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
     },
   });
   const allPhotos = useMemo(() => photos.data?.pages.flatMap((page) => page.photos) ?? [], [photos.data]);
@@ -48,6 +50,13 @@ export function GalleryPage() {
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
   const isPrivateDemo = siteProfile.demo.enabled && slug === siteProfile.demo.privateGallerySlug;
+  const accessError = event.error instanceof GalleryApiError
+    ? event.error
+    : photos.error instanceof GalleryApiError
+      ? photos.error
+      : null;
+  const accessSessionError = accessError?.code === 'EVENT_GRANT_INVALID'
+    || accessError?.code === 'EVENT_GRANT_STALE';
   const unlockErrorKey = unlock.error instanceof GalleryApiError
     ? unlock.error.status === 401
       ? 'gallery.unlockPasswordError'
@@ -61,6 +70,7 @@ export function GalleryPage() {
     <form className="unlock-card" onSubmit={(submitEvent) => { submitEvent.preventDefault(); unlock.mutate(); }}>
       <h2>{t('gallery.protectedTitle')}</h2>
       <p>{t('gallery.protectedHelp')}</p>
+      {accessSessionError ? <p role="alert">{t('gallery.accessSessionError')}</p> : null}
       {isPrivateDemo ? (
         <p className="demo-credential">
           <span>{t('gallery.demo.password')}</span>

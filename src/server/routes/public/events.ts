@@ -3,7 +3,7 @@ import type { Context } from 'hono';
 import { z } from 'zod';
 
 import { ApiException } from '../../../shared/errors/ApiError';
-import type { EventGrant } from '../../../shared/schemas';
+import type { Event, EventGrant } from '../../../shared/schemas';
 import {
   PhotoListQuerySchema,
   PublicEventListSchema,
@@ -13,6 +13,7 @@ import {
   UnlockEventResponseSchema,
 } from '../../../shared/schemas/gallery';
 import type { AppEnv } from '../../types';
+import { readEventGrantToken } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { currentAccessVersion, hasCurrentEventAccess } from './access';
 import { verifyEventPassword } from './credentials';
@@ -51,6 +52,19 @@ function validatedJson<T>(context: Context<AppEnv>, schema: z.ZodType<T>, value:
   return context.json(parsed.data);
 }
 
+async function eventAccessError(context: Context<AppEnv>, event: Event): Promise<ApiException> {
+  const tokenPresent = readEventGrantToken(context.req.header('Cookie')) !== null;
+  const grant = context.get('auth').eventGrant;
+  if (!tokenPresent) return new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
+  if (!grant) return new ApiException('EVENT_GRANT_INVALID', 'errors.eventAccessRequired', 401);
+  if (grant.eventId !== event.id) return new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
+  const version = await currentAccessVersion(context.env.DB, event.id);
+  if (version === null || grant.accessVersion !== version) {
+    return new ApiException('EVENT_GRANT_STALE', 'errors.eventAccessRequired', 401);
+  }
+  return new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
+}
+
 export interface PublicRouteServices {
   issueEventGrant?: (context: Context<AppEnv>, grant: EventGrant) => Promise<void> | void;
   verifyPassword?: (password: string, encodedHash: string) => Promise<boolean>;
@@ -76,7 +90,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (!(await hasCurrentEventAccess(context, event))) {
       applyCachePolicy(context, 'event-protected');
-      throw new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
+      throw await eventAccessError(context, event);
     }
     applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
     context.header('ETag', `"event-${event.id}-${event.revision}"`);
@@ -112,7 +126,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (!(await hasCurrentEventAccess(context, event))) {
       applyCachePolicy(context, 'event-protected');
-      throw new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
+      throw await eventAccessError(context, event);
     }
     applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
     context.header('ETag', `"event-${event.id}-${event.revision}-photos"`);

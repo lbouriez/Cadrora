@@ -1,3 +1,4 @@
+import { ApiErrorSchema } from '../../shared/schemas/apiError';
 import {
   PublicEventListSchema,
   PublicEventSchema,
@@ -7,14 +8,17 @@ import {
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
 
 export class GalleryApiError extends Error {
-  constructor(readonly status: number) {
+  constructor(readonly status: number, readonly code?: string) {
     super(`Gallery API returned ${status}`);
   }
 }
 
 async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
-  if (!response.ok) throw new GalleryApiError(response.status);
+  if (!response.ok) {
+    const error = ApiErrorSchema.safeParse(await response.clone().json().catch(() => null));
+    throw new GalleryApiError(response.status, error.success ? error.data.code : undefined);
+  }
   const value: unknown = await response.json();
   return schema.parse(value);
 }

@@ -74,6 +74,27 @@ describe('protected gallery metadata', () => {
     expect(await response.text()).not.toContain(protectedEvent.title);
   });
 
+  it('distinguishes a rejected gallery cookie without exposing its value', async () => {
+    const app = new Hono<AppEnv>();
+    app.use('*', requestId);
+    app.onError(errorBoundary);
+    app.use('*', authContext);
+    app.use('*', cacheHeaders);
+    registerPublicRoutes(app);
+
+    const response = await app.request(
+      '/api/v1/events/private-wedding',
+      { headers: { Cookie: '__Host-cadrora-event-grant=invalid.signature' } },
+      {
+        ...bindings(databaseReturning(protectedEvent)),
+        ADMIN_SECRET_HASH: 'configured-signing-secret',
+      },
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({ code: 'EVENT_GRANT_INVALID' });
+  });
+
   it('redacts protected metadata from crawler shells', async () => {
     const app = new Hono<AppEnv>();
     app.use('*', requestId);
@@ -93,4 +114,3 @@ describe('protected gallery metadata', () => {
     expect(html).not.toContain(protectedEvent.description);
   });
 });
-
