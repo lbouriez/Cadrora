@@ -34,7 +34,14 @@ export function parseReleaseTarget(argumentsList) {
 
 export function runWrangler(argumentsList, environment = process.env) {
   if (!existsSync(wranglerPath)) throw new Error('Wrangler is not installed. Run npm ci first.');
-  const result = spawnSync(process.execPath, [wranglerPath, ...argumentsList], { env: environment, stdio: 'inherit' });
+  // Release targets already require the explicit --confirm safety fence. Mark
+  // Wrangler invocations as CI so D1 never waits for an unavailable terminal
+  // confirmation inside Cloudflare Workers Builds.
+  const nonInteractiveEnvironment = { ...environment, CI: 'true' };
+  const result = spawnSync(process.execPath, [wranglerPath, ...argumentsList], {
+    env: nonInteractiveEnvironment,
+    stdio: 'inherit',
+  });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`Wrangler exited with status ${String(result.status ?? 1)}.`);
 }
