@@ -106,8 +106,8 @@ Set secrets only in Cloudflare secret/binding storage. Never place them in a `VI
 
 | Secret/binding | Needed for |
 | --- | --- |
-| `ADMIN_SECRET_HASH` | Password admin mode; the accepted format is documented in [`technical/authentication.md`](technical/authentication.md) |
-| `TURNSTILE_SECRET_KEY` | Admin login, protected-event unlock, signed event grants, and face-search cursor signing |
+| `ADMIN_SECRET_HASH` | Password admin mode, read-only demo-session signing, and protected-gallery grant signing; the accepted format is documented in [`technical/authentication.md`](technical/authentication.md) |
+| `TURNSTILE_SECRET_KEY` | Server-side Turnstile validation for admin login and protected-event unlock, plus face-search cursor signing |
 | `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` | Cloudflare Access admin mode only |
 
 Public `VITE_*` values are compiled into the client bundle. Set them as Workers Builds variables in Advanced settings, or in an ignored local `.env`; `.env.example` is the documented key template and should retain no personal values. The source includes clearly labelled fictional contact fallbacks for the showcase; replace them for a real deployment. `VITE_TURNSTILE_SITE_KEY` is public but must belong to the same widget as the private `TURNSTILE_SECRET_KEY`.
