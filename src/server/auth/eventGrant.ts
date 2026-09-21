@@ -35,9 +35,13 @@ function base64UrlDecode(value: string): Uint8Array | null {
 }
 
 async function signingKey(secret: string): Promise<CryptoKey> {
-  const material = encoder.encode(`cadrora:event-grant:v1\0${secret}`);
-  const derived = await crypto.subtle.digest('SHA-256', material);
-  return crypto.subtle.importKey('raw', derived, { hash: 'SHA-256', name: 'HMAC' }, false, ['sign', 'verify']);
+  return crypto.subtle.importKey(
+    'raw',
+    encoder.encode(`cadrora-event-grant-v1:${secret}`),
+    { hash: 'SHA-256', name: 'HMAC' },
+    false,
+    ['sign', 'verify'],
+  );
 }
 
 function ttlHours(value: string | undefined): number {
