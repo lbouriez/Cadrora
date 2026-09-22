@@ -17,7 +17,7 @@ import { readEventGrantToken } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { currentAccessVersion, hasCurrentEventAccess } from './access';
 import { isShowcasePrivateEventPassword, verifyEventPasswordDetailed } from './credentials';
-import { eventFromRow, findEvent, photosFromRows, toPublicEvent } from './data';
+import { eventFromRow, findEvent, isEventAvailable, photosFromRows, toPublicEvent } from './data';
 import type { EventRow, PhotoWithVariantRow } from './data';
 
 interface PhotoCursor {
@@ -76,7 +76,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
   routes.get('/events', async (context) => {
     const result = await context.env.DB.prepare(
       `SELECT * FROM events
-       WHERE visibility = 'published' AND access = 'public'
+       WHERE visibility = 'published' AND offline_at IS NULL AND access = 'public'
        ORDER BY starts_at DESC, id ASC`,
     ).all<EventRow>();
     applyCachePolicy(context, 'event-public');
@@ -87,7 +87,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
 
   routes.get('/events/:eventId', async (context) => {
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
-    if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (!event || !isEventAvailable(event)) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (!(await hasCurrentEventAccess(context, event))) {
       applyCachePolicy(context, 'event-protected');
       throw await eventAccessError(context, event);
@@ -102,7 +102,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const body = UnlockEventRequestSchema.safeParse(await context.req.json().catch(() => null));
     if (!body.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
-    if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (!event || !isEventAvailable(event)) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (event.access !== 'protected') throw new ApiException('EVENT_NOT_PROTECTED', 'errors.eventNotProtected', 409);
     const credential = await context.env.DB.prepare(
       'SELECT password_hash, access_version FROM event_credentials WHERE event_id = ?1',
@@ -133,7 +133,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const query = PhotoListQuerySchema.safeParse(context.req.query());
     if (!query.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
-    if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (!event || !isEventAvailable(event)) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (!(await hasCurrentEventAccess(context, event))) {
       applyCachePolicy(context, 'event-protected');
       throw await eventAccessError(context, event);

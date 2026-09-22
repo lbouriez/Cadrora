@@ -1,4 +1,4 @@
-import type { PublicationSummary, PublishEventInput, UsageSnapshot } from '../../shared/schemas';
+import type { PublicationState, PublicationSummary, UsageSnapshot } from '../../shared/schemas';
 
 interface CountRow {
   total: number;
@@ -10,16 +10,22 @@ interface PublicationRow {
   published_photos: number;
   ready_photos: number;
   total_photos: number;
+  visibility: PublicationSummary['visibility'];
+  offline_at: string | null;
 }
 
 const FACE_INDEX_LEASE_MS = 15 * 60_000;
 
 export interface PublicationRepository {
   deletePhoto(photoId: string, now: string): Promise<boolean>;
-  publishEvent(eventId: string, input: PublishEventInput, now: string): Promise<PublicationSummary | null>;
+  updatePublication(eventId: string, state: PublicationState, now: string): Promise<PublicationUpdateResult>;
   publicationSummary(eventId: string, publishedAt?: string | null): Promise<PublicationSummary | null>;
   usage(now: string): Promise<UsageSnapshot>;
 }
+
+export type PublicationUpdateResult =
+  | { status: 'updated'; summary: PublicationSummary }
+  | { status: 'not-found' | 'not-ready' | 'not-published' };
 
 export class D1PublicationRepository implements PublicationRepository {
   constructor(private readonly database: D1Database) {}
@@ -58,24 +64,38 @@ export class D1PublicationRepository implements PublicationRepository {
     return (results[0]?.meta.changes ?? 0) === 1;
   }
 
-  async publishEvent(
-    eventId: string,
-    input: PublishEventInput,
-    now: string,
-  ): Promise<PublicationSummary | null> {
+  async updatePublication(eventId: string, state: PublicationState, now: string): Promise<PublicationUpdateResult> {
     const before = await this.publicationSummary(eventId);
-    if (!before || before.totalPhotos === 0 || before.readyPhotos !== before.totalPhotos) return null;
+    if (!before) return { status: 'not-found' };
+    const currentState = before.offlineAt ? 'offline' : before.visibility;
+    if (currentState === state) return { status: 'updated', summary: before };
+    if (state === 'offline' && before.visibility === 'draft') return { status: 'not-published' };
+    if (state !== 'offline' && (before.totalPhotos === 0 || before.readyPhotos !== before.totalPhotos)) {
+      return { status: 'not-ready' };
+    }
 
-    await this.database.batch([
-      this.database
+    const statements: D1PreparedStatement[] = [];
+    if (state === 'offline') {
+      statements.push(
+        this.database
+          .prepare('UPDATE events SET offline_at = ?2, revision = revision + 1, updated_at = ?2 WHERE id = ?1')
+          .bind(eventId, now),
+        this.database
+          .prepare('UPDATE event_credentials SET access_version = access_version + 1, updated_at = ?2 WHERE event_id = ?1')
+          .bind(eventId, now),
+      );
+    } else {
+      statements.push(this.database
         .prepare("UPDATE photos SET state = 'published', updated_at = ?2 WHERE event_id = ?1 AND state = 'variants_ready'")
-        .bind(eventId, now),
-      this.database
-        .prepare('UPDATE events SET visibility = ?2, revision = revision + 1, updated_at = ?3 WHERE id = ?1')
-        .bind(eventId, input.visibility, now),
-    ]);
+        .bind(eventId, now));
+      statements.push(this.database
+        .prepare('UPDATE events SET visibility = ?2, offline_at = NULL, revision = revision + 1, updated_at = ?3 WHERE id = ?1')
+        .bind(eventId, state, now));
+    }
+    await this.database.batch(statements);
 
-    return this.publicationSummary(eventId, now);
+    const summary = await this.publicationSummary(eventId, state === 'offline' ? null : now);
+    return summary ? { status: 'updated', summary } : { status: 'not-found' };
   }
 
   async usage(now: string): Promise<UsageSnapshot> {
@@ -109,14 +129,16 @@ export class D1PublicationRepository implements PublicationRepository {
     return (await this.database.prepare(sql).first<CountRow>())?.total ?? 0;
   }
 
-  async publicationSummary(eventId: string, publishedAt: string | null = null): Promise<PublicationSummary | null> {
+  async publicationSummary(eventId: string, publishedAt?: string | null): Promise<PublicationSummary | null> {
     const row = await this.database
       .prepare(
         `SELECT COUNT(*) AS total_photos,
                 SUM(CASE WHEN state IN ('variants_ready', 'published') THEN 1 ELSE 0 END) AS ready_photos,
                 SUM(CASE WHEN state = 'published' THEN 1 ELSE 0 END) AS published_photos,
                 SUM(CASE WHEN face_state IN ('pending', 'indexing') THEN 1 ELSE 0 END) AS indexing_photos,
-                (SELECT CASE WHEN visibility != 'draft' THEN updated_at ELSE NULL END FROM events WHERE id = ?1) AS published_at
+                (SELECT CASE WHEN visibility != 'draft' AND offline_at IS NULL THEN updated_at ELSE NULL END FROM events WHERE id = ?1) AS published_at,
+                (SELECT visibility FROM events WHERE id = ?1) AS visibility,
+                (SELECT offline_at FROM events WHERE id = ?1) AS offline_at
            FROM photos
           WHERE event_id = ?1 AND state NOT IN ('deleting', 'deleted')
          HAVING EXISTS (SELECT 1 FROM events WHERE id = ?1)`,
@@ -131,7 +153,9 @@ export class D1PublicationRepository implements PublicationRepository {
       readyPhotos: row.ready_photos,
       publishedPhotos: row.published_photos,
       indexingPhotos: row.indexing_photos,
-      publishedAt: publishedAt ?? row.published_at,
+      publishedAt: publishedAt === undefined ? row.published_at : publishedAt,
+      visibility: row.visibility,
+      offlineAt: row.offline_at,
     };
   }
 }

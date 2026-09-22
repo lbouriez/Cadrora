@@ -21,6 +21,7 @@ export const EventSchema = z.object({
   showPhotoMetadata: z.boolean(),
   keepOriginals: z.boolean(),
   retentionDays: z.number().int().positive().nullable(),
+  offlineAt: IsoDateTimeSchema.nullable(),
   revision: z.number().int().nonnegative(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,

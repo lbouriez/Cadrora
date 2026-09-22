@@ -42,6 +42,7 @@ export class D1MediaRepository implements MediaRepository {
             AND pv.variant = ?4
             AND p.state = 'published'
             AND e.visibility IN ('published', 'unlisted')
+            AND e.offline_at IS NULL
           LIMIT 1`,
       )
       .bind(params.eventId, params.photoId, params.revision, params.variant)
@@ -60,4 +61,3 @@ export class D1MediaRepository implements MediaRepository {
     };
   }
 }
-

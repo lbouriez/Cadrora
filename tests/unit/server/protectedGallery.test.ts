@@ -26,6 +26,7 @@ const protectedEvent: EventRow = {
   nearby_search_enabled: 0,
   keep_originals: 0,
   retention_days: null,
+  offline_at: null,
   revision: 1,
   created_at: '2029-01-01T00:00:00.000Z',
   updated_at: '2029-01-01T00:00:00.000Z',
@@ -57,6 +58,22 @@ function bindings(database: D1Database): CloudflareBindings {
 }
 
 describe('protected gallery metadata', () => {
+  it('returns not found for an offline gallery even when its underlying visibility is published', async () => {
+    const app = new Hono<AppEnv>();
+    app.use('*', requestId);
+    app.onError(errorBoundary);
+    app.use('*', authContext);
+    registerPublicRoutes(app);
+
+    const response = await app.request(
+      '/api/v1/events/private-wedding',
+      undefined,
+      bindings(databaseReturning({ ...protectedEvent, offline_at: '2030-01-02T00:00:00.000Z' })),
+    );
+
+    expect(response.status).toBe(404);
+  });
+
   it('refuses event metadata before a current grant', async () => {
     const app = new Hono<AppEnv>();
     app.use('*', requestId);

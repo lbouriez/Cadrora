@@ -8,6 +8,8 @@ import { AdminEventListSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { Button, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
+import { PublishPanel } from './PublishPanel';
+import { getPublicationSummary } from './publicationApi';
 
 async function getAdminEvents(): Promise<Event[]> {
   const response = await fetch('/api/v1/admin/events', { credentials: 'same-origin' });
@@ -151,7 +153,7 @@ export function AdminEventsPage() {
           {events.data?.map((event) => (
             <article className="admin-event-row" key={event.id}>
               <div>
-                <span className="admin-event-row__state">{t(`admin.events.visibility.${event.visibility}`)}</span>
+                <span className="admin-event-row__state">{t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
                 <h3>{event.title}</h3>
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
               </div>
@@ -160,7 +162,7 @@ export function AdminEventsPage() {
                   {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
                 </Link>
                 {!readOnly ? <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
-                {event.visibility !== 'draft' ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
+                {event.visibility !== 'draft' && !event.offlineAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
             </article>
           ))}
@@ -299,9 +301,25 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
 
 export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   const { t } = useTranslation();
+  const { readOnly } = useAdminAccess();
+  const queryClient = useQueryClient();
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
-  if (events.isPending) return <Spinner label={t('admin.events.loading')} />;
+  const publication = useQuery({ queryFn: () => getPublicationSummary(eventId), queryKey: ['publication-summary', eventId] });
+  if (events.isPending || publication.isPending) return <Spinner label={t('admin.events.loading')} />;
   const event = events.data?.find((candidate) => candidate.id === eventId);
-  if (events.isError || !event) return <p role="alert">{t('admin.events.notFound')}</p>;
-  return <AdminEventSettingsForm event={event} key={event.updatedAt} />;
+  if (events.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
+  return (
+    <div className="admin-workspace">
+      <AdminEventSettingsForm event={event} key={event.updatedAt} />
+      <PublishPanel
+        eventId={eventId}
+        onChanged={(updated) => {
+          queryClient.setQueryData(['publication-summary', eventId], updated);
+          void queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+        }}
+        readOnly={readOnly}
+        summary={publication.data}
+      />
+    </div>
+  );
 }

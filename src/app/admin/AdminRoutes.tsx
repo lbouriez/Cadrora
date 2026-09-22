@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { AdminSessionResponseSchema, PublicationSummarySchema } from '../../shared/schemas';
+import { AdminSessionResponseSchema } from '../../shared/schemas';
 import type { Session } from '../../shared/schemas';
 import { Spinner } from '../components';
 import { i18n } from '../i18n';
@@ -18,6 +18,7 @@ import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
 import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
 import { PublishPanel } from './PublishPanel';
+import { getPublicationSummary } from './publicationApi';
 import { adminResourceFragment } from './resources';
 import './admin.css';
 
@@ -82,21 +83,18 @@ function AdminImportContent({ eventId }: { eventId: string }) {
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const summary = useQuery({
-    queryFn: async () => {
-      const response = await fetch(`/api/v1/admin/events/${encodeURIComponent(eventId)}/publication`, { credentials: 'same-origin' });
-      if (!response.ok) throw new Error(`Publication summary returned ${response.status}`);
-      return PublicationSummarySchema.parse(await response.json());
-    },
+    queryFn: () => getPublicationSummary(eventId),
     queryKey: ['publication-summary', eventId],
     refetchInterval: readOnly ? false : 3_000,
   });
   if (readOnly) {
-    return (
+    return <div className="admin-workspace">
       <section className="admin-card">
         <h1 className="admin-card__title">{i18n.t('admin.demo.importTitle')}</h1>
         <p className="admin-card__description">{i18n.t('admin.demo.importBody')}</p>
       </section>
-    );
+      {summary.data ? <PublishPanel eventId={eventId} readOnly summary={summary.data} /> : null}
+    </div>;
   }
   return (
     <div className="admin-workspace">
@@ -104,7 +102,7 @@ function AdminImportContent({ eventId }: { eventId: string }) {
       {summary.data ? (
         <PublishPanel
           eventId={eventId}
-          onPublished={(published) => queryClient.setQueryData(['publication-summary', eventId], published)}
+          onChanged={(published) => queryClient.setQueryData(['publication-summary', eventId], published)}
           summary={summary.data}
         />
       ) : null}

@@ -20,6 +20,7 @@ export const publicEvent = {
   title: 'Mariage Lumiere',
   updatedAt: NOW,
   visibility: 'published',
+  offlineAt: null,
 } as const;
 
 export const protectedEvent = {

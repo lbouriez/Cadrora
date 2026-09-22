@@ -9,6 +9,7 @@ const demoEvent = {
   timezone: 'America/Toronto',
   coverPhotoId: null,
   visibility: 'published',
+  offlineAt: null,
   access: 'public',
   allowDownloads: false,
   faceSearchEnabled: true,
@@ -55,6 +56,22 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       });
       return;
     }
+    if (path.endsWith('/publication')) {
+      await route.fulfill({
+        body: JSON.stringify({
+          eventId: demoEvent.id,
+          indexingPhotos: 0,
+          offlineAt: null,
+          publishedAt: '2026-09-20T15:00:00.000Z',
+          publishedPhotos: 10,
+          readyPhotos: 10,
+          totalPhotos: 10,
+          visibility: 'published',
+        }),
+        contentType: 'application/json',
+      });
+      return;
+    }
     if (path.endsWith('/events')) {
       await route.fulfill({ body: JSON.stringify({ events: [demoEvent] }), contentType: 'application/json' });
       return;
@@ -92,5 +109,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await faceSearch.check();
   await nearbySearch.check();
   await expect(page.getByRole('button', { name: /save settings|enregistrer les réglages/i })).toBeDisabled();
+  const availability = page.getByRole('combobox', { name: /visitor availability|disponibilité pour les visiteurs/i });
+  await expect(availability).toBeEnabled();
+  await availability.selectOption('offline');
+  await expect(page.getByRole('button', { name: /take gallery offline|mettre la galerie hors ligne/i })).toBeDisabled();
   expect(writes).toEqual([]);
 });

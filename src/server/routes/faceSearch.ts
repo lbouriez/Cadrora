@@ -17,7 +17,7 @@ import { CloudflareFaceVectorService } from '../services/faceVectorSearch';
 import type { FaceVectorMatch, FaceVectorService } from '../services/faceVectorSearch';
 import type { AppEnv } from '../types';
 import { hasCurrentEventAccess } from './public/access';
-import { findEvent } from './public/data';
+import { findEvent, isEventAvailable } from './public/data';
 import { signFaceSearchCursor, verifyFaceSearchCursor } from './faceSearchCursor';
 
 export interface FaceSearchRouteDependencies {
@@ -44,7 +44,7 @@ function positiveInteger(value: string | undefined, fallback: number): number {
 
 async function requireSearchableEvent(context: Context<AppEnv>, locator: string) {
   const event = await findEvent(context.env.DB, locator);
-  if (!event || event.visibility === 'draft') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+  if (!event || !isEventAvailable(event)) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
   applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
   if (!(await hasCurrentEventAccess(context, event))) {
     throw new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);

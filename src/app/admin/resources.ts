@@ -72,6 +72,7 @@ export const adminResourceFragment = {
         view: 'View gallery',
         visibility: {
           draft: 'Draft',
+          offline: 'Offline',
           published: 'Published',
           unlisted: 'Unlisted',
         },
@@ -188,6 +189,7 @@ export const adminResourceFragment = {
         view: 'Voir la galerie',
         visibility: {
           draft: 'Brouillon',
+          offline: 'Hors ligne',
           published: 'Publiée',
           unlisted: 'Non répertoriée',
         },

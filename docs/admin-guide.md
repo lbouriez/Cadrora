@@ -47,7 +47,7 @@ The mounted browser import screen follows this server sequence; any compatible A
 4. Finalize each photo only after all five variants exist.
 5. Review `GET /api/v1/admin/events/:eventId/publication`, then publish with `POST /api/v1/admin/events/:eventId/publish` and `visibility` of `published` or `unlisted`.
 
-**Publish gallery** is the final visibility transition, not an upload button. It requires every photo derivative to be ready, changes those ready photo rows to `published`, and changes the event from `draft` to public or unlisted in the same D1 batch. Optional facial indexing can finish later without delaying publication.
+**Gallery availability** is the reversible visibility control, not an upload button. Publishing requires every photo derivative to be ready, changes those ready photo rows to `published`, and makes the gallery public or unlisted in the same D1 batch. **Offline** immediately blocks gallery metadata, media, protected access, and face search while retaining D1, R2, and Vectorize data for republication. Taking a protected gallery offline also increments its access version so existing guest grants cannot become valid again after republication. Optional facial indexing can finish later without delaying publication.
 
 The server enforces `MAX_PHOTOS_PER_EVENT`, `MAX_STORAGE_BYTES`, MIME/magic-byte agreement, byte size, dimensions, and SHA-256 checksum. An import is idempotent only when the same natural IDs and chunk contents are replayed; conflicting IDs return a conflict rather than being silently reused.
 

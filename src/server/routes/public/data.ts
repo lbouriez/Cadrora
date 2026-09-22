@@ -17,6 +17,7 @@ export interface EventRow {
   show_photo_metadata: number;
   keep_originals: number;
   retention_days: number | null;
+  offline_at: string | null;
   revision: number;
   created_at: string;
   updated_at: string;
@@ -39,10 +40,15 @@ export function eventFromRow(row: EventRow): Event {
     showPhotoMetadata: row.show_photo_metadata === 1,
     keepOriginals: row.keep_originals === 1,
     retentionDays: row.retention_days,
+    offlineAt: row.offline_at,
     revision: row.revision,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+export function isEventAvailable(event: Event): boolean {
+  return event.visibility !== 'draft' && event.offlineAt === null;
 }
 
 export function toPublicEvent(event: Event): PublicEvent {

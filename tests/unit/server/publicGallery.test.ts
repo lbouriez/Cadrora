@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { CACHE_CONTROL_BY_POLICY } from '../../../src/server/middleware/cacheHeaders';
 import {
@@ -10,6 +10,7 @@ import {
 import { verifyPassword } from '../../../src/server/auth';
 import { photosFromRows } from '../../../src/server/routes/public/data';
 import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/events';
+import { D1MediaRepository } from '../../../src/server/repositories/mediaRepository';
 
 describe('public gallery contracts', () => {
   const authPepper = 'test-auth-pepper-that-is-at-least-thirty-two-bytes';
@@ -66,5 +67,19 @@ describe('public gallery contracts', () => {
       'media-protected': 'private, max-age=3600',
       'media-public': 'public, max-age=31536000, immutable',
     });
+  });
+
+  it('requires the gallery to be online before resolving any R2 media key', async () => {
+    const first = vi.fn().mockResolvedValue(null);
+    const statement = { bind: vi.fn(() => ({ first })) };
+    const statements: string[] = [];
+    const prepare = vi.fn((sql: string) => { statements.push(sql); return statement; });
+    const media = new D1MediaRepository({ prepare } as unknown as D1Database);
+
+    await expect(media.findPublishedVariant({
+      eventId: 'event-1', photoId: 'photo-1', revision: 1, variant: 'thumb',
+    })).resolves.toBeNull();
+
+    expect(statements[0]).toContain('e.offline_at IS NULL');
   });
 });

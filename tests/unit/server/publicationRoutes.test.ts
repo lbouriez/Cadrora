@@ -17,6 +17,8 @@ const summary: PublicationSummary = {
   publishedPhotos: 2,
   indexingPhotos: 1,
   publishedAt: '2030-01-01T00:00:00.000Z',
+  visibility: 'published',
+  offlineAt: null,
 };
 
 const usage: UsageSnapshot = {
@@ -41,15 +43,22 @@ function appWith(repository: PublicationRepository) {
   return app;
 }
 
+function repository(overrides: Partial<PublicationRepository> = {}): PublicationRepository {
+  return {
+    deletePhoto: vi.fn(),
+    publicationSummary: vi.fn(),
+    updatePublication: vi.fn(),
+    usage: vi.fn(),
+    ...overrides,
+  };
+}
+
 describe('publication admin routes', () => {
   it('publishes without waiting for face indexing', async () => {
-    const repository: PublicationRepository = {
-      deletePhoto: vi.fn(),
-      publishEvent: vi.fn().mockResolvedValue(summary),
-      publicationSummary: vi.fn(),
-      usage: vi.fn(),
-    };
-    const response = await appWith(repository).request('/api/v1/admin/events/event-1/publish', {
+    const publicationRepository = repository({
+      updatePublication: vi.fn().mockResolvedValue({ status: 'updated', summary }),
+    });
+    const response = await appWith(publicationRepository).request('/api/v1/admin/events/event-1/publish', {
       body: JSON.stringify({ visibility: 'published' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -59,15 +68,23 @@ describe('publication admin routes', () => {
     expect(await response.json()).toEqual(summary);
   });
 
+  it('takes a gallery offline through the shared publication state endpoint', async () => {
+    const offline = { ...summary, publishedAt: null, offlineAt: '2030-01-01T00:00:00.000Z' };
+    const updatePublication = vi.fn().mockResolvedValue({ status: 'updated', summary: offline });
+    const response = await appWith(repository({ updatePublication })).request('/api/v1/admin/events/event-1/publication', {
+      body: JSON.stringify({ state: 'offline' }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'PUT',
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(offline);
+    expect(updatePublication).toHaveBeenCalledWith('event-1', 'offline', '2030-01-01T00:00:00.000Z');
+  });
+
   it('removes access before asynchronous provider cleanup', async () => {
     const deletePhoto = vi.fn().mockResolvedValue(true);
-    const repository: PublicationRepository = {
-      deletePhoto,
-      publishEvent: vi.fn(),
-      publicationSummary: vi.fn(),
-      usage: vi.fn(),
-    };
-    const response = await appWith(repository).request('/api/v1/admin/photos/photo-1', {
+    const response = await appWith(repository({ deletePhoto })).request('/api/v1/admin/photos/photo-1', {
       method: 'DELETE',
     });
 
@@ -76,24 +93,13 @@ describe('publication admin routes', () => {
   });
 
   it('returns a validated usage snapshot', async () => {
-    const repository: PublicationRepository = {
-      deletePhoto: vi.fn(),
-      publishEvent: vi.fn(),
-      publicationSummary: vi.fn(),
-      usage: vi.fn().mockResolvedValue(usage),
-    };
-    const response = await appWith(repository).request('/api/v1/admin/usage');
+    const response = await appWith(repository({ usage: vi.fn().mockResolvedValue(usage) })).request('/api/v1/admin/usage');
     expect(await response.json()).toEqual(usage);
   });
 
   it('returns publication readiness for browser-only operation', async () => {
-    const repository: PublicationRepository = {
-      deletePhoto: vi.fn(),
-      publishEvent: vi.fn(),
-      publicationSummary: vi.fn().mockResolvedValue(summary),
-      usage: vi.fn(),
-    };
-    const response = await appWith(repository).request('/api/v1/admin/events/event-1/publication');
+    const response = await appWith(repository({ publicationSummary: vi.fn().mockResolvedValue(summary) }))
+      .request('/api/v1/admin/events/event-1/publication');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(summary);
   });

@@ -61,7 +61,10 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
     }
     if (path.endsWith('/publication')) {
       await route.fulfill({
-        body: JSON.stringify({ eventId, indexingPhotos: 0, publishedAt: null, publishedPhotos: 0, readyPhotos: 0, totalPhotos: 0 }),
+        body: JSON.stringify({
+          eventId, indexingPhotos: 0, offlineAt: null, publishedAt: null,
+          publishedPhotos: 0, readyPhotos: 0, totalPhotos: 0, visibility: 'draft',
+        }),
         contentType: 'application/json',
       });
       return;

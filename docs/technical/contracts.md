@@ -87,7 +87,7 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 
 D1 contains `site_settings`, `events`, `event_credentials`, `photos`, `photo_variants`, `imports`, `import_chunks`, `faces`, `face_partitions`, `sessions`, `maintenance_jobs`, and `usage_counters`.
 
-Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Natural-key upserts make variant and face declarations idempotent. D1 is updated before access is removed; R2 and Vectorize cleanup is retried from `maintenance_jobs`.
+Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Natural-key upserts make variant and face declarations idempotent. D1 is updated before access is removed; R2 and Vectorize cleanup is retried from `maintenance_jobs`.
 
 ## UI and localization
 

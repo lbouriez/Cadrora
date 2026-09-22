@@ -41,6 +41,7 @@ ON CONFLICT(id) DO UPDATE SET
   show_photo_metadata = excluded.show_photo_metadata,
   keep_originals = excluded.keep_originals,
   retention_days = excluded.retention_days,
+  offline_at = NULL,
   revision = excluded.revision,
   updated_at = excluded.updated_at;
 

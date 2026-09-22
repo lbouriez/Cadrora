@@ -13,6 +13,29 @@
   accent-color: var(--color-primary);
 }
 
+.publish-panel__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.publish-panel__heading h2,
+.publish-panel__heading p {
+  margin-top: 0;
+}
+
+.publish-panel__heading p {
+  margin-bottom: 0;
+  color: var(--color-text-muted);
+}
+
+.publish-panel__note {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
 .publish-panel__status {
   display: grid;
   margin: 0;
@@ -31,3 +54,9 @@
   font-weight: 700;
 }
 
+@media (max-width: 40rem) {
+  .publish-panel__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

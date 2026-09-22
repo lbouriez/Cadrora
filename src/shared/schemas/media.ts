@@ -12,7 +12,13 @@ export const MediaParamsSchema = z.object({
 
 export const PublishEventInputSchema = z.object({
   visibility: EventVisibilitySchema.extract(['published', 'unlisted']),
-});
+}).strict();
+
+export const PublicationStateSchema = z.enum(['published', 'unlisted', 'offline']);
+
+export const UpdatePublicationInputSchema = z.object({
+  state: PublicationStateSchema,
+}).strict();
 
 export const PublicationSummarySchema = z.object({
   eventId: IdSchema,
@@ -21,9 +27,12 @@ export const PublicationSummarySchema = z.object({
   publishedPhotos: z.number().int().nonnegative(),
   indexingPhotos: z.number().int().nonnegative(),
   publishedAt: IsoDateTimeSchema.nullable(),
+  visibility: EventVisibilitySchema,
+  offlineAt: IsoDateTimeSchema.nullable(),
 });
 
 export type MediaParams = z.infer<typeof MediaParamsSchema>;
 export type PublicationSummary = z.infer<typeof PublicationSummarySchema>;
 export type PublishEventInput = z.infer<typeof PublishEventInputSchema>;
-
+export type PublicationState = z.infer<typeof PublicationStateSchema>;
+export type UpdatePublicationInput = z.infer<typeof UpdatePublicationInputSchema>;

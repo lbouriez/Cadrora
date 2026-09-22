@@ -5,8 +5,10 @@ import {
   IdSchema,
   PublicationSummarySchema,
   PublishEventInputSchema,
+  UpdatePublicationInputSchema,
   UsageSnapshotSchema,
 } from '../../../shared/schemas';
+import type { PublicationState } from '../../../shared/schemas';
 import { D1PublicationRepository } from '../../repositories/publicationRepository';
 import type { PublicationRepository } from '../../repositories/publicationRepository';
 import type { AppEnv } from '../../types';
@@ -32,6 +34,16 @@ export function registerPublicationRoutes(
   app: Hono<AppEnv>,
   dependencies: PublicationRouteDependencies = defaultDependencies,
 ): void {
+  const updatePublication = async (context: Context<AppEnv>, eventId: string, state: PublicationState) => {
+    const result = await dependencies.repository(context).updatePublication(eventId, state, dependencies.now());
+    if (result.status !== 'updated') {
+      if (result.status === 'not-found') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+      if (result.status === 'not-ready') throw new ApiException('EVENT_NOT_READY', 'errors.eventNotReady', 409);
+      throw new ApiException('EVENT_NOT_PUBLISHED', 'errors.invalidPublishRequest', 409);
+    }
+    return context.json(PublicationSummarySchema.parse(result.summary));
+  };
+
   app.get('/api/v1/admin/events/:eventId/publication', async (context) => {
     requireAdmin(context);
     const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
@@ -45,16 +57,18 @@ export function registerPublicationRoutes(
     requireAdmin(context);
     const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
     if (!eventIdResult.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);
-    const inputResult = PublishEventInputSchema.safeParse(await context.req.json<unknown>());
+    const inputResult = PublishEventInputSchema.safeParse(await context.req.json<unknown>().catch(() => null));
     if (!inputResult.success) throw new ApiException('INVALID_PUBLISH_REQUEST', 'errors.invalidPublishRequest', 400);
-    const eventId = eventIdResult.data;
-    const input = inputResult.data;
-    const summary = await dependencies.repository(context).publishEvent(eventId, input, dependencies.now());
-    if (!summary) {
-      throw new ApiException('EVENT_NOT_READY', 'errors.eventNotReady', 409);
-    }
+    return updatePublication(context, eventIdResult.data, inputResult.data.visibility);
+  });
 
-    return context.json(PublicationSummarySchema.parse(summary));
+  app.put('/api/v1/admin/events/:eventId/publication', async (context) => {
+    requireAdmin(context);
+    const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventIdResult.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);
+    const inputResult = UpdatePublicationInputSchema.safeParse(await context.req.json<unknown>().catch(() => null));
+    if (!inputResult.success) throw new ApiException('INVALID_PUBLISH_REQUEST', 'errors.invalidPublishRequest', 400);
+    return updatePublication(context, eventIdResult.data, inputResult.data.state);
   });
 
   app.delete('/api/v1/admin/photos/:photoId', async (context) => {

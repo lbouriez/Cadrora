@@ -1,6 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 
-import { findEvent } from '../routes/public/data';
+import { findEvent, isEventAvailable } from '../routes/public/data';
 import type { AppEnv } from '../types';
 import { applyCachePolicy } from './cacheHeaders';
 
@@ -25,7 +25,7 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
   }
 
   const event = await findEvent(context.env.DB, decodeURIComponent(match[1] ?? ''));
-  if (!event || event.visibility === 'draft') {
+  if (!event || !isEventAvailable(event)) {
     applyCachePolicy(context, 'event-protected');
     context.header('X-Robots-Tag', 'noindex, nofollow');
     context.res = context.html('<!doctype html><html lang="fr"><head><meta name="robots" content="noindex,nofollow"><title>Cadrora</title></head><body></body></html>', 404);

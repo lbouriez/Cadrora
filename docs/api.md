@@ -81,6 +81,7 @@ Variant headers are `Content-Type`, `X-Cadrora-Byte-Size`, `X-Cadrora-Checksum-S
 | --- | --- | --- |
 | `GET /admin/events/:eventId/publication` | Admin | Current readiness and publication summary for one event. |
 | `POST /admin/events/:eventId/publish` | Admin | `{ visibility: "published" \| "unlisted" }`; atomically promotes every ready photo variant and changes the draft event visibility. It does not upload or process images and does not wait for optional facial indexing. Returns the publication summary or `409` if media is not ready. |
+| `PUT /admin/events/:eventId/publication` | Admin | `{ state: "published" \| "unlisted" \| "offline" }`; changes visitor availability without deleting media or AI data. Offline revokes active protected-gallery grants; republishing reuses ready variants. |
 | `DELETE /admin/photos/:photoId` | Admin | `204`; removes access first and queues cleanup. |
 | `GET /admin/usage` | Admin | Application usage snapshot: events, photos, variant bytes, faces, and recorded vector-query dimensions. |
 

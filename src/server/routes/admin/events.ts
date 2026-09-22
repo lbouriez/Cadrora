@@ -142,7 +142,6 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.description !== undefined) add('description', input.data.description);
     if (input.data.startsAt !== undefined) add('starts_at', input.data.startsAt);
     if (input.data.timezone !== undefined) add('timezone', input.data.timezone);
-    if (input.data.visibility !== undefined) add('visibility', input.data.visibility);
     if (input.data.access !== undefined) add('access', input.data.access);
     if (input.data.allowDownloads !== undefined) add('allow_downloads', Number(input.data.allowDownloads));
     if (input.data.faceSearchEnabled !== undefined) add('face_search_enabled', Number(input.data.faceSearchEnabled));

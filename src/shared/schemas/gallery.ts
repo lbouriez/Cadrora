@@ -86,7 +86,6 @@ export const UpdateEventRequestSchema = z.object({
   description: z.string().trim().max(5_000).nullable().optional(),
   startsAt: IsoDateTimeSchema.optional(),
   timezone: z.string().trim().min(1).max(100).optional(),
-  visibility: EventVisibilitySchema.optional(),
   access: EventAccessSchema.optional(),
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().optional(),
@@ -95,7 +94,7 @@ export const UpdateEventRequestSchema = z.object({
   showPhotoMetadata: z.boolean().optional(),
   keepOriginals: z.boolean().optional(),
   retentionDays: z.number().int().positive().nullable().optional(),
-}).refine((value) => Object.keys(value).length > 0, { message: 'at least one field is required' });
+}).strict().refine((value) => Object.keys(value).length > 0, { message: 'at least one field is required' });
 
 export const UnlockEventRequestSchema = z.object({
   password: z.string().min(1).max(200),
