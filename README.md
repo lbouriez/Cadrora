@@ -46,6 +46,28 @@ The [Deploy to Cloudflare button](https://deploy.workers.cloudflare.com/?url=htt
 5. Publish publicly or as unlisted. **Offline** is reversible and retains D1, R2, and Vectorize data. **Delete gallery** is permanent, requires typing the exact title, blocks access immediately, and lets the scheduled Worker clean gallery-owned provider data asynchronously. Shared AI model files are not deleted.
 6. Verify the gallery from a signed-out browser. For protected access and face search, verify Turnstile on the exact custom hostname before sharing it.
 
+### Deployment ceilings and owner self-limits
+
+The repository ships with reviewed deployment ceilings in `wrangler.jsonc`. They apply before an owner chooses any lower values in **Admin → Site settings**:
+
+| Setting | Checked-in ceiling | Meaning |
+| --- | ---: | --- |
+| `MAX_PHOTOS_PER_EVENT` | `2000` | Maximum photos in one gallery |
+| `MAX_EVENTS` | `50` | Maximum separate galleries; this is not a 50-photo limit |
+| `MAX_STORAGE_BYTES` | `9900000000` | Total media variants stored by this instance, in decimal bytes |
+| `MAX_FACES_PER_EVENT` | `10000` | Maximum indexed faces in one gallery |
+| `MAX_TOTAL_FACES` | `39000` | Maximum indexed faces across the instance |
+
+The deployment owner may change these values in both the top-level production `vars` and the explicitly redeclared `env.preview.vars`, then redeploy. The web administrator can only select lower gallery, storage, and total-face limits; this prevents the admin UI from silently overriding an infrastructure decision. Cadrora additionally caps media and stored face dimensions against the relevant Cloudflare Free allowances, but account-level traffic and operation usage must still be monitored in Cloudflare.
+
+### Which account can use a hostname?
+
+- If the selected Cloudflare account owns the active `cadrora.com` zone, it can deploy an isolated Worker at `toto.cadrora.com` with `npm run deploy:instance -- --instance toto --hostname toto.cadrora.com --confirm`.
+- A third party who forks Cadrora into a different Cloudflare account cannot attach `toto.cadrora.com`, because that account does not own the `cadrora.com` zone. They should normally use a domain or subdomain in a zone they own, such as `photos.their-domain.com`.
+- Serving `toto.cadrora.com` from another account would require deliberately delegating and operating that child DNS zone. That is an advanced infrastructure choice and is not part of Cadrora's simple deployment flow.
+
+Cloudflare Custom Domains require an active zone in the selected account and cannot be created on a zone that account does not own. `deploy:instance` is an authenticated local Wrangler deployment; it does not create a new Cloudflare-to-Git connection. Update the fork, then rerun the same command to publish a later version. The complete root-domain and subdomain examples are in [`docs/deployment.md`](docs/deployment.md#additional-isolated-domain-or-subdomain).
+
 ## Quick start
 
 Prerequisites: Node.js 22.12 or newer and npm 10 or newer.

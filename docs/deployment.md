@@ -166,9 +166,13 @@ The instance name uses lowercase letters, digits, and internal hyphens. The comm
 
 The hostname must already belong to an active zone in the selected Cloudflare account. The root-domain Turnstile widget may cover its subdomains; otherwise add the exact hostname before deployment. Wrangler must be authenticated with the target account. When interactive OAuth cannot enumerate D1, set `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` with D1, R2, Vectorize, Workers Scripts, Workers Routes/Custom Domains, zone-read, and certificate permissions. Never store that token in a `VITE_*` variable.
 
+This ownership boundary matters for forks. Your account can create `toto.cadrora.com` only when that same account owns the active `cadrora.com` zone. A fork deployed in somebody else's independent Cloudflare account should use a hostname under a zone that person owns. Delegating `toto.cadrora.com` into another account is possible only as a separate DNS/zone architecture and is intentionally outside this simple deployment command.
+
 Generated private material is ignored below `.artifacts/instances/<instance>/`. Open `admin-credentials.env` in a trusted local editor and store `ADMIN_PASSWORD` in the customer's password manager. The temporary Turnstile deployment-secret file is removed even when deployment fails. The retained manifest and generated Wrangler file contain resource identifiers but no secret values.
 
 The command deploys an empty customer instance and deliberately does not seed the official Cadrora showcase. Public profile values still come from the current fork/build, so changing the customer frontend before running the command remains the simplest customization model. The hostname is exact: deploying `alice.cadrora.com` does not create a wildcard route and does not alter `cadrora.com`.
+
+This is a local Wrangler provisioning/deployment flow, not a new Workers Builds Git integration. A later customer release is published by updating that fork or checkout and rerunning the same instance command. Connecting each isolated Worker to its own automatic Git build is a separate optional Cloudflare configuration and is not created by this script.
 
 This command provisions resources but does not implement fleet management or deletion. The possible future, separately deployed operator project is documented in [`future-operator-control-plane.md`](future-operator-control-plane.md).
 
