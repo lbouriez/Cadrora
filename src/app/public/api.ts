@@ -26,7 +26,7 @@ async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T
 }
 
 export async function getPublicEvents(): Promise<PublicEvent[]> {
-  return (await validatedFetch('/api/v1/events', PublicEventListSchema)).events;
+  return (await validatedFetch('/api/v1/galleries', PublicEventListSchema)).events;
 }
 
 /** Optional runtime presentation setting; public pages retain a safe local fallback if it is unavailable. */
@@ -35,7 +35,7 @@ export async function getPublicSiteSettings(): Promise<SiteSettings> {
 }
 
 export async function getPublicEvent(locator: string): Promise<PublicEvent> {
-  return validatedFetch(`/api/v1/events/${encodeURIComponent(locator)}`, PublicEventSchema);
+  return validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}`, PublicEventSchema);
 }
 
 export async function getPublicPhotos(locator: string, cursor?: string): Promise<{
@@ -44,11 +44,11 @@ export async function getPublicPhotos(locator: string, cursor?: string): Promise
   nextCursor: string | null;
 }> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
-  return validatedFetch(`/api/v1/events/${encodeURIComponent(locator)}/photos${query}`, PublicPhotoPageSchema);
+  return validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}/photos${query}`, PublicPhotoPageSchema);
 }
 
 export async function unlockEvent(locator: string, password: string, turnstileToken: string): Promise<void> {
-  await validatedFetch(`/api/v1/events/${encodeURIComponent(locator)}/unlock`, UnlockEventResponseSchema, {
+  await validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}/unlock`, UnlockEventResponseSchema, {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },

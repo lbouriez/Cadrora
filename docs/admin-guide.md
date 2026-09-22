@@ -17,7 +17,7 @@ The official Cadrora showcase also exposes a clearly labelled **demo** sign-in w
 
 ## Admin UI
 
-The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/events/:eventId/import`. The `event` segment is retained internally for compatibility; the interface consistently says **gallery**. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists galleries and, for an owner, starts with **New gallery**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, optional nearby-moment suggestions, viewer metadata, and originals. Nearby suggestions can be enabled only while face search is enabled. The viewer-metadata choice is per gallery, defaults off, and reveals only filename, capture time, and dimensions. **Import photos** opens the browser import and publication workspace.
+The SPA lazily mounts Worker-guarded admin routes at `/admin/login`, `/admin`, `/admin/settings`, and `/admin/galleries/:eventId/import`. Every browser and API path uses **gallery**; the `eventId` parameter name is only an internal identifier. The login route renders the Turnstile challenge; it does not expose a Turnstile secret. The dashboard lists galleries and, for an owner, starts with **New gallery**. Create the gallery there, then open **Settings** on its row to change access, retention, downloads, face search, optional nearby-moment suggestions, viewer metadata, and originals. Nearby suggestions can be enabled only while face search is enabled. The viewer-metadata choice is per gallery, defaults off, and reveals only filename, capture time, and dimensions. **Import photos** opens the browser import and publication workspace.
 
 **Site settings** controls the public languages, default language, and colour policy. The language menu accepts one or both currently translated languages. The default must be one of those choices. With one language, the public language button is hidden and every visitor receives it; with both, visitors can switch and their choice is remembered locally. For colour, choose fixed light or dark, follow each visitor's system setting, or let visitors choose. Visitor choice shows the Light / Dark switch in the public header; fixed and system policies remove it. These settings live in D1 and are not build variables, so language and theme controls are intentionally absent from the admin header.
 
@@ -27,7 +27,7 @@ The browser UI is still not a substitute for validating deployed authorization. 
 
 ## Gallery lifecycle
 
-The live admin API can create, list, and update galleries. The compatibility API calls each record an event. A gallery has a stable slug, one of `draft`, `published`, or `unlisted` visibility states, and either `public` or `protected` access.
+The live admin API can create, list, and update galleries. A gallery has a stable slug, one of `draft`, `published`, or `unlisted` visibility states, and either `public` or `protected` access. The internal D1 table is still named `events`, but that storage name never appears in an HTTP path or interface label.
 
 - Draft galleries return 404 to public routes.
 - Published public galleries are listed by the landing-page query.
@@ -41,11 +41,11 @@ Create a gallery before declaring an import. Creation accepts title, optional sl
 
 The mounted browser import screen follows this server sequence; any compatible API client must follow it too:
 
-1. Create `POST /api/v1/admin/events/:eventId/imports` with a client-generated import ID and total photo count.
+1. Create `POST /api/v1/admin/galleries/:eventId/imports` with a client-generated import ID and total photo count.
 2. Declare at most 50 photo records in each `POST /api/v1/admin/imports/:importId/photos` chunk.
 3. Upload all five derived variants per photo: `thumb`, `small`, `medium`, `large`, and `download`.
 4. Finalize each photo only after all five variants exist.
-5. Review `GET /api/v1/admin/events/:eventId/publication`, then publish with `POST /api/v1/admin/events/:eventId/publish` and `visibility` of `published` or `unlisted`.
+5. Review `GET /api/v1/admin/galleries/:eventId/publication`, then publish with `POST /api/v1/admin/galleries/:eventId/publish` and `visibility` of `published` or `unlisted`.
 
 **Gallery availability** is the reversible visibility control, not an upload button. Publishing requires every photo derivative to be ready, changes those ready photo rows to `published`, and makes the gallery public or unlisted in the same D1 batch. **Offline** immediately blocks gallery metadata, media, protected access, and face search while retaining D1, R2, and Vectorize data for republication. Taking a protected gallery offline also increments its access version so existing guest grants cannot become valid again after republication. Optional facial indexing can finish later without delaying publication.
 

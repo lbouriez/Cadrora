@@ -74,7 +74,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       });
       return;
     }
-    if (path.endsWith('/events')) {
+    if (path.endsWith('/galleries')) {
       await route.fulfill({ body: JSON.stringify({ events: [demoEvent] }), contentType: 'application/json' });
       return;
     }
@@ -104,7 +104,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.locator('.admin-shell__controls').getByRole('button')).toHaveCount(1);
 
   await page.evaluate((eventId) => {
-    history.pushState({}, '', `/admin/events/${eventId}`);
+    history.pushState({}, '', `/admin/galleries/${eventId}`);
     dispatchEvent(new PopStateEvent('popstate'));
   }, demoEvent.id);
   const faceSearch = page.getByRole('checkbox', { name: /optional face search|recherche faciale facultative/i });

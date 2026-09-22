@@ -37,7 +37,7 @@ Package guides: [`browser-import.md`](browser-import.md), [`media-and-publicatio
 - Worker CPU work stays small. Image processing and ML run in the browser.
 - Search results never grant access to a protected event.
 - A face-search outage never blocks the gallery.
-- User-facing language says “gallery”; internal `event` schemas and API routes remain compatibility contracts.
+- User-facing language and HTTP routes say “gallery”; the original `events` D1 table and selected internal identifiers remain storage implementation details.
 - Taking a gallery offline is reversible. Permanent deletion is a distinct, typed-confirmation workflow whose provider cleanup remains durable and retryable.
 - Accepted-but-uncertain cross-service operations remain pending and are reconciled; they are not blindly replayed as failures.
 - Protected content is never placed in a shared CDN cache.

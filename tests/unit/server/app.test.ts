@@ -14,4 +14,12 @@ describe('worker app', () => {
     expect(body.code).toBe('ROUTE_NOT_FOUND');
     expect(body.requestId).not.toBe('');
   });
+
+  it('does not retain the retired events API alias', async () => {
+    const response = await app.request('/api/v1/events');
+    const body = ApiErrorSchema.parse(await response.json());
+
+    expect(response.status).toBe(404);
+    expect(body.code).toBe('ROUTE_NOT_FOUND');
+  });
 });

@@ -25,7 +25,7 @@ const objectKeyByFile = new Map([
   ['private-newborn-large.webp', 'demo/private/newborn/1/large.webp'],
 ]);
 
-for (let number = 1; number <= 10; number += 1) {
+for (let number = 1; number <= 15; number += 1) {
   const photo = String(number).padStart(2, '0');
   for (const variant of ['thumb', 'medium', 'large']) {
     objectKeyByFile.set(
@@ -65,7 +65,7 @@ export async function seedFaceSearchDemo(target, configPath, environment = proce
   const skipped = generated.photosWithoutFaces.length > 0
     ? `; no clear face in ${generated.photosWithoutFaces.join(', ')}`
     : '';
-  process.stdout.write(`Generated ${generated.faceCount} fictional demo face embeddings (${summary}${skipped}).\n`);
+  process.stdout.write(`Generated ${generated.faceCount} fictional demo face embeddings (${summary}; ${generated.negativeControlCount} distinct-face negative controls verified${skipped}).\n`);
   // Remove the non-biometric vectors used by showcase releases before real
   // gallery-derived embeddings were available. Missing IDs are harmless, so
   // this remains safe and idempotent for fresh deployments and redeployments.

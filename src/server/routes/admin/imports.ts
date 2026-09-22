@@ -82,7 +82,7 @@ const adminImportRoutes = new Hono<AppEnv>();
 // PA owns one fail-closed authorization middleware for every admin feature.
 adminImportRoutes.use('*', requireAdmin);
 
-adminImportRoutes.post('/events/:eventId/imports', async (context) => {
+adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
   const eventId = parseInput(IdSchema, context.req.param('eventId'));
   const payload = parseInput(ImportCreateRequestSchema, await readJson(context));
   const existing = await getImport(context.env.DB, payload.id);

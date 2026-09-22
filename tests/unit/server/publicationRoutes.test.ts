@@ -58,7 +58,7 @@ describe('publication admin routes', () => {
     const publicationRepository = repository({
       updatePublication: vi.fn().mockResolvedValue({ status: 'updated', summary }),
     });
-    const response = await appWith(publicationRepository).request('/api/v1/admin/events/event-1/publish', {
+    const response = await appWith(publicationRepository).request('/api/v1/admin/galleries/event-1/publish', {
       body: JSON.stringify({ visibility: 'published' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
@@ -71,7 +71,7 @@ describe('publication admin routes', () => {
   it('takes a gallery offline through the shared publication state endpoint', async () => {
     const offline = { ...summary, publishedAt: null, offlineAt: '2030-01-01T00:00:00.000Z' };
     const updatePublication = vi.fn().mockResolvedValue({ status: 'updated', summary: offline });
-    const response = await appWith(repository({ updatePublication })).request('/api/v1/admin/events/event-1/publication', {
+    const response = await appWith(repository({ updatePublication })).request('/api/v1/admin/galleries/event-1/publication', {
       body: JSON.stringify({ state: 'offline' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'PUT',
@@ -99,7 +99,7 @@ describe('publication admin routes', () => {
 
   it('returns publication readiness for browser-only operation', async () => {
     const response = await appWith(repository({ publicationSummary: vi.fn().mockResolvedValue(summary) }))
-      .request('/api/v1/admin/events/event-1/publication');
+      .request('/api/v1/admin/galleries/event-1/publication');
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(summary);
   });

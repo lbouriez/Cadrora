@@ -2,7 +2,7 @@ import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 
 test.describe('site vitrine statique', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/v1/events', async (route) => {
+    await page.route('**/api/v1/galleries', async (route) => {
       await route.fulfill({
         body: JSON.stringify({ code: 'E2E_GALLERY_OFFLINE', message: 'errors.serviceUnavailable', requestId: 'e2e' }),
         contentType: 'application/json',
@@ -57,5 +57,12 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { name: /témoins et mesure d'audience|cookies and analytics/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /nécessaire seulement|necessary only/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
+  });
+
+  test('ne conserve pas de redirection depuis l ancienne route events', async ({ page }) => {
+    await page.goto('/events');
+
+    await expect(page).toHaveURL(/\/events$/u);
+    await expect(page.getByRole('heading', { level: 1 })).not.toContainText(/beauté de la livraison|beautiful delivery/i);
   });
 });

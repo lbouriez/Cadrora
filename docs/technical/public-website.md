@@ -6,7 +6,7 @@ Cadrora is both an event-gallery application and the photographer's public websi
 
 - `/` presents the photographer, services, and currently published public events;
 - `/services` describes the available portrait, wedding, and event services;
-- `/galleries` presents the demonstration journeys and live public galleries (`/events` redirects for compatibility);
+- `/galleries` presents the demonstration journeys and live public galleries; no legacy `/events` alias is registered;
 - `/contact` publishes direct contact coordinates without a form or third-party service;
 - `/privacy` explains gallery and face-search privacy;
 - `/e/*` is the event-gallery surface and may require an event grant;

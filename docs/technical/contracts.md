@@ -16,12 +16,12 @@ Public routes:
 
 ```text
 GET    /api/v1/site
-GET    /api/v1/events
-GET    /api/v1/events/:eventId
-POST   /api/v1/events/:eventId/unlock
-GET    /api/v1/events/:eventId/photos?cursor=...
-POST   /api/v1/events/:eventId/face-search
-GET    /api/v1/events/:eventId/photos/:photoId/related
+GET    /api/v1/galleries
+GET    /api/v1/galleries/:eventId
+POST   /api/v1/galleries/:eventId/unlock
+GET    /api/v1/galleries/:eventId/photos?cursor=...
+POST   /api/v1/galleries/:eventId/face-search
+GET    /api/v1/galleries/:eventId/photos/:photoId/related
 GET    /media/:eventId/:photoId/:revision/:variant
 ```
 
@@ -33,19 +33,19 @@ POST   /api/v1/admin/logout
 GET    /api/v1/admin/session
 GET    /api/v1/admin/site
 PATCH  /api/v1/admin/site
-GET    /api/v1/admin/events
-POST   /api/v1/admin/events
-PATCH  /api/v1/admin/events/:eventId
-DELETE /api/v1/admin/events/:eventId
-POST   /api/v1/admin/events/:eventId/imports
+GET    /api/v1/admin/galleries
+POST   /api/v1/admin/galleries
+PATCH  /api/v1/admin/galleries/:eventId
+DELETE /api/v1/admin/galleries/:eventId
+POST   /api/v1/admin/galleries/:eventId/imports
 POST   /api/v1/admin/imports/:importId/photos
 PUT    /api/v1/admin/photos/:photoId/variants/:variant
 POST   /api/v1/admin/photos/:photoId/faces
 POST   /api/v1/admin/photos/:photoId/finalize
-POST   /api/v1/admin/events/:eventId/publish
-PUT    /api/v1/admin/events/:eventId/publication
+POST   /api/v1/admin/galleries/:eventId/publish
+PUT    /api/v1/admin/galleries/:eventId/publication
 DELETE /api/v1/admin/photos/:photoId
-POST   /api/v1/admin/events/:eventId/purge-faces
+POST   /api/v1/admin/galleries/:eventId/purge-faces
 GET    /api/v1/admin/usage
 ```
 

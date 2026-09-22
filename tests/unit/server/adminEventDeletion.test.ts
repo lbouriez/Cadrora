@@ -5,7 +5,7 @@ import { mockAdmin } from '../../../src/server/auth/testContext';
 import { authContext } from '../../../src/server/middleware/authContext';
 import { errorBoundary } from '../../../src/server/middleware/errorBoundary';
 import { requestId } from '../../../src/server/middleware/requestId';
-import { registerAdminEventRoutes } from '../../../src/server/routes/admin/events';
+import { registerAdminEventRoutes } from '../../../src/server/routes/admin/galleries';
 import type { AppEnv } from '../../../src/server/types';
 
 const galleryRow = {
@@ -63,7 +63,7 @@ function fakeDatabase() {
 describe('gallery deletion', () => {
   it('rejects a confirmation that does not exactly match the gallery title', async () => {
     const { batch, database } = fakeDatabase();
-    const response = await testApp().request('/api/v1/admin/events/gallery-1', {
+    const response = await testApp().request('/api/v1/admin/galleries/gallery-1', {
       body: JSON.stringify({ confirmation: 'summer story' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'DELETE',
@@ -75,7 +75,7 @@ describe('gallery deletion', () => {
 
   it('takes the gallery offline and queues idempotent provider cleanup', async () => {
     const { batch, database, statements } = fakeDatabase();
-    const response = await testApp().request('/api/v1/admin/events/gallery-1', {
+    const response = await testApp().request('/api/v1/admin/galleries/gallery-1', {
       body: JSON.stringify({ confirmation: 'Summer Story' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'DELETE',

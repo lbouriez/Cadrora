@@ -25,7 +25,7 @@ export class FetchImportApi implements ImportApi {
 
   async createImport(eventId: string, request: ImportCreateRequest, signal?: AbortSignal): Promise<Import> {
     const body = ImportCreateRequestSchema.parse(request);
-    const response = await this.fetcher(`/api/v1/admin/events/${encodeURIComponent(eventId)}/imports`, {
+    const response = await this.fetcher(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/imports`, {
       body: JSON.stringify(body),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',

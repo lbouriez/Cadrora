@@ -5,7 +5,7 @@ import { TurnstileTokenSchema } from '../../shared/schemas';
 import { ApiException } from '../../shared/errors/ApiError';
 import type { AppEnv } from '../types';
 
-const UNLOCK_PATH = /^\/api\/v1\/events\/[^/]+\/unlock$/;
+const UNLOCK_PATH = /^\/api\/v1\/galleries\/[^/]+\/unlock$/;
 
 export function isTurnstileProtectedRequest(method: string, path: string): boolean {
   if (method.toUpperCase() !== 'POST') {

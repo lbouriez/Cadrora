@@ -2,7 +2,7 @@
 
 ## Context and goals
 
-Cadrora serves photo galleries from a single Cloudflare deployment that a photographer can operate without a terminal after installation. The architecture keeps public assets cheap, private media authorized, image processing out of the Worker CPU budget, and optional facial search isolated from gallery availability. The internal schema retains the historical `event` name as a compatibility boundary; public and owner-facing copy uses “gallery”.
+Cadrora serves photo galleries from a single Cloudflare deployment that a photographer can operate without a terminal after installation. The architecture keeps public assets cheap, private media authorized, image processing out of the Worker CPU budget, and optional facial search isolated from gallery availability. The internal D1 schema retains its original `events` table name to avoid a destructive storage migration; every HTTP route and user-facing label uses “gallery”.
 
 Non-goals for v1 include SSR, video, RAW/HEIC import, payment, a CLI product, multi-photographer tenancy, microservices, and cross-event biometric profiles.
 

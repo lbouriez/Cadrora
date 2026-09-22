@@ -9,7 +9,7 @@ import {
 } from '../../../src/server/routes/public/credentials';
 import { verifyPassword } from '../../../src/server/auth';
 import { photosFromRows } from '../../../src/server/routes/public/data';
-import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/events';
+import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/galleries';
 import { D1MediaRepository } from '../../../src/server/repositories/mediaRepository';
 
 describe('public gallery contracts', () => {

@@ -188,6 +188,10 @@ function sqlString(value) {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
+const negativeControlPhotoIds = new Set(
+  Array.from({ length: 5 }, (_, index) => `demo-ai-${String(index + 11).padStart(2, '0')}`),
+);
+
 export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portraitDirectory }) {
   ortEnv.wasm.numThreads = 1;
   ortEnv.logLevel = 'fatal';
@@ -205,7 +209,7 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
   const indexed = [];
   const photosWithoutFaces = [];
 
-  for (let photoNumber = 1; photoNumber <= 10; photoNumber += 1) {
+  for (let photoNumber = 1; photoNumber <= 15; photoNumber += 1) {
     const number = String(photoNumber).padStart(2, '0');
     const image = await detectFaces(detector, join(mediaDirectory, `ai-demo-${number}-large.webp`));
     if (image.faces.length === 0) {
@@ -224,6 +228,11 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
     }
   }
 
+  const missingNegativeControls = [...negativeControlPhotoIds].filter((photoId) => photosWithoutFaces.includes(photoId));
+  if (missingNegativeControls.length > 0) {
+    throw new Error(`Expected a detectable face in every negative-control photo: ${missingNegativeControls.join(', ')}.`);
+  }
+
   const portraitMatches = {};
   const portraitEmbeddings = {};
   for (const name of ['amelia', 'daniel']) {
@@ -236,6 +245,10 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
       .filter((candidate) => candidate.score >= MATCH_THRESHOLD)
       .sort((left, right) => right.score - left.score);
     if (matches.length === 0) throw new Error(`${name}'s demo portrait has no match at the production threshold.`);
+    const falsePositiveControls = matches.filter((candidate) => negativeControlPhotoIds.has(candidate.photoId));
+    if (falsePositiveControls.length > 0) {
+      throw new Error(`${name}'s portrait incorrectly matched negative-control photos: ${falsePositiveControls.map((candidate) => candidate.photoId).join(', ')}.`);
+    }
     portraitMatches[name] = matches;
   }
 
@@ -258,5 +271,13 @@ INSERT INTO faces (id, event_id, photo_id, face_number, partition_id, vector_id,
 VALUES
 ${faceRows};
 `;
-  return { faceCount: indexed.length, photosWithoutFaces, portraitEmbeddings, portraitMatches, sql, vectors: `${vectors}\n` };
+  return {
+    faceCount: indexed.length,
+    negativeControlCount: negativeControlPhotoIds.size,
+    photosWithoutFaces,
+    portraitEmbeddings,
+    portraitMatches,
+    sql,
+    vectors: `${vectors}\n`,
+  };
 }

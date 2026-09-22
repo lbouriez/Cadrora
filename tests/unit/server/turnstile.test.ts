@@ -9,14 +9,14 @@ import {
 describe('turnstile middleware route scope', () => {
   it.each([
     ['/api/v1/admin/login'],
-    ['/api/v1/events/event-1/unlock'],
+    ['/api/v1/galleries/event-1/unlock'],
   ])('protects POST %s', (path) => {
     expect(isTurnstileProtectedRequest('POST', path)).toBe(true);
   });
 
   it('does not protect reads or unrelated writes', () => {
     expect(isTurnstileProtectedRequest('GET', '/api/v1/admin/login')).toBe(false);
-    expect(isTurnstileProtectedRequest('POST', '/api/v1/admin/events')).toBe(false);
+    expect(isTurnstileProtectedRequest('POST', '/api/v1/admin/galleries')).toBe(false);
   });
 
   it('preserves only bounded Siteverify error codes for diagnostics', async () => {

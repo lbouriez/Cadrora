@@ -5,7 +5,7 @@ Package PB remains isolated behind central Worker and SPA registration, without 
 ## Worker integration
 
 - Call `registerPublicRoutes(app, services)` from `src/server/routes/public/index.ts` at the feature-route marker in `src/server/app.ts`.
-- Call `registerAdminEventRoutes(app)` from `src/server/routes/admin/events.ts` at the same marker.
+- Call `registerAdminEventRoutes(app)` from `src/server/routes/admin/galleries.ts` at the same marker.
 - Register `ogMetadata` from `src/server/middleware/ogMetadata.ts` before the static asset fallback. It responds only to recognized crawlers on event paths; ordinary SPA navigation continues normally.
 - PB applies its cache classification directly and also records `cachePolicy`, because Hono middleware registered after a terminating route cannot post-process that response.
 - Supply `issueEventGrant` to `registerPublicRoutes`. The callback must issue PA's signed/opaque grant containing only `eventId` and `accessVersion`. The route fails closed with `503` if no issuer is configured. PA's auth context must verify that grant before exposing it to PB.

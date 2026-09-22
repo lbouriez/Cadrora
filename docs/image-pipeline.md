@@ -34,6 +34,6 @@ Cancelling stops browser work. It does not create a publishable photo state. A s
 
 ## Current integration status
 
-The server import routes are registered by `src/server/app.ts`. The SPA mounts browser import at `/admin/events/:eventId/import` behind the admin session route. Validate a resumed import, a corrupted file, each EXIF orientation, a WebP fallback, and quota handling against a dedicated test event before enabling it for operators; source and unit-test evidence do not prove an operator’s browser, storage binding, or deployed quota behavior.
+The server import routes are registered by `src/server/app.ts`. The SPA mounts browser import at `/admin/galleries/:eventId/import` behind the admin session route. Validate a resumed import, a corrupted file, each EXIF orientation, a WebP fallback, and quota handling against a dedicated test event before enabling it for operators; source and unit-test evidence do not prove an operator’s browser, storage binding, or deployed quota behavior.
 
 See [`technical/browser-import.md`](technical/browser-import.md) for the code-level contract and [`admin-guide.md`](admin-guide.md) for the required server sequence.

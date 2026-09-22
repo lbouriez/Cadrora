@@ -5,7 +5,7 @@ Package PC keeps all image decode and re-encoding in the photographer browser. T
 ## Import sequence
 
 1. The browser validates JPEG, PNG, or WebP bytes and verifies decoding. Corrupt or unsupported files are reported locally and never declared.
-2. A client-generated import ID is journaled with structured-cloneable source files in IndexedDB before the idempotent `POST /api/v1/admin/events/:eventId/imports` request.
+2. A client-generated import ID is journaled with structured-cloneable source files in IndexedDB before the idempotent `POST /api/v1/admin/galleries/:eventId/imports` request.
 3. Each next unfinished chunk contains at most 50 declarations and is atomically upserted through `POST /api/v1/admin/imports/:importId/photos`.
 4. The image worker decodes with `imageOrientation: 'none'`, applies exactly one of the eight EXIF transforms, draws to a new canvas, and re-encodes. This pixel-only path removes source EXIF/XMP metadata including GPS, serial, and comment fields.
 5. Widths 480, 960, 1600, and 2560 prefer WebP only if both the Blob MIME and magic bytes verify. They fall back to JPEG. The 3840 download variant is always JPEG. No variant is upscaled.
@@ -14,7 +14,7 @@ Package PC keeps all image decode and re-encoding in the photographer browser. T
 
 ## Integration
 
-The root Worker registers `registerAdminImportRoutes` from `src/server/routes/admin/imports.ts` after global admin authorization middleware. The SPA mounts `ImportPage` under the authorized `/admin/events/:eventId/import` route. Keep all future import routes behind the same Worker-admin and Origin-CSRF checks.
+The root Worker registers `registerAdminImportRoutes` from `src/server/routes/admin/imports.ts` after global admin authorization middleware. The SPA mounts `ImportPage` under the authorized `/admin/galleries/:eventId/import` route. Keep all future import routes behind the same Worker-admin and Origin-CSRF checks.
 
 `adminImportResources` from `src/app/admin/ImportResources.ts` must be merged into the root i18next resources before the screen is mounted. The package does not own public `/` or `/contact` routes.
 

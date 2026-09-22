@@ -16,7 +16,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
     globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
       const path = new URL(url, location.origin).pathname;
-      if (init?.method === 'POST' && path.endsWith(`/events/${seededEventId}/imports`)) {
+      if (init?.method === 'POST' && path.endsWith(`/galleries/${seededEventId}/imports`)) {
         return new Response(JSON.stringify({
           import: {
             completedPhotos: 100,
@@ -136,7 +136,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
   }, { eventId, importId });
 
   await page.evaluate((id) => {
-    history.pushState({}, '', `/admin/events/${id}/import`);
+    history.pushState({}, '', `/admin/galleries/${id}/import`);
     dispatchEvent(new PopStateEvent('popstate'));
   }, eventId);
 

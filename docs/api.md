@@ -2,7 +2,7 @@
 
 Base path: `/api/v1`. All API failures are JSON objects with `code`, `message`, and `requestId`; `message` is an i18n key, not a guaranteed human-facing sentence. `/api/*` never falls back to SPA HTML. All admin responses are `Cache-Control: no-store`.
 
-This reference reflects routes registered by `src/server/app.ts` on 2026-09-21. The product calls these records galleries; the stable internal API retains `/events` and `eventId` for compatibility.
+This reference reflects routes registered by `src/server/app.ts` on 2026-09-22. Gallery HTTP routes use `/galleries` consistently. Some TypeScript and D1 identifiers still use `eventId`; those identifiers are implementation details and do not create an `/events` alias.
 
 ## Authentication
 
@@ -27,19 +27,19 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-21. 
 
 Authentication failures expose only application-safe codes and a request ID. `TURNSTILE_FAILED` means the submitted challenge was rejected; `TURNSTILE_UNAVAILABLE` means verification could not be completed. Protected-event unlock can additionally return `INVALID_EVENT_PASSWORD`, `EVENT_PASSWORD_UNAVAILABLE`, or `EVENT_GRANT_UNAVAILABLE`. Provider tokens, secrets, visitor IPs, submitted passwords, the auth pepper, and stored verifiers are never API diagnostics.
 
-## Galleries (stable `/events` API)
+## Galleries
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `GET /events` | Public | Lists published, public galleries only. |
+| `GET /galleries` | Public | Lists published, public galleries only. |
 | `GET /site` | Public | Validated public `SiteSettings` singleton; the static portfolio does not depend on it. |
-| `GET /events/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
-| `POST /events/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
-| `GET /events/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
-| `GET /admin/events` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. |
-| `POST /admin/events` | Admin | Creates a gallery; returns `201` with the full internal event record. |
-| `PATCH /admin/events/:eventId` | Admin | Partial gallery update; slug is intentionally absent from the update schema. A deletion-pending gallery rejects updates. |
-| `DELETE /admin/events/:eventId` | Admin | Body `{ "confirmation": "Exact gallery title" }`; returns `202 { "deletionQueued": true }`, removes visitor access immediately, and queues complete gallery-owned D1/R2/Vectorize cleanup. |
+| `GET /galleries/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
+| `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
+| `GET /galleries/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
+| `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. |
+| `POST /admin/galleries` | Admin | Creates a gallery; returns `201` with the full internal event record. |
+| `PATCH /admin/galleries/:eventId` | Admin | Partial gallery update; slug is intentionally absent from the update schema. A deletion-pending gallery rejects updates. |
+| `DELETE /admin/galleries/:eventId` | Admin | Body `{ "confirmation": "Exact gallery title" }`; returns `202 { "deletionQueued": true }`, removes visitor access immediately, and queues complete gallery-owned D1/R2/Vectorize cleanup. |
 
 Gallery creation accepts:
 
@@ -68,7 +68,7 @@ Valid visibility values are `draft`, `published`, and `unlisted`; access values 
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `POST /admin/events/:eventId/imports` | Admin | `{ id, totalPhotos }`; creates or resumes a natural-ID import. |
+| `POST /admin/galleries/:eventId/imports` | Admin | `{ id, totalPhotos }`; creates or resumes a natural-ID import. |
 | `POST /admin/imports/:importId/photos` | Admin | `{ chunkNumber, photos }`, where `photos` contains 1–50 declarations. |
 | `PUT /admin/photos/:photoId/variants/:variant` | Admin | Raw JPEG/WebP bytes plus verified metadata headers; returns `{ variant }`. |
 | `POST /admin/photos/:photoId/finalize` | Admin | Strict empty JSON object `{}`; returns `{ import, photo }`. |
@@ -79,9 +79,9 @@ Variant headers are `Content-Type`, `X-Cadrora-Byte-Size`, `X-Cadrora-Checksum-S
 
 | Method and path | Access | Result |
 | --- | --- | --- |
-| `GET /admin/events/:eventId/publication` | Admin | Current readiness and publication summary for one event. |
-| `POST /admin/events/:eventId/publish` | Admin | `{ visibility: "published" \| "unlisted" }`; atomically promotes every ready photo variant and changes the draft event visibility. It does not upload or process images and does not wait for optional facial indexing. Returns the publication summary or `409` if media is not ready. |
-| `PUT /admin/events/:eventId/publication` | Admin | `{ state: "published" \| "unlisted" \| "offline" }`; changes visitor availability without deleting media or AI data. Offline revokes active protected-gallery grants; republishing reuses ready variants. |
+| `GET /admin/galleries/:eventId/publication` | Admin | Current readiness and publication summary for one event. |
+| `POST /admin/galleries/:eventId/publish` | Admin | `{ visibility: "published" \| "unlisted" }`; atomically promotes every ready photo variant and changes the draft event visibility. It does not upload or process images and does not wait for optional facial indexing. Returns the publication summary or `409` if media is not ready. |
+| `PUT /admin/galleries/:eventId/publication` | Admin | `{ state: "published" \| "unlisted" \| "offline" }`; changes visitor availability without deleting media or AI data. Offline revokes active protected-gallery grants; republishing reuses ready variants. |
 | `DELETE /admin/photos/:photoId` | Admin | `204`; removes access first and queues cleanup. |
 | `GET /admin/usage` | Admin | Application usage snapshot: events, photos, variant bytes, faces, and recorded vector-query dimensions. |
 
@@ -92,9 +92,9 @@ The usage endpoint is not Cloudflare billing data and is not proof that queued d
 | Method and path | Access | Input/result |
 | --- | --- | --- |
 | `POST /admin/photos/:photoId/faces` | Admin | Model ID, generation, expiry, and 1–100 128-number embeddings. |
-| `POST /events/:eventId/face-search` | Event access | `{ embedding, cursor? }`; possible matches and optional signed cursor. |
-| `GET /events/:eventId/photos/:photoId/related` | Event access | Related photo references for a valid search context. |
-| `POST /admin/events/:eventId/purge-faces` | Admin | `202 { "queued": true }` when a purge job is queued. |
+| `POST /galleries/:eventId/face-search` | Event access | `{ embedding, cursor? }`; possible matches and optional signed cursor. |
+| `GET /galleries/:eventId/photos/:photoId/related` | Event access | Related photo references for a valid search context. |
+| `POST /admin/galleries/:eventId/purge-faces` | Admin | `202 { "queued": true }` when a purge job is queued. |
 
 These routes are registered, but they fail closed when `FACE_INDEX`, model objects, expiry state, or cursor-signing material is unavailable. See [`face-search.md`](face-search.md).
 

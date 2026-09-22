@@ -88,7 +88,7 @@ export function registerFaceSearchRoutes(
     }
   });
 
-  app.post('/api/v1/events/:eventId/face-search', async (context) => {
+  app.post('/api/v1/galleries/:eventId/face-search', async (context) => {
     const input = FaceSearchRequestSchema.safeParse(await context.req.json<unknown>().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_FACE_SEARCH', 'errors.invalidFaceSearch', 400);
     const event = await requireSearchableEvent(context, context.req.param('eventId'));
@@ -132,7 +132,7 @@ export function registerFaceSearchRoutes(
     return context.json(FaceSearchResponseSchema.parse({ matches: results, nextCursor }));
   });
 
-  app.get('/api/v1/events/:eventId/photos/:photoId/related', async (context) => {
+  app.get('/api/v1/galleries/:eventId/photos/:photoId/related', async (context) => {
     const event = await requireSearchableEvent(context, context.req.param('eventId'));
     if (!event.nearbySearchEnabled) throw new ApiException('NEARBY_SEARCH_DISABLED', 'errors.faceSearchDisabled', 409);
     const photoId = IdSchema.safeParse(context.req.param('photoId'));
@@ -142,7 +142,7 @@ export function registerFaceSearchRoutes(
     return context.json(RelatedPhotosResponseSchema.parse({ photos }));
   });
 
-  app.post('/api/v1/admin/events/:eventId/purge-faces', async (context) => {
+  app.post('/api/v1/admin/galleries/:eventId/purge-faces', async (context) => {
     requireAdmin(context);
     const eventId = IdSchema.safeParse(context.req.param('eventId'));
     if (!eventId.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);

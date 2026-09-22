@@ -68,7 +68,7 @@ async function availableSlug(database: D1Database, requested: string): Promise<s
 export function createAdminEventRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
 
-  routes.get('/events', async (context) => {
+  routes.get('/galleries', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
     const result = await context.env.DB.prepare('SELECT * FROM events ORDER BY starts_at DESC, id ASC').all<EventRow>();
@@ -77,7 +77,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     return context.json(output.data);
   });
 
-  routes.post('/events', async (context) => {
+  routes.post('/galleries', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
     const input = CreateEventRequestSchema.safeParse(await context.req.json().catch(() => null));
@@ -115,7 +115,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     return context.json(EventSchema.parse(created), 201);
   });
 
-  routes.patch('/events/:eventId', async (context) => {
+  routes.patch('/galleries/:eventId', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
     const input = UpdateEventRequestSchema.safeParse(await context.req.json().catch(() => null));
@@ -185,7 +185,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     return context.json(EventSchema.parse(updated));
   });
 
-  routes.delete('/events/:eventId', async (context) => {
+  routes.delete('/galleries/:eventId', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
     const event = await findEvent(context.env.DB, context.req.param('eventId'));

@@ -94,7 +94,7 @@ export async function mockGallery(page: Page, options: { protected?: boolean } =
     });
   });
 
-  await page.route('**/api/v1/events/**', async (route) => {
+  await page.route('**/api/v1/galleries/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const segments = url.pathname.split('/').filter(Boolean);

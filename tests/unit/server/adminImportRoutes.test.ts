@@ -17,7 +17,7 @@ describe('admin import routes', () => {
     testApp.onError(errorBoundary);
     registerAdminImportRoutes(testApp);
 
-    const response = await testApp.request('/api/v1/admin/events/event-1/imports', {
+    const response = await testApp.request('/api/v1/admin/galleries/event-1/imports', {
       body: JSON.stringify({ id: 'import-1', totalPhotos: 1 }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',

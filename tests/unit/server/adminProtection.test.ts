@@ -7,14 +7,14 @@ import { requestId } from '../../../src/server/middleware/requestId';
 import type { AppEnv } from '../../../src/server/types';
 
 describe('admin protection', () => {
-  it.each(['https://cadrora.example/api/v1/admin/events', 'https://cadrora.workers.dev/api/v1/admin/events'])(
+  it.each(['https://cadrora.example/api/v1/admin/galleries', 'https://cadrora.workers.dev/api/v1/admin/galleries'])(
     'requires an admin identity on %s',
     async (url) => {
       const app = new Hono<AppEnv>();
       app.use('*', requestId);
       app.onError(errorBoundary);
       app.use('*', authContext);
-      app.get('/api/v1/admin/events', requireAdmin, (context) => context.json({ ok: true }));
+      app.get('/api/v1/admin/galleries', requireAdmin, (context) => context.json({ ok: true }));
 
       const response = await app.request(url);
       expect(response.status).toBe(401);

@@ -73,7 +73,7 @@ export interface PublicRouteServices {
 export function createPublicEventRoutes(services: PublicRouteServices = {}): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
 
-  routes.get('/events', async (context) => {
+  routes.get('/galleries', async (context) => {
     const result = await context.env.DB.prepare(
       `SELECT * FROM events
        WHERE visibility = 'published' AND offline_at IS NULL AND access = 'public'
@@ -85,7 +85,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     });
   });
 
-  routes.get('/events/:eventId', async (context) => {
+  routes.get('/galleries/:eventId', async (context) => {
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
     if (!event || !isEventAvailable(event)) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
     if (!(await hasCurrentEventAccess(context, event))) {
@@ -98,7 +98,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     return validatedJson(context, PublicEventSchema, toPublicEvent(event));
   });
 
-  routes.post('/events/:eventId/unlock', async (context) => {
+  routes.post('/galleries/:eventId/unlock', async (context) => {
     const body = UnlockEventRequestSchema.safeParse(await context.req.json().catch(() => null));
     if (!body.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
@@ -129,7 +129,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     return validatedJson(context, UnlockEventResponseSchema, { unlocked: true });
   });
 
-  routes.get('/events/:eventId/photos', async (context) => {
+  routes.get('/galleries/:eventId/photos', async (context) => {
     const query = PhotoListQuerySchema.safeParse(context.req.query());
     if (!query.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));

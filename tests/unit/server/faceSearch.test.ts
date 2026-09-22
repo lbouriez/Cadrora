@@ -55,7 +55,7 @@ describe('face search privacy and pagination', () => {
     });
 
     const response = await app.request(
-      '/api/v1/events/event-1/photos/photo-1/related',
+      '/api/v1/galleries/event-1/photos/photo-1/related',
       {},
       { DB: databaseForEvent({ ...eventRow, nearby_search_enabled: 0 }) },
     );
@@ -144,7 +144,7 @@ describe('face search privacy and pagination', () => {
       repository: () => faceRepository,
       vectors: () => vectors,
     });
-    const response = await app.request('/api/v1/events/event-1/face-search', {
+    const response = await app.request('/api/v1/galleries/event-1/face-search', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ embedding: Array.from({ length: 128 }, () => 0.1) }),
     }, { DB: databaseForEvent(), TURNSTILE_SECRET_KEY: 'test-secret' });

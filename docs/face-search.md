@@ -1,6 +1,6 @@
 # Face-search guide
 
-Face search is optional, gallery-scoped, and not an identity system. It is designed to help a visitor find **possible matches** in one gallery; it must never be described as recognition, identification, or a cross-gallery profile. The internal API retains `eventId` as its compatibility identifier.
+Face search is optional, gallery-scoped, and not an identity system. It is designed to help a visitor find **possible matches** in one gallery; it must never be described as recognition, identification, or a cross-gallery profile. HTTP paths use `/galleries`; `eventId` remains only an internal parameter and D1 relationship name.
 
 ## Data and access boundary
 

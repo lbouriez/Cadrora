@@ -17,7 +17,7 @@ import {
 } from './middleware';
 import { ogMetadata } from './middleware/ogMetadata';
 import { runMaintenance } from './maintenance';
-import { registerAdminEventRoutes } from './routes/admin/events';
+import { registerAdminEventRoutes } from './routes/admin/galleries';
 import { adminAuthRouter } from './routes/admin/auth';
 import { registerAdminImportRoutes } from './routes/admin/imports';
 import { registerAdminSiteRoutes } from './routes/admin/site';

@@ -21,7 +21,7 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
   totalPhotos: 0,
 };
 
-/** Admin import screen; mount from the PA admin route at `/admin/events/:eventId/import`. */
+/** Admin import screen; mount from the PA admin route at `/admin/galleries/:eventId/import`. */
 export function ImportPage({ eventId }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);

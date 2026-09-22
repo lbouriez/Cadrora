@@ -1,8 +1,8 @@
 import type { Hono } from 'hono';
 
 import type { AppEnv } from '../../types';
-import { createPublicEventRoutes } from './events';
-import type { PublicRouteServices } from './events';
+import { createPublicEventRoutes } from './galleries';
+import type { PublicRouteServices } from './galleries';
 import { createPublicSiteRoutes } from './site';
 
 export function registerPublicRoutes(app: Hono<AppEnv>, services: PublicRouteServices = {}): void {

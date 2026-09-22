@@ -11,7 +11,7 @@ export async function searchEventFaces(eventId: string, embedding: number[], cur
   matches: FaceSearchMatch[];
   nextCursor: string | null;
 }> {
-  return jsonRequest(`/api/v1/events/${encodeURIComponent(eventId)}/face-search`, FaceSearchResponseSchema, {
+  return jsonRequest(`/api/v1/galleries/${encodeURIComponent(eventId)}/face-search`, FaceSearchResponseSchema, {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
@@ -21,7 +21,7 @@ export async function searchEventFaces(eventId: string, embedding: number[], cur
 
 export async function getRelatedPhotos(eventId: string, photoId: string) {
   return jsonRequest(
-    `/api/v1/events/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}/related`,
+    `/api/v1/galleries/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}/related`,
     RelatedPhotosResponseSchema,
   );
 }

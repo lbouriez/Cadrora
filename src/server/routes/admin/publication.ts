@@ -44,7 +44,7 @@ export function registerPublicationRoutes(
     return context.json(PublicationSummarySchema.parse(result.summary));
   };
 
-  app.get('/api/v1/admin/events/:eventId/publication', async (context) => {
+  app.get('/api/v1/admin/galleries/:eventId/publication', async (context) => {
     requireAdmin(context);
     const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
     if (!eventIdResult.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);
@@ -53,7 +53,7 @@ export function registerPublicationRoutes(
     return context.json(PublicationSummarySchema.parse(summary));
   });
 
-  app.post('/api/v1/admin/events/:eventId/publish', async (context) => {
+  app.post('/api/v1/admin/galleries/:eventId/publish', async (context) => {
     requireAdmin(context);
     const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
     if (!eventIdResult.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);
@@ -62,7 +62,7 @@ export function registerPublicationRoutes(
     return updatePublication(context, eventIdResult.data, inputResult.data.visibility);
   });
 
-  app.put('/api/v1/admin/events/:eventId/publication', async (context) => {
+  app.put('/api/v1/admin/galleries/:eventId/publication', async (context) => {
     requireAdmin(context);
     const eventIdResult = IdSchema.safeParse(context.req.param('eventId'));
     if (!eventIdResult.success) throw new ApiException('INVALID_EVENT_ID', 'errors.invalidEventId', 400);

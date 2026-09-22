@@ -12,13 +12,13 @@ import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 
 async function getAdminEvents(): Promise<Event[]> {
-  const response = await fetch('/api/v1/admin/events', { credentials: 'same-origin' });
+  const response = await fetch('/api/v1/admin/galleries', { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Event list returned ${response.status}`);
   return AdminEventListSchema.parse(await response.json()).events;
 }
 
 async function createEvent(payload: unknown): Promise<Event> {
-  const response = await fetch('/api/v1/admin/events', {
+  const response = await fetch('/api/v1/admin/galleries', {
     body: JSON.stringify(payload),
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
@@ -29,7 +29,7 @@ async function createEvent(payload: unknown): Promise<Event> {
 }
 
 async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
-  const response = await fetch(`/api/v1/admin/events/${encodeURIComponent(eventId)}`, {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}`, {
     body: JSON.stringify(payload),
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
@@ -40,7 +40,7 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
 }
 
 async function deleteGallery(eventId: string, confirmation: string): Promise<void> {
-  const response = await fetch(`/api/v1/admin/events/${encodeURIComponent(eventId)}`, {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}`, {
     body: JSON.stringify({ confirmation }),
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
@@ -171,10 +171,10 @@ export function AdminEventsPage() {
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
               </div>
               <div className="admin-event-row__actions">
-                {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/events/${event.id}`}>
+                {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}`}>
                   {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
                 </Link> : null}
-                {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
+                {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/galleries/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
                 {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
             </article>

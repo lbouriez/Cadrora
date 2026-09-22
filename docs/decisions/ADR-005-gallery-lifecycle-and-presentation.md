@@ -10,7 +10,7 @@ Cloudflare D1, R2, and Vectorize do not share a transaction. A synchronous delet
 
 ## Decision
 
-- Public and owner-facing copy uses **gallery**. Existing `events` tables, identifiers, source types, and `/api/v1/events/*` routes remain compatibility contracts.
+- Public and owner-facing copy and every HTTP route use **gallery** and `/galleries`. The internal `events` D1 table and source identifiers remain unchanged to avoid a destructive storage migration, but no `/events` HTTP alias is retained.
 - `events.offline_at` is a reversible availability fence. It leaves photos, vectors, and publication state intact while making public metadata, media, unlock, crawler, and search routes unavailable.
 - `events.deleting_at` is the irreversible deletion fence. The request requires the exact current gallery title in its JSON body, revokes protected grants, cancels writable imports, freezes photos, and enqueues one idempotent `delete_gallery` job.
 - Gallery cleanup waits five minutes for already accepted Worker requests to quiesce. It deletes only R2 keys and Vectorize IDs selected through that gallery's D1 relationships, then removes dependent D1 rows and the gallery. Shared face-model objects are never part of gallery cleanup.
@@ -21,5 +21,5 @@ Cloudflare D1, R2, and Vectorize do not share a transaction. A synchronous delet
 
 - Offline and delete remain visibly and technically distinct.
 - A deletion may remain listed as in progress while a provider is unavailable, but it cannot become publicly available again.
-- Internal code continues to use `event` in compatibility-sensitive areas; new user-facing text must not expose that implementation term.
+- Existing D1 columns and selected TypeScript identifiers continue to use `event` to avoid a destructive storage migration; HTTP paths and user-facing text must not expose that implementation term.
 - Adding another language requires translation resources and expanding the shared language schema before it can be selected.

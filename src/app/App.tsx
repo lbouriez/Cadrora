@@ -42,8 +42,8 @@ export function App() {
     { path: '/admin/login', element: adminElement(<AdminLoginRoute />) },
     { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
-    { path: '/admin/events/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
-    { path: '/admin/events/:eventId/import', element: adminElement(<AdminImportRoute />) },
+    { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
+    { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },
     ...publicRouteObjects,
     { path: '*', element: <FoundationShell /> },
   ]);

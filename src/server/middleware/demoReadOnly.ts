@@ -6,8 +6,8 @@ import type { AppEnv } from '../types';
 const SAFE_DEMO_GET_PATHS = [
   /^\/api\/v1\/admin\/session$/u,
   /^\/api\/v1\/admin\/site$/u,
-  /^\/api\/v1\/admin\/events$/u,
-  /^\/api\/v1\/admin\/events\/[^/]+\/publication$/u,
+  /^\/api\/v1\/admin\/galleries$/u,
+  /^\/api\/v1\/admin\/galleries\/[^/]+\/publication$/u,
   /^\/api\/v1\/admin\/usage$/u,
 ];
 

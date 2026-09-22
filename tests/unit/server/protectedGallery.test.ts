@@ -67,7 +67,7 @@ describe('protected gallery metadata', () => {
     registerPublicRoutes(app);
 
     const response = await app.request(
-      '/api/v1/events/private-wedding',
+      '/api/v1/galleries/private-wedding',
       undefined,
       bindings(databaseReturning({ ...protectedEvent, offline_at: '2030-01-02T00:00:00.000Z' })),
     );
@@ -84,7 +84,7 @@ describe('protected gallery metadata', () => {
     registerPublicRoutes(app);
 
     const response = await app.request(
-      '/api/v1/events/private-wedding',
+      '/api/v1/galleries/private-wedding',
       undefined,
       bindings(databaseReturning(protectedEvent)),
     );
@@ -103,7 +103,7 @@ describe('protected gallery metadata', () => {
     registerPublicRoutes(app);
 
     const response = await app.request(
-      '/api/v1/events/private-wedding',
+      '/api/v1/galleries/private-wedding',
       { headers: { Cookie: '__Host-cadrora-event-grant=invalid.signature' } },
       {
         ...bindings(databaseReturning(protectedEvent)),
