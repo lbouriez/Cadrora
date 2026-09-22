@@ -41,7 +41,7 @@ The [Deploy to Cloudflare button](https://deploy.workers.cloudflare.com/?url=htt
 
 1. Open `/admin/login` on the deployed hostname and sign in with the clear admin password you stored locally. Cloudflare never receives that clear value as a build secret.
 2. Open **Site settings**. Select one or both available languages, choose a default from that selection, and set the visitor colour policy. One language hides the public language control; two let visitors choose.
-3. On that screen, optionally choose lower guardrails for gallery count, stored media, and indexed faces. Cadrora enforces them on new writes; they are per-instance safeguards rather than account-wide billing guarantees.
+3. On that screen, optionally choose lower guardrails for gallery count, stored media, and indexed faces. Gallery count means separate galleries—not photos; the checked-in limits allow 50 galleries with up to 2,000 photos in each. Cadrora enforces these limits on new writes; they are per-instance safeguards rather than account-wide billing guarantees.
 4. Create a **gallery**, configure public or password-protected access, retention, downloads, metadata, and optional gallery-scoped face/nearby search, then import photos.
 5. Publish publicly or as unlisted. **Offline** is reversible and retains D1, R2, and Vectorize data. **Delete gallery** is permanent, requires typing the exact title, blocks access immediately, and lets the scheduled Worker clean gallery-owned provider data asynchronously. Shared AI model files are not deleted.
 6. Verify the gallery from a signed-out browser. For protected access and face search, verify Turnstile on the exact custom hostname before sharing it.

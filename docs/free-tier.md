@@ -20,6 +20,8 @@ The 10 ms Workers Free CPU allowance is also an authentication design constraint
 
 `MAX_PHOTOS_PER_EVENT`, `MAX_EVENTS`, `MAX_STORAGE_BYTES`, `MAX_FACES_PER_EVENT`, and `MAX_TOTAL_FACES` are deployment ceilings set in `wrangler.jsonc`. Site settings lets the owner choose lower instance limits for galleries, stored media, and stored face vectors. Creation, upload, and indexing routes enforce the effective lower limit server-side. Reducing a limit below current usage does not delete data; it blocks additional writes.
 
+`MAX_EVENTS=50` means 50 separate galleries, not 50 photographs. `MAX_PHOTOS_PER_EVENT=2000` allows up to 2,000 photos in each gallery. Fifty is a conservative product ceiling rather than a Cloudflare Free quota; a deployer who needs more separate galleries can raise `MAX_EVENTS` in both production and preview configuration, then redeploy. The owner-facing setting still cannot exceed that reviewed deployment value.
+
 The checked-in storage ceiling is 9.9 decimal GB, leaving room for the approximately 39 MB face models in a single otherwise-empty Cloudflare account. The checked-in total-face ceiling is 39,000 SFace vectors, or 4,992,000 stored dimensions at 128 dimensions per face. Both remain below their corresponding single-account free allowances when this is the only deployment using the account.
 
 These settings do **not** reserve Cloudflare capacity, create billing alerts, or guarantee a free bill. Allowances are pooled across the Cloudflare account. Other deployments, buckets, databases, indexes, reads, writes, searches, and Worker requests consume the same pools. R2 operations, D1 rows, Worker requests, and queried Vectorize dimensions require provider analytics rather than a local persistent-data cap.

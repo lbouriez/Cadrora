@@ -103,7 +103,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await theme.selectOption('system');
   await expect(language).toHaveValue('fr');
   await expect(theme).toHaveValue('system');
-  const galleryLimit = page.getByRole('spinbutton', { name: /maximum galleries|nombre maximal de galeries/i });
+  const galleryLimit = page.getByRole('spinbutton', { name: /maximum separate galleries|nombre maximal de galeries distinctes/i });
   const storageLimit = page.getByRole('spinbutton', { name: /maximum media storage|stockage média maximal/i });
   const faceLimit = page.getByRole('spinbutton', { name: /maximum indexed faces|nombre maximal de visages indexés/i });
   await expect(galleryLimit).toHaveValue('10');

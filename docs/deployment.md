@@ -106,8 +106,8 @@ The Worker configuration declares these non-secret variables:
 | --- | --- | --- |
 | `ADMIN_AUTH_MODE` | `password` | `password` or `cloudflare-access`; there is no open mode |
 | `SESSION_TTL_H` | `8` | Password and event-grant lifetime; accepted password-session range is 1–24 hours |
-| `MAX_PHOTOS_PER_EVENT` | `2000` | Import declaration cap |
-| `MAX_EVENTS` | `50` | Deployment ceiling enforced when an administrator creates a gallery |
+| `MAX_PHOTOS_PER_EVENT` | `2000` | Maximum photos in one gallery |
+| `MAX_EVENTS` | `50` | Maximum separate galleries; this is a conservative product ceiling, not a Cloudflare resource quota |
 | `MAX_STORAGE_BYTES` | `9900000000` | Deployment ceiling for stored media variants; leaves about 100 MB of the account's 10 GB R2 Free allowance for models and overhead |
 | `MAX_FACES_PER_EVENT` | `10000` | Facial-index declaration cap |
 | `MAX_TOTAL_FACES` | `39000` | Instance-wide face-vector ceiling; 39,000 × 128 dimensions stays below Vectorize's 5-million stored-dimension allowance |
@@ -136,12 +136,30 @@ It writes verified artifacts under ignored `.artifacts/models/` and records exac
 
 ## Additional isolated domain or subdomain
 
-The existing `cadrora.com` production deployment remains unchanged. To deploy the current checkout as another isolated instance, use the explicit instance command. A root domain and a subdomain follow the same path:
+Choose the deployment shape explicitly:
+
+| Intended result | Command/path | Cloudflare zone requirement |
+| --- | --- | --- |
+| Replace or upgrade the existing primary site such as `cadrora.com` | Keep the existing Workers Builds `npm run deploy` flow and its already attached Custom Domain | The primary domain is already an active zone in the selected account |
+| Add an isolated site on a new root domain such as `alice-photography.com` | `npm run deploy:instance -- --instance alice --hostname alice-photography.com --confirm` | `alice-photography.com` must first be an active zone in the selected account |
+| Add an isolated site below an existing domain such as `alice.cadrora.com` | `npm run deploy:instance -- --instance alice --hostname alice.cadrora.com --confirm` | The parent `cadrora.com` zone must be active in the selected account |
+
+The existing `cadrora.com` production deployment remains unchanged when either additional-instance command is used. A root domain and a subdomain use the same provisioner; only the exact `--hostname` value and the zone prerequisite differ.
+
+Subdomain example:
 
 ```powershell
 $env:VITE_TURNSTILE_SITE_KEY = '<public site key valid for the hostname>'
 $env:TURNSTILE_SECRET_KEY = '<matching private key>'
 npm run deploy:instance -- --instance alice --hostname alice.cadrora.com --confirm
+```
+
+Root-domain example:
+
+```powershell
+$env:VITE_TURNSTILE_SITE_KEY = '<public site key valid for the hostname>'
+$env:TURNSTILE_SECRET_KEY = '<matching private key>'
+npm run deploy:instance -- --instance alice --hostname alice-photography.com --confirm
 ```
 
 The instance name uses lowercase letters, digits, and internal hyphens. The command deterministically creates or reuses `cadrora-alice` D1 and Worker resources, `cadrora-alice-media`, `cadrora-alice-models`, and `cadrora-alice-face-index`, adds the `partition_id` metadata index, generates a private per-instance admin credential artifact, builds the current fork, applies migrations, uploads checksum-verified models, deploys the Worker, and attaches the exact Custom Domain. Cloudflare creates DNS and TLS for that hostname. Re-running the same command reuses those resources; it does not modify the original `cadrora` resources. Once a local instance manifest exists, the command refuses to reuse that instance name for another hostname; choose a new instance name instead.
