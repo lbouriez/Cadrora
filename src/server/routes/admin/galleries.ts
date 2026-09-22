@@ -12,27 +12,13 @@ import {
 import type { AppEnv } from '../../types';
 import { isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
+import { effectiveQuotaLimits } from '../../services/quotas';
 import { hashEventPassword } from '../public/credentials';
 import { eventFromRow, findEvent } from '../public/data';
 import type { EventRow } from '../public/data';
 
 function requireAdmin(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
   if (!context.get('auth').admin) throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 401);
-}
-
-function requiredPositiveLimit(value: string | undefined, name: string): number {
-  if (!value || !/^[1-9]\d*$/u.test(value)) {
-    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, {
-      cause: new Error(`${name} is invalid`),
-    });
-  }
-  const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed)) {
-    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, {
-      cause: new Error(`${name} is unsafe`),
-    });
-  }
-  return parsed;
 }
 
 function requiredAuthPepper(value: string | undefined): string {
@@ -82,7 +68,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const input = CreateEventRequestSchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    const maximumEvents = requiredPositiveLimit(context.env.MAX_EVENTS, 'MAX_EVENTS');
+    const maximumEvents = (await effectiveQuotaLimits(context.env)).galleryLimit;
     const eventCount = await context.env.DB.prepare('SELECT COUNT(*) AS total FROM events').first<{ total: number }>();
     if ((eventCount?.total ?? 0) >= maximumEvents) {
       throw new ApiException('EVENT_QUOTA_EXCEEDED', 'errors.eventQuotaExceeded', 413);

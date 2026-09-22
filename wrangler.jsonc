@@ -18,8 +18,9 @@
     "SESSION_TTL_H": "8",
     "MAX_PHOTOS_PER_EVENT": "2000",
     "MAX_EVENTS": "50",
-    "MAX_STORAGE_BYTES": "10737418240",
+    "MAX_STORAGE_BYTES": "9900000000",
     "MAX_FACES_PER_EVENT": "10000",
+    "MAX_TOTAL_FACES": "39000",
     "SITE_DEFAULT_LANG": "fr"
   },
   "secrets": {
@@ -59,8 +60,9 @@
         "SESSION_TTL_H": "8",
         "MAX_PHOTOS_PER_EVENT": "2000",
         "MAX_EVENTS": "50",
-        "MAX_STORAGE_BYTES": "10737418240",
+        "MAX_STORAGE_BYTES": "9900000000",
         "MAX_FACES_PER_EVENT": "10000",
+        "MAX_TOTAL_FACES": "39000",
         "SITE_DEFAULT_LANG": "fr"
       },
       "secrets": {

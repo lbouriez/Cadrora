@@ -15,6 +15,7 @@ import { D1FaceSearchRepository } from '../repositories/faceSearchRepository';
 import type { FaceSearchRepository } from '../repositories/faceSearchRepository';
 import { CloudflareFaceVectorService } from '../services/faceVectorSearch';
 import type { FaceVectorMatch, FaceVectorService } from '../services/faceVectorSearch';
+import { effectiveQuotaLimits } from '../services/quotas';
 import type { AppEnv } from '../types';
 import { hasCurrentEventAccess } from './public/access';
 import { findEvent, isEventAvailable } from './public/data';
@@ -68,12 +69,14 @@ export function registerFaceSearchRoutes(
     const vectors = dependencies.vectors(context);
     if (!vectors.available()) throw new ApiException('FACE_INDEX_UNAVAILABLE', 'errors.faceSearchUnavailable', 503);
     try {
+      const quotas = await effectiveQuotaLimits(context.env);
       const indexed = await dependencies.repository(context).upsertPhotoFaces(
         photoId.data,
         input.data,
         vectors,
         dependencies.now(),
         positiveInteger(context.env.MAX_FACES_PER_EVENT, 10_000),
+        quotas.faceLimit,
       );
       return context.json(AdminFaceResultSchema.parse({ indexed, photoId: photoId.data }));
     } catch (error) {

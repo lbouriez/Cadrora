@@ -23,6 +23,7 @@ import {
 } from '../../../shared/schemas';
 import { ApiException } from '../../../shared/errors/ApiError';
 import { requireAdmin } from '../../middleware';
+import { effectiveQuotaLimits } from '../../services/quotas';
 import type { AppEnv } from '../../types';
 
 interface ImportRow {
@@ -198,7 +199,7 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     .bind(photoId, variant)
     .first<{ byte_size: number }>();
   const usedBytes = await totalStoredBytes(context.env.DB);
-  const limit = requiredLimit(context.env.MAX_STORAGE_BYTES, 'MAX_STORAGE_BYTES');
+  const limit = (await effectiveQuotaLimits(context.env)).storageLimitBytes;
   if (usedBytes - (existing?.byte_size ?? 0) + headers.byteSize > limit) {
     throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
   }

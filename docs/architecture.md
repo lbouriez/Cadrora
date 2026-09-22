@@ -59,9 +59,14 @@ Taking a gallery offline sets a reversible D1 fence and revokes existing protect
 
 `wrangler.jsonc` defines one production Worker, a separately named preview Worker, static assets, D1, private R2 bindings, required secrets, and bounded configuration vars. Local development uses emulated/persisted resources. Release automation builds the chosen environment, migrates its `DB` binding remotely, and deploys it; preview and production resources and secrets remain separate.
 
+An additional root domain or subdomain is another isolated single-tenant instance, not a tenant inside the production Worker. `npm run deploy:instance` derives a separate Worker, D1 database, media/model buckets, Vectorize index, credentials, and exact Custom Domain from an explicit instance name. Re-running the same pair is idempotent at the resource-discovery boundary; it never redirects the original Cadrora bindings.
+
+Deployment variables define hard application ceilings. The owner can only lower the gallery, stored-media, and total-face limits from Site settings. The Worker enforces the lower effective value before the corresponding write. These are instance safeguards, not billing controls: Cloudflare allowances are pooled across the account, and request/operation/query quotas remain observable only through provider usage data.
+
 ## Related decisions
 
 - [`ADR-001-stack.md`](decisions/ADR-001-stack.md)
+- [`ADR-006-isolated-instances-and-owner-quotas.md`](decisions/ADR-006-isolated-instances-and-owner-quotas.md)
 - [`technical/contracts.md`](technical/contracts.md)
 - [`technical/public-website.md`](technical/public-website.md)
 - [`implementation-plan.md`](implementation-plan.md)

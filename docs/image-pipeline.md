@@ -30,7 +30,7 @@ Cancelling stops browser work. It does not create a publishable photo state. A s
 
 ## Operator limits
 
-`MAX_PHOTOS_PER_EVENT` and `MAX_STORAGE_BYTES` are application guardrails, not Cloudflare billing controls. The default storage setting is 10 GiB (`10737418240` bytes); it must be assessed separately from provider storage, operation, and retention costs. An invalid limit binding fails import requests closed with a configuration error.
+`MAX_PHOTOS_PER_EVENT` and `MAX_STORAGE_BYTES` are application guardrails, not Cloudflare billing controls. The checked-in storage ceiling is 9.9 decimal GB (`9900000000` bytes), leaving about 100 MB of the account-level R2 Free allowance for the model bucket and overhead when Cadrora is the only deployment in that account. The owner may select a lower media limit in Site settings. Provider operations and pooled account usage remain separate, and an invalid limit binding fails import requests closed with a configuration error.
 
 ## Current integration status
 

@@ -280,6 +280,49 @@
   gap: var(--space-3);
 }
 
+.admin-quota-settings {
+  display: grid;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-4);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-lg);
+  gap: var(--space-4);
+}
+
+.admin-quota-settings legend {
+  padding: 0 var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 800;
+}
+
+.admin-quota-fields,
+.admin-quota-usage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.admin-quota-usage {
+  margin: 0;
+}
+
+.admin-quota-usage div {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.admin-quota-usage dt {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.admin-quota-usage dd {
+  margin: var(--space-1) 0 0;
+  font-weight: 800;
+}
+
 .admin-demo-details div {
   display: grid;
   padding: var(--space-4);
@@ -327,5 +370,10 @@
   .admin-event-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .admin-quota-fields,
+  .admin-quota-usage {
+    grid-template-columns: 1fr;
   }
 }

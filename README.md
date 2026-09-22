@@ -41,9 +41,10 @@ The [Deploy to Cloudflare button](https://deploy.workers.cloudflare.com/?url=htt
 
 1. Open `/admin/login` on the deployed hostname and sign in with the clear admin password you stored locally. Cloudflare never receives that clear value as a build secret.
 2. Open **Site settings**. Select one or both available languages, choose a default from that selection, and set the visitor colour policy. One language hides the public language control; two let visitors choose.
-3. Create a **gallery**, configure public or password-protected access, retention, downloads, metadata, and optional gallery-scoped face/nearby search, then import photos.
-4. Publish publicly or as unlisted. **Offline** is reversible and retains D1, R2, and Vectorize data. **Delete gallery** is permanent, requires typing the exact title, blocks access immediately, and lets the scheduled Worker clean gallery-owned provider data asynchronously. Shared AI model files are not deleted.
-5. Verify the gallery from a signed-out browser. For protected access and face search, verify Turnstile on the exact custom hostname before sharing it.
+3. On that screen, optionally choose lower guardrails for gallery count, stored media, and indexed faces. Cadrora enforces them on new writes; they are per-instance safeguards rather than account-wide billing guarantees.
+4. Create a **gallery**, configure public or password-protected access, retention, downloads, metadata, and optional gallery-scoped face/nearby search, then import photos.
+5. Publish publicly or as unlisted. **Offline** is reversible and retains D1, R2, and Vectorize data. **Delete gallery** is permanent, requires typing the exact title, blocks access immediately, and lets the scheduled Worker clean gallery-owned provider data asynchronously. Shared AI model files are not deleted.
+6. Verify the gallery from a signed-out browser. For protected access and face search, verify Turnstile on the exact custom hostname before sharing it.
 
 ## Quick start
 
@@ -104,6 +105,7 @@ For a manual production release after authenticating Wrangler, exporting the sam
 | `npm run release:deploy -- --production --confirm` | Build, migrate, and deploy the explicit production target |
 | `npm run deploy` | Workers Builds entry point: build, migrate, and deploy production from configured `CADRORA_*` values |
 | `npm run deploy:preview` | Build, migrate, and deploy the isolated preview environment |
+| `npm run deploy:instance -- --instance alice --hostname alice.example.com --confirm` | Create or reuse isolated resources, deploy another instance, and attach an exact root domain or subdomain |
 
 ## Project map
 

@@ -178,6 +178,13 @@ function variantDatabase(): VariantDatabase {
             };
           }
           if (query.includes('FROM events WHERE id')) return { id: 'event-1' };
+          if (query.includes('FROM site_settings')) {
+            return {
+              owner_face_limit: null,
+              owner_gallery_limit: null,
+              owner_storage_limit_bytes: null,
+            };
+          }
           if (query.includes('SELECT byte_size FROM photo_variants')) return null;
           if (query.includes('COALESCE(SUM(byte_size)')) return { value: 0 };
           if (query.includes('SELECT photo_id, variant, storage_key')) {
@@ -217,6 +224,7 @@ function bindings(database: D1Database, bucket: R2Bucket): CloudflareBindings {
     DB: database,
     MAX_EVENTS: '10',
     MAX_FACES_PER_EVENT: '100',
+    MAX_TOTAL_FACES: '1000',
     MAX_PHOTOS_PER_EVENT: '100',
     MAX_STORAGE_BYTES: '1000000',
     MEDIA_BUCKET: bucket,

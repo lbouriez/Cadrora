@@ -12,6 +12,7 @@
     "check": "npm run typecheck && npm run lint",
     "cf-typegen": "wrangler types",
     "deploy": "node scripts/release/deploy.mjs --production --confirm",
+    "deploy:instance": "node scripts/instances/deploy.mjs",
     "deploy:preview": "node scripts/release/deploy.mjs --env preview --confirm",
     "dev": "vite",
     "lint": "eslint . --max-warnings 0",

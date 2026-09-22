@@ -18,5 +18,6 @@ interface CloudflareBindings {
   MAX_EVENTS: string;
   MAX_STORAGE_BYTES: string;
   MAX_FACES_PER_EVENT: string;
+  MAX_TOTAL_FACES: string;
   SITE_DEFAULT_LANG: 'fr' | 'en';
 }

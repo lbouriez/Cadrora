@@ -107,9 +107,10 @@ The Worker configuration declares these non-secret variables:
 | `ADMIN_AUTH_MODE` | `password` | `password` or `cloudflare-access`; there is no open mode |
 | `SESSION_TTL_H` | `8` | Password and event-grant lifetime; accepted password-session range is 1–24 hours |
 | `MAX_PHOTOS_PER_EVENT` | `2000` | Import declaration cap |
-| `MAX_EVENTS` | `50` | Enforced when an administrator creates an event; it is an application guard, not a provider quota |
-| `MAX_STORAGE_BYTES` | `10737418240` | Application-level total variant-storage cap |
+| `MAX_EVENTS` | `50` | Deployment ceiling enforced when an administrator creates a gallery |
+| `MAX_STORAGE_BYTES` | `9900000000` | Deployment ceiling for stored media variants; leaves about 100 MB of the account's 10 GB R2 Free allowance for models and overhead |
 | `MAX_FACES_PER_EVENT` | `10000` | Facial-index declaration cap |
+| `MAX_TOTAL_FACES` | `39000` | Instance-wide face-vector ceiling; 39,000 × 128 dimensions stays below Vectorize's 5-million stored-dimension allowance |
 | `SITE_DEFAULT_LANG` | `fr` | Declared default-language setting |
 
 Set secrets only in Cloudflare secret/binding storage. Never place them in a `VITE_*` value, commit them, or paste them into a deployment log.
@@ -132,6 +133,26 @@ node scripts/models/download.mjs
 ```
 
 It writes verified artifacts under ignored `.artifacts/models/` and records exact destination keys in `upload-manifest.json`. The official demo release runs that verification and uploads the exact two allowlisted `models/v1/...` objects automatically. The Worker serves only these public immutable routes while the bucket itself remains private. Facial search also needs `FACE_INDEX` and the `partition_id` Vectorize metadata index; a gallery remains available when an operator leaves its per-event face-search option off.
+
+## Additional isolated domain or subdomain
+
+The existing `cadrora.com` production deployment remains unchanged. To deploy the current checkout as another isolated instance, use the explicit instance command. A root domain and a subdomain follow the same path:
+
+```powershell
+$env:VITE_TURNSTILE_SITE_KEY = '<public site key valid for the hostname>'
+$env:TURNSTILE_SECRET_KEY = '<matching private key>'
+npm run deploy:instance -- --instance alice --hostname alice.cadrora.com --confirm
+```
+
+The instance name uses lowercase letters, digits, and internal hyphens. The command deterministically creates or reuses `cadrora-alice` D1 and Worker resources, `cadrora-alice-media`, `cadrora-alice-models`, and `cadrora-alice-face-index`, adds the `partition_id` metadata index, generates a private per-instance admin credential artifact, builds the current fork, applies migrations, uploads checksum-verified models, deploys the Worker, and attaches the exact Custom Domain. Cloudflare creates DNS and TLS for that hostname. Re-running the same command reuses those resources; it does not modify the original `cadrora` resources. Once a local instance manifest exists, the command refuses to reuse that instance name for another hostname; choose a new instance name instead.
+
+The hostname must already belong to an active zone in the selected Cloudflare account. The root-domain Turnstile widget may cover its subdomains; otherwise add the exact hostname before deployment. Wrangler must be authenticated with the target account. When interactive OAuth cannot enumerate D1, set `CLOUDFLARE_ACCOUNT_ID` and a scoped `CLOUDFLARE_API_TOKEN` with D1, R2, Vectorize, Workers Scripts, Workers Routes/Custom Domains, zone-read, and certificate permissions. Never store that token in a `VITE_*` variable.
+
+Generated private material is ignored below `.artifacts/instances/<instance>/`. Open `admin-credentials.env` in a trusted local editor and store `ADMIN_PASSWORD` in the customer's password manager. The temporary Turnstile deployment-secret file is removed even when deployment fails. The retained manifest and generated Wrangler file contain resource identifiers but no secret values.
+
+The command deploys an empty customer instance and deliberately does not seed the official Cadrora showcase. Public profile values still come from the current fork/build, so changing the customer frontend before running the command remains the simplest customization model. The hostname is exact: deploying `alice.cadrora.com` does not create a wildcard route and does not alter `cadrora.com`.
+
+This command provisions resources but does not implement fleet management or deletion. The possible future, separately deployed operator project is documented in [`future-operator-control-plane.md`](future-operator-control-plane.md).
 
 ## Deployment and release checks
 

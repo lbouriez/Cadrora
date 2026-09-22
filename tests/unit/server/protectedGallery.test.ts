@@ -51,8 +51,9 @@ function bindings(database: D1Database): CloudflareBindings {
     MODELS_BUCKET: {} as R2Bucket,
     MAX_EVENTS: '50',
     MAX_FACES_PER_EVENT: '10000',
+    MAX_TOTAL_FACES: '39000',
     MAX_PHOTOS_PER_EVENT: '2000',
-    MAX_STORAGE_BYTES: '10737418240',
+    MAX_STORAGE_BYTES: '9900000000',
     SESSION_TTL_H: '8',
     SITE_DEFAULT_LANG: 'fr',
   };

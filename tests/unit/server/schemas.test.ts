@@ -46,16 +46,19 @@ describe('shared schemas', () => {
     expect(UpdateSiteSettingsSchema.safeParse({
       defaultLanguage: 'fr',
       enabledLanguages: ['en'],
+      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
       themeMode: 'system',
     }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'fr'],
+      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
       themeMode: 'system',
     }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'en'],
+      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
       themeMode: 'system',
     }).success).toBe(true);
   });

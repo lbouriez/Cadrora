@@ -45,7 +45,14 @@ export interface FaceSearchRepository {
   recordVectorQuery(now: string): Promise<void>;
   related(eventId: string, photoId: string): Promise<RelatedPhoto[] | null>;
   resultsForMatches(eventId: string, matches: FaceVectorMatch[], now: string): Promise<FaceSearchMatch[]>;
-  upsertPhotoFaces(photoId: string, input: AdminFaceInput, vectors: FaceVectorService, now: string, maxFaces: number): Promise<number>;
+  upsertPhotoFaces(
+    photoId: string,
+    input: AdminFaceInput,
+    vectors: FaceVectorService,
+    now: string,
+    maxFacesPerEvent: number,
+    maxFacesTotal?: number,
+  ): Promise<number>;
 }
 
 export class D1FaceSearchRepository implements FaceSearchRepository {
@@ -72,7 +79,8 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
     input: AdminFaceInput,
     vectors: FaceVectorService,
     now: string,
-    maxFaces: number,
+    maxFacesPerEvent: number,
+    maxFacesTotal = maxFacesPerEvent,
   ): Promise<number> {
     const photo = await this.database.prepare(
       `SELECT p.event_id, e.face_search_enabled, e.retention_days, e.starts_at
@@ -94,7 +102,12 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
       ).bind(photoId, face.faceNumber, input.modelId).first();
       if (!exists) newFaces += 1;
     }
-    if ((count?.count ?? 0) + newFaces > maxFaces) throw new Error('FACE_QUOTA_EXCEEDED');
+    const totalCount = await this.database.prepare('SELECT COUNT(*) AS count FROM faces')
+      .first<{ count: number }>();
+    if (
+      (count?.count ?? 0) + newFaces > maxFacesPerEvent
+      || (totalCount?.count ?? 0) + newFaces > maxFacesTotal
+    ) throw new Error('FACE_QUOTA_EXCEEDED');
 
     const acquired = await this.database.prepare(
       `UPDATE photos

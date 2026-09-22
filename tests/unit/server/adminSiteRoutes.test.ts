@@ -15,6 +15,13 @@ const row = {
   updated_at: '2026-09-21T00:00:00.000Z',
 };
 
+const quotaBindings = {
+  MAX_EVENTS: '50',
+  MAX_FACES_PER_EVENT: '10000',
+  MAX_STORAGE_BYTES: '9900000000',
+  MAX_TOTAL_FACES: '39000',
+};
+
 function appWith() {
   const app = new Hono<AppEnv>();
   app.use('*', requestId);
@@ -46,14 +53,50 @@ describe('admin site settings routes', () => {
     } as unknown as D1Database;
     const app = appWith();
 
-    await expect((await app.request('/api/v1/admin/site', undefined, { DB: database })).json()).resolves.toMatchObject({ themeMode: 'both' });
+    await expect((await app.request('/api/v1/admin/site', undefined, { DB: database, ...quotaBindings })).json()).resolves.toMatchObject({
+      quotaCeilings: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
+      quotas: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
+      themeMode: 'both',
+    });
     const response = await app.request('/api/v1/admin/site', {
-      body: JSON.stringify({ defaultLanguage: 'en', enabledLanguages: ['en'], themeMode: 'system' }),
+      body: JSON.stringify({
+        defaultLanguage: 'en',
+        enabledLanguages: ['en'],
+        quotas: { faceLimit: 2000, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        themeMode: 'system',
+      }),
       headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },
       method: 'PATCH',
-    }, { DB: database });
+    }, { DB: database, ...quotaBindings });
 
     expect(response.status).toBe(200);
-    expect(update.bind).toHaveBeenCalledWith('en', '["en"]', 'system', expect.any(String));
+    expect(update.bind).toHaveBeenCalledWith(
+      'en', '["en"]', 'system', 5, 1000000000, 2000, expect.any(String),
+    );
+  });
+
+  it('refuses owner limits above the deployment guardrails', async () => {
+    const prepare = vi.fn(() => ({
+      bind: vi.fn().mockReturnThis(),
+      first: vi.fn().mockResolvedValue(row),
+      run: vi.fn().mockResolvedValue({ meta: { changes: 1 } }),
+    }));
+    const database = {
+      prepare,
+    } as unknown as D1Database;
+
+    const response = await appWith().request('/api/v1/admin/site', {
+      body: JSON.stringify({
+        defaultLanguage: 'fr',
+        enabledLanguages: ['fr'],
+        quotas: { faceLimit: 39001, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        themeMode: 'light',
+      }),
+      headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },
+      method: 'PATCH',
+    }, { DB: database, ...quotaBindings });
+
+    expect(response.status).toBe(400);
+    expect(prepare).not.toHaveBeenCalled();
   });
 });

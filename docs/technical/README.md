@@ -29,7 +29,7 @@ The approved contracts cannot be changed merely because current code differs. Co
 | Dependency | [`../decisions/ADR-001-stack.md`](../decisions/ADR-001-stack.md) | new/updated ADR, check, tests, build, audit |
 | Setup or deployment | README, `wrangler.jsonc`, setup script | diagnostic mode, idempotence, check, tests, build |
 
-Package guides: [`browser-import.md`](browser-import.md), [`media-and-publication.md`](media-and-publication.md), [`public-website.md`](public-website.md), [`public-gallery.md`](public-gallery.md), and [`facial-search.md`](facial-search.md). Browser integration coverage and its provider-boundary limits are documented in [`e2e-testing.md`](e2e-testing.md).
+Package guides: [`browser-import.md`](browser-import.md), [`media-and-publication.md`](media-and-publication.md), [`public-website.md`](public-website.md), [`public-gallery.md`](public-gallery.md), and [`facial-search.md`](facial-search.md). Browser integration coverage and its provider-boundary limits are documented in [`e2e-testing.md`](e2e-testing.md). The optional fleet/operator concept is deferred in [`../future-operator-control-plane.md`](../future-operator-control-plane.md); it is not an active Cadrora runtime contract.
 
 ## Cross-cutting invariants
 

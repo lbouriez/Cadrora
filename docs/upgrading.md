@@ -25,7 +25,7 @@ Migrations are ordered under `migrations/`. `npm run setup` applies them only to
 
 Migrations are forward changes, not a substitute for restoring a backup. Avoid destructive SQL and do not reuse an existing migration filename.
 
-Migrations `009_gallery_deletion.sql` and `010_site_languages.sql` add deletion fencing/jobs and the enabled-language list. Deploy them before code that reads `events.deleting_at` or `site_settings.enabled_languages`; the checked-in release script does this automatically. Existing sites start with both French and English enabled, preserving the pre-upgrade visitor switch.
+Migrations `009_gallery_deletion.sql`, `010_site_languages.sql`, and `011_owner_quotas.sql` add deletion fencing/jobs, the enabled-language list, and nullable owner self-limits. Deploy them before code that reads `events.deleting_at`, `site_settings.enabled_languages`, or the `owner_*_limit` columns; the checked-in release script does this automatically. Existing sites start with both French and English enabled and use the deployment quota ceilings until an owner saves lower limits.
 
 ## Dependency changes
 
