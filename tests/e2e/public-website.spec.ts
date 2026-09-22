@@ -46,7 +46,7 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
 
-    await page.goto('/events');
+    await page.goto('/galleries');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/beauté de la livraison|beautiful delivery/i);
     await expect(page.getByRole('link', { name: /tester le chercheur de photos ia|test the ai photo finder/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /admin en lecture seule|read-only admin/i })).toBeVisible();

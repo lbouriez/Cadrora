@@ -9,8 +9,9 @@ const PurgeExpiredFacesPayloadSchema = z.object({
   expiresBefore: IsoDateTimeSchema,
 });
 const DeleteFaceVectorPayloadSchema = z.object({ vectorId: z.string().min(1).max(512) });
+const DeleteGalleryPayloadSchema = z.object({ eventId: IdSchema });
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -33,14 +34,18 @@ export interface PhotoCleanupData {
   vectorIds: string[];
 }
 
+export type GalleryCleanupData = PhotoCleanupData;
+
 export interface MaintenanceRepository {
   claimNext(now: string): Promise<MaintenanceJobRecord | null>;
   completeEventFacePurge(jobId: string, eventId: string, now: string): Promise<void>;
   completeExpiredFacePurge(jobId: string, eventId: string, expiresBefore: string, now: string): Promise<void>;
+  completeGalleryDeletion(jobId: string, eventId: string, now: string): Promise<void>;
   completeJob(jobId: string, now: string): Promise<void>;
   completePhotoDeletion(jobId: string, photoId: string, now: string): Promise<void>;
   eventFaceVectorIds(eventId: string): Promise<string[]>;
   expiredFaceVectorIds(eventId: string, expiresBefore: string): Promise<string[]>;
+  galleryCleanupData(eventId: string): Promise<GalleryCleanupData>;
   photoCleanupData(photoId: string): Promise<PhotoCleanupData>;
   reconcileUsage(now: string): Promise<void>;
   retryJob(job: MaintenanceJobRecord, error: string, availableAt: string, now: string): Promise<void>;
@@ -100,6 +105,48 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
       storageKeys: variantRows.results.map((row) => row.storage_key),
       vectorIds: faceRows.results.map((row) => row.vector_id),
     };
+  }
+
+  async galleryCleanupData(eventId: string): Promise<GalleryCleanupData> {
+    const [variantRows, faceRows] = await Promise.all([
+      this.database
+        .prepare(
+          `SELECT pv.storage_key
+             FROM photo_variants pv
+             JOIN photos p ON p.id = pv.photo_id
+            WHERE p.event_id = ?1`,
+        )
+        .bind(eventId)
+        .all<{ storage_key: string }>(),
+      this.database
+        .prepare('SELECT vector_id FROM faces WHERE event_id = ?1')
+        .bind(eventId)
+        .all<{ vector_id: string }>(),
+    ]);
+    return {
+      storageKeys: variantRows.results.map((row) => row.storage_key),
+      vectorIds: faceRows.results.map((row) => row.vector_id),
+    };
+  }
+
+  async completeGalleryDeletion(jobId: string, eventId: string, now: string): Promise<void> {
+    await this.database.batch([
+      this.database.prepare('DELETE FROM faces WHERE event_id = ?1').bind(eventId),
+      this.database.prepare('DELETE FROM face_partitions WHERE event_id = ?1').bind(eventId),
+      this.database.prepare(
+        'DELETE FROM photo_variants WHERE photo_id IN (SELECT id FROM photos WHERE event_id = ?1)',
+      ).bind(eventId),
+      this.database.prepare('DELETE FROM photos WHERE event_id = ?1').bind(eventId),
+      this.database.prepare(
+        'DELETE FROM import_chunks WHERE import_id IN (SELECT id FROM imports WHERE event_id = ?1)',
+      ).bind(eventId),
+      this.database.prepare('DELETE FROM imports WHERE event_id = ?1').bind(eventId),
+      this.database.prepare('DELETE FROM event_credentials WHERE event_id = ?1').bind(eventId),
+      this.database.prepare('DELETE FROM events WHERE id = ?1').bind(eventId),
+      this.database
+        .prepare("UPDATE maintenance_jobs SET state = 'completed', last_error = NULL, updated_at = ?2 WHERE id = ?1")
+        .bind(jobId, now),
+    ]);
   }
 
   async completePhotoDeletion(jobId: string, photoId: string, now: string): Promise<void> {
@@ -219,7 +266,9 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
     availableAt: string,
     now: string,
   ): Promise<void> {
-    const state = job.attempts >= 5 ? 'failed' : 'pending';
+    // Gallery deletion remains hidden and retryable until every provider confirms cleanup.
+    // Other maintenance jobs retain the bounded retry policy and surface as failed for operator review.
+    const state = job.kind === 'delete_gallery' || job.attempts < 5 ? 'pending' : 'failed';
     await this.database
       .prepare(
         `UPDATE maintenance_jobs
@@ -237,6 +286,10 @@ export function parseDeletePhotoPayload(payload: unknown) {
 
 export function parseDeleteFaceVectorPayload(payload: unknown) {
   return DeleteFaceVectorPayloadSchema.parse(payload);
+}
+
+export function parseDeleteGalleryPayload(payload: unknown) {
+  return DeleteGalleryPayloadSchema.parse(payload);
 }
 
 export function parsePurgeFacesPayload(payload: unknown) {

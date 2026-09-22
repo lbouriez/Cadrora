@@ -1,6 +1,6 @@
 # Approved implementation plan
 
-Status: implemented locally; production acceptance remains pending. Approved 2026-09-20, implementation reviewed 2026-09-20.
+Status: implemented. Approved 2026-09-20; implementation and documentation reviewed 2026-09-21. Release-specific provider evidence must still be recorded for each deployed revision.
 
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
@@ -42,16 +42,16 @@ Owns `src/browser/faces/*`, face-search routes/vector service, find UI, and mode
 
 After all five packages pass their acceptance checks, integrate end-to-end photographer, visitor, protected gallery, download, facial search, and killed-tab resume journeys. Finalize fresh-account deployment, preview isolation, diagnostics, operator/admin documentation, API/security/privacy/free-tier/upgrade docs, notices, security policy, and contribution guide.
 
-Local implementation and browser coverage are complete. The import suite now verifies real pipeline chunking over 200 synthetic files, restart from the first unfinished chunk after 100 finalizations, and browser IndexedDB/UI recovery over four 50-photo chunks. Fresh-account Cloudflare deployment, provider-backed smoke tests, a real interrupted import with representative 50/200-photo payloads, and iPhone Safari facial-search validation remain release acceptance work; deterministic local fakes and dry runs do not replace those checks.
+Local implementation and browser coverage are complete. The import suite verifies real pipeline chunking over 200 synthetic files, restart from the first unfinished chunk after 100 finalizations, and browser IndexedDB/UI recovery over four 50-photo chunks. The public showcase has been deployed to Cloudflare, but each new revision still requires exact-deployment smoke tests. A fresh third-party account rehearsal, a real interrupted import with representative 50/200-photo payloads, and iPhone Safari facial-search validation remain release-acceptance work; deterministic local fakes and dry runs do not replace those checks.
 
 ## Guardrails
 
-1. The frontend is static and event photos never enter the build.
+1. The frontend is static and gallery photos never enter the build.
 2. The browser receives no secrets or provider bindings.
 3. Heavy processing never runs in the Worker.
 4. API and media authorization are independent and mandatory.
-5. Search never grants event access.
-6. Selfies stay local; no identity profile or cross-event matching exists.
+5. Search never grants gallery access.
+6. Selfies stay local; no identity profile or cross-gallery matching exists.
 7. Embeddings remain expiring biometric data.
 8. ML failure never blocks galleries.
 9. Cross-service operations are idempotent and repaired through `maintenance_jobs`.

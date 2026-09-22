@@ -5,6 +5,7 @@ import {
   EventCredentialsSchema,
   EventSchema,
   ModelManifestSchema,
+  UpdateSiteSettingsSchema,
 } from '../../../src/shared/schemas';
 
 describe('shared schemas', () => {
@@ -39,5 +40,23 @@ describe('shared schemas', () => {
 
     expect(CreateEventRequestSchema.safeParse(event).success).toBe(false);
     expect(CreateEventRequestSchema.safeParse({ ...event, faceSearchEnabled: true }).success).toBe(true);
+  });
+
+  it('requires at least one unique language and keeps the default enabled', () => {
+    expect(UpdateSiteSettingsSchema.safeParse({
+      defaultLanguage: 'fr',
+      enabledLanguages: ['en'],
+      themeMode: 'system',
+    }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({
+      defaultLanguage: 'fr',
+      enabledLanguages: ['fr', 'fr'],
+      themeMode: 'system',
+    }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({
+      defaultLanguage: 'fr',
+      enabledLanguages: ['fr', 'en'],
+      themeMode: 'system',
+    }).success).toBe(true);
   });
 });

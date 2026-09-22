@@ -1,6 +1,6 @@
 # Frozen technical contracts
 
-Status: accepted on 2026-09-20. Changes require an ADR and explicit human validation.
+Status: accepted on 2026-09-21. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md).
 
 ## Platform boundaries
 
@@ -36,12 +36,14 @@ PATCH  /api/v1/admin/site
 GET    /api/v1/admin/events
 POST   /api/v1/admin/events
 PATCH  /api/v1/admin/events/:eventId
+DELETE /api/v1/admin/events/:eventId
 POST   /api/v1/admin/events/:eventId/imports
 POST   /api/v1/admin/imports/:importId/photos
 PUT    /api/v1/admin/photos/:photoId/variants/:variant
 POST   /api/v1/admin/photos/:photoId/faces
 POST   /api/v1/admin/photos/:photoId/finalize
 POST   /api/v1/admin/events/:eventId/publish
+PUT    /api/v1/admin/events/:eventId/publication
 DELETE /api/v1/admin/photos/:photoId
 POST   /api/v1/admin/events/:eventId/purge-faces
 GET    /api/v1/admin/usage
@@ -87,17 +89,17 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 
 D1 contains `site_settings`, `events`, `event_credentials`, `photos`, `photo_variants`, `imports`, `import_chunks`, `faces`, `face_partitions`, `sessions`, `maintenance_jobs`, and `usage_counters`.
 
-Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Natural-key upserts make variant and face declarations idempotent. D1 is updated before access is removed; R2 and Vectorize cleanup is retried from `maintenance_jobs`.
+Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Permanent deletion sets `events.deleting_at`, cancels open imports, freezes photo/face writes, and enqueues one `delete_gallery` job after exact-title confirmation. Provider cleanup uses only D1-derived gallery object/vector identifiers and never touches the shared model bucket. Natural-key upserts make variant and face declarations idempotent. D1 removes access before R2 and Vectorize cleanup, which is retried from `maintenance_jobs`.
 
 ## UI and localization
 
 Semantic values live in `src/app/styles/tokens.css`. Reusable typed components live in `src/app/components/` and carry a short contract/example comment. Interactive targets are at least 44 px. Modals trap focus, close on Escape, and restore focus. Every user-visible string ships in FR and EN.
 
-The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, starts only after explicit analytics consent, and is allowlisted to the five public marketing routes. Gallery, admin, media, API, and facial-search routes never emit analytics events.
+The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, starts only after explicit analytics consent, and is allowlisted to `/`, `/services`, `/galleries`, `/contact`, and `/privacy`. Gallery viewer, admin, media, API, and facial-search routes never emit analytics events.
 
 Gallery links never acquire browser-default underlines or layout-changing hover movement. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
 
-`site_settings.theme_mode` is `light`, `dark`, `both`, or `system`, and `default_language` is `fr` or `en`. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. The public shell falls back to build-time language selection and `both` when the settings read is unavailable.
+`site_settings.theme_mode` is `light`, `dark`, `both`, or `system`; `default_language` is `fr` or `en`; and `enabled_languages` is a non-empty, unique JSON list drawn from those languages that must contain the default. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. One enabled language is enforced and hides the public language control; multiple enabled languages expose it. The public shell falls back to build-time language selection, both languages, and visitor-selectable colour when the settings read is unavailable.
 
 ## Import and facial-search privacy
 

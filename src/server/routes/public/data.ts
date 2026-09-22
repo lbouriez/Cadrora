@@ -18,6 +18,7 @@ export interface EventRow {
   keep_originals: number;
   retention_days: number | null;
   offline_at: string | null;
+  deleting_at: string | null;
   revision: number;
   created_at: string;
   updated_at: string;
@@ -41,6 +42,7 @@ export function eventFromRow(row: EventRow): Event {
     keepOriginals: row.keep_originals === 1,
     retentionDays: row.retention_days,
     offlineAt: row.offline_at,
+    deletingAt: row.deleting_at,
     revision: row.revision,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

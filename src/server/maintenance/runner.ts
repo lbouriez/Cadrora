@@ -1,6 +1,7 @@
 import {
   D1MaintenanceRepository,
   parseDeleteFaceVectorPayload,
+  parseDeleteGalleryPayload,
   parseDeletePhotoPayload,
   parsePurgeExpiredFacesPayload,
   parsePurgeFacesPayload,
@@ -59,6 +60,15 @@ export class MaintenanceRunner {
       await this.dependencies.storage.deleteMany(cleanup.storageKeys);
       await this.dependencies.vectors.deleteMany(cleanup.vectorIds);
       await this.dependencies.repository.completePhotoDeletion(job.id, payload.photoId, now.toISOString());
+      return;
+    }
+
+    if (job.kind === 'delete_gallery') {
+      const payload = parseDeleteGalleryPayload(job.payload);
+      const cleanup = await this.dependencies.repository.galleryCleanupData(payload.eventId);
+      await this.dependencies.storage.deleteMany(cleanup.storageKeys);
+      await this.dependencies.vectors.deleteMany(cleanup.vectorIds);
+      await this.dependencies.repository.completeGalleryDeletion(job.id, payload.eventId, now.toISOString());
       return;
     }
 

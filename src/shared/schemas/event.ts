@@ -22,6 +22,7 @@ export const EventSchema = z.object({
   keepOriginals: z.boolean(),
   retentionDays: z.number().int().positive().nullable(),
   offlineAt: IsoDateTimeSchema.nullable(),
+  deletingAt: IsoDateTimeSchema.nullable(),
   revision: z.number().int().nonnegative(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,

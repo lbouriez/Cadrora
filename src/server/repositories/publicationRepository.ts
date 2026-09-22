@@ -141,7 +141,7 @@ export class D1PublicationRepository implements PublicationRepository {
                 (SELECT offline_at FROM events WHERE id = ?1) AS offline_at
            FROM photos
           WHERE event_id = ?1 AND state NOT IN ('deleting', 'deleted')
-         HAVING EXISTS (SELECT 1 FROM events WHERE id = ?1)`,
+         HAVING EXISTS (SELECT 1 FROM events WHERE id = ?1 AND deleting_at IS NULL)`,
       )
       .bind(eventId)
       .first<PublicationRow>();

@@ -17,13 +17,15 @@ Cadrora has no tagged release process or automated application rollback. Its rel
    npm run build
    ```
 
-5. Exercise public `/` and `/contact`, a public event, protected unlock/media, admin authorization, and any enabled import/face-search path in an isolated environment.
+5. Exercise public `/`, `/galleries`, and `/contact`, a public gallery, protected unlock/media, admin authorization, language policy, and any enabled import/face-search path in an isolated environment.
 
 ## Database changes
 
 Migrations are ordered under `migrations/`. `npm run setup` applies them only to local persisted D1 state. For the isolated preview or production target, use `npm run release:migrate -- --env preview --confirm` or `npm run release:migrate -- --production --confirm`; both invoke `wrangler d1 migrations apply DB --remote`. Do not deploy a schema-dependent Worker change until the remote migration plan has been reviewed, backed up, rehearsed in the isolated preview resource, and recorded by the operator.
 
 Migrations are forward changes, not a substitute for restoring a backup. Avoid destructive SQL and do not reuse an existing migration filename.
+
+Migrations `009_gallery_deletion.sql` and `010_site_languages.sql` add deletion fencing/jobs and the enabled-language list. Deploy them before code that reads `events.deleting_at` or `site_settings.enabled_languages`; the checked-in release script does this automatically. Existing sites start with both French and English enabled, preserving the pre-upgrade visitor switch.
 
 ## Dependency changes
 

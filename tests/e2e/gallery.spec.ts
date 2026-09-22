@@ -95,7 +95,7 @@ test('demande puis echange le mot de passe d une galerie protegee', async ({ pag
   await page.goto('/e/soiree-privee');
 
   await expect(page.getByRole('heading', { name: /galerie est protégée|gallery is protected/i })).toBeVisible();
-  await page.getByLabel(/mot de passe de l'événement|event password/i).fill('mot-de-passe');
+  await page.getByLabel(/mot de passe de la galerie|gallery password/i).fill('mot-de-passe');
   await page.getByRole('button', { name: /ouvrir la galerie|open gallery/i }).click();
 
   await expect(page.getByRole('heading', { level: 1, name: 'Soiree privee' })).toBeVisible();

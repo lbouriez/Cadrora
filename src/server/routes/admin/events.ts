@@ -5,6 +5,8 @@ import { EventSchema } from '../../../shared/schemas/event';
 import {
   AdminEventListSchema,
   CreateEventRequestSchema,
+  DeleteGalleryRequestSchema,
+  DeleteGalleryResponseSchema,
   UpdateEventRequestSchema,
 } from '../../../shared/schemas/gallery';
 import type { AppEnv } from '../../types';
@@ -120,6 +122,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
     if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (event.deletingAt) throw new ApiException('EVENT_DELETION_PENDING', 'errors.eventNotFound', 409);
     const nextFaceSearchEnabled = input.data.faceSearchEnabled ?? event.faceSearchEnabled;
     const nextNearbySearchEnabled = input.data.nearbySearchEnabled ?? event.nearbySearchEnabled;
     if (nextNearbySearchEnabled && !nextFaceSearchEnabled) {
@@ -187,17 +190,36 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const event = await findEvent(context.env.DB, context.req.param('eventId'));
     if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
-    const remaining = await context.env.DB.prepare(
-      "SELECT COUNT(*) AS total FROM photos WHERE event_id = ?1 AND state != 'deleted'",
-    ).bind(event.id).first<{ total: number }>();
-    if ((remaining?.total ?? 0) > 0) {
-      throw new ApiException('EVENT_NOT_EMPTY', 'errors.eventNotEmpty', 409);
+    const input = DeleteGalleryRequestSchema.safeParse(await context.req.json().catch(() => null));
+    if (!input.success || input.data.confirmation !== event.title) {
+      throw new ApiException('DELETE_CONFIRMATION_INVALID', 'errors.invalidRequest', 400);
     }
+    const now = new Date().toISOString();
+    const cleanupAfter = new Date(Date.parse(now) + 5 * 60_000).toISOString();
+    const jobId = crypto.randomUUID();
     await context.env.DB.batch([
-      context.env.DB.prepare('DELETE FROM event_credentials WHERE event_id = ?1').bind(event.id),
-      context.env.DB.prepare('DELETE FROM events WHERE id = ?1').bind(event.id),
+      context.env.DB.prepare(
+        `UPDATE events
+            SET offline_at = COALESCE(offline_at, ?2), deleting_at = COALESCE(deleting_at, ?2),
+                revision = revision + 1, updated_at = ?2
+          WHERE id = ?1`,
+      ).bind(event.id, now),
+      context.env.DB.prepare(
+        'UPDATE event_credentials SET access_version = access_version + 1, updated_at = ?2 WHERE event_id = ?1',
+      ).bind(event.id, now),
+      context.env.DB.prepare(
+        "UPDATE imports SET state = 'cancelled', updated_at = ?2 WHERE event_id = ?1 AND state NOT IN ('completed', 'cancelled')",
+      ).bind(event.id, now),
+      context.env.DB.prepare(
+        "UPDATE photos SET state = 'deleting', face_state = 'deleting', updated_at = ?2 WHERE event_id = ?1 AND state != 'deleted'",
+      ).bind(event.id, now),
+      context.env.DB.prepare(
+        `INSERT OR IGNORE INTO maintenance_jobs
+          (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
+         VALUES (?1, 'delete_gallery', 'pending', ?2, ?3, 0, ?4, ?5, ?5)`,
+      ).bind(jobId, JSON.stringify({ eventId: event.id }), `delete-gallery:${event.id}`, cleanupAfter, now),
     ]);
-    return context.body(null, 204);
+    return context.json(DeleteGalleryResponseSchema.parse({ deletionQueued: true }), 202);
   });
 
   return routes;

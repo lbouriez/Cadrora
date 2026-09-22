@@ -16,9 +16,11 @@ An event publishes only when it contains at least one photo and every visible ph
 
 ## Deletion
 
-Deletion changes the photo to `deleting` in D1 and creates one `delete_photo_media` job keyed by the photo ID. From that moment, media lookup returns 404 even if R2 or Vectorize is unavailable.
+Deleting one photo changes it to `deleting` in D1 and creates one `delete_photo_media` job keyed by the photo ID. From that moment, media lookup returns 404 even if R2 or Vectorize is unavailable.
 
-The maintenance runner fetches D1-derived R2 keys and vector IDs, deletes provider data in bounded batches, removes variant/face references, repairs affected partition counts, and marks the photo `deleted`. It also processes targeted `delete_face_vector` compensation jobs created when an indexer loses its D1 lease after a provider upsert. Failures return the job to `pending` with exponential delay; the fifth failed attempt is retained as `failed` for operator attention. A `running` claim expires after 15 minutes so an isolate crash cannot strand cleanup forever. Operations remain idempotent because a stale claim may safely repeat a provider delete.
+Deleting a whole gallery requires an exact, case-sensitive title confirmation at both UI and API boundaries. D1 immediately sets `offline_at` and `deleting_at`, revokes protected grants, cancels writable imports, and marks photos/faces as deleting. One idempotent `delete_gallery` job becomes available after a five-minute quiescence window. It selects every owned media key and vector ID through D1, deletes those provider records in bounded batches, removes dependent D1 records in foreign-key-safe order, and deletes the gallery last. It never deletes the shared `MODELS_BUCKET` artifacts.
+
+The maintenance runner also processes targeted `delete_face_vector` compensation jobs created when an indexer loses its D1 lease after a provider upsert. Failures return jobs to `pending` with exponential delay; ordinary jobs retain the fifth failure as `failed` for operator attention, while a hidden gallery deletion keeps retrying so provider data is not silently stranded. A `running` claim expires after 15 minutes so an isolate crash cannot strand cleanup forever. Operations remain idempotent because a stale claim may safely repeat a provider delete.
 
 ## Integration points
 

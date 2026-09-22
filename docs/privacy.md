@@ -13,7 +13,7 @@ This document describes the current implementation. It is not legal advice, a pr
 | Event passwords | D1 stores a domain-separated HMAC-SHA-256 verifier, never the clear password. Its key is the separate Worker-only `AUTH_PEPPER`; admin and event credentials use different domains. |
 | Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
-| Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores event-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |
+| Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores gallery-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |
 | Optional analytics | A GA4 script may run only on the public marketing routes after explicit consent and a valid `VITE_GA_MEASUREMENT_ID`. Gallery, admin, media, and face-search routes are excluded. |
 
 Withdrawing analytics consent sets Google's disable flag and removes the first-party `_ga` cookies available to the current hostname. It stops future collection from Cadrora; it does not claim to erase information already retained by Google.
@@ -31,7 +31,7 @@ Withdrawing analytics consent sets Google's disable flag and removes the first-p
 
 Protected event access needs a current event grant and the current access version. Rotating an event password increments that version. Admin state-changing routes require both Worker authentication and a same-origin `Origin` header.
 
-Facial embeddings are event-scoped and may expire. With a configured event retention period, the server rejects an expiry later than the allowed event window. D1 excludes expired matches from every response even if Vectorize returns one during the short interval before provider cleanup. A 15-minute Worker Cron Trigger enqueues cutoff-scoped expired-face purges and runs maintenance, but a queued cleanup must not be represented as immediate physical deletion; verify the specific job completed.
+Facial embeddings are gallery-scoped and may expire. With a configured gallery retention period, the server rejects an expiry later than the allowed gallery window. D1 excludes expired matches from every response even if Vectorize returns one during the short interval before provider cleanup. A 15-minute Worker Cron Trigger enqueues cutoff-scoped expired-face purges and runs maintenance, but a queued cleanup must not be represented as immediate physical deletion; verify the specific job completed.
 
 ## Operator responsibilities and gaps
 

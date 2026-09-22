@@ -13,6 +13,8 @@ export { Textarea } from './Textarea';
 export type { TextareaProps } from './Textarea';
 export { Select } from './Select';
 export type { SelectProps } from './Select';
+export { MultiSelect } from './MultiSelect';
+export type { MultiSelectOption, MultiSelectProps } from './MultiSelect';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
 export { Drawer } from './Drawer';

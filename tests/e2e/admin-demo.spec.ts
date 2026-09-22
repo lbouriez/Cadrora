@@ -10,6 +10,7 @@ const demoEvent = {
   coverPhotoId: null,
   visibility: 'published',
   offlineAt: null,
+  deletingAt: null,
   access: 'public',
   allowDownloads: false,
   faceSearchEnabled: true,
@@ -48,6 +49,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
         body: JSON.stringify({
           siteName: 'Cadrora',
           defaultLanguage: 'en',
+          enabledLanguages: ['en', 'fr'],
           contactEmail: 'hello@example.test',
           themeMode: 'both',
           updatedAt: '2026-09-20T15:00:00.000Z',
@@ -86,8 +88,14 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   });
   const language = page.getByRole('combobox', { name: /default visitor language|langue visiteur par défaut/i });
   const theme = page.getByRole('combobox', { name: /visitor colour theme|thème de couleur visiteur/i });
+  await page.locator('.multi-select__summary').click();
+  const frenchLanguage = page.getByRole('checkbox', { name: /french|français/i });
   await expect(language).toBeEnabled();
   await expect(theme).toBeEnabled();
+  await expect(frenchLanguage).toBeChecked();
+  await frenchLanguage.uncheck();
+  await expect(frenchLanguage).not.toBeChecked();
+  await frenchLanguage.check();
   await language.selectOption('fr');
   await theme.selectOption('system');
   await expect(language).toHaveValue('fr');
@@ -113,5 +121,6 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(availability).toBeEnabled();
   await availability.selectOption('offline');
   await expect(page.getByRole('button', { name: /take gallery offline|mettre la galerie hors ligne/i })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /delete gallery|supprimer la galerie/i })).toBeDisabled();
   expect(writes).toEqual([]);
 });

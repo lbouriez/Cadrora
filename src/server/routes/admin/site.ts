@@ -8,6 +8,7 @@ import type { AppEnv } from '../../types';
 interface SiteSettingsRow {
   contact_email: string | null;
   default_language: 'fr' | 'en';
+  enabled_languages: string;
   site_name: string;
   theme_mode: 'dark' | 'light' | 'both' | 'system';
   updated_at: string;
@@ -21,6 +22,7 @@ function settingsFromRow(row: SiteSettingsRow) {
   return SiteSettingsSchema.parse({
     contactEmail: row.contact_email,
     defaultLanguage: row.default_language,
+    enabledLanguages: JSON.parse(row.enabled_languages) as unknown,
     siteName: row.site_name,
     themeMode: row.theme_mode,
     updatedAt: row.updated_at,
@@ -29,7 +31,7 @@ function settingsFromRow(row: SiteSettingsRow) {
 
 async function findSettings(database: D1Database) {
   return database.prepare(
-    'SELECT site_name, default_language, contact_email, theme_mode, updated_at FROM site_settings WHERE id = 1',
+    'SELECT site_name, default_language, enabled_languages, contact_email, theme_mode, updated_at FROM site_settings WHERE id = 1',
   ).first<SiteSettingsRow>();
 }
 
@@ -52,8 +54,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const updatedAt = new Date().toISOString();
     const result = await context.env.DB.prepare(
-      'UPDATE site_settings SET default_language = ?1, theme_mode = ?2, updated_at = ?3 WHERE id = 1',
-    ).bind(input.data.defaultLanguage, input.data.themeMode, updatedAt).run();
+      'UPDATE site_settings SET default_language = ?1, enabled_languages = ?2, theme_mode = ?3, updated_at = ?4 WHERE id = 1',
+    ).bind(input.data.defaultLanguage, JSON.stringify(input.data.enabledLanguages), input.data.themeMode, updatedAt).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     const settings = await findSettings(context.env.DB);
     if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);

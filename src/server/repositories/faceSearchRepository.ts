@@ -77,7 +77,7 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
     const photo = await this.database.prepare(
       `SELECT p.event_id, e.face_search_enabled, e.retention_days, e.starts_at
        FROM photos p JOIN events e ON e.id = p.event_id
-       WHERE p.id = ?1 AND p.state NOT IN ('deleting', 'deleted')`,
+       WHERE p.id = ?1 AND p.state NOT IN ('deleting', 'deleted') AND e.deleting_at IS NULL`,
     ).bind(photoId).first<PhotoEventRow>();
     if (!photo) throw new Error('PHOTO_NOT_FOUND');
     if (photo.face_search_enabled !== 1) throw new Error('FACE_SEARCH_DISABLED');
@@ -102,7 +102,8 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
         WHERE id = ?1
           AND state NOT IN ('deleting', 'deleted')
           AND face_state <> 'deleting'
-          AND face_state <> 'indexing'`,
+          AND face_state <> 'indexing'
+          AND EXISTS (SELECT 1 FROM events WHERE id = photos.event_id AND deleting_at IS NULL)`,
     ).bind(photoId, now).run();
     if ((acquired.meta.changes ?? 0) !== 1) throw new Error('PHOTO_FACE_INDEX_UNAVAILABLE');
 

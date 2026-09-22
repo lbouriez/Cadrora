@@ -87,13 +87,14 @@ adminImportRoutes.post('/events/:eventId/imports', async (context) => {
   const payload = parseInput(ImportCreateRequestSchema, await readJson(context));
   const existing = await getImport(context.env.DB, payload.id);
   if (existing) {
+    await assertGalleryWritable(context.env.DB, existing.eventId);
     if (existing.eventId !== eventId || existing.totalPhotos !== payload.totalPhotos) {
       throw new ApiException('IMPORT_ID_CONFLICT', 'errors.importIdConflict', 409);
     }
     return context.json(ImportCreateResponseSchema.parse({ import: existing }));
   }
 
-  const event = await context.env.DB.prepare('SELECT id FROM events WHERE id = ?').bind(eventId).first<IdRow>();
+  const event = await context.env.DB.prepare('SELECT id FROM events WHERE id = ? AND deleting_at IS NULL').bind(eventId).first<IdRow>();
   if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
 
   const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
@@ -118,6 +119,7 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
   const payload = parseInput(ImportDeclarePhotosRequestSchema, await readJson(context));
   const imported = await getImport(context.env.DB, importId);
   if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
+  await assertGalleryWritable(context.env.DB, imported.eventId);
   if (imported.state === 'cancelled' || imported.state === 'completed') {
     throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
   }
@@ -184,6 +186,7 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
   if (!photo || photo.state === 'deleted' || photo.state === 'deleting') {
     throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
   }
+  await assertGalleryWritable(context.env.DB, photo.eventId);
 
   const declaredContentLength = parseContentLength(context.req.header('Content-Length'));
   if (declaredContentLength !== undefined && declaredContentLength !== headers.byteSize) {
@@ -265,6 +268,7 @@ adminImportRoutes.post('/photos/:photoId/finalize', async (context) => {
   const photoId = parseInput(IdSchema, context.req.param('photoId'));
   const photo = await getPhoto(context.env.DB, photoId);
   if (!photo) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  await assertGalleryWritable(context.env.DB, photo.eventId);
   const variants = await context.env.DB
     .prepare('SELECT variant FROM photo_variants WHERE photo_id = ?')
     .bind(photoId)
@@ -335,6 +339,14 @@ async function getImport(database: D1Database, importId: string): Promise<Import
     .bind(importId)
     .first<ImportRow>();
   return row ? importFromRow(row) : undefined;
+}
+
+async function assertGalleryWritable(database: D1Database, eventId: string): Promise<void> {
+  const event = await database
+    .prepare('SELECT id FROM events WHERE id = ? AND deleting_at IS NULL')
+    .bind(eventId)
+    .first<IdRow>();
+  if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
 }
 
 async function getPhoto(database: D1Database, photoId: string): Promise<Photo | undefined> {

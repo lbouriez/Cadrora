@@ -35,7 +35,7 @@ describe('consented Google Analytics loader', () => {
 
   it('loads after consent only on the marketing route allowlist', () => {
     localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
-    renderAnalytics('/events');
+    renderAnalytics('/galleries');
     expect(document.querySelector('script[data-cadrora-analytics]')).not.toBeNull();
 
     cleanup();

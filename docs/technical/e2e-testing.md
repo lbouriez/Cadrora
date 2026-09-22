@@ -1,6 +1,6 @@
 # Tests end-to-end Playwright
 
-Last reviewed: 2026-09-20.
+Last reviewed: 2026-09-21.
 
 ## Objectif
 
@@ -18,8 +18,10 @@ npm run test:e2e
 ## Couverture actuelle
 
 - site vitrine en bureau et mobile, y compris la panne de l'API des galeries;
+- navigation canonique `/galleries` et vocabulaire galerie;
 - contact configure par variables publiques, sans formulaire et sans requete vers un domaine externe;
 - redirection Worker de `/admin` vers `/admin/login` sans session;
+- demo admin en lecture seule avec multi-selection des langues, theme, options IA, publication et suppression visibles mais sans ecriture;
 - galerie publique, ouverture/fermeture de la visionneuse et galerie protegee avec echange de mot de passe;
 - reprise observable d'un journal IndexedDB de 200 entrees decoupe en quatre lots de 50 : les deux premiers lots sont finalises, l'UI affiche `100/200` et la prochaine declaration reprend au lot 2 avec 50 photos;
 - rejet d'un fichier non image;

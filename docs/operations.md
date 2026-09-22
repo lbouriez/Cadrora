@@ -14,7 +14,7 @@ Use this runbook for a deployed Cadrora Worker. It is intentionally conservative
 
 | Area | What to verify | Current evidence boundary |
 | --- | --- | --- |
-| Public site | `/` and `/contact` render with public build-time contact data or a clear unconfigured state | No automated browser smoke test is included. |
+| Public site | `/`, `/galleries`, and `/contact` render with public build-time content or a clear unconfigured state | Covered locally by Playwright; still verify the deployed hostname. |
 | API routing | An unknown `/api/*` path returns JSON with request ID, not index HTML | `app.notFound` implements this. |
 | Admin | `/admin` remains protected on every hostname; state-changing admin calls reject a mismatched/missing Origin | The SPA mounts login, dashboard, and import routes; verify live behavior on every hostname. |
 | Gallery | Draft is 404; protected metadata/media reject missing or stale grants | Test the exact deployed event/version. |
@@ -23,11 +23,19 @@ Use this runbook for a deployed Cadrora Worker. It is intentionally conservative
 
 ## Maintenance jobs
 
-Photo deletion and face purge write a `maintenance_jobs` record after D1 access changes. A lost face-index lease also writes a targeted `delete_face_vector` compensation job when its immediate provider rollback fails. `MaintenanceRunner` defaults to up to 10 jobs per direct invocation, retries provider failures with exponential delay up to one hour, and marks the fifth failed attempt as `failed`. A `running` job has a 15-minute lease based on `updated_at`; a later scheduled invocation may reclaim it after an isolate termination. Provider deletes and completion writes must therefore remain idempotent.
+Photo deletion, gallery deletion, and face purge write a `maintenance_jobs` record after D1 access changes. A lost face-index lease also writes a targeted `delete_face_vector` compensation job when its immediate provider rollback fails. `MaintenanceRunner` defaults to up to 10 jobs per direct invocation and retries provider failures with exponential delay up to one hour. Ordinary jobs are retained as `failed` on the fifth failure for operator attention; `delete_gallery` remains pending and inaccessible while it retries, so gallery-owned provider data is not silently stranded. A `running` job has a 15-minute lease based on `updated_at`; a later scheduled invocation may reclaim it after an isolate termination. Provider deletes and completion writes must therefore remain idempotent.
 
 The checked-in Worker has a Cron Trigger every 15 minutes. Its scheduled handler calls `enqueueExpiredFacePurges` and then `runMaintenance(bindings, 25)`. That is the intended cleanup path, but it is not a job dashboard or proof a deployed Cron Trigger is active. Confirm trigger delivery and job completion before promising R2/Vectorize cleanup, storage reclamation, or final physical deletion.
 
 Inspect the queue only with approved, least-privilege D1 access. Preserve job ID, state, attempts, and request IDs; do not hand-edit rows or delete media keys as an unrecorded workaround. A repaired runner must be tested against an isolated environment before retrying production jobs.
+
+### Gallery removal verification
+
+1. Confirm the gallery stopped responding publicly immediately after title confirmation.
+2. Wait at least for the five-minute quiescence window and one 15-minute Cron cycle.
+3. With approved D1 access, verify the `delete_gallery` job reached `completed` and the gallery row no longer exists.
+4. Do not infer R2 or Vectorize cleanup from the missing public page alone. Investigate provider errors through the job's safe `last_error` value without copying private object keys or vectors into tickets.
+5. Never remove the shared `MODELS_BUCKET` objects as part of gallery cleanup.
 
 ## Incident handling
 

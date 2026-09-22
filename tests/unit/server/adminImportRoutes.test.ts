@@ -177,6 +177,7 @@ function variantDatabase(): VariantDatabase {
               width: 1200,
             };
           }
+          if (query.includes('FROM events WHERE id')) return { id: 'event-1' };
           if (query.includes('SELECT byte_size FROM photo_variants')) return null;
           if (query.includes('COALESCE(SUM(byte_size)')) return { value: 0 };
           if (query.includes('SELECT photo_id, variant, storage_key')) {

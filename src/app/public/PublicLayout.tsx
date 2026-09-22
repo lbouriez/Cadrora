@@ -22,16 +22,23 @@ export function PublicLayout({ children }: { children: ReactNode }) {
     staleTime: 60_000,
   });
   const { canChooseTheme, theme, toggleTheme } = useTheme(settings.data?.themeMode ?? 'both');
+  const enabledLanguages = settings.data?.enabledLanguages ?? ['fr', 'en'];
+  const canChooseLanguage = enabledLanguages.length > 1;
 
   useEffect(() => {
     if (!settings.data?.defaultLanguage) return;
+    if (settings.data.enabledLanguages.length === 1) {
+      void i18n.changeLanguage(settings.data.enabledLanguages[0]);
+      return;
+    }
     try {
-      if (localStorage.getItem('cadrora-language')) return;
+      const saved = localStorage.getItem('cadrora-language');
+      if (saved && settings.data.enabledLanguages.includes(saved as 'en' | 'fr')) return;
     } catch {
       // The runtime default still applies when preference storage is blocked.
     }
     void i18n.changeLanguage(settings.data.defaultLanguage);
-  }, [i18n, settings.data?.defaultLanguage]);
+  }, [i18n, settings.data]);
 
   return (
     <div className="public-shell">
@@ -44,7 +51,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <nav aria-label={t('gallery.primaryNavigation')} className="public-nav">
             <NavLink end to="/">{t('gallery.home')}</NavLink>
             <NavLink to="/services">{t('gallery.services')}</NavLink>
-            <NavLink to="/events">{t('gallery.events')}</NavLink>
+            <NavLink to="/galleries">{t('gallery.events')}</NavLink>
             <NavLink to="/contact">{t('gallery.contact')}</NavLink>
           </nav>
           <div className="public-header__controls">
@@ -57,14 +64,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           >
             <span aria-hidden="true">{theme === 'dark' ? '☀' : '☾'}</span>
           </button> : null}
-          <IconButton
+          {canChooseLanguage ? <IconButton
             aria-label={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
             className="public-header__language"
             onClick={() => { void i18n.changeLanguage(nextLanguage); }}
             title={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
           >
             {nextLanguage.toUpperCase()}
-          </IconButton>
+          </IconButton> : null}
           </div>
         </div>
       </header>

@@ -2,7 +2,7 @@
 
 This directory contains enduring implementation rules for humans and coding agents. It is not a product backlog and must not contain secrets or local credential values.
 
-Last reviewed: 2026-09-20.
+Last reviewed: 2026-09-21.
 
 ## Source-of-truth order
 
@@ -37,6 +37,8 @@ Package guides: [`browser-import.md`](browser-import.md), [`media-and-publicatio
 - Worker CPU work stays small. Image processing and ML run in the browser.
 - Search results never grant access to a protected event.
 - A face-search outage never blocks the gallery.
+- User-facing language says “gallery”; internal `event` schemas and API routes remain compatibility contracts.
+- Taking a gallery offline is reversible. Permanent deletion is a distinct, typed-confirmation workflow whose provider cleanup remains durable and retryable.
 - Accepted-but-uncertain cross-service operations remain pending and are reconciled; they are not blindly replayed as failures.
 - Protected content is never placed in a shared CDN cache.
 - UI changes ship in FR and EN and retain keyboard, focus, and 44 px touch behavior.

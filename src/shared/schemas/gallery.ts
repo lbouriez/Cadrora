@@ -96,6 +96,14 @@ export const UpdateEventRequestSchema = z.object({
   retentionDays: z.number().int().positive().nullable().optional(),
 }).strict().refine((value) => Object.keys(value).length > 0, { message: 'at least one field is required' });
 
+export const DeleteGalleryRequestSchema = z.object({
+  confirmation: z.string().min(1).max(160),
+}).strict();
+
+export const DeleteGalleryResponseSchema = z.object({
+  deletionQueued: z.literal(true),
+});
+
 export const UnlockEventRequestSchema = z.object({
   password: z.string().min(1).max(200),
   turnstileToken: z.string().min(1).max(2_048),

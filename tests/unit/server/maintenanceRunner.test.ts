@@ -13,6 +13,7 @@ function repositoryFor(job: MaintenanceJobRecord) {
   let claimed = false;
   const completePhotoDeletion = vi.fn();
   const completeExpiredFacePurge = vi.fn();
+  const completeGalleryDeletion = vi.fn();
   const completeJob = vi.fn();
   const expiredFaceVectorIds = vi.fn().mockResolvedValue([]);
   const retryJob = vi.fn();
@@ -24,15 +25,17 @@ function repositoryFor(job: MaintenanceJobRecord) {
     }),
     completeEventFacePurge: vi.fn(),
     completeExpiredFacePurge,
+    completeGalleryDeletion,
     completeJob,
     completePhotoDeletion,
     eventFaceVectorIds: vi.fn().mockResolvedValue([]),
     expiredFaceVectorIds,
+    galleryCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['gallery/a'], vectorIds: ['gallery-v'] }),
     photoCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['a', 'b'], vectorIds: ['v'] }),
     reconcileUsage: vi.fn(),
     retryJob,
   };
-  return { completeExpiredFacePurge, completeJob, completePhotoDeletion, expiredFaceVectorIds, repository, retryJob };
+  return { completeExpiredFacePurge, completeGalleryDeletion, completeJob, completePhotoDeletion, expiredFaceVectorIds, repository, retryJob };
 }
 
 describe('maintenance runner', () => {
@@ -116,6 +119,33 @@ describe('maintenance runner', () => {
       job,
       'R2 unavailable',
       '2030-01-01T00:02:00.000Z',
+      '2030-01-01T00:00:00.000Z',
+    );
+  });
+
+  it('purges gallery providers before deleting its D1 records', async () => {
+    const job: MaintenanceJobRecord = {
+      attempts: 1,
+      id: 'job-gallery',
+      kind: 'delete_gallery',
+      payload: { eventId: 'event-1' },
+    };
+    const { completeGalleryDeletion, repository } = repositoryFor(job);
+    const deleteStorage = vi.fn();
+    const deleteVectors = vi.fn();
+    const runner = new MaintenanceRunner({
+      now: () => new Date('2030-01-01T00:00:00.000Z'),
+      repository,
+      storage: { deleteMany: deleteStorage, get: vi.fn() },
+      vectors: { deleteMany: deleteVectors },
+    });
+
+    expect(await runner.run()).toBe(1);
+    expect(deleteStorage).toHaveBeenCalledWith(['gallery/a']);
+    expect(deleteVectors).toHaveBeenCalledWith(['gallery-v']);
+    expect(completeGalleryDeletion).toHaveBeenCalledWith(
+      'job-gallery',
+      'event-1',
       '2030-01-01T00:00:00.000Z',
     );
   });

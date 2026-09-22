@@ -9,6 +9,7 @@ import {
   Drawer,
   EmptyState,
   IconButton,
+  MultiSelect,
   Pagination,
   Select,
   Tabs,
@@ -39,6 +40,18 @@ function DrawerHarness() {
         <button type="button">Apply</button>
       </Drawer>
     </>
+  );
+}
+
+function MultiSelectHarness() {
+  const [values, setValues] = useState<Array<'en' | 'fr'>>(['fr']);
+  return (
+    <MultiSelect
+      label="Languages"
+      onChange={setValues}
+      options={[{ label: 'French', value: 'fr' }, { label: 'English', value: 'en' }]}
+      values={values}
+    />
   );
 }
 
@@ -101,6 +114,17 @@ describe('shared components', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
     expect(screen.getByText('Settings panel')).toBeTruthy();
+  });
+
+  it('supports multiple selections while preserving at least one choice', () => {
+    render(<MultiSelectHarness />);
+    fireEvent.click(screen.getByText('French', { selector: 'summary' }));
+    const french = screen.getByRole<HTMLInputElement>('checkbox', { name: 'French' });
+    const english = screen.getByRole<HTMLInputElement>('checkbox', { name: 'English' });
+    expect(french.disabled).toBe(true);
+    fireEvent.click(english);
+    expect(english.checked).toBe(true);
+    expect(french.disabled).toBe(false);
   });
 
   it('closes focus-managed drawers with Escape and restores the trigger focus', () => {

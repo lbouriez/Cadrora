@@ -2,7 +2,7 @@
 
 Base path: `/api/v1`. All API failures are JSON objects with `code`, `message`, and `requestId`; `message` is an i18n key, not a guaranteed human-facing sentence. `/api/*` never falls back to SPA HTML. All admin responses are `Cache-Control: no-store`.
 
-This reference reflects routes registered by `src/server/app.ts` on 2026-09-20.
+This reference reflects routes registered by `src/server/app.ts` on 2026-09-21. The product calls these records galleries; the stable internal API retains `/events` and `eventId` for compatibility.
 
 ## Authentication
 
@@ -20,28 +20,28 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-20.
 | `POST /admin/login` | JSON `{ password, turnstileToken }` | A `Session` JSON object and a secure opaque session cookie in password mode. Disabled in Cloudflare Access mode. |
 | `POST /admin/logout` | No body | `204`; revokes a password session and clears the cookie. |
 | `GET /admin/session` | None | Current `Session`; password sessions rotate. |
-| `GET /admin/site` | None | Owner-facing `SiteSettings`, including `themeMode`. The showcase demo may read this exact endpoint but cannot update it. |
-| `PATCH /admin/site` | `{ "defaultLanguage": "fr" \| "en", "themeMode": "light" \| "dark" \| "both" \| "system" }` | Persists the public language default and colour policy. |
+| `GET /admin/site` | None | Owner-facing `SiteSettings`, including `enabledLanguages` and `themeMode`. The showcase demo may read this exact endpoint but cannot update it. |
+| `PATCH /admin/site` | `{ "defaultLanguage": "fr" \| "en", "enabledLanguages": ["fr", "en"], "themeMode": "light" \| "dark" \| "both" \| "system" }` | Persists the public language availability/default and colour policy. The non-empty unique language list must contain the default. |
 
 `password` is 1–200 characters at the transport boundary; strength belongs in operator provisioning. `turnstileToken` is required and at most 2,048 characters. Never send credentials from a cross-origin client.
 
 Authentication failures expose only application-safe codes and a request ID. `TURNSTILE_FAILED` means the submitted challenge was rejected; `TURNSTILE_UNAVAILABLE` means verification could not be completed. Protected-event unlock can additionally return `INVALID_EVENT_PASSWORD`, `EVENT_PASSWORD_UNAVAILABLE`, or `EVENT_GRANT_UNAVAILABLE`. Provider tokens, secrets, visitor IPs, submitted passwords, the auth pepper, and stored verifiers are never API diagnostics.
 
-## Events
+## Galleries (stable `/events` API)
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `GET /events` | Public | Lists published, public events only. |
+| `GET /events` | Public | Lists published, public galleries only. |
 | `GET /site` | Public | Validated public `SiteSettings` singleton; the static portfolio does not depend on it. |
 | `GET /events/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
 | `POST /events/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
 | `GET /events/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
-| `GET /admin/events` | Admin | All events, including draft and unlisted. |
-| `POST /admin/events` | Admin | Creates an event; returns `201` with the full event. |
-| `PATCH /admin/events/:eventId` | Admin | Partial event update; slug is intentionally absent from the update schema. |
-| `DELETE /admin/events/:eventId` | Admin | Deletes an event only after every photo is already in the deleted state. |
+| `GET /admin/events` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. |
+| `POST /admin/events` | Admin | Creates a gallery; returns `201` with the full internal event record. |
+| `PATCH /admin/events/:eventId` | Admin | Partial gallery update; slug is intentionally absent from the update schema. A deletion-pending gallery rejects updates. |
+| `DELETE /admin/events/:eventId` | Admin | Body `{ "confirmation": "Exact gallery title" }`; returns `202 { "deletionQueued": true }`, removes visitor access immediately, and queues complete gallery-owned D1/R2/Vectorize cleanup. |
 
-Event creation accepts:
+Gallery creation accepts:
 
 ```json
 {
@@ -85,7 +85,7 @@ Variant headers are `Content-Type`, `X-Cadrora-Byte-Size`, `X-Cadrora-Checksum-S
 | `DELETE /admin/photos/:photoId` | Admin | `204`; removes access first and queues cleanup. |
 | `GET /admin/usage` | Admin | Application usage snapshot: events, photos, variant bytes, faces, and recorded vector-query dimensions. |
 
-The usage endpoint is not Cloudflare billing data and is not proof that queued deletion has completed.
+The usage endpoint is not Cloudflare billing data and is not proof that queued deletion has completed. Taking a gallery offline is reversible and preserves provider objects. Permanent gallery deletion is title-confirmed, asynchronous, and never removes shared model artifacts.
 
 ## Face-search routes
 
@@ -110,4 +110,4 @@ Media variant is one of `thumb`, `small`, `medium`, `large`, `download`, or `ori
 
 ## Site settings
 
-`GET /api/v1/site` uses a 60-second public cache policy. The public shell reads its optional `themeMode` from this endpoint; if it fails, it preserves the visitor-choice fallback. Portfolio content and contact details remain build-time static, so an API outage cannot blank the photographer website.
+`GET /api/v1/site` uses a 60-second public cache policy. The public shell reads `themeMode`, `enabledLanguages`, and `defaultLanguage` from this endpoint. One enabled language is enforced with no language button; two expose the visitor choice. If the request fails, the shell preserves its build-time language and visitor-choice fallbacks. Portfolio content and contact details remain build-time static, so an API outage cannot blank the photographer website.

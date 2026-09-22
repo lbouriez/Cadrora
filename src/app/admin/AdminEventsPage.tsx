@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-import { AdminEventListSchema, EventSchema } from '../../shared/schemas';
+import { AdminEventListSchema, DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
-import { Button, Input, Select, Spinner, Textarea } from '../components';
+import { Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
@@ -37,6 +37,17 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
   });
   if (!response.ok) throw new Error(`Event update returned ${response.status}`);
   return EventSchema.parse(await response.json());
+}
+
+async function deleteGallery(eventId: string, confirmation: string): Promise<void> {
+  const response = await fetch(`/api/v1/admin/events/${encodeURIComponent(eventId)}`, {
+    body: JSON.stringify({ confirmation }),
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' },
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error(`Gallery deletion returned ${response.status}`);
+  DeleteGalleryResponseSchema.parse(await response.json());
 }
 
 export function AdminEventsPage() {
@@ -153,16 +164,18 @@ export function AdminEventsPage() {
           {events.data?.map((event) => (
             <article className="admin-event-row" key={event.id}>
               <div>
-                <span className="admin-event-row__state">{t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
+                <span className="admin-event-row__state">{event.deletingAt
+                  ? t('admin.events.deletionPending')
+                  : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
                 <h3>{event.title}</h3>
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
               </div>
               <div className="admin-event-row__actions">
-                <Link className="button button--secondary" to={`/admin/events/${event.id}`}>
+                {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/events/${event.id}`}>
                   {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
-                </Link>
-                {!readOnly ? <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
-                {event.visibility !== 'draft' && !event.offlineAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
+                </Link> : null}
+                {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/events/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
+                {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
             </article>
           ))}
@@ -299,6 +312,55 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
   );
 }
 
+function DeleteGalleryPanel({ event }: { event: Event }) {
+  const { t } = useTranslation();
+  const { readOnly } = useAdminAccess();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState('');
+  const deletion = useMutation({
+    mutationFn: () => deleteGallery(event.id, confirmation),
+    onSuccess: () => { void navigate('/admin', { replace: true }); },
+  });
+  const close = () => {
+    if (deletion.isPending) return;
+    setOpen(false);
+    setConfirmation('');
+  };
+  return (
+    <section aria-labelledby="delete-gallery-title" className="admin-card admin-danger-zone">
+      <p className="admin-demo-intro__eyebrow">{t('admin.events.dangerEyebrow')}</p>
+      <h2 className="admin-card__title" id="delete-gallery-title">{t('admin.events.deleteTitle')}</h2>
+      <p className="admin-card__description">{t('admin.events.deleteDescription')}</p>
+      {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
+      <Button disabled={readOnly || Boolean(event.deletingAt)} onClick={() => setOpen(true)} type="button" variant="danger">
+        {event.deletingAt ? t('admin.events.deletionPending') : t('admin.events.delete')}
+      </Button>
+      <ConfirmDialog
+        cancelLabel={t('admin.events.deleteCancel')}
+        closeLabel={t('admin.events.deleteCancel')}
+        confirmDisabled={confirmation !== event.title}
+        confirmLabel={deletion.isPending ? t('admin.events.deleting') : t('admin.events.deleteConfirm')}
+        isConfirming={deletion.isPending}
+        onCancel={close}
+        onConfirm={() => deletion.mutate()}
+        open={open}
+        title={t('admin.events.deleteDialogTitle')}
+      >
+        <p>{t('admin.events.deleteDialogBody')}</p>
+        <p><strong>{event.title}</strong></p>
+        <Input
+          autoComplete="off"
+          {...(deletion.isError ? { error: t('admin.events.deleteError') } : {})}
+          label={t('admin.events.deleteConfirmationLabel')}
+          onChange={(changeEvent) => setConfirmation(changeEvent.target.value)}
+          value={confirmation}
+        />
+      </ConfirmDialog>
+    </section>
+  );
+}
+
 export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
@@ -310,7 +372,10 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   if (events.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <AdminEventSettingsForm event={event} key={event.updatedAt} />
+      <div className="admin-settings-stack">
+        <AdminEventSettingsForm event={event} key={event.updatedAt} />
+        <DeleteGalleryPanel event={event} />
+      </div>
       <PublishPanel
         eventId={eventId}
         onChanged={(updated) => {

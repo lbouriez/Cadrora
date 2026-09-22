@@ -7,15 +7,29 @@ export const ThemeModeSchema = z.enum(['light', 'dark', 'both', 'system']);
 export const SiteSettingsSchema = z.object({
   siteName: z.string().min(1).max(120),
   defaultLanguage: LanguageSchema,
+  enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
+    (languages) => new Set(languages).size === languages.length,
+    { message: 'languages must be unique' },
+  ),
   contactEmail: z.email().nullable(),
   themeMode: ThemeModeSchema,
   updatedAt: IsoDateTimeSchema,
+}).refine((settings) => settings.enabledLanguages.includes(settings.defaultLanguage), {
+  message: 'default language must be enabled',
+  path: ['defaultLanguage'],
 });
 
 export const UpdateSiteSettingsSchema = z.object({
   defaultLanguage: LanguageSchema,
+  enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
+    (languages) => new Set(languages).size === languages.length,
+    { message: 'languages must be unique' },
+  ),
   themeMode: ThemeModeSchema,
-}).strict();
+}).strict().refine((settings) => settings.enabledLanguages.includes(settings.defaultLanguage), {
+  message: 'default language must be enabled',
+  path: ['defaultLanguage'],
+});
 
 export const UsageSnapshotSchema = z.object({
   capturedAt: IsoDateTimeSchema,

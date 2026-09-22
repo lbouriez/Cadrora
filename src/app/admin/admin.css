@@ -166,6 +166,19 @@
   gap: var(--space-5);
 }
 
+.admin-settings-stack {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.admin-danger-zone {
+  border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+}
+
+.admin-danger-zone .button {
+  margin-top: var(--space-4);
+}
+
 .admin-event-form {
   display: grid;
   margin-top: var(--space-5);

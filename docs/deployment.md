@@ -1,6 +1,6 @@
 # Deployment guide
 
-This is a deployment preflight for Cadrora. It documents the repository-preserving Cloudflare Workers Builds flow and the separate Deploy Button clone flow. Cadrora is one Worker named `cadrora`, with Vite static assets, D1, private media R2, and a separate model R2 bucket. The public website at `/`, `/services`, `/events`, `/contact`, and `/privacy` remains a static asset route; do not place it behind the admin guard or make it depend on gallery availability.
+This is a deployment preflight for Cadrora. It documents the repository-preserving Cloudflare Workers Builds flow and the separate Deploy Button clone flow. Cadrora is one Worker named `cadrora`, with Vite static assets, D1, private media R2, and a separate model R2 bucket. The public website at `/`, `/services`, `/galleries`, `/contact`, and `/privacy` remains a static asset route; do not place it behind the admin guard or make it depend on gallery availability. `/events` is a compatibility redirect, while `/api/v1/events/*` remains the stable internal API.
 
 ## Current deployment status
 

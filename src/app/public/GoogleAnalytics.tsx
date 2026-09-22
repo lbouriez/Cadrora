@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 import { siteProfile } from './siteProfile';
 
-const ANALYTICS_ROUTES = new Set(['/', '/contact', '/events', '/privacy', '/services']);
+const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/privacy', '/services']);
 
 type Gtag = (...values: unknown[]) => void;
 type AnalyticsWindow = Window & {

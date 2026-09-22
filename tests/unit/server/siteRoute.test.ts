@@ -13,6 +13,7 @@ describe('public site settings route', () => {
       first: vi.fn().mockResolvedValue({
         contact_email: null,
         default_language: 'fr',
+        enabled_languages: '["fr","en"]',
         site_name: 'Cadrora',
         theme_mode: 'both',
         updated_at: '2026-09-20T00:00:00.000Z',
@@ -32,6 +33,7 @@ describe('public site settings route', () => {
     await expect(response.json()).resolves.toEqual({
       contactEmail: null,
       defaultLanguage: 'fr',
+      enabledLanguages: ['fr', 'en'],
       siteName: 'Cadrora',
       themeMode: 'both',
       updatedAt: '2026-09-20T00:00:00.000Z',

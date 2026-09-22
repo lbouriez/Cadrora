@@ -9,6 +9,7 @@ export interface ConfirmDialogProps {
   children: ReactNode;
   closeLabel: string;
   confirmLabel: string;
+  confirmDisabled?: boolean;
   confirmVariant?: 'danger' | 'primary';
   isConfirming?: boolean;
   onCancel: () => void;
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   children,
   closeLabel,
   confirmLabel,
+  confirmDisabled = false,
   confirmVariant = 'danger',
   isConfirming = false,
   onCancel,
@@ -35,7 +37,7 @@ export function ConfirmDialog({
         <div className="confirm-dialog__content">{children}</div>
         <div className="confirm-dialog__actions">
           <Button disabled={isConfirming} onClick={onCancel} variant="secondary">{cancelLabel}</Button>
-          <Button disabled={isConfirming} onClick={onConfirm} variant={confirmVariant}>{confirmLabel}</Button>
+          <Button disabled={confirmDisabled || isConfirming} onClick={onConfirm} variant={confirmVariant}>{confirmLabel}</Button>
         </div>
       </div>
     </Modal>

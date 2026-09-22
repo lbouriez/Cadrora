@@ -2,7 +2,7 @@
 
 ## Context and goals
 
-Cadrora serves event galleries from a single Cloudflare deployment that a photographer can operate without a terminal after installation. The architecture keeps public assets cheap, private media authorized, image processing out of the Worker CPU budget, and optional facial search isolated from gallery availability.
+Cadrora serves photo galleries from a single Cloudflare deployment that a photographer can operate without a terminal after installation. The architecture keeps public assets cheap, private media authorized, image processing out of the Worker CPU budget, and optional facial search isolated from gallery availability. The internal schema retains the historical `event` name as a compatibility boundary; public and owner-facing copy uses “gallery”.
 
 Non-goals for v1 include SSR, video, RAW/HEIC import, payment, a CLI product, multi-photographer tenancy, microservices, and cross-event biometric profiles.
 
@@ -53,7 +53,7 @@ Import declares an import and photo records, encodes bounded chunks in the brows
 
 Protected access exchanges an event password plus Turnstile proof for a grant scoped to the event and current `accessVersion`. Admin and event password verifiers are domain-separated HMAC-SHA-256 values keyed by a Worker-only `AUTH_PEPPER`; this avoids the former PBKDF2 cost exceeding the Workers Free 10 ms CPU allowance. The same grant is checked for metadata and media. Password rotation increments the version. The reserved seeded demo credential may bypass verification only when the explicit showcase gate is enabled.
 
-Deletion removes access in D1 first. R2 and Vectorize cleanup follows asynchronously through idempotent maintenance jobs, so a failed provider call cannot resurrect public access.
+Taking a gallery offline sets a reversible D1 fence and revokes existing protected grants without removing provider objects. Permanent deletion is separate: it sets `deleting_at`, cancels open imports, freezes photos, and revokes access immediately. After a five-minute quiescence window, a retryable `delete_gallery` job deletes only the R2 keys and Vectorize IDs derived from that gallery's D1 rows, then removes dependent D1 records and the gallery itself. Shared model objects are never gallery-owned and are never deleted by this path.
 
 ## Deployment shape
 
