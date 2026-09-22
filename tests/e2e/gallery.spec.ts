@@ -35,6 +35,8 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await expect(nextButton).toHaveCSS('transform', 'none');
   await page.getByRole('button', { name: /afficher les informations|show photo information/i }).click();
   await expect(page.getByText('danse-au-coucher-du-soleil.jpg')).toBeVisible();
+  const capturedAt = dialog.locator('dt', { hasText: /prise de vue|captured/i }).locator('..').locator('dd');
+  await expect(capturedAt).toContainText(/20.*2026.*12:00:00.*(?:UTC.?4|EDT)/i);
   await expect(page.getByText('1800 × 1200 px')).toBeVisible();
   await page.setViewportSize({ height: 844, width: 390 });
   const mobileDialogBox = await dialog.boundingBox();

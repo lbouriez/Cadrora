@@ -43,7 +43,7 @@ export const publicResources = {
           matchesHeading: 'Possible matches',
           matchesHelp: 'Photos with a visual similarity to the face you selected.',
           nearbyHeading: 'Nearby moments',
-          nearbyHelp: 'Additional photos captured around your possible matches. They are shown separately because they are not face matches.',
+          nearbyHelp: 'Up to four photos before and four after each possible match, all captured within five minutes. They are shown separately because they are not face matches.',
           summary: '{{matchCount}} possible matches and {{nearbyCount}} nearby photos saved for this browser session.',
       },
       metadata: {
@@ -281,7 +281,7 @@ export const publicResources = {
           matchesHeading: 'Correspondances possibles',
           matchesHelp: 'Photos présentant une ressemblance visuelle avec le visage sélectionné.',
           nearbyHeading: 'Moments rapprochés',
-          nearbyHelp: 'Photos supplémentaires prises autour des correspondances possibles. Elles restent séparées, car elles ne sont pas des correspondances faciales.',
+          nearbyHelp: 'Jusqu’à quatre photos avant et quatre après chaque correspondance possible, toutes prises dans les cinq minutes. Elles restent séparées, car elles ne sont pas des correspondances faciales.',
           summary: '{{matchCount}} correspondances possibles et {{nearbyCount}} photos rapprochées conservées pour cette session.',
       },
       metadata: {

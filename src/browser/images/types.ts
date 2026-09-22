@@ -6,6 +6,7 @@ export type AcceptedSourceImageType = (typeof ACCEPTED_SOURCE_IMAGE_TYPES)[numbe
 export type EncodedImageType = 'image/jpeg' | 'image/webp';
 
 export interface ValidatedImageFile {
+  capturedAt?: string;
   contentType: AcceptedSourceImageType;
   file: File;
   height: number;

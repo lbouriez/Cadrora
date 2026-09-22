@@ -6,7 +6,9 @@ Cadrora processes original images in the photographer’s browser. The Worker re
 
 Version 1 accepts only decodable JPEG, PNG, and WebP. The browser checks magic bytes and uses `createImageBitmap` to reject corrupt input. RAW, HEIC, video, and arbitrary image MIME types are out of scope.
 
-For JPEG, the browser reads only EXIF orientation, decodes with `imageOrientation: 'none'`, then applies exactly one of the eight orientation transforms while drawing fresh pixels. This produces a new encoded file without copied EXIF/XMP metadata. GPS, serial numbers, comments, and other source metadata are not uploaded as part of the variant path.
+For JPEG, the browser reads EXIF orientation plus `DateTimeOriginal` and optional `OffsetTimeOriginal`. The capture value is normalized to an ISO instant and stored separately in D1; when the camera omitted an offset, Cadrora interprets its wall-clock value in the gallery's configured IANA timezone. Invalid or impossible timestamps are ignored instead of falling back to upload time or `File.lastModified`. PNG and WebP imports currently receive no capture timestamp from metadata.
+
+The browser then decodes with `imageOrientation: 'none'`, applies exactly one of the eight orientation transforms, and draws fresh pixels. This produces new encoded files without copied EXIF/XMP metadata. GPS, serial numbers, comments, and all other source metadata are not uploaded as part of the variant path. Only the normalized capture instant is retained as structured photo metadata, and visitors see it only when the owner enables viewer metadata for that gallery.
 
 ## Variants
 
@@ -34,6 +36,6 @@ Cancelling stops browser work. It does not create a publishable photo state. A s
 
 ## Current integration status
 
-The server import routes are registered by `src/server/app.ts`. The SPA mounts browser import at `/admin/galleries/:eventId/import` behind the admin session route. Validate a resumed import, a corrupted file, each EXIF orientation, a WebP fallback, and quota handling against a dedicated test event before enabling it for operators; source and unit-test evidence do not prove an operator’s browser, storage binding, or deployed quota behavior.
+The server import routes are registered by `src/server/app.ts`. The SPA mounts browser import at `/admin/galleries/:eventId/import` behind the admin session route. The tracked `tests/fixtures/nearby-amelia-exif.jpg` is a fictional generated photo whose capture time is two minutes after an Amelia demo match; the pipeline test verifies that the real JPEG EXIF value reaches the server declaration. Validate a resumed import, a corrupted file, each EXIF orientation, timestamp handling, a WebP fallback, and quota handling against a dedicated test event before enabling it for operators; source and unit-test evidence do not prove an operator’s browser, storage binding, or deployed quota behavior.
 
 See [`technical/browser-import.md`](technical/browser-import.md) for the code-level contract and [`admin-guide.md`](admin-guide.md) for the required server sequence.

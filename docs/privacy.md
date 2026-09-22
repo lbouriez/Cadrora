@@ -9,7 +9,7 @@ This document describes the current implementation. It is not legal advice, a pr
 | Public website profile | Photographer name, email, telephone, address, and service area are public `VITE_*` build values. The repository fallback values are fictional and labelled as demo content. |
 | Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
 | Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
-| Source metadata | The browser’s pixel re-encode strips source EXIF/XMP metadata from the normal import path, including GPS, serial, and comments. |
+| Source metadata | The browser retains only a normalized capture instant from JPEG `DateTimeOriginal` and optional `OffsetTimeOriginal` as a D1 field. Pixel re-encoding strips the EXIF/XMP payload from stored variants, including GPS, serial, and comments. |
 | Event passwords | D1 stores a domain-separated HMAC-SHA-256 verifier, never the clear password. Its key is the separate Worker-only `AUTH_PEPPER`; admin and event credentials use different domains. |
 | Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |

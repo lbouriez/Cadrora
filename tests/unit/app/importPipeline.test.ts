@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFile } from 'node:fs/promises';
 
 import type { ImageEncoder } from '../../../src/browser/images';
 import type { ImportApi } from '../../../src/browser/jobs/ImportApi';
@@ -159,6 +160,26 @@ describe('ImportPipeline chunk journal and resume', () => {
     expect(encodedFiles).toHaveLength(200);
     expect(journal.job).toMatchObject({ state: 'completed', totalPhotos: 200 });
     expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 200, failedPhotos: 0, state: 'completed', totalPhotos: 200 });
+  });
+
+  it('carries a real EXIF capture instant into the declared photo', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const bytes = await readFile('tests/fixtures/nearby-amelia-exif.jpg');
+    const photo = new File([bytes], 'nearby-amelia-exif.jpg', { type: 'image/jpeg' });
+    const pipeline = new ImportPipeline({
+      api,
+      createEncoder: () => createEncoder([]),
+      journal,
+      now: () => new Date(TIMESTAMP),
+    });
+
+    await pipeline.start('demo-ai-face-search', [photo], 'America/Toronto');
+
+    expect(api.declared[0]?.photos[0]).toMatchObject({
+      capturedAt: '2026-08-30T18:02:00.000Z',
+      filename: 'nearby-amelia-exif.jpg',
+    });
   });
 
   it('resumes a 200-photo journal at the first unfinished 50-photo chunk after interruption', async () => {

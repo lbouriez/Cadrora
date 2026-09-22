@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
+import sharp from 'sharp';
 
 import { applyOrientationTransform, constrainedDimensions, encodePhoto } from '../../../src/browser/images/encoder';
-import { readExifOrientation, sniffImageType } from '../../../src/browser/images/format';
+import { readExifCapturedAt, readExifOrientation, sniffImageType } from '../../../src/browser/images/format';
 
 function jpegWithOrientation(orientation: number): Uint8Array {
   const bytes = new Uint8Array(40);
@@ -25,6 +26,25 @@ describe('browser import image guards', () => {
       expect(readExifOrientation(jpegWithOrientation(orientation))).toBe(orientation);
     }
     expect(readExifOrientation(new Uint8Array([0xff, 0xd8, 0xff, 0xe1]))).toBe(1);
+  });
+
+  it('reads DateTimeOriginal and uses the gallery timezone when the camera has no offset', async () => {
+    const bytes = await sharp({
+      create: { background: '#d8b08c', channels: 3, height: 2, width: 2 },
+    }).jpeg().withExif({ IFD2: { DateTimeOriginal: '2026:08:30 14:02:00' } }).toBuffer();
+
+    expect(readExifCapturedAt(bytes, 'America/Toronto')).toBe('2026-08-30T18:02:00.000Z');
+    expect(readExifCapturedAt(bytes, 'Not/A_Timezone')).toBeUndefined();
+  });
+
+  it('rejects a malformed camera offset instead of guessing a different instant', async () => {
+    const bytes = await sharp({
+      create: { background: '#d8b08c', channels: 3, height: 2, width: 2 },
+    }).jpeg().withExif({
+      IFD2: { DateTimeOriginal: '2026:08:30 14:02:00', OffsetTimeOriginal: 'invalid' },
+    }).toBuffer();
+
+    expect(readExifCapturedAt(bytes, 'America/Toronto')).toBeUndefined();
   });
 
   it('uses the EXIF 6 matrix once and never upscales constrained variants', () => {

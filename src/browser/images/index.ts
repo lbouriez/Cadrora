@@ -1,5 +1,5 @@
 export { encodePhoto } from './encoder';
-export { isAcceptedSourceImageType, readExifOrientation, sniffImageType, validateImageFile } from './format';
+export { isAcceptedSourceImageType, readExifCapturedAt, readExifOrientation, sniffImageType, validateImageFile } from './format';
 export type {
   AcceptedSourceImageType,
   EncodedImageType,

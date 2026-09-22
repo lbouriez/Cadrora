@@ -4,18 +4,13 @@ import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { AdminEventListSchema, DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
+import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
+import { getAdminEvents } from './adminEventsApi';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
-
-async function getAdminEvents(): Promise<Event[]> {
-  const response = await fetch('/api/v1/admin/galleries', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`Event list returned ${response.status}`);
-  return AdminEventListSchema.parse(await response.json()).events;
-}
 
 async function createEvent(payload: unknown): Promise<Event> {
   const response = await fetch('/api/v1/admin/galleries', {

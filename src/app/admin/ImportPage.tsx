@@ -12,6 +12,7 @@ import {
 
 export interface ImportPageProps {
   eventId: string;
+  timezone: string;
 }
 
 const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
@@ -22,7 +23,7 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
 };
 
 /** Admin import screen; mount from the PA admin route at `/admin/galleries/:eventId/import`. */
-export function ImportPage({ eventId }: ImportPageProps) {
+export function ImportPage({ eventId, timezone }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
@@ -59,7 +60,7 @@ export function ImportPage({ eventId }: ImportPageProps) {
   const start = (files: File[]) => {
     if (!pipeline.current) return;
     void pipeline.current
-      .start(eventId, files)
+      .start(eventId, files, timezone)
       .then((result) => {
         setRejected(result.rejected);
         setResumableImportId(undefined);

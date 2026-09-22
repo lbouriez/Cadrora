@@ -26,9 +26,9 @@ function imageAttributes(photo: PublicPhoto) {
 function formatCapturedAt(value: string | null, language: string, timezone: string): string | null {
   if (!value) return null;
   try {
-    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'short', timeZone: timezone }).format(new Date(value));
+    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'long', timeZone: timezone }).format(new Date(value));
   } catch {
-    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));
+    return new Intl.DateTimeFormat(language, { dateStyle: 'long', timeStyle: 'long' }).format(new Date(value));
   }
 }
 

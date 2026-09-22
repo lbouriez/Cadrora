@@ -62,7 +62,7 @@ Gallery creation accepts:
 }
 ```
 
-Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture-time, and dimensions panel and defaults to `false`. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
+Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture date/time, and dimensions panel and defaults to `false`. The capture instant comes from JPEG `DateTimeOriginal` plus its offset, or the gallery timezone when the camera omitted one; upload time is never substituted. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
 
 ## Imports and media ingress
 
@@ -93,7 +93,7 @@ The usage endpoint is not Cloudflare billing data and is not proof that queued d
 | --- | --- | --- |
 | `POST /admin/photos/:photoId/faces` | Admin | Model ID, generation, expiry, and 1–100 128-number embeddings. |
 | `POST /galleries/:eventId/face-search` | Event access | `{ embedding, cursor? }`; possible matches and optional signed cursor. |
-| `GET /galleries/:eventId/photos/:photoId/related` | Event access | Related photo references for a valid search context. |
+| `GET /galleries/:eventId/photos/:photoId/related` | Event access | Up to four same-gallery photos before and four after the source capture instant, limited to five minutes in each direction; returns none when the source has no capture instant. |
 | `POST /admin/galleries/:eventId/purge-faces` | Admin | `202 { "queued": true }` when a purge job is queued. |
 
 These routes are registered, but they fail closed when `FACE_INDEX`, model objects, expiry state, or cursor-signing material is unavailable. See [`face-search.md`](face-search.md).

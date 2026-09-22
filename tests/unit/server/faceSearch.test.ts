@@ -126,6 +126,48 @@ describe('face search privacy and pagination', () => {
     );
   });
 
+  it('returns four chronological photos on each side within five minutes, regardless of moment labels', async () => {
+    const preparedSql: string[] = [];
+    const binds: unknown[][] = [];
+    const before = Array.from({ length: 4 }, (_, index) => ({
+      captured_at: `2026-08-30T17:5${9 - index}:00.000Z`,
+      moment_id: `before-${index + 1}`,
+      photo_id: `before-${index + 1}`,
+      revision: 1,
+    }));
+    const after = Array.from({ length: 4 }, (_, index) => ({
+      captured_at: `2026-08-30T18:0${index + 1}:00.000Z`,
+      moment_id: `after-${index + 1}`,
+      photo_id: `after-${index + 1}`,
+      revision: 1,
+    }));
+    const database = {
+      prepare: vi.fn((sql: string) => {
+        preparedSql.push(sql);
+        const statement = {
+          all: vi.fn().mockResolvedValue({ results: sql.includes('ORDER BY julianday(captured_at) DESC') ? before : after }),
+          bind: vi.fn((...values: unknown[]) => { binds.push(values); return statement; }),
+          first: vi.fn().mockResolvedValue({ captured_at: '2026-08-30T18:00:00.000Z', sort_key: '010' }),
+        };
+        return statement;
+      }),
+    } as unknown as D1Database;
+
+    const related = await new D1FaceSearchRepository(database).related('event-1', 'amelia-match');
+
+    expect(related?.map((photo) => photo.photoId)).toEqual([
+      'before-4', 'before-3', 'before-2', 'before-1',
+      'after-1', 'after-2', 'after-3', 'after-4',
+    ]);
+    expect(preparedSql.filter((sql) => sql.includes('LIMIT 4'))).toHaveLength(2);
+    expect(preparedSql.every((sql) => !sql.includes('moment_id ='))).toBe(true);
+    expect(preparedSql.some((sql) => sql.includes('5.0 / 1440.0'))).toBe(true);
+    expect(binds.slice(-2)).toEqual([
+      ['event-1', '2026-08-30T18:00:00.000Z', '010', 'amelia-match'],
+      ['event-1', '2026-08-30T18:00:00.000Z', '010', 'amelia-match'],
+    ]);
+  });
+
   it('blocks search immediately when no unexpired generation remains', async () => {
     const faceRepository = repository({ currentGeneration: vi.fn().mockResolvedValue(null) });
     const query = vi.fn();

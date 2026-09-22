@@ -244,24 +244,32 @@ export class D1FaceSearchRepository implements FaceSearchRepository {
 
   async related(eventId: string, photoId: string): Promise<RelatedPhoto[] | null> {
     const source = await this.database.prepare(
-      "SELECT captured_at, moment_id FROM photos WHERE id = ?1 AND event_id = ?2 AND state = 'published'",
-    ).bind(photoId, eventId).first<{ captured_at: string | null; moment_id: string | null }>();
+      "SELECT captured_at, sort_key FROM photos WHERE id = ?1 AND event_id = ?2 AND state = 'published'",
+    ).bind(photoId, eventId).first<{ captured_at: string | null; sort_key: string }>();
     if (!source) return null;
-    const result = source.moment_id
-      ? await this.database.prepare(
-          `SELECT id AS photo_id, revision, captured_at, moment_id FROM photos
-           WHERE event_id = ?1 AND state = 'published' AND moment_id = ?2 AND id <> ?3
-           ORDER BY sort_key LIMIT 24`,
-        ).bind(eventId, source.moment_id, photoId).all<SearchPhotoRow>()
-      : source.captured_at
-        ? await this.database.prepare(
-            `SELECT id AS photo_id, revision, captured_at, moment_id FROM photos
-             WHERE event_id = ?1 AND state = 'published' AND id <> ?2 AND captured_at IS NOT NULL
-               AND ABS((julianday(captured_at) - julianday(?3)) * 1440) <= 30
-             ORDER BY ABS(julianday(captured_at) - julianday(?3)), sort_key LIMIT 24`,
-          ).bind(eventId, photoId, source.captured_at).all<SearchPhotoRow>()
-        : { results: [] as SearchPhotoRow[] };
-    return result.results.map((row) => ({
+    if (!source.captured_at) return [];
+    const sharedSelect = `SELECT id AS photo_id, revision, captured_at, moment_id FROM photos
+      WHERE event_id = ?1 AND state = 'published' AND id <> ?4 AND captured_at IS NOT NULL`;
+    const previous = await this.database.prepare(
+      `${sharedSelect}
+       AND julianday(captured_at) >= julianday(?2) - (5.0 / 1440.0)
+       AND (
+         julianday(captured_at) < julianday(?2)
+         OR (julianday(captured_at) = julianday(?2) AND (sort_key < ?3 OR (sort_key = ?3 AND id < ?4)))
+       )
+       ORDER BY julianday(captured_at) DESC, sort_key DESC, id DESC LIMIT 4`,
+    ).bind(eventId, source.captured_at, source.sort_key, photoId).all<SearchPhotoRow>();
+    const following = await this.database.prepare(
+      `${sharedSelect}
+       AND julianday(captured_at) <= julianday(?2) + (5.0 / 1440.0)
+       AND (
+         julianday(captured_at) > julianday(?2)
+         OR (julianday(captured_at) = julianday(?2) AND (sort_key > ?3 OR (sort_key = ?3 AND id > ?4)))
+       )
+       ORDER BY julianday(captured_at) ASC, sort_key ASC, id ASC LIMIT 4`,
+    ).bind(eventId, source.captured_at, source.sort_key, photoId).all<SearchPhotoRow>();
+    const chronological = [...previous.results].reverse().concat(following.results);
+    return chronological.map((row) => ({
       photoId: row.photo_id,
       revision: row.revision,
       capturedAt: row.captured_at,

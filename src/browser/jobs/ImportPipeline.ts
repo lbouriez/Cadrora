@@ -83,14 +83,14 @@ export class ImportPipeline {
     return () => this.listeners.delete(listener);
   }
 
-  async start(eventId: string, files: File[]): Promise<ImportStartResult> {
+  async start(eventId: string, files: File[], timeZone = 'UTC'): Promise<ImportStartResult> {
     if (this.state === 'preparing' || this.state === 'processing' || this.state === 'paused') {
       throw new Error('An import is already active.');
     }
     this.state = 'preparing';
     this.emit();
 
-    const prepared = await this.preflight(files);
+    const prepared = await this.preflight(files, timeZone);
     if (prepared.accepted.length === 0) {
       this.state = 'idle';
       this.emit();
@@ -182,13 +182,13 @@ export class ImportPipeline {
     this.emit();
   }
 
-  private async preflight(files: File[]): Promise<{
+  private async preflight(files: File[], timeZone: string): Promise<{
     accepted: (ValidatedImageFile & { sourceIndex: number })[];
     rejected: RejectedImportFile[];
   }> {
     const results = await mapWithConcurrency(files, 2, async (file, sourceIndex) => {
       try {
-        return { sourceIndex, validated: await validateImageFile(file) } as const;
+        return { sourceIndex, validated: await validateImageFile(file, timeZone) } as const;
       } catch (error) {
         if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) {
           return { error, file, sourceIndex } as const;
@@ -370,6 +370,7 @@ function buildChunks(
   const chunks: ImportJournalChunk[] = [];
   for (let start = 0; start < files.length; start += IMPORT_CHUNK_SIZE) {
     const photos: ImportJournalPhoto[] = files.slice(start, start + IMPORT_CHUNK_SIZE).map((file) => ({
+      ...(file.capturedAt ? { capturedAt: file.capturedAt } : {}),
       contentType: file.contentType,
       filename: file.file.name || `photo-${file.sourceIndex + 1}`,
       height: file.height,

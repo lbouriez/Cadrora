@@ -14,6 +14,7 @@ import { ImportPage } from './Import';
 import { adminImportResources } from './ImportResources';
 import { AdminEventsPage, AdminEventSettingsPage } from './AdminEventsPage';
 import { AdminAccessProvider, useAdminAccess } from './AdminAccessContext';
+import { getAdminEvents } from './adminEventsApi';
 import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
 import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
@@ -87,6 +88,7 @@ function AdminImportContent({ eventId }: { eventId: string }) {
     queryKey: ['publication-summary', eventId],
     refetchInterval: readOnly ? false : 3_000,
   });
+  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
   if (readOnly) {
     return <div className="admin-workspace">
       <section className="admin-card">
@@ -96,9 +98,12 @@ function AdminImportContent({ eventId }: { eventId: string }) {
       {summary.data ? <PublishPanel eventId={eventId} readOnly summary={summary.data} /> : null}
     </div>;
   }
+  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
+  const gallery = events.data?.find((candidate) => candidate.id === eventId);
+  if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <ImportPage eventId={eventId} />
+      <ImportPage eventId={eventId} timezone={gallery.timezone} />
       {summary.data ? (
         <PublishPanel
           eventId={eventId}
