@@ -19,12 +19,16 @@ describe('securityHeaders middleware', () => {
     expect(response.headers.get('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
     expect(response.headers.get('Content-Security-Policy')).toContain("default-src 'self'");
     expect(response.headers.get('Content-Security-Policy')).toContain('https://challenges.cloudflare.com');
+    expect(response.headers.get('Content-Security-Policy')).toContain("img-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com");
+    expect(response.headers.get('Content-Security-Policy')).toContain('connect-src \'self\' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com');
     expect(response.headers.get('Content-Security-Policy')).toContain('frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org');
   });
 
   it('allows the click-to-load map in the static asset policy too', () => {
     const staticHeaders = readFileSync('public/_headers', 'utf8');
     expect(staticHeaders).toContain('frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org');
+    expect(staticHeaders).toContain("img-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com");
+    expect(staticHeaders).toContain("connect-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com");
   });
 
   it('lets Vite inject its local React refresh preamble without weakening deployed hosts', async () => {
