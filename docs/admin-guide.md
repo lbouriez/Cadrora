@@ -1,5 +1,7 @@
 # Admin guide
 
+New to Cadrora? Start with the [project overview](../README.md). For the full account setup, see the [deployment guide](deployment.md); before changing usage limits, review the [free-tier and cost examples](free-tier.md).
+
 Cadrora has one photographer-admin authority. It is not a multi-user or multi-photographer product. Admin API and page protection are enforced by the Worker on every hostname, including previews and `workers.dev`.
 
 ## Sign-in modes

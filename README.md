@@ -1,78 +1,33 @@
 # Cadrora
 
-Cadrora is an open-source, self-hosted photographer website and photo-gallery product for one photographer or family. Its static React surface presents the photographer and services, publishes direct contact details, and hosts public or protected galleries. A Cloudflare Worker backed by D1 and private R2 buckets handles the private application flows. Facial search is optional and strictly gallery-scoped: it is enabled for the official fictitious showcase only, and a visitor's selfie stays in their browser. Possible matches and their nearby moments can be reviewed through a temporary **All photos / Found for me** gallery view; no selfie, embedding, or similarity score is stored with that view.
+Your photography website and galleries, on your own Cloudflare account.
 
-The core platform, wave-2 product packages, and local wave-3 integration coverage are present. A first deployment still needs its own Cloudflare account, required secrets, and release verification; a passing local build is not proof that a remote account is ready.
+Cadrora is an open-source starting point for an independent photographer: a public website for your work and services, a contact page, and galleries you can share publicly or protect with a password. Visitors can browse and download photos when you allow it. Optional face search helps them find possible photos of themselves **within one gallery**; their selfie stays in their browser. [Explore the live showcase](https://cadrora.com/).
 
-### D1 and R2, in plain language
+You own the deployment and the content. The showcase is a demonstration, not a hosted Cadrora service that you must subscribe to. Replace its sample text and photographs with your studio's identity.
 
-You do not need to already know Cloudflare's product names. Cadrora uses these three services:
+## What you get
 
-- **D1 is the database.** Cadrora stores the small structured records there: galleries, visibility, photo metadata, password hashes, sessions, import progress, and cleanup jobs. The first database schema used the internal table name `events`; this is a storage implementation detail and every HTTP route uses `/galleries`. The D1 database named `cadrora` is comparable to the application's catalog and control panel; it does **not** contain the image files themselves.
-- **R2 is private file storage.** It is comparable to a cloud hard drive. `cadrora-media` contains the actual gallery image variants. `cadrora-models` is a separate bucket reserved for the optional face-search model files. Both buckets must remain private: visitors receive media through the Worker only after Cadrora has checked access.
-- **Vectorize is the search index.** It stores compact numeric face vectors, never selfie files or image files. `cadrora-face-index` is the production index used only after a gallery owner enables face search. The official demo derives vectors from its generated fictional gallery photos during deployment so the downloadable Amelia and Daniel portraits return real possible matches; visitor portraits are never added to the index.
-- **A binding connects the Worker to one resource.** In the setup screen, `DB` must point to the D1 database, `MEDIA_BUCKET` to the media R2 bucket, `MODELS_BUCKET` to the models R2 bucket, and `FACE_INDEX` to the Vectorize index. Production and preview must use separate resources.
+- A responsive website with home, services, galleries, contact, and privacy pages.
+- Public, unlisted, or password-protected galleries; optional downloads and gallery-scoped face search.
+- An admin area for publishing galleries and editing the site's languages, appearance, services, contact details, and optional analytics.
+- No required contact-form provider, tracker, or external image host. Google Analytics is optional and loads only after visitor consent.
 
-The names are yours to choose, but the setup variables must contain their exact UUID/name. Creating the resources does not make them public and does not upload any gallery automatically.
+For the product's data flow and privacy boundaries, see [how Cadrora works](docs/architecture.md) and the [privacy guide](docs/privacy.md).
 
-## Deploy to your Cloudflare account
+## Deploy it to your Cloudflare account
 
-For this repository, use the existing GitHub repository as the source of truth: **Cloudflare Dashboard → Workers & Pages → Create application → Continue with GitHub → `lbouriez/Cadrora`**. It does not create another GitHub repository; every reviewed push to `main` is a production build.
+You will need a Cloudflare account, a GitHub repository containing your fork, Node.js 22.12+ and npm 10+, and a domain or subdomain in a zone you control. Cloudflare provides the website runtime and three storage services: **D1** holds gallery/settings records, **R2** holds private photo files, and **Vectorize** indexes faces only for galleries where you enable the finder. You do not need to buy another application server.
 
-Before selecting **Deploy**, complete the short, explicit checklist:
+The short path is:
 
-1. Enable R2 in **Storage & databases → R2 Object Storage** if Cloudflare offers **Get started with R2**. The account owner must review and accept that account-level billing/service step. Error `10042` means it is still disabled.
-2. Create one D1 database and two private R2 buckets: `cadrora`, `cadrora-media`, and `cadrora-models`. Keep the R2 buckets private. Create the `cadrora-face-index` Vectorize index at 128 dimensions with the cosine metric, then add a string metadata index named `partition_id`.
-3. Run `npm ci` and `npm run setup:admin-credentials` locally. Store the generated password in a password manager. The ignored artifact contains both `ADMIN_SECRET_HASH` and a random `AUTH_PEPPER` of at least 32 bytes; Cloudflare needs both values, but never the clear password.
-4. Create a Managed Turnstile widget for the final hostnames (for example, `cadrora.com` and `www.cadrora.com` only if it will be served). Keep the widget site key and secret key together.
-5. In the repository setup screen, keep **Project name** `cadrora`, **Build command** `npm run build`, and set **Deploy command** to `npm run deploy`. Turn **off** builds for non-production branches for the first release.
-6. In **Advanced settings**, create/select a dedicated Workers Builds API token, then add the three non-secret build variables: `CADRORA_D1_DATABASE_ID`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. The D1 ID is displayed on that database's Overview page.
-7. Add `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` as three encrypted build secrets: paste each value, then select **Encrypt**. The first two are the matching lines in the ignored `.artifacts/setup/admin-credentials.env` file; never paste `ADMIN_PASSWORD`. To recover the Turnstile values later, open **Application security → Turnstile → Cadrora Production**: its **Secret key** goes into `TURNSTILE_SECRET_KEY`, while its **Site key** goes into the normal (not encrypted) `VITE_TURNSTILE_SITE_KEY` variable. `VITE_*` values are public client-build data; do not put a password, pepper, or secret in them.
-8. For the official Cadrora showcase only, add the normal build variable `CADRORA_SEED_DEMO=true`; this single opt-in enables the read-only demo identity and links, uploads the tracked generated sample media and checksum-pinned AI models to private R2, repairs three reserved sample events in D1, derives SFace embeddings from the fictional gallery photos, verifies that both downloadable test portraits have matches, and upserts those generated vectors into Vectorize. The AI gallery enables downloads on its first five photos to demonstrate the single-photo viewer action, multi-photo folder save, and ZIP fallback. It defaults to off: leave it unset for a real photographer site. Google Analytics is configured later in **Admin → Site settings → Website**, not as a build variable.
-9. Select **Deploy**, wait for the production build to succeed, then attach the custom domain. Verify `/`, `/services`, `/galleries`, `/contact`, `/privacy`, `/api/v1/site`, and `/admin/login` on the Workers hostname before repeating the checks on the domain. Gallery HTTP routes consistently use `/galleries`; `/events` is intentionally not retained as an alias.
+1. Fork this repository, enable R2 in your Cloudflare account, and create the D1 database, private R2 buckets, and Vectorize index described in the [deployment checklist](docs/deployment.md#existing-repository-cloudflare-builds).
+2. Generate your admin credentials locally, connect **your existing fork** through Cloudflare Workers Builds, and enter the build variables and encrypted secrets using the [exact field map](docs/deployment.md#cloudflare-setup-form-exact-field-map). This route does **not** create a second GitHub repository.
+3. Deploy, verify the Worker hostname, attach your domain, then fill in your studio's real details under **Admin → Site settings**. The [deployment guide](docs/deployment.md#deployment-and-release-checks) lists the checks to perform before sharing the site.
 
-The release script builds, migrates D1, creates a temporary Worker configuration from those three build variables, uploads only the two supplied secrets, and removes the temporary files. No account ID, database ID, bucket name, API token, or secret is committed. The detailed screen-by-screen checklist and verification steps are in [`docs/deployment.md`](docs/deployment.md#existing-repository-cloudflare-builds).
+The [full deployment guide](docs/deployment.md) covers every manual Cloudflare action, root domains versus subdomains, Turnstile keys, the optional showcase, and upgrades. A one-click [Deploy to Cloudflare clone](docs/deployment.md#deploy-button-setup-page) is also possible if you deliberately want Cloudflare to create a separate repository; it is not the existing-fork path. [Admin guide](docs/admin-guide.md) explains daily use.
 
-The [Deploy to Cloudflare button](https://deploy.workers.cloudflare.com/?url=https%3A%2F%2Fgithub.com%2Flbouriez%2FCadrora) is retained only for somebody who wants Cloudflare to make an independent cloned repository. It is not the maintainer path for this repository.
-
-### First use after deployment
-
-1. Open `/admin/login` on the deployed hostname and sign in with the clear admin password you stored locally. Cloudflare never receives that clear value as a build secret.
-2. Open **Site settings**. The **Website** section sets the studio name, languages, visitor colour policy, and optional GA4 Measurement ID (`G-…`); leave the ID empty to disable Analytics. Google loads only after each visitor's explicit analytics consent, and never on gallery, admin, media, or face-search routes. The **Services** section chooses which offerings appear on the home and Services pages. The **Contact** section sets email, phone, studio address, service area, and an optional map centre (latitude/longitude) plus travel radius in kilometres. These D1-backed edits do not require a new build; a visitor may need to refresh after the short public-settings cache expires. If the settings API is unavailable, the compiled public profile still keeps the site useful.
-3. On that screen, optionally choose lower guardrails for gallery count, stored media, and indexed faces. Gallery count means separate galleries—not photos; the checked-in limits allow 50 galleries with up to 2,000 photos in each. Cadrora enforces these limits on new writes; they are per-instance safeguards rather than account-wide billing guarantees.
-4. Create a **gallery**, configure public or password-protected access, retention, downloads, metadata, and optional gallery-scoped face/nearby search, then import photos.
-
-5. The Contact page shows the configured details and service area. Set the centre and **Travel distance (km)** in **Site settings → Contact**; **no map key is required**. The showcase starts with a 125 km setting seeded in D1, which an owner can change or clear without a rebuild. Visitors can select **Display the map** in the photo preview to load OpenStreetMap, or open an external Google Maps link. Neither map is requested before the visitor acts. The radius is an approximate travel distance, not a drawn boundary. Optionally, supply the public build variable `VITE_GOOGLE_MAPS_EMBED_KEY` with a **Google Maps Embed API** key restricted to this website's HTTP referrers and to that API to use Google for the embedded map instead. Google requires a Cloud project with billing enabled even though the Embed API currently lists no usage charge; this is a separate operator choice. See [public website configuration](docs/technical/public-website.md).
-6. Publish publicly or as unlisted. **Offline** is reversible and retains D1, R2, and Vectorize data. **Delete gallery** is permanent, requires typing the exact title, blocks access immediately, and lets the scheduled Worker clean gallery-owned provider data asynchronously. Shared AI model files are not deleted.
-7. Verify the gallery from a signed-out browser. For protected access and face search, verify Turnstile on the exact custom hostname before sharing it.
-
-For downloads, the gallery owner enables **Allow downloads** in that gallery's settings. Newly imported photos receive a separate `download` image variant; older or externally seeded photos need that variant in private R2 **and** its D1 variant record before the public API exposes a download action. Visitors can download one photo from the viewer, or select multiple in the gallery. Compatible desktop browsers can save separate files into a newly created folder; other browsers offer a ZIP made locally, limited to 100 photos or 250 MB per batch. A gallery without the owner permission or a photo without a download variant shows no download control.
-
-### Deployment ceilings and owner self-limits
-
-The repository ships with reviewed deployment ceilings in `wrangler.jsonc`. They apply before an owner chooses any lower values in **Admin → Site settings**:
-
-| Setting | Checked-in ceiling | Meaning |
-| --- | ---: | --- |
-| `MAX_PHOTOS_PER_EVENT` | `2000` | Maximum photos in one gallery |
-| `MAX_EVENTS` | `50` | Maximum separate galleries; this is not a 50-photo limit |
-| `MAX_STORAGE_BYTES` | `9900000000` | Total media variants stored by this instance, in decimal bytes |
-| `MAX_FACES_PER_EVENT` | `10000` | Maximum indexed faces in one gallery |
-| `MAX_TOTAL_FACES` | `39000` | Maximum indexed faces across the instance |
-
-The deployment owner may change these values in both the top-level production `vars` and the explicitly redeclared `env.preview.vars`, then redeploy. The web administrator can only select lower gallery, storage, and total-face limits; this prevents the admin UI from silently overriding an infrastructure decision. Cadrora additionally caps media and stored face dimensions against the relevant Cloudflare Free allowances, but account-level traffic and operation usage must still be monitored in Cloudflare.
-
-### Which account can use a hostname?
-
-- If the selected Cloudflare account owns the active `cadrora.com` zone, it can deploy an isolated Worker at `toto.cadrora.com` with `npm run deploy:instance -- --instance toto --hostname toto.cadrora.com --confirm`.
-- A third party who forks Cadrora into a different Cloudflare account cannot attach `toto.cadrora.com`, because that account does not own the `cadrora.com` zone. They should normally use a domain or subdomain in a zone they own, such as `photos.their-domain.com`.
-- Serving `toto.cadrora.com` from another account would require deliberately delegating and operating that child DNS zone. That is an advanced infrastructure choice and is not part of Cadrora's simple deployment flow.
-
-Cloudflare Custom Domains require an active zone in the selected account and cannot be created on a zone that account does not own. `deploy:instance` is an authenticated local Wrangler deployment; it does not create a new Cloudflare-to-Git connection. Update the fork, then rerun the same command to publish a later version. The complete root-domain and subdomain examples are in [`docs/deployment.md`](docs/deployment.md#additional-isolated-domain-or-subdomain).
-
-## Quick start
-
-Prerequisites: Node.js 22.12 or newer and npm 10 or newer.
+For a local preview, after cloning your fork:
 
 ```powershell
 npm ci
@@ -80,69 +35,36 @@ npm run setup:local
 npm run dev
 ```
 
-`setup:local` creates the ignored `.dev.vars` and `.env` files, generates a private admin password, its HMAC-SHA-256 verifier, and a random `AUTH_PEPPER` of at least 32 bytes, installs Cloudflare's official always-pass Turnstile test-key pair, and applies the local D1 migrations. It refuses to overwrite any existing local setup file and never prints credential values. Open `.artifacts/setup/admin-credentials.env` only in a trusted local editor to retrieve the local admin password and the two matching deployment secrets.
+`setup:local` creates ignored local credentials and test-only Turnstile keys. Keep the generated password safe and never deploy those test keys. See [local validation](docs/deployment.md#local-validation) for existing installations and manual setup.
 
-The Turnstile keys created by `setup:local` are intentionally limited to development and work on localhost; never deploy them. See [Cloudflare's Turnstile testing documentation](https://developers.cloudflare.com/turnstile/troubleshooting/testing/). For a manual setup or an existing environment, copy `.dev.vars.example` to `.dev.vars` and `.env.example` to `.env`, generate credentials with `npm run setup:admin-credentials`, add the matching values, then run `npm run setup`.
+## What will Cloudflare cost?
 
-`npm run setup` applies only local, idempotent D1 migrations through the `DB` binding and preserves existing data. It does not create remote resources or replace any secret.
+The software has no licence fee. Cloudflare has free allowances, but they are **shared by your whole Cloudflare account**, not renewed for every bucket, gallery, or Worker. A domain name, taxes, optional third-party services, and any usage above allowances are separate. Workers Paid starts at **US$5/month per account**; R2 storage and operations can incur usage charges independently. R2 activation may require an account-level billing setup even if you expect to remain within its free allowance. A small site may stay within free usage, but the free plan has hard daily/runtime limits, not an unlimited guarantee. Check your Cloudflare dashboard before promising a customer a price.
 
-To inspect prerequisites without changing local state:
+At a glance, the current Free allowances are **100,000 Worker requests/day** (and 10 ms CPU per invocation), **10 GB-month of R2 Standard storage** plus 1 million writes and 10 million reads/month, **5 million D1 rows read/day and 100,000 written/day** (with a 500 MB limit per database), and **5 million stored / 30 million queried Vectorize dimensions**. These are different meters: 100,000 photo views are not necessarily 100,000 D1 rows, and a photo with several image variants consumes more than one stored object. See the [detailed limits](docs/free-tier.md#relevant-cloudflare-allowances).
 
-```powershell
-npm run setup -- --diagnose
-```
+These are *illustrative monthly snapshots*, not quotes. They assume all photos remain stored all month, an average **2 MB of stored image variants per photo**, about **0.1 GB** for models/overhead, R2 Standard storage, and traffic/operations below the listed included allowances. Actual image sizes and visitor activity can change the result substantially.
 
-Diagnostic mode intentionally exits non-zero when required local secrets are absent or malformed, before it writes local D1 state. It reports only presence and accepted format, never secret values. Never prefix a secret with `VITE_`.
+| Photographer | Galleries × photos | Indexed faces | Approx. stored files | Illustrative Cloudflare cost |
+| --- | ---: | ---: | ---: | ---: |
+| Starting out | 3 × 300 = 900 | 900 | 1.9 GB | **US$0/mo** if all Free limits hold |
+| Growing studio | 15 × 600 = 9,000 | 18,000 | 18.1 GB | **~US$0.14/mo R2**; **~US$5.14/mo** with Workers Paid |
+| Established studio | 50 × 1,000 = 50,000 | 150,000 | 100.1 GB | **~US$6.37/mo** with Workers Paid, including illustrative R2 and Vectorize overage |
 
-Before a public launch, set the real contact details under **Admin → Site settings → Contact**. They are stored in D1 and appear on `/contact` without rebuilding the site. The optional non-secret `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA` build variables are only compiled fallbacks for a D1/API outage; the repository no longer hardcodes demonstration coordinates in the client. Set real fallback values if you want contact links to remain available during an outage. The official opt-in showcase seeds its fictional details into D1 only for an untouched site. `VITE_PHOTOGRAPHER_NAME` remains a build-time public introduction value; see [`docs/technical/public-website.md`](docs/technical/public-website.md).
+The last row is your **50 galleries, 1,000 photos and 3 faces per photo** example. It is *not* supported by the repository's default safety ceilings: those allow 50 galleries and 2,000 photos per gallery, but only **9.9 GB of media** and **39,000 indexed faces** overall. Reaching 50,000 photos/150,000 faces requires raising those deployment ceilings and moving beyond Vectorize's Free stored-vector allowance. The 50,000-photo D1 database must also be measured against its plan limit; the table assumes its storage and row operations remain in the Paid included amounts. Do not treat the table as a capacity test.
 
-## Deployment details
+Removing an old gallery deletes its owned photos and face vectors after background cleanup, so future storage costs can fall. It does not refund storage already used earlier in a billing month, and it cannot prevent charges from traffic or other projects in the same Cloudflare account. You can also keep a gallery offline without deleting it, but **offline still uses storage**.
 
-Cloudflare requires a D1 `database_id` and R2 `bucket_name` for a remote Worker binding. To keep this open-source repository portable, those account-specific values are not committed. `npm run deploy` reads the three `CADRORA_*` build variables, writes an ignored temporary Wrangler file, applies migrations through its `DB` binding in non-interactive CI mode, seeds showcase R2 objects with Wrangler's non-interactive `--force` flag, deploys with an ignored three-secret file, then deletes both files. The build therefore remains reproducible without coupling the repository to one Cloudflare account.
+See [Cloudflare free limits, assumptions, calculations, and sensitivity examples](docs/free-tier.md) before choosing a plan. The source prices are linked there, including [R2](https://developers.cloudflare.com/r2/pricing/), [Workers](https://developers.cloudflare.com/workers/platform/pricing/), [D1](https://developers.cloudflare.com/d1/platform/pricing/), and [Vectorize](https://developers.cloudflare.com/vectorize/platform/pricing/).
 
-Before selecting **Deploy**, generate and retain the admin password locally with `npm run setup:admin-credentials`; provide the resulting HMAC verifier—not the password—as `ADMIN_SECRET_HASH`, its matching random pepper as `AUTH_PEPPER`, the widget's public key as `VITE_TURNSTILE_SITE_KEY`, and the matching private key as `TURNSTILE_SECRET_KEY`. The three server secrets are required and the Worker fails closed without them. The HMAC verifier uses separate domains for admin and gallery credentials and is intentionally inexpensive enough for the Workers Free 10 ms CPU allowance; the former 600,000-iteration PBKDF2 verifier exceeded that per-request budget. `DB`, `MEDIA_BUCKET`, `MODELS_BUCKET`, and `FACE_INDEX` are production bindings. A real gallery remains without facial search until its owner turns on that per-gallery option and indexes its photos.
+## Find the right guide
 
-When upgrading an existing pre-HMAC checkout, run `npm run setup:admin-credentials -- --migrate`. It preserves the recorded `ADMIN_PASSWORD`, adds a stable `AUTH_PEPPER`, and rewrites only the verifier in the ignored artifact without printing any value. Replace both encrypted Cloudflare secrets from that same artifact before deploying the new code.
-
-Use the named preview environment only for isolated practice, with its own D1/R2 resources and its own required secrets:
-
-```powershell
-npm run release:deploy -- --env preview --confirm
-```
-
-For a manual production release after authenticating Wrangler, exporting the same three `CADRORA_*` resource values and the two production secrets, use `npm run release:deploy -- --production --confirm`. The normal `npm run deploy` command is the non-interactive Workers Builds entry point: it builds, applies remote D1 migrations through the generated `DB` binding, then deploys. See [`docs/deployment.md`](docs/deployment.md) for the full preflight and verification sequence.
-
-## Commands
-
-| Command | Purpose |
+| If you want to… | Read… |
 | --- | --- |
-| `npm ci` | Reproduce the locked dependency tree |
-| `npm run setup` | Validate required local secrets and apply idempotent local D1 migrations |
-| `npm run setup -- --diagnose` | Read-only local prerequisite and binding diagnostic |
-| `npm run setup:local` | One-command first local setup with generated credentials, official Turnstile test keys, and D1 migrations |
-| `npm run setup:admin-credentials` | Write a long password, HMAC-SHA-256 verifier, and 32-byte-or-longer pepper to ignored local artifacts without printing values |
-| `npm run dev` | Run the React SPA and Worker in the Workers runtime |
-| `npm run check` | Type-check and lint |
-| `npm run test` | Run the unit suite once |
-| `npm run build` | Build Worker and client artifacts |
-| `npm run release:migrate -- --production --confirm` | Apply remote D1 migrations via the `DB` binding only |
-| `npm run release:deploy -- --production --confirm` | Build, migrate, and deploy the explicit production target |
-| `npm run deploy` | Workers Builds entry point: build, migrate, and deploy production from configured `CADRORA_*` values |
-| `npm run deploy:preview` | Build, migrate, and deploy the isolated preview environment |
-| `npm run deploy:instance -- --instance alice --hostname alice.example.com --confirm` | Create or reuse isolated resources, deploy another instance, and attach an exact root domain or subdomain |
+| Deploy or upgrade your own site | [Deployment guide](docs/deployment.md) and [upgrading](docs/upgrading.md) |
+| Understand costs and safe limits | [Free-tier and cost planning](docs/free-tier.md) |
+| Run galleries and customise settings | [Admin guide](docs/admin-guide.md) |
+| Understand face search and privacy | [Face search](docs/face-search.md) and [privacy](docs/privacy.md) |
+| Develop or review the code | [Contributor guide](CONTRIBUTING.md), [technical documentation](docs/technical/README.md), and [agent rules](AGENTS.md) |
 
-## Project map
-
-```text
-src/app/       React application, shared components, i18n, and tokens
-src/browser/   Browser-only image, face, and import processing
-src/server/    Hono Worker, routes, auth, services, and maintenance
-src/shared/    Zod schemas, shared types, errors, and constants
-migrations/    Ordered D1 migrations
-scripts/       Setup, models, and release automation
-tests/         Unit, integration, end-to-end tests, and fixtures
-docs/          Architecture, contracts, ADRs, and operator documentation
-public/brand/  Versioned brand assets
-```
-
-Start with [`AGENTS.md`](AGENTS.md) when contributing through a coding agent. Human contributors should also read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/technical/README.md`](docs/technical/README.md).
+Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
