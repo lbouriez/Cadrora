@@ -1,10 +1,10 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { Button, Input, Spinner } from '../components';
+import { Button, IconButton, InfoIcon, Input, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from './api';
@@ -26,7 +26,9 @@ import { siteProfile } from './siteProfile';
 import type { PublicPhoto } from '../../shared/schemas/gallery';
 
 interface GalleryPhotoGridProps {
-  onToggleSelection: (id: string) => void;
+  downloadHelpId: string;
+  onToggleSelection: (id: string, shiftKey: boolean) => void;
+  onUnavailablePhoto: () => void;
   photos: PublicPhoto[];
   selectedIds: Set<string>;
   selectionMode: boolean;
@@ -34,7 +36,7 @@ interface GalleryPhotoGridProps {
   viewerQuery: string;
 }
 
-function GalleryPhotoGrid({ onToggleSelection, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
+function GalleryPhotoGrid({ downloadHelpId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
   return (
     <div className="photo-grid">
@@ -52,17 +54,18 @@ function GalleryPhotoGrid({ onToggleSelection, photos, selectedIds, selectionMod
             width={photo.width}
           />
         );
-        return selectionMode && photo.downloadUrl ? (
+        return selectionMode ? (
           <button
-            aria-label={t('gallery.downloadSelection.photo', { filename: photo.filename })}
-            aria-pressed={selectedIds.has(photo.id)}
-            className="photo-tile photo-tile--selectable"
+            aria-label={t(photo.downloadUrl ? 'gallery.downloadSelection.photo' : 'gallery.downloadSelection.unavailablePhoto', { filename: photo.filename })}
+            aria-pressed={photo.downloadUrl ? selectedIds.has(photo.id) : undefined}
+            aria-controls={photo.downloadUrl ? undefined : downloadHelpId}
+            className={`photo-tile photo-tile--selectable${photo.downloadUrl ? '' : ' photo-tile--unavailable'}`}
             key={photo.id}
-            onClick={() => onToggleSelection(photo.id)}
+            onClick={(clickEvent) => photo.downloadUrl ? onToggleSelection(photo.id, clickEvent.shiftKey) : onUnavailablePhoto()}
             type="button"
           >
             {image}
-            <span aria-hidden="true" className="photo-tile__check">✓</span>
+            <span aria-hidden="true" className="photo-tile__check">{photo.downloadUrl ? '✓' : <InfoIcon />}</span>
           </button>
         ) : (
           <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
@@ -84,6 +87,9 @@ export function GalleryPage() {
   const [password, setPassword] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [showDownloadHelp, setShowDownloadHelp] = useState(false);
+  const downloadHelpId = useId();
+  const lastSelectedId = useRef<string | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [downloadComplete, setDownloadComplete] = useState(false);
@@ -148,8 +154,10 @@ export function GalleryPage() {
   const viewerQuery = viewerSearch.size > 0 ? `?${viewerSearch.toString()}` : '';
   const selected = photoId ? allPhotos.find((photo) => photo.id === photoId) : undefined;
   const selectedPhotos = useMemo(() => allPhotos.filter((photo) => selectedIds.has(photo.id) && photo.downloadUrl), [allPhotos, selectedIds]);
-  const downloadablePhotos = visiblePhotos.filter((photo) => photo.downloadUrl);
+  const downloadablePhotos = useMemo(() => visiblePhotos.filter((photo) => photo.downloadUrl), [visiblePhotos]);
   const supportsFolder = supportsSeparatePhotoDownloads();
+
+  useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
 
   useEffect(() => () => {
     if (zipResult) URL.revokeObjectURL(zipResult.url);
@@ -163,16 +171,44 @@ export function GalleryPage() {
     setDownloadComplete(false);
   };
 
-  const toggleSelection = (id: string) => {
+  const toggleSelection = (id: string, shiftKey: boolean) => {
     if (downloadAbort.current) return;
+    const targetIndex = visiblePhotos.findIndex((photo) => photo.id === id && photo.downloadUrl);
+    if (targetIndex < 0) return;
     resetDownloadResult();
+    const anchorIndex = shiftKey && lastSelectedId.current
+      ? visiblePhotos.findIndex((photo) => photo.id === lastSelectedId.current && photo.downloadUrl)
+      : -1;
     setSelectedIds((current) => {
       const next = new Set(current);
-      if (next.has(id)) next.delete(id);
+      if (anchorIndex >= 0) {
+        for (const photo of visiblePhotos.slice(Math.min(anchorIndex, targetIndex), Math.max(anchorIndex, targetIndex) + 1)) {
+          if (photo.downloadUrl) next.add(photo.id);
+        }
+      } else if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+    lastSelectedId.current = id;
   };
+
+  useEffect(() => {
+    if (!selectionMode || photoId) return;
+    const onSelectAll = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.defaultPrevented || keyEvent.altKey || !(keyEvent.ctrlKey || keyEvent.metaKey) || keyEvent.key.toLowerCase() !== 'a') return;
+      const target = keyEvent.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || target.closest('input, textarea, select'))) return;
+      if (downloadAbort.current || downloadablePhotos.length === 0) return;
+      keyEvent.preventDefault();
+      setZipResult(null);
+      setDownloadError(null);
+      setDownloadComplete(false);
+      setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)]));
+      lastSelectedId.current = null;
+    };
+    document.addEventListener('keydown', onSelectAll);
+    return () => document.removeEventListener('keydown', onSelectAll);
+  }, [downloadablePhotos, photoId, selectionMode]);
 
   const beginDownload = async (mode: 'folder' | 'zip') => {
     if (selectedPhotos.length < 2 || downloadAbort.current) return;
@@ -264,7 +300,7 @@ export function GalleryPage() {
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
         {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
         {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
-          <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); resetDownloadResult(); }} variant="secondary">
+          <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); setShowDownloadHelp(false); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
             {selectionMode ? t('gallery.downloadSelection.done') : t('gallery.downloadSelection.start')}
           </Button>
         ) : null}
@@ -288,32 +324,37 @@ export function GalleryPage() {
       {selectionMode && event.data.allowDownloads ? (
         <section aria-label={t('gallery.downloadSelection.label')} className="gallery-download-selection">
           <p>{t('gallery.downloadSelection.count', { count: selectedPhotos.length })}</p>
+          <p className="gallery-download-selection__hint">{t(supportsFolder ? 'gallery.downloadSelection.folderHint' : 'gallery.downloadSelection.zipHint')}</p>
+          <p className="gallery-download-selection__shortcut">{t('gallery.downloadSelection.shortcuts')}</p>
           <div className="gallery-download-selection__actions">
-            <Button disabled={downloadProgress !== null || downloadablePhotos.length === 0} onClick={() => { resetDownloadResult(); setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)])); }} variant="secondary">
-              {t('gallery.downloadSelection.selectVisible')}
-            </Button>
-            <Button disabled={downloadProgress !== null || selectedPhotos.length === 0} onClick={() => { setSelectedIds(new Set()); resetDownloadResult(); }} variant="secondary">
+            <div className="gallery-download-selection__select-all">
+              <Button disabled={downloadProgress !== null || downloadablePhotos.length === 0} onClick={() => { resetDownloadResult(); setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)])); lastSelectedId.current = null; }} variant="secondary">
+                {t('gallery.downloadSelection.selectVisible')}
+              </Button>
+              <IconButton aria-controls={downloadHelpId} aria-expanded={showDownloadHelp} aria-label={t('gallery.downloadSelection.helpLabel')} onClick={() => setShowDownloadHelp((current) => !current)}><InfoIcon /></IconButton>
+            </div>
+            <Button disabled={downloadProgress !== null || selectedPhotos.length === 0} onClick={() => { setSelectedIds(new Set()); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
               {t('gallery.downloadSelection.clear')}
             </Button>
             {selectedPhotos.length === 1 ? <a className="button button--primary" download href={selectedPhotos[0]?.downloadUrl ?? undefined}>{t('gallery.download')}</a> : null}
             {selectedPhotos.length > 1 && supportsFolder ? (
-              <Button disabled={downloadProgress !== null} onClick={() => void beginDownload('folder')}>
+              <Button disabled={downloadProgress !== null} onClick={() => void beginDownload('folder')} variant={downloadError === 'folder' ? 'secondary' : 'primary'}>
                 {t('gallery.downloadSelection.saveSeparate', { count: selectedPhotos.length })}
               </Button>
             ) : null}
             {selectedPhotos.length > 1 ? (
-              <Button disabled={downloadProgress !== null || selectedPhotos.length > MAX_ZIP_PHOTOS} onClick={() => void beginDownload('zip')} variant={supportsFolder ? 'secondary' : 'primary'}>
+              <Button disabled={downloadProgress !== null || selectedPhotos.length > MAX_ZIP_PHOTOS} onClick={() => void beginDownload('zip')} variant={supportsFolder && downloadError !== 'folder' ? 'secondary' : 'primary'}>
                 {t('gallery.downloadSelection.makeZip', { count: selectedPhotos.length })}
               </Button>
             ) : null}
             {downloadProgress !== null ? <Button onClick={() => downloadAbort.current?.abort()} variant="secondary">{t('gallery.downloadSelection.cancel')}</Button> : null}
             {zipResult ? <a className="button button--primary" download={zipResult.filename} href={zipResult.url}>{t('gallery.downloadSelection.saveZip')}</a> : null}
           </div>
+          <p className="gallery-download-selection__help" hidden={!showDownloadHelp} id={downloadHelpId}>{t('gallery.downloadSelection.help', { available: downloadablePhotos.length, total: visiblePhotos.length })}</p>
           {downloadProgress !== null ? <p role="status">{t('gallery.downloadSelection.progress', { current: downloadProgress, total: selectedPhotos.length })}</p> : null}
           {downloadComplete ? <p role="status">{t('gallery.downloadSelection.complete', { count: selectedPhotos.length })}</p> : null}
           {downloadError ? <p role="alert">{t(`gallery.downloadSelection.errors.${downloadError}`)}</p> : null}
           {selectedPhotos.length > MAX_ZIP_PHOTOS ? <p>{t('gallery.downloadSelection.zipLimit')}</p> : null}
-          <p className="gallery-download-selection__hint">{t(supportsFolder ? 'gallery.downloadSelection.folderHint' : 'gallery.downloadSelection.zipHint')}</p>
         </section>
       ) : null}
       {matchesView ? (
@@ -325,7 +366,7 @@ export function GalleryPage() {
               <span>{matchedPhotoIds.length}</span>
             </div>
             <p>{t('gallery.photoFilter.matchesHelp')}</p>
-            <GalleryPhotoGrid onToggleSelection={toggleSelection} photos={matchedPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
+            <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={matchedPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
           </section>
           {nearbyPhotoIds.length > 0 ? (
             <section aria-labelledby="gallery-nearby-heading" className="gallery-found-group gallery-found-group--nearby">
@@ -334,11 +375,11 @@ export function GalleryPage() {
                 <span>{nearbyPhotoIds.length}</span>
               </div>
               <p>{t('gallery.photoFilter.nearbyHelp')}</p>
-              <GalleryPhotoGrid onToggleSelection={toggleSelection} photos={nearbyPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
+              <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={nearbyPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
             </section>
           ) : null}
         </>
-      ) : <GalleryPhotoGrid onToggleSelection={toggleSelection} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
+      ) : <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
       {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
       {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}

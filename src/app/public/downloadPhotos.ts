@@ -5,11 +5,11 @@ export const MAX_ZIP_BYTES = 250_000_000;
 
 type DownloadPhoto = Pick<PublicPhoto, 'downloadUrl' | 'eventId' | 'filename' | 'id' | 'revision'>;
 type DirectoryPickerWindow = Window & {
-  showDirectoryPicker?: (options: { mode: 'readwrite'; startIn: 'downloads' }) => Promise<FileSystemDirectoryHandle>;
+  showDirectoryPicker?: (options: { id: string; mode: 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
 };
 
 export class PhotoDownloadError extends Error {
-  constructor(public readonly code: 'access' | 'limit' | 'network' | 'unavailable') {
+  constructor(public readonly code: 'access' | 'folder' | 'limit' | 'network' | 'unavailable') {
     super(code);
   }
 }
@@ -55,7 +55,16 @@ async function fetchPhoto(photo: DownloadPhoto, signal: AbortSignal): Promise<Re
 export async function choosePhotoDirectory(): Promise<FileSystemDirectoryHandle> {
   const picker = (window as DirectoryPickerWindow).showDirectoryPicker;
   if (!picker) throw new PhotoDownloadError('unavailable');
-  return picker.call(window, { mode: 'readwrite', startIn: 'downloads' });
+  try {
+    // Starting inside Downloads invited selection of the protected Downloads root.
+    // Let the browser restore its last safe choice for this dedicated picker.
+    return await picker.call(window, { id: 'cadrora-gallery-downloads', mode: 'readwrite' });
+  } catch (error) {
+    if (error instanceof DOMException && ['AbortError', 'NotAllowedError', 'SecurityError'].includes(error.name)) {
+      throw new PhotoDownloadError('folder');
+    }
+    throw error;
+  }
 }
 
 /** One authorized Worker/R2 stream per photo, with no photo bodies held by the app. */

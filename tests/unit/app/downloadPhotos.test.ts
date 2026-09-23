@@ -2,6 +2,7 @@ import { BlobReader, ZipReader } from '@zip.js/zip.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  choosePhotoDirectory,
   createPhotoZip,
   downloadFilename,
   MAX_ZIP_PHOTOS,
@@ -23,6 +24,24 @@ afterEach(() => {
 });
 
 describe('visitor photo downloads', () => {
+  it('does not steer the picker to the protected Downloads root', async () => {
+    const directory = {} as FileSystemDirectoryHandle;
+    const picker = vi.fn(() => Promise.resolve(directory));
+    vi.stubGlobal('window', { location: { origin: 'https://cadrora.test' }, showDirectoryPicker: picker });
+
+    await expect(choosePhotoDirectory()).resolves.toBe(directory);
+    expect(picker).toHaveBeenCalledWith({ id: 'cadrora-gallery-downloads', mode: 'readwrite' });
+  });
+
+  it('turns a blocked or cancelled folder picker into a visible fallback error', async () => {
+    vi.stubGlobal('window', {
+      location: { origin: 'https://cadrora.test' },
+      showDirectoryPicker: () => Promise.reject(new DOMException('The folder contains system files', 'AbortError')),
+    });
+
+    await expect(choosePhotoDirectory()).rejects.toMatchObject({ code: 'folder' });
+  });
+
   it('uses the actual encoded format and safe, unique filenames', () => {
     expect(downloadFilename(photos[0]!, 'image/webp')).toBe('First-picture-photo-1.webp');
     expect(downloadFilename({ ...photos[0]!, filename: '../evil.png' }, 'image/jpeg')).toBe('evil-photo-1.jpg');

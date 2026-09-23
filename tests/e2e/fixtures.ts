@@ -83,7 +83,7 @@ export async function installTurnstileStub(page: Page): Promise<void> {
   });
 }
 
-export async function mockGallery(page: Page, options: { protected?: boolean } = {}): Promise<void> {
+export async function mockGallery(page: Page, options: { protected?: boolean; withUnavailablePhoto?: boolean } = {}): Promise<void> {
   let unlocked = !options.protected;
   const event = options.protected ? protectedEvent : publicEvent;
 
@@ -132,12 +132,20 @@ export async function mockGallery(page: Page, options: { protected?: boolean } =
           { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id },
           {
             ...publicPhoto,
-            downloadUrl: `/media/${event.id}/photo-2/2/download`,
+            downloadUrl: options.withUnavailablePhoto ? null : `/media/${event.id}/photo-2/2/download`,
             eventId: event.id,
             filename: 'portrait-au-jardin.jpg',
             id: 'photo-2',
             sortKey: '00000002',
           },
+          ...(options.withUnavailablePhoto ? [{
+            ...publicPhoto,
+            downloadUrl: `/media/${event.id}/photo-3/2/download`,
+            eventId: event.id,
+            filename: 'portrait-a-la-fete.jpg',
+            id: 'photo-3',
+            sortKey: '00000003',
+          }] : []),
         ],
       });
       return;

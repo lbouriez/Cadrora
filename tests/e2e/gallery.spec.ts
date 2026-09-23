@@ -47,9 +47,15 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await expect(page).toHaveURL(/\/e\/mariage-lumiere$/);
 });
 
-test('selectionne des photos et cree le ZIP de secours', async ({ page }) => {
+test('selectionne des photos et cree le ZIP de secours avec un bouton retour entier', async ({ page }, testInfo) => {
   await mockGallery(page);
   await page.goto('/e/mariage-lumiere');
+
+  const backHome = page.locator('.gallery-heading .gallery-back');
+  await expect(backHome).toBeVisible();
+  await expect(backHome).toHaveAccessibleName(/retour à l'accueil|back to home/i);
+  expect(await backHome.evaluate((element) => getComputedStyle(element).borderBottomWidth)).toBe('1px');
+  await page.screenshot({ path: testInfo.outputPath('gallery-header.png') });
 
   await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
   await page.getByRole('button', { name: /sélectionner les photos téléchargeables visibles|select visible downloadable photos/i }).click();
@@ -59,6 +65,91 @@ test('selectionne des photos et cree le ZIP de secours', async ({ page }) => {
   const download = page.waitForEvent('download');
   await page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i }).click();
   expect((await download).suggestedFilename()).toBe('mariage-lumiere-photos.zip');
+});
+
+test('propose le ZIP apres un dossier refuse par le navigateur', async ({ page }, testInfo) => {
+  await mockGallery(page);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'showDirectoryPicker', {
+      configurable: true,
+      value: () => Promise.reject(new DOMException('This folder contains system files', 'AbortError')),
+    });
+  });
+  await page.goto('/e/mariage-lumiere');
+
+  await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
+  await page.getByRole('button', { name: /sélectionner les photos téléchargeables visibles|select visible downloadable photos/i }).click();
+  await page.getByRole('button', { name: /enregistrer 2 photos séparément|save 2 separate photos/i }).click();
+  await expect(page.getByRole('alert')).toContainText(/aucun dossier accessible en écriture|no writable folder was selected/i);
+  await page.screenshot({ path: testInfo.outputPath('folder-rejected.png') });
+  await page.getByRole('button', { name: /créer un ZIP|create a ZIP/i }).click();
+  await expect(page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i })).toBeVisible();
+});
+
+test('enregistre deux fichiers séparés dans un sous-dossier choisi', async ({ page }) => {
+  await mockGallery(page);
+  await page.addInitScript(() => {
+    const testWindow = window as Window & { __cadroraWritten?: string[] };
+    testWindow.__cadroraWritten = [];
+    Object.defineProperty(window, 'showDirectoryPicker', {
+      configurable: true,
+      value: () => Promise.resolve({
+        getDirectoryHandle: () => Promise.resolve({
+          getFileHandle: (filename: string) => Promise.resolve({
+            createWritable: () => Promise.resolve(new WritableStream<Uint8Array>({
+              write: (chunk) => { testWindow.__cadroraWritten?.push(`${filename}:${chunk.byteLength}`); },
+            })),
+          }),
+          removeEntry: () => Promise.resolve(),
+        }),
+      }),
+    });
+  });
+  await page.goto('/e/mariage-lumiere');
+
+  await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
+  await page.getByRole('button', { name: /sélectionner les photos téléchargeables visibles|select visible downloadable photos/i }).click();
+  await page.getByRole('button', { name: /enregistrer 2 photos séparément|save 2 separate photos/i }).click();
+  await expect(page.getByRole('status')).toContainText(/2 photos enregistrées|2 photos saved/i);
+  expect(await page.evaluate(() => (window as Window & { __cadroraWritten?: string[] }).__cadroraWritten)).toEqual([
+    'danse-au-coucher-du-soleil-photo-1.webp:16',
+    'portrait-au-jardin-photo-2.webp:16',
+  ]);
+});
+
+test('selectionne une plage avec Maj et toutes les photos disponibles avec Ctrl+A', async ({ page }, testInfo) => {
+  await mockGallery(page, { withUnavailablePhoto: true });
+  await page.goto('/e/mariage-lumiere');
+
+  await page.getByRole('button', { name: /nécessaire seulement|essential only/i }).click();
+
+  await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
+  const unavailable = page.getByRole('button', { name: /portrait-au-jardin.jpg n’est pas disponible|portrait-au-jardin.jpg is not available/i });
+  await unavailable.click();
+  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeVisible();
+  const help = page.getByRole('button', { name: /pourquoi certaines photos|why are some photos/i });
+  await help.click();
+  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeHidden();
+  await help.click();
+  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('selection-help.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(help).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('selection-help-mobile.png') });
+  await help.click();
+  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeHidden();
+
+  await page.getByRole('button', { name: /sélectionner danse-au-coucher-du-soleil|select danse-au-coucher-du-soleil/i }).click();
+  await page.getByRole('button', { name: /sélectionner portrait-a-la-fete|select portrait-a-la-fete/i }).click({ modifiers: ['Shift'] });
+  await expect(page.getByText(/2 photos sélectionnées|2 photos selected/i)).toBeVisible();
+  await expect(unavailable).toBeEnabled();
+  await page.getByRole('button', { name: /effacer la sélection|clear selection/i }).click();
+  await expect(page.getByText(/0 photos sélectionnées|0 photos selected/i)).toBeVisible();
+  await page.keyboard.press('Control+A');
+  await expect(page.getByText(/2 photos sélectionnées|2 photos selected/i)).toBeVisible();
+  await page.getByRole('button', { name: /terminer la sélection|finish selecting/i }).click();
+  await expect(page.getByRole('link', { name: 'portrait-au-jardin.jpg' })).toBeVisible();
 });
 
 test('conserve les resultats IA dans la session et filtre la galerie', async ({ page }) => {
