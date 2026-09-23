@@ -63,11 +63,7 @@ export function ContactPage() {
     phone: settings.data?.contactPhone ?? siteProfile.contact.phone,
     serviceArea: settings.data?.serviceArea ?? siteProfile.contact.serviceArea,
   };
-  const map = settings.data?.map.centerLatitude !== null && settings.data?.map.centerLatitude !== undefined
-    ? settings.data.map
-    : (siteProfile.demo.enabled || siteProfile.contact.address === 'Montréal, Québec'
-    ? { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 }
-    : { centerLatitude: null, centerLongitude: null, radiusKm: null });
+  const map = settings.data?.map;
   const usingTemplateContact = siteProfile.demo.enabled || !settings.data
     || [settings.data.contactAddress, settings.data.contactEmail, settings.data.contactPhone, settings.data.serviceArea].some((value) => value === null);
   const contactItems = [
@@ -118,7 +114,7 @@ export function ContactPage() {
         ) : (
           <p className="contact-page__unconfigured">{t('gallery.contactUnconfigured')}</p>
         )}
-        {map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
+        {map && map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
           <ServiceAreaMap centerLatitude={map.centerLatitude} centerLongitude={map.centerLongitude} radiusKm={map.radiusKm} />
         ) : null}
         <section className="contact-page__expectations">

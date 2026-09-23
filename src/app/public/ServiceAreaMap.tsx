@@ -37,7 +37,6 @@ export function ServiceAreaMap({ centerLatitude, centerLongitude, embedKey = sit
   const mapUrl = embedKey
     ? `https://www.google.com/maps/embed/v1/view?key=${encodeURIComponent(embedKey)}&center=${encodeURIComponent(center)}&zoom=${zoom}`
     : openStreetMapUrl(centerLatitude, centerLongitude, radiusKm);
-  const mapProvider = embedKey ? 'Google Maps' : 'OpenStreetMap';
   const externalUrl = `https://www.google.com/maps/@${centerLatitude},${centerLongitude},${zoom}z`;
 
   return (
@@ -46,10 +45,8 @@ export function ServiceAreaMap({ centerLatitude, centerLongitude, embedKey = sit
         <p className="site-eyebrow">{t('gallery.contactServiceArea')}</p>
         <h2 id="service-area-map-title">{t('gallery.contactMapTitle')}</h2>
         <p>{t('gallery.contactMapRadius', { radius: radiusKm })}</p>
-        <p className="service-area-map__privacy">{t('gallery.contactMapPrivacy', { provider: mapProvider })}</p>
-        {!showMap ? <button className="button button--secondary" onClick={() => setShowMap(true)} type="button">{t('gallery.contactMapLoad')}</button> : null}
         <a className="button button--secondary" href={externalUrl} rel="noreferrer" target="_blank">{t('gallery.contactMapOpen')} <span aria-hidden="true">↗</span></a>
-        {!embedKey ? <a className="service-area-map__attribution" href="https://www.openstreetmap.org/copyright" rel="noreferrer" target="_blank">© OpenStreetMap contributors</a> : null}
+        {showMap && !embedKey ? <a className="service-area-map__attribution" href="https://www.openstreetmap.org/copyright" rel="noreferrer" target="_blank">© OpenStreetMap contributors</a> : null}
       </div>
       <div className="service-area-map__visual">
         {showMap ? <iframe
@@ -57,7 +54,13 @@ export function ServiceAreaMap({ centerLatitude, centerLongitude, embedKey = sit
           referrerPolicy="strict-origin-when-cross-origin"
           src={mapUrl}
           title={t('gallery.contactMapTitle')}
-        /> : <div aria-hidden="true" className="service-area-map__placeholder"><span /></div>}
+        /> : <div className="service-area-map__preview">
+          <img alt="" className="service-area-map__preview-image" loading="lazy" src="/brand/demo-hero.webp" />
+          <div className="service-area-map__preview-content">
+            <p>{t('gallery.contactMapPreview')}</p>
+            <button className="button button--primary" onClick={() => setShowMap(true)} type="button">{t('gallery.contactMapLoad')} <span aria-hidden="true">→</span></button>
+          </div>
+        </div>}
       </div>
     </section>
   );

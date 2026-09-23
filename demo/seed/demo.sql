@@ -1,5 +1,18 @@
 PRAGMA foreign_keys = ON;
 
+-- Set the showcase's initial service area through the same D1 settings the
+-- owner edits in Admin. Never overwrite an owner-edited or cleared map.
+UPDATE site_settings
+SET map_center_latitude = 45.5019,
+    map_center_longitude = -73.5674,
+    map_radius_km = 125,
+    updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+WHERE id = 1
+  AND map_center_latitude IS NULL
+  AND map_center_longitude IS NULL
+  AND map_radius_km IS NULL
+  AND updated_at = '2026-09-20T00:00:00.000Z';
+
 INSERT INTO events (
   id, slug, title, description, starts_at, timezone, cover_photo_id,
   visibility, access, allow_downloads, face_search_enabled, nearby_search_enabled, show_photo_metadata, keep_originals,

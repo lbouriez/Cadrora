@@ -1,5 +1,12 @@
 import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 
+const siteSettingsFixture = {
+  siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+  contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+  enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
+  analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-09-23T00:00:00.000Z',
+};
+
 test.describe('site vitrine statique', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/api/v1/galleries', async (route) => {
@@ -22,6 +29,15 @@ test.describe('site vitrine statique', () => {
   });
 
   test('publie les coordonnees sans formulaire ni dependance distante', async ({ page }) => {
+    await page.route('**/api/v1/site', async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({
+          ...siteSettingsFixture,
+          map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 175 },
+        }),
+        contentType: 'application/json',
+      });
+    });
     const remoteRequests: string[] = [];
     page.on('request', (request) => {
       const url = new URL(request.url());
@@ -36,6 +52,10 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByText('123 rue Lumiere, Montreal')).toBeVisible();
     await expect(page.getByText('Montreal et environs')).toBeVisible();
     await expect(page.getByRole('heading', { name: /là où nous créons|where we create/i })).toBeVisible();
+    await expect(page.getByText(/175 km/)).toBeVisible();
+    await expect(page.locator('.service-area-map__preview-image')).toBeVisible();
+    await expect(page.locator('.service-area-map__preview')).toContainText(/afficher la carte|display the map/i);
+    await expect(page.getByText(/map is supplied by OpenStreetMap|carte est fournie par OpenStreetMap/i)).toHaveCount(0);
     await expect(page.getByRole('link', { name: /zone de service sur google maps|service area in google maps/i })).toBeVisible();
     await expect(page.locator('iframe[src*="google.com/maps"], iframe[src*="openstreetmap.org"]')).toHaveCount(0);
     await expect(page.locator('form')).toHaveCount(0);
@@ -45,7 +65,23 @@ test.describe('site vitrine statique', () => {
     await page.route('https://www.openstreetmap.org/export/embed.html?**', (route) => route.abort());
     await page.getByRole('button', { name: /afficher la carte|display the map/i }).click();
     await expect(page.locator('iframe[src*="openstreetmap.org/export/embed.html"]')).toHaveCount(1);
+    await expect(page.locator('.service-area-map__preview')).toHaveCount(0);
     await expect(page.getByRole('link', { name: /OpenStreetMap contributors/i })).toBeVisible();
+  });
+
+  test('ne montre pas de carte si le rayon est absent des reglages', async ({ page }) => {
+    await page.route('**/api/v1/site', async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({
+          ...siteSettingsFixture,
+          map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+        }),
+        contentType: 'application/json',
+      });
+    });
+    await page.goto('/contact');
+    await expect(page.locator('.service-area-map')).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
   test('reveals landing cards with motion unless the visitor requests reduced motion', async ({ page }) => {
