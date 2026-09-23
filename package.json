@@ -58,19 +58,19 @@
         "description": "Public website name compiled into the static client. The default is Cadrora."
       },
       "VITE_CONTACT_ADDRESS": {
-        "description": "Public studio or business address. Replace the clearly labelled fictional showcase default before a real launch."
+        "description": "Optional public fallback studio or business address when D1 is unavailable. Configure real contact details in Admin Site settings."
       },
       "VITE_CONTACT_EMAIL": {
-        "description": "Public contact email. Replace the clearly labelled fictional showcase default before a real launch."
+        "description": "Optional public fallback contact email when D1 is unavailable. Configure real contact details in Admin Site settings."
       },
       "VITE_CONTACT_PHONE": {
-        "description": "Public contact phone number. Replace the clearly labelled fictional showcase default before a real launch."
+        "description": "Optional public fallback contact phone when D1 is unavailable. Configure real contact details in Admin Site settings."
       },
       "VITE_PHOTOGRAPHER_NAME": {
         "description": "Optional public photographer or studio name shown on the static website."
       },
       "VITE_SERVICE_AREA": {
-        "description": "Public service area shown on the contact page. Replace the fictional showcase default before a real launch."
+        "description": "Optional public fallback service area when D1 is unavailable. Configure the service area in Admin Site settings."
       },
       "VITE_GOOGLE_MAPS_EMBED_KEY": {
         "description": "Optional public, HTTP-referrer-restricted Google Maps Embed API key. Without it, the click-to-load contact map uses OpenStreetMap."

@@ -64,8 +64,6 @@ export function ContactPage() {
     serviceArea: settings.data?.serviceArea ?? siteProfile.contact.serviceArea,
   };
   const map = settings.data?.map;
-  const usingTemplateContact = siteProfile.demo.enabled || !settings.data
-    || [settings.data.contactAddress, settings.data.contactEmail, settings.data.contactPhone, settings.data.serviceArea].some((value) => value === null);
   const contactItems = [
     contact.phone ? {
       key: 'phone',
@@ -100,7 +98,6 @@ export function ContactPage() {
           <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
           <h1>{t('gallery.contactTitle')}</h1>
           <p>{t('gallery.contactBody')}</p>
-          {usingTemplateContact ? <p className="contact-page__demo-note">{t('gallery.contactDemoNote')}</p> : null}
         </header>
         {contactItems.length > 0 ? (
           <dl className="contact-list">

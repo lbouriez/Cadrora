@@ -348,6 +348,16 @@
   margin-bottom: var(--space-3);
 }
 
+.gallery-heading__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.gallery-heading__actions:empty {
+  display: none;
+}
+
 .site-contact-callout {
   display: flex;
   align-items: center;
@@ -663,13 +673,6 @@
   padding: clamp(2rem, 5vw, 4rem);
   border-radius: var(--radius-lg);
   background: var(--color-surface-raised);
-}
-
-.contact-page__demo-note {
-  padding-left: var(--space-4);
-  border-left: 0.2rem solid var(--color-primary);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm) !important;
 }
 
 .contact-page__expectations {

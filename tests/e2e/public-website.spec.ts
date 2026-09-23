@@ -3,6 +3,7 @@ import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 const siteSettingsFixture = {
   siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
   contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+  map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
   analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-09-23T00:00:00.000Z',
 };
@@ -33,6 +34,10 @@ test.describe('site vitrine statique', () => {
       await route.fulfill({
         body: JSON.stringify({
           ...siteSettingsFixture,
+          contactEmail: 'studio@runtime.example',
+          contactPhone: '+1 438 555-0199',
+          contactAddress: '456 rue du Studio, Québec',
+          serviceArea: 'Québec et Charlevoix',
           map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 175 },
         }),
         contentType: 'application/json',
@@ -47,10 +52,12 @@ test.describe('site vitrine statique', () => {
     await page.goto('/contact');
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/créons quelque chose|create something/i);
-    await expect(page.getByRole('link', { name: '+1 514 555 0142' })).toHaveAttribute('href', 'tel:+15145550142');
-    await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toHaveAttribute('href', 'mailto:bonjour@example.test');
-    await expect(page.getByText('123 rue Lumiere, Montreal')).toBeVisible();
-    await expect(page.getByText('Montreal et environs')).toBeVisible();
+    await expect(page.getByRole('link', { name: '+1 438 555-0199' })).toHaveAttribute('href', 'tel:+14385550199');
+    await expect(page.getByRole('link', { name: 'studio@runtime.example' })).toHaveAttribute('href', 'mailto:studio@runtime.example');
+    await expect(page.getByText('456 rue du Studio, Québec')).toBeVisible();
+    await expect(page.getByText('Québec et Charlevoix')).toBeVisible();
+    await expect(page.getByText('bonjour@example.test')).toHaveCount(0);
+    await expect(page.getByText(/coordonnées sont fictives|demonstration details/i)).toHaveCount(0);
     await expect(page.getByRole('heading', { name: /là où nous créons|where we create/i })).toBeVisible();
     await expect(page.getByText(/175 km/)).toBeVisible();
     await expect(page.locator('.service-area-map__preview-image')).toBeVisible();
@@ -69,6 +76,35 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('link', { name: /OpenStreetMap contributors/i })).toBeVisible();
   });
 
+  test('charge GA4 avec un identifiant D1 fictif seulement après consentement', async ({ page }) => {
+    const measurementId = 'G-TEST123456';
+    const tagRequests: string[] = [];
+    await page.route('**/api/v1/site', async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({ ...siteSettingsFixture, analyticsMeasurementId: measurementId }),
+        contentType: 'application/json',
+      });
+    });
+    await page.route('https://www.googletagmanager.com/gtag/js?**', async (route) => {
+      tagRequests.push(route.request().url());
+      await route.fulfill({ body: '', contentType: 'text/javascript' });
+    });
+
+    await page.goto('/contact');
+    await expect(page.locator('script[data-cadrora-analytics]')).toHaveCount(0);
+    expect(tagRequests).toEqual([]);
+
+    await page.getByRole('button', { name: /autoriser l'analyse|allow analytics/i }).click();
+    await expect(page.locator('script[data-cadrora-analytics]')).toHaveAttribute('src', `https://www.googletagmanager.com/gtag/js?id=${measurementId}`);
+    await expect.poll(() => tagRequests.length).toBe(1);
+    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/contact'))).toBe(true);
+
+    await page.getByRole('link', { name: /accueil|home/i }).first().click();
+    await expect(page).toHaveURL('/');
+    await expect.poll(() => page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/'))).toBe(true);
+    expect(tagRequests).toHaveLength(1);
+  });
+
   test('ne montre pas de carte si le rayon est absent des reglages', async ({ page }) => {
     await page.route('**/api/v1/site', async (route) => {
       await route.fulfill({
@@ -82,6 +118,33 @@ test.describe('site vitrine statique', () => {
     await page.goto('/contact');
     await expect(page.locator('.service-area-map')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+
+  test('garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés', async ({ page }) => {
+    await page.route('**/api/v1/site', async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({ code: 'SITE_OFFLINE', message: 'errors.serviceUnavailable', requestId: 'e2e' }),
+        contentType: 'application/json',
+        status: 503,
+      });
+    });
+    await page.goto('/contact');
+    await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toBeVisible();
+
+    await page.unroute('**/api/v1/site');
+    await page.route('**/api/v1/site', async (route) => {
+      await route.fulfill({
+        body: JSON.stringify({
+          ...siteSettingsFixture,
+          contactEmail: '', contactPhone: '', contactAddress: '', serviceArea: '',
+          map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+        }),
+        contentType: 'application/json',
+      });
+    });
+    await page.reload();
+    await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toHaveCount(0);
+    await expect(page.getByText(/coordonnées seront publiées|contact details will be published/i)).toBeVisible();
   });
 
   test('reveals landing cards with motion unless the visitor requests reduced motion', async ({ page }) => {

@@ -26,7 +26,7 @@ describe('contact service-area map', () => {
     render(<ServiceAreaMap centerLatitude={45.5019} centerLongitude={-73.5674} embedKey={null} radiusKm={125} />);
     expect(document.querySelector('iframe')).toBeNull();
     expect(screen.queryByText(/map is supplied by OpenStreetMap/)).toBeNull();
-    expect(document.querySelector('.service-area-map__preview-image')?.getAttribute('src')).toBe('/brand/demo-hero.webp');
+    expect(document.querySelector('.service-area-map__preview-image')?.getAttribute('src')).toBe('/brand/service-area-preview.webp');
     expect(screen.queryByRole('link', { name: /OpenStreetMap contributors/ })).toBeNull();
     expect(screen.getByRole('button', { name: 'Display the map' }).closest('.service-area-map__preview')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Display the map' }));

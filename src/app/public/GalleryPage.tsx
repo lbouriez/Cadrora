@@ -298,12 +298,14 @@ export function GalleryPage() {
         {event.data.description ? <p>{event.data.description}</p> : null}
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
-        {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
-        {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
-          <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); setShowDownloadHelp(false); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
-            {selectionMode ? t('gallery.downloadSelection.done') : t('gallery.downloadSelection.start')}
-          </Button>
-        ) : null}
+        <div className="gallery-heading__actions">
+          {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
+          {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
+            <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); setShowDownloadHelp(false); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
+              {selectionMode ? t('gallery.downloadSelection.done') : t('gallery.downloadSelection.start')}
+            </Button>
+          ) : null}
+        </div>
         {foundPhotoIds.length > 0 ? (
           <div aria-label={t('gallery.photoFilter.label')} className="gallery-filter" role="group">
             <button aria-pressed={!matchesView} onClick={() => setSearchParams({})} type="button">{t('gallery.photoFilter.all')}</button>

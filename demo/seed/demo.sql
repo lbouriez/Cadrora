@@ -1,5 +1,19 @@
 PRAGMA foreign_keys = ON;
 
+-- Populate fictional showcase coordinates in D1 only for a never-edited site.
+-- Keep the initial timestamp so the map seed directly below can run as well.
+UPDATE site_settings
+SET contact_email = 'bonjour@cadrora.com',
+    contact_phone = '+1 514 555-0142',
+    contact_address = 'Montréal, Québec',
+    service_area = 'Grand Montréal, Laurentides et Estrie'
+WHERE id = 1
+  AND contact_email IS NULL
+  AND contact_phone IS NULL
+  AND contact_address IS NULL
+  AND service_area IS NULL
+  AND updated_at = '2026-09-20T00:00:00.000Z';
+
 -- Set the showcase's initial service area through the same D1 settings the
 -- owner edits in Admin. Never overwrite an owner-edited or cleared map.
 UPDATE site_settings

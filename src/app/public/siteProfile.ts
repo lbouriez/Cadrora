@@ -12,10 +12,10 @@ export const siteProfile = {
   siteName: optionalValue(import.meta.env.VITE_APP_NAME) ?? 'Cadrora',
   photographerName: optionalValue(import.meta.env.VITE_PHOTOGRAPHER_NAME) ?? 'Camille Laurent',
   contact: {
-    phone: optionalValue(import.meta.env.VITE_CONTACT_PHONE) ?? '+1 514 555-0142',
-    email: optionalValue(import.meta.env.VITE_CONTACT_EMAIL) ?? 'bonjour@cadrora.com',
-    address: optionalValue(import.meta.env.VITE_CONTACT_ADDRESS) ?? 'Montréal, Québec',
-    serviceArea: optionalValue(import.meta.env.VITE_SERVICE_AREA) ?? 'Grand Montréal, Laurentides et Estrie',
+    phone: optionalValue(import.meta.env.VITE_CONTACT_PHONE),
+    email: optionalValue(import.meta.env.VITE_CONTACT_EMAIL),
+    address: optionalValue(import.meta.env.VITE_CONTACT_ADDRESS),
+    serviceArea: optionalValue(import.meta.env.VITE_SERVICE_AREA),
   },
   mapsEmbedKey: optionalValue(import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY),
   demo: {
@@ -27,5 +27,3 @@ export const siteProfile = {
     publicGallerySlug: 'lumiere-et-promesses',
   },
 } as const;
-
-export const hasPublishedContactDetails = Object.values(siteProfile.contact).some(Boolean);

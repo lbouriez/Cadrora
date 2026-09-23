@@ -122,7 +122,7 @@ Set secrets only in Cloudflare secret/binding storage. Never place them in a `VI
 | `TURNSTILE_SECRET_KEY` | Server-side Turnstile validation for admin login and protected-event unlock, plus face-search cursor signing |
 | `CF_ACCESS_TEAM_DOMAIN` and `CF_ACCESS_AUD` | Cloudflare Access admin mode only |
 
-Public `VITE_*` values are compiled into the client bundle. Set them as Workers Builds variables in Advanced settings, or in an ignored local `.env`; `.env.example` is the documented key template and should retain no personal values. The source includes clearly labelled fictional contact fallbacks for the showcase; replace them for a real deployment. `VITE_TURNSTILE_SITE_KEY` is public but must belong to the same widget as the private `TURNSTILE_SECRET_KEY`.
+Public `VITE_*` values are compiled into the client bundle. Set them as Workers Builds variables in Advanced settings, or in an ignored local `.env`; `.env.example` is the documented key template and should retain no personal values. Contact values normally come from owner-editable D1 Site settings. Optional `VITE_CONTACT_*` and `VITE_SERVICE_AREA` values are outage fallbacks, not the primary configuration; set real values if contact links must work while D1 is unavailable. The opt-in official showcase seeds fictional contact values into D1 for an untouched site, but a normal customer deployment does not. `VITE_TURNSTILE_SITE_KEY` is public but must belong to the same widget as the private `TURNSTILE_SECRET_KEY`.
 
 ## Models and optional face search
 

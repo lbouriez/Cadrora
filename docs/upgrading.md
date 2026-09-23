@@ -27,6 +27,8 @@ Migrations are forward changes, not a substitute for restoring a backup. Avoid d
 
 Migrations `009_gallery_deletion.sql`, `010_site_languages.sql`, and `011_owner_quotas.sql` add deletion fencing/jobs, the enabled-language list, and nullable owner self-limits. Deploy them before code that reads `events.deleting_at`, `site_settings.enabled_languages`, or the `owner_*_limit` columns; the checked-in release script does this automatically. Existing sites start with both French and English enabled and use the deployment quota ceilings until an owner saves lower limits.
 
+For showcase deployments created before contact details moved into D1, the opt-in demo seed only fills a never-edited `site_settings` row. A site whose map or other settings were already saved will not be silently overwritten. In **Admin → Site settings → Contact**, enter the desired public phone, email, address, and service area once; check `/api/v1/site` and `/contact` afterward. Real photographer deployments should enter their own values, not copy the showcase's fictional coordinates. Optional compiled `VITE_CONTACT_*`/`VITE_SERVICE_AREA` values remain outage fallbacks, not the D1 source of truth.
+
 ## Dependency changes
 
 The stack is locked by `package-lock.json`. Use `npm ci` for reproducible validation. New or replacement dependencies require a same-change ADR under `docs/decisions/`, plus `npm run check`, `npm run test`, and `npm run build`. Do not use a package-manager `latest` result as production compatibility proof.

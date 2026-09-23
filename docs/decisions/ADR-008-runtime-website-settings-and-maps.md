@@ -21,6 +21,6 @@ Shared motion tokens and a reveal component provide restrained entrance animatio
 
 - D1 migration `012_site_analytics.sql` adds runtime public settings; release scripts must migrate before serving the new Worker.
 - The public website remains useful when D1, GA4, or either map provider is unavailable.
-- Operators must replace fictional fallback contact values before a real launch and provide their own appropriately licensed studio photographs.
+- The official opt-in showcase seeds fictional contact values in D1 for an untouched site. Customer deployments must publish real D1 contact values before launch and may set real compiled outage fallbacks. Operators must provide their own appropriately licensed studio photographs.
 - The Google Maps key is public client configuration, not a secret; restricting it by referrer and API is mandatory when enabled.
 - External calls occur only after the respective visitor choice. Operators remain responsible for their own privacy notice, the OpenStreetMap tile policy, and optional Google configuration.

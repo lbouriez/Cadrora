@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
@@ -19,6 +19,8 @@ beforeEach(async () => {
   localStorage.clear();
   await i18n.changeLanguage('fr');
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 function renderPage(page: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -40,13 +42,22 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.getByText(/galeries publiques sont temporairement indisponibles/i)).toBeTruthy());
   });
 
-  it('ships clearly-labelled template contact details for the demonstration', () => {
+  it('renders contact details supplied by D1 without a demo disclaimer', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+      contactEmail: 'studio@runtime.example', contactPhone: '+1 438 555-0199',
+      contactAddress: '456 rue du Studio, Québec', serviceArea: 'Québec et Charlevoix',
+      enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      updatedAt: '2026-09-23T00:00:00.000Z',
+    }), { headers: { 'content-type': 'application/json' }, status: 200 })));
     renderPage(<ContactPage />);
 
     expect(screen.getByRole('heading', { level: 1, name: 'Créons quelque chose de mémorable.' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'bonjour@cadrora.com' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '+1 514 555-0142' })).toBeTruthy();
-    expect(screen.getByText(/coordonnées sont fictives/i)).toBeTruthy();
+    await waitFor(() => expect(screen.getByRole('link', { name: 'studio@runtime.example' })).toBeTruthy());
+    expect(screen.getByRole('link', { name: '+1 438 555-0199' })).toBeTruthy();
+    expect(screen.getByText('456 rue du Studio, Québec')).toBeTruthy();
+    expect(screen.queryByText(/coordonnées sont fictives/i)).toBeNull();
   });
 
   it('explains AI, retention, analytics, and operator responsibility in the privacy notice', () => {

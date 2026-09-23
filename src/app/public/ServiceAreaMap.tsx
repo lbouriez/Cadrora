@@ -55,7 +55,7 @@ export function ServiceAreaMap({ centerLatitude, centerLongitude, embedKey = sit
           src={mapUrl}
           title={t('gallery.contactMapTitle')}
         /> : <div className="service-area-map__preview">
-          <img alt="" className="service-area-map__preview-image" loading="lazy" src="/brand/demo-hero.webp" />
+          <img alt="" className="service-area-map__preview-image" loading="lazy" src="/brand/service-area-preview.webp" />
           <div className="service-area-map__preview-content">
             <p>{t('gallery.contactMapPreview')}</p>
             <button className="button button--primary" onClick={() => setShowMap(true)} type="button">{t('gallery.contactMapLoad')} <span aria-hidden="true">→</span></button>

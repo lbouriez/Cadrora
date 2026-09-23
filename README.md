@@ -94,7 +94,7 @@ npm run setup -- --diagnose
 
 Diagnostic mode intentionally exits non-zero when required local secrets are absent or malformed, before it writes local D1 state. It reports only presence and accepted format, never secret values. Never prefix a secret with `VITE_`.
 
-Before a public launch, replace the clearly labelled demonstration profile with real non-secret `VITE_PHOTOGRAPHER_NAME`, `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA` build variables described in [`docs/technical/public-website.md`](docs/technical/public-website.md). The checked-in fallback values are fictional template content for the Cadrora showcase.
+Before a public launch, set the real contact details under **Admin → Site settings → Contact**. They are stored in D1 and appear on `/contact` without rebuilding the site. The optional non-secret `VITE_CONTACT_PHONE`, `VITE_CONTACT_EMAIL`, `VITE_CONTACT_ADDRESS`, and `VITE_SERVICE_AREA` build variables are only compiled fallbacks for a D1/API outage; the repository no longer hardcodes demonstration coordinates in the client. Set real fallback values if you want contact links to remain available during an outage. The official opt-in showcase seeds its fictional details into D1 only for an untouched site. `VITE_PHOTOGRAPHER_NAME` remains a build-time public introduction value; see [`docs/technical/public-website.md`](docs/technical/public-website.md).
 
 ## Deployment details
 

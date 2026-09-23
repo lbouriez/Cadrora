@@ -51,6 +51,15 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
   await mockGallery(page);
   await page.goto('/e/mariage-lumiere');
 
+  const galleryActions = page.locator('.gallery-heading__actions');
+  const findAction = galleryActions.getByRole('link', { name: /trouver mes photos possibles|find my possible photos/i });
+  const downloadAction = galleryActions.getByRole('button', { name: /sélectionner des photos|select photos to download/i });
+  const findBox = await findAction.boundingBox();
+  const downloadBox = await downloadAction.boundingBox();
+  expect(findBox).not.toBeNull();
+  expect(downloadBox).not.toBeNull();
+  expect((downloadBox?.x ?? 0) - ((findBox?.x ?? 0) + (findBox?.width ?? 0))).toBeGreaterThanOrEqual(10);
+
   const backHome = page.locator('.gallery-heading .back-link');
   await expect(backHome).toBeVisible();
   await expect(backHome).toHaveAccessibleName(/retour à l'accueil|back to home/i);

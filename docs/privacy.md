@@ -6,7 +6,7 @@ This document describes the current implementation. It is not legal advice, a pr
 
 | Data category | Current handling |
 | --- | --- |
-| Public website profile | Studio name, email, telephone, address, service area, enabled services, map centre/radius, and optional GA4 ID are public D1 site settings with compiled `VITE_*` fallbacks. Repository fallback contact values are fictional and labelled as demo content. |
+| Public website profile | Studio name, email, telephone, address, service area, enabled services, map centre/radius, and optional GA4 ID are public D1 site settings with optional compiled `VITE_*` fallbacks. The official opt-in showcase seeds fictional contact values into D1; the client has no hardcoded contact coordinates. |
 | Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
 | Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
 | Source metadata | The browser retains only a normalized capture instant from JPEG `DateTimeOriginal` and optional `OffsetTimeOriginal` as a D1 field. Pixel re-encoding strips the EXIF/XMP payload from stored variants, including GPS, serial, and comments. |
