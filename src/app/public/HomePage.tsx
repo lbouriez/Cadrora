@@ -20,8 +20,8 @@ export function HomePage() {
           <h1>{t('gallery.heroTitle')}</h1>
           <p className="site-hero__lead">{t('gallery.heroLead')}</p>
           <div className="site-actions">
-            <Link className="button button--primary" to="/e/find-your-photos/find">{t('gallery.tryAi')}</Link>
-            <a className="button button--secondary" href="#galleries">{t('gallery.discoverGalleries')}</a>
+            <Link aria-label={t('gallery.tryAi')} className="button button--primary" to="/e/find-your-photos/find"><span className="site-actions__full">{t('gallery.tryAi')}</span><span aria-hidden="true" className="site-actions__short">{t('gallery.tryAiShort')}</span></Link>
+            <a aria-label={t('gallery.discoverGalleries')} className="button button--secondary" href="#galleries"><span className="site-actions__full">{t('gallery.discoverGalleries')}</span><span aria-hidden="true" className="site-actions__short">{t('gallery.discoverGalleriesShort')}</span></a>
           </div>
           <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
             <span>{t('gallery.productProof.private')}</span>

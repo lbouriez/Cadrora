@@ -17,7 +17,7 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/chaque photo|every photo/i);
     await expect(page.getByRole('heading', { name: /photographie profondément personnelle|photography made personal/i })).toBeVisible();
     await expect(page.getByRole('status')).toContainText(/temporairement indisponibles|temporarily unavailable/i);
-    await expect(page.getByRole('link', { name: /essayer le chercheur ia|try the ai photo finder/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /essayer le chercheur ia|try the ai photo finder|tester l’ia|try ai search/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
 
@@ -64,5 +64,26 @@ test.describe('site vitrine statique', () => {
 
     await expect(page).toHaveURL(/\/events$/u);
     await expect(page.getByRole('heading', { level: 1 })).not.toContainText(/beauté de la livraison|beautiful delivery/i);
+  });
+
+  test('garde la navigation et les actions principales compactes sur telephone', async ({ page }) => {
+    await page.setViewportSize({ width: 330, height: 740 });
+    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+    await page.goto('/');
+
+    const header = page.locator('.public-header');
+    expect((await header.boundingBox())?.height).toBeLessThan(85);
+    const actions = await page.locator('.site-actions .button').all();
+    expect(actions).toHaveLength(2);
+    expect((await actions[0]?.boundingBox())?.y).toBe((await actions[1]?.boundingBox())?.y);
+    const portrait = await page.locator('.site-hero__ai-card img').boundingBox();
+    expect(portrait?.height).toBeLessThan(80);
+    await assertNoHorizontalOverflow(page);
+
+    await page.getByRole('button', { name: /ouvrir le menu|open menu/i }).click();
+    await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i })).toBeVisible();
+    await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /services/i }).click();
+    await expect(page.getByRole('button', { name: /ouvrir le menu|open menu/i })).toBeVisible();
+    await assertNoHorizontalOverflow(page);
   });
 });

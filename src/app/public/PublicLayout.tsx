@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink } from 'react-router-dom';
@@ -14,6 +14,7 @@ import { useTheme } from '../useTheme';
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   const { i18n, t } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
     queryFn: getPublicSiteSettings,
@@ -43,18 +44,26 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="public-shell">
       <header className="public-header">
-        <Link aria-label={t('gallery.home')} className="public-brand" to="/">
+        <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
           <img alt="" height="1600" src="/brand/cadrora-logo.png" width="1600" />
           <span>{siteProfile.siteName}</span>
         </Link>
         <div className="public-header__actions">
-          <nav aria-label={t('gallery.primaryNavigation')} className="public-nav">
-            <NavLink end to="/">{t('gallery.home')}</NavLink>
-            <NavLink to="/services">{t('gallery.services')}</NavLink>
-            <NavLink to="/galleries">{t('gallery.events')}</NavLink>
-            <NavLink to="/contact">{t('gallery.contact')}</NavLink>
+          <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
+            <NavLink end onClick={() => setMenuOpen(false)} to="/">{t('gallery.home')}</NavLink>
+            <NavLink onClick={() => setMenuOpen(false)} to="/services">{t('gallery.services')}</NavLink>
+            <NavLink onClick={() => setMenuOpen(false)} to="/galleries">{t('gallery.events')}</NavLink>
+            <NavLink onClick={() => setMenuOpen(false)} to="/contact">{t('gallery.contact')}</NavLink>
           </nav>
           <div className="public-header__controls">
+          <button
+            aria-controls="public-navigation"
+            aria-expanded={menuOpen}
+            aria-label={t(menuOpen ? 'gallery.closeMenu' : 'gallery.openMenu')}
+            className="public-header__menu"
+            onClick={() => setMenuOpen((open) => !open)}
+            type="button"
+          ><span aria-hidden="true">{menuOpen ? '×' : '☰'}</span></button>
           {canChooseTheme ? <button
             aria-label={theme === 'dark' ? t('gallery.themeLight') : t('gallery.themeDark')}
             className="public-header__theme"

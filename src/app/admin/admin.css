@@ -354,6 +354,15 @@
   bottom: var(--space-4);
 }
 
+@media (max-width: 34rem) {
+  .admin-login + .turnstile-challenge {
+    position: static;
+    margin: 0 auto var(--space-4);
+    padding: 0 var(--space-4);
+    text-align: center;
+  }
+}
+
 @media (max-width: 30rem) {
   .admin-shell__header {
     align-items: flex-start;

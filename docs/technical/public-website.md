@@ -50,6 +50,8 @@ An authenticated owner can choose the new-visitor language and visitor-facing ap
 
 The public shell is deliberately touch-first: controls meet the shared `--control-min-size` target, the header is a compact frosted surface, and theme/language actions use the shared `IconButton` primitive rather than page-specific controls. `tokens.css` owns colour, spacing, elevation, and motion values; `components.css` owns button and icon-button interaction states. Do not add an isolated colour, radius, or animation to a public page when a semantic token or shared primitive can express it.
 
+Below the tablet breakpoint, the shared header collapses navigation into an accessible menu on the same row as the brand and appearance controls. The landing-page CTAs use shorter FR/EN visual labels at narrow widths while retaining their full accessible names. Keep the hero photo selector scoped to the direct child image: descendant selectors also resize the small face-search portrait overlay. Service and gallery card images must preserve visible faces at both phone and laptop widths; a full-photo fit is preferable to cropping a face.
+
 Return navigation on the gallery, face-search, and contact pages uses the shared `BackLink` component and its one `.back-link` theme rule. Generic public text-link styling applies only to unclassed anchors, so it cannot silently change a component link's colour or border.
 
 `public.css` defines the public card family used by the landing page and `/galleries`: compact demo journeys, image-led service cards, and image-led live-gallery cards. The gallery card renderer is shared in `PublicEventCards.tsx`, so a CTA is always a themed button rather than an underlined text link. The optional AI journey is the primary demo action and must point to `/e/find-your-photos/find`; demo credentials belong only on the protected-gallery unlock or demo-login screen where they are needed, never in a promotional card.
@@ -58,4 +60,4 @@ Motion is limited to press feedback, small elevation changes, and image zooms, a
 
 ## Validation
 
-After changing the public site, run `npm run check`, `npm run test`, and `npm run build`. Also inspect `/` and `/contact` at a 390-pixel viewport and a desktop viewport, in FR and EN, with contact values both configured and empty.
+After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/galleries`, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.

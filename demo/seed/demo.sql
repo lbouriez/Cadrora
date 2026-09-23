@@ -60,7 +60,7 @@ ON CONFLICT(event_id) DO UPDATE SET
 INSERT INTO imports (
   id, event_id, state, total_photos, completed_photos, created_at, updated_at
 ) VALUES
-  ('demo-public-import', 'demo-public', 'completed', 2, 2, '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
+  ('demo-public-import', 'demo-public', 'completed', 5, 5, '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-private-import', 'demo-private', 'completed', 2, 2, '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-ai-face-search-import', 'demo-ai-face-search', 'completed', 15, 15, '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z')
 ON CONFLICT(id) DO UPDATE SET
@@ -74,8 +74,11 @@ INSERT INTO photos (
   id, event_id, import_id, filename, content_type, width, height, captured_at,
   moment_id, sort_key, revision, state, face_state, created_at, updated_at
 ) VALUES
-  ('demo-public-ceremony', 'demo-public', 'demo-public-import', 'ceremonie.webp', 'image/webp', 1536, 1024, '2026-06-14T20:00:00.000Z', NULL, '001', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
-  ('demo-public-dance', 'demo-public', 'demo-public-import', 'danse.webp', 'image/webp', 1536, 1024, '2026-06-15T01:00:00.000Z', NULL, '002', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
+  ('demo-public-preparation', 'demo-public', 'demo-public-import', 'preparation.webp', 'image/webp', 1536, 1024, '2026-06-14T19:00:00.000Z', NULL, '001', 1, 'published', 'disabled', '2026-09-23T00:00:00.000Z', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-ceremony', 'demo-public', 'demo-public-import', 'ceremonie.webp', 'image/webp', 1536, 1024, '2026-06-14T20:00:00.000Z', NULL, '002', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
+  ('demo-public-toast', 'demo-public', 'demo-public-import', 'reception.webp', 'image/webp', 1536, 1024, '2026-06-14T22:00:00.000Z', NULL, '003', 1, 'published', 'disabled', '2026-09-23T00:00:00.000Z', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-sunset', 'demo-public', 'demo-public-import', 'coucher-de-soleil.webp', 'image/webp', 1536, 1024, '2026-06-14T23:00:00.000Z', NULL, '004', 1, 'published', 'disabled', '2026-09-23T00:00:00.000Z', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-dance', 'demo-public', 'demo-public-import', 'danse.webp', 'image/webp', 1536, 1024, '2026-06-15T01:00:00.000Z', NULL, '005', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-private-family', 'demo-private', 'demo-private-import', 'famille-automne.webp', 'image/webp', 1536, 1024, '2026-10-04T15:00:00.000Z', NULL, '001', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-private-newborn', 'demo-private', 'demo-private-import', 'nouveau-ne.webp', 'image/webp', 1536, 1024, '2026-10-04T16:00:00.000Z', NULL, '002', 1, 'published', 'disabled', '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-ai-01', 'demo-ai-face-search', 'demo-ai-face-search-import', 'arrivee.webp', 'image/webp', 1536, 1024, '2026-08-30T18:00:00.000Z', 'arrival', '001', 1, 'published', 'ready', '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z'),
@@ -117,6 +120,15 @@ INSERT INTO photo_variants (
   ('demo-public-ceremony', 'thumb', 'demo/public/ceremony/1/thumb.webp', 'image/webp', 33430, 480, 320, '18f0f9a2d4ce3d386bb92f4e1d4514d87e5b2b07a09d76d68eec83cf77ad2554', '2026-09-20T00:00:00.000Z'),
   ('demo-public-ceremony', 'medium', 'demo/public/ceremony/1/medium.webp', 'image/webp', 83358, 960, 640, '38c8b442f2ad3e81ced741d4a1f88245f553e725ca3c56b23b6f9e8c58118b96', '2026-09-20T00:00:00.000Z'),
   ('demo-public-ceremony', 'large', 'demo/public/ceremony/1/large.webp', 'image/webp', 146416, 1536, 1024, 'bb7c5f31e9933ed0496dbef86595c14cd719dbc565c8e39b10ad9c0b2370e728', '2026-09-20T00:00:00.000Z'),
+  ('demo-public-preparation', 'thumb', 'demo/public/preparation/1/thumb.webp', 'image/webp', 28258, 480, 320, 'c9d8dbf20841b343667f4073caf90d5f30d16d7f3de330633c3276164242b725', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-preparation', 'medium', 'demo/public/preparation/1/medium.webp', 'image/webp', 75984, 960, 640, 'f81dbbc910b340420318ded174aad295a06140066948a0652decaf1b198318c4', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-preparation', 'large', 'demo/public/preparation/1/large.webp', 'image/webp', 136426, 1536, 1024, 'e1c4e9174815ea467d751d357ef749042497a240b5ecbc41c2b5b8374c6726dc', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-toast', 'thumb', 'demo/public/toast/1/thumb.webp', 'image/webp', 41496, 480, 320, '866170c4661dd3c613ab48065c1a4aa4ce14b1a49371f582cd65bfcb4a811cba', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-toast', 'medium', 'demo/public/toast/1/medium.webp', 'image/webp', 110888, 960, 640, '80ddad9195b27f3b8dbc18edbe5c4dcbbd42ee58710e04957292b9eda02abb26', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-toast', 'large', 'demo/public/toast/1/large.webp', 'image/webp', 195234, 1536, 1024, '6427113ff5e8d5ad8ae9fe6ba8a6341e277438d869e3c9166bdc8be7ef3c591f', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-sunset', 'thumb', 'demo/public/sunset/1/thumb.webp', 'image/webp', 44758, 480, 320, '040860ae1b23a1281bd3bf30f0822c72bd8cd18a02cdb28b351bb6a479846d3a', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-sunset', 'medium', 'demo/public/sunset/1/medium.webp', 'image/webp', 115544, 960, 640, '81c08db10bc947407f317a27aed37762de5385fd178ea5b2b87d426e745c7f5f', '2026-09-23T00:00:00.000Z'),
+  ('demo-public-sunset', 'large', 'demo/public/sunset/1/large.webp', 'image/webp', 195016, 1536, 1024, 'dd5ac663730c15c615dfeb4454e2ce5b9668c722d191f1c521aae795fb181415', '2026-09-23T00:00:00.000Z'),
   ('demo-private-family', 'thumb', 'demo/private/family/1/thumb.webp', 'image/webp', 50728, 480, 320, 'b6a21a9bcb65c2c61decf689318039df51c12082c90de953f2b75fe2cd647fe5', '2026-09-20T00:00:00.000Z'),
   ('demo-private-family', 'medium', 'demo/private/family/1/medium.webp', 'image/webp', 143556, 960, 640, 'ea213314e5208480ece37349812da000a6cc255e9d22cd70f4106bd49468a2d9', '2026-09-20T00:00:00.000Z'),
   ('demo-private-family', 'large', 'demo/private/family/1/large.webp', 'image/webp', 276332, 1536, 1024, 'a42df31dabe3608644293b415ec5a9abf13bf9232ed77e2893af26c2be1f8036', '2026-09-20T00:00:00.000Z'),
@@ -189,15 +201,15 @@ SELECT '__demo_seed_assertion__', -1, '2026-09-20T00:00:00.000Z'
 WHERE NOT (
   (SELECT COUNT(*) FROM events WHERE id IN ('demo-public', 'demo-private', 'demo-ai-face-search')) = 3
   AND (SELECT COUNT(*) FROM photos WHERE id IN (
-    'demo-public-ceremony', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
+    'demo-public-preparation', 'demo-public-ceremony', 'demo-public-toast', 'demo-public-sunset', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
     'demo-ai-01', 'demo-ai-02', 'demo-ai-03', 'demo-ai-04', 'demo-ai-05',
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
     'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15'
-  )) = 19
+  )) = 22
   AND (SELECT COUNT(*) FROM photo_variants WHERE photo_id IN (
-    'demo-public-ceremony', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
+    'demo-public-preparation', 'demo-public-ceremony', 'demo-public-toast', 'demo-public-sunset', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
     'demo-ai-01', 'demo-ai-02', 'demo-ai-03', 'demo-ai-04', 'demo-ai-05',
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
     'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15'
-  )) = 62
+  )) = 71
 );
