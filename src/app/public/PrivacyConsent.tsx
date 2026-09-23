@@ -8,12 +8,10 @@ import {
   savePrivacyConsent,
 } from './consent';
 import type { PrivacyConsent as PrivacyConsentValue } from './consent';
-import { siteProfile } from './siteProfile';
 
-export function PrivacyConsent() {
+export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvailable?: boolean }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(() => readPrivacyConsent() === null);
-  const analyticsAvailable = Boolean(siteProfile.analyticsMeasurementId);
 
   useEffect(() => {
     const handlePreferences = (event: Event) => {

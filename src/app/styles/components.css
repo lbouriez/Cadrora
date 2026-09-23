@@ -538,3 +538,24 @@
     transition: none;
   }
 }
+/* Shared enter-on-view motion never hides content when reduced motion is requested. */
+.motion-reveal--pending {
+  opacity: 0;
+  transform: translateY(var(--motion-reveal-distance));
+}
+
+.motion-reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+.motion-reveal {
+  transition: opacity var(--motion-reveal) ease, transform var(--motion-reveal) var(--motion-spring);
+}
+
+.motion-reveal--delay-1 { transition-delay: var(--motion-stagger); }
+.motion-reveal--delay-2 { transition-delay: calc(2 * var(--motion-stagger)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal { opacity: 1; transform: none; transition: none; }
+}

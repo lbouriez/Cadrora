@@ -57,4 +57,4 @@ Local implementation and browser coverage are complete. The import suite verifie
 9. Cross-service operations are idempotent and repaired through `maintenance_jobs`.
 10. Product copy does not promise unlimited free use, perfect matching, or instant physical deletion.
 11. Normal photographer operation is browser-only.
-12. The public photographer website has no contact form, tracker, remote font, map, or other external runtime dependency by default.
+12. The public photographer website has no contact form, tracker, remote font, map, or other external runtime dependency by default. ADR-008 permits optional consented GA4 and a click-to-load Google map while preserving static fallbacks.

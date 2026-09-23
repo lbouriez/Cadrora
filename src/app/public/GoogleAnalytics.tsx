@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
-import { siteProfile } from './siteProfile';
 
 const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/privacy', '/services']);
 
@@ -43,6 +42,12 @@ function disableAnalytics(measurementId: string): void {
 
 function loadAnalytics(measurementId: string): void {
   const target = analyticsWindow();
+  const existing = document.querySelector<HTMLScriptElement>('script[data-cadrora-analytics]');
+  if (existing && existing.dataset.measurementId !== measurementId) {
+    existing.remove();
+    target.dataLayer = [];
+    delete target.gtag;
+  }
   target[`ga-disable-${measurementId}`] = false;
   target.dataLayer ??= [];
   target.gtag ??= (...values: unknown[]) => { target.dataLayer?.push(values); };
@@ -56,6 +61,7 @@ function loadAnalytics(measurementId: string): void {
     const script = document.createElement('script');
     script.async = true;
     script.dataset.cadroraAnalytics = 'true';
+    script.dataset.measurementId = measurementId;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
     document.head.append(script);
     target.gtag('js', new Date());
@@ -68,14 +74,20 @@ function loadAnalytics(measurementId: string): void {
   }
 }
 
-export function GoogleAnalytics({ measurementId = siteProfile.analyticsMeasurementId }: { measurementId?: string | null }) {
+export function GoogleAnalytics({ measurementId }: { measurementId: string | null }) {
   const location = useLocation();
 
   useEffect(() => {
     if (!validMeasurementId(measurementId)) return;
     const applyConsent = () => {
-      if (readPrivacyConsent() === 'analytics' && ANALYTICS_ROUTES.has(location.pathname)) loadAnalytics(measurementId);
-      else disableAnalytics(measurementId);
+      if (readPrivacyConsent() === 'analytics' && ANALYTICS_ROUTES.has(location.pathname)) {
+        loadAnalytics(measurementId);
+        analyticsWindow().gtag?.('event', 'page_view', {
+          page_location: `${window.location.origin}${location.pathname}`,
+          page_path: location.pathname,
+          page_title: document.title,
+        });
+      } else disableAnalytics(measurementId);
     };
     applyConsent();
     window.addEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
@@ -83,20 +95,6 @@ export function GoogleAnalytics({ measurementId = siteProfile.analyticsMeasureme
       window.removeEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
       disableAnalytics(measurementId);
     };
-  }, [location.pathname, measurementId]);
-
-  useEffect(() => {
-    if (
-      !validMeasurementId(measurementId)
-      || readPrivacyConsent() !== 'analytics'
-      || !ANALYTICS_ROUTES.has(location.pathname)
-    ) return;
-    loadAnalytics(measurementId);
-    analyticsWindow().gtag?.('event', 'page_view', {
-      page_location: `${window.location.origin}${location.pathname}`,
-      page_path: location.pathname,
-      page_title: document.title,
-    });
   }, [location.pathname, measurementId]);
 
   return null;

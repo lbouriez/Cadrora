@@ -6,7 +6,7 @@ This document describes the current implementation. It is not legal advice, a pr
 
 | Data category | Current handling |
 | --- | --- |
-| Public website profile | Photographer name, email, telephone, address, and service area are public `VITE_*` build values. The repository fallback values are fictional and labelled as demo content. |
+| Public website profile | Studio name, email, telephone, address, service area, enabled services, map centre/radius, and optional GA4 ID are public D1 site settings with compiled `VITE_*` fallbacks. Repository fallback contact values are fictional and labelled as demo content. |
 | Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
 | Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
 | Source metadata | The browser retains only a normalized capture instant from JPEG `DateTimeOriginal` and optional `OffsetTimeOriginal` as a D1 field. Pixel re-encoding strips the EXIF/XMP payload from stored variants, including GPS, serial, and comments. |
@@ -14,7 +14,8 @@ This document describes the current implementation. It is not legal advice, a pr
 | Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
 | Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores gallery-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |
-| Optional analytics | A GA4 script may run only on the public marketing routes after explicit consent and a valid `VITE_GA_MEASUREMENT_ID`. Gallery, admin, media, and face-search routes are excluded. |
+| Optional analytics | A GA4 script may run only on public marketing routes after explicit consent and a valid owner-configured D1 Measurement ID. Gallery, admin, media, and face-search routes are excluded. |
+| Optional map | A Google Maps Embed API iframe is created on Contact only after the visitor clicks to display it and the operator has supplied a restricted public Maps key. Google may receive the visitor IP address and set cookies. Without a key or click, Cadrora makes no Google Maps request. An outbound Maps link remains available. |
 
 Withdrawing analytics consent sets Google's disable flag and removes the first-party `_ga` cookies available to the current hostname. It stops future collection from Cadrora; it does not claim to erase information already retained by Google.
 
@@ -24,7 +25,7 @@ Withdrawing analytics consent sets Google's disable flag and removes the first-p
 - It does not expose embeddings, face coordinates, or vector IDs in public API responses.
 - It does not create cross-event biometric profiles or claim to identify a person.
 - It does not put event photos into build assets or a shared public cache when access is protected.
-- `/contact` has direct contact details only. It has no contact form, remote font, map, or third-party contact service.
+- `/contact` has direct contact details and no contact form, remote font, or third-party contact service. The optional Google map is click-to-load only; contact details remain available without it.
 - It does not load Google Analytics before consent or send gallery slugs, event titles, admin paths, media paths, or face-search paths to Google.
 
 ## Access and retention

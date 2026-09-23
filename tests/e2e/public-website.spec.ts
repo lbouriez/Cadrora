@@ -35,6 +35,9 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toHaveAttribute('href', 'mailto:bonjour@example.test');
     await expect(page.getByText('123 rue Lumiere, Montreal')).toBeVisible();
     await expect(page.getByText('Montreal et environs')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /là où nous créons|where we create/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /zone de service sur google maps|service area in google maps/i })).toBeVisible();
+    await expect(page.locator('iframe[src*="google.com/maps"]')).toHaveCount(0);
     await expect(page.locator('form')).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
     expect(remoteRequests).toEqual([]);
@@ -44,12 +47,15 @@ test.describe('site vitrine statique', () => {
     await page.goto('/services');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/images sensibles|photography with feeling/i);
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /photographie corporative|corporate photography/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /enfance et enfants|children and childhood/i })).toBeVisible();
+    await expect(page.locator('.service-detail-card__image')).toHaveCount(5);
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/galleries');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/beauté de la livraison|beautiful delivery/i);
-    await expect(page.getByRole('link', { name: /tester le chercheur de photos ia|test the ai photo finder/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /admin en lecture seule|read-only admin/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/histoires à retrouver|stories to return/i);
+    await expect(page.getByRole('heading', { name: /explorer les collections|explore the collections/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /tester le chercheur de photos ia|test the ai photo finder/i })).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/privacy');
@@ -63,7 +69,7 @@ test.describe('site vitrine statique', () => {
     await page.goto('/events');
 
     await expect(page).toHaveURL(/\/events$/u);
-    await expect(page.getByRole('heading', { level: 1 })).not.toContainText(/beauté de la livraison|beautiful delivery/i);
+    await expect(page.getByRole('heading', { level: 1 })).not.toContainText(/histoires à retrouver|stories to return/i);
   });
 
   test('garde la navigation et les actions principales compactes sur telephone', async ({ page }) => {
@@ -75,7 +81,8 @@ test.describe('site vitrine statique', () => {
     expect((await header.boundingBox())?.height).toBeLessThan(85);
     const actions = await page.locator('.site-actions .button').all();
     expect(actions).toHaveLength(2);
-    expect((await actions[0]?.boundingBox())?.y).toBe((await actions[1]?.boundingBox())?.y);
+    const actionRows = await page.locator('.site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
+    expect(Math.abs((actionRows[0] ?? 0) - (actionRows[1] ?? 0))).toBeLessThan(1);
     const portrait = await page.locator('.site-hero__ai-card img').boundingBox();
     expect(portrait?.height).toBeLessThan(80);
     await assertNoHorizontalOverflow(page);
@@ -100,4 +107,31 @@ test.describe('site vitrine statique', () => {
     expect(await caption.evaluate((element) => getComputedStyle(element).color)).toBe('rgb(255, 255, 255)');
     expect(await caption.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
   });
+});
+
+test('presente les galeries publiees avec une couverture plein cadre et les visages visibles', async ({ page }) => {
+  await page.route('**/api/v1/galleries', async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({
+        events: [{
+          id: 'demo-ai-face-search', slug: 'find-your-photos', title: 'Find your photos',
+          description: 'A portrait gallery', startsAt: '2026-09-20T15:00:00.000Z',
+          timezone: 'America/Toronto', coverPhotoId: null, visibility: 'published',
+          access: 'public', allowDownloads: true, faceSearchEnabled: true,
+          nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
+          revision: 1, updatedAt: '2026-09-20T15:00:00.000Z',
+        }],
+      }),
+      contentType: 'application/json',
+    });
+  });
+
+  await page.goto('/galleries');
+  await expect(page.getByRole('heading', { name: 'Find your photos' })).toBeVisible();
+  const image = page.locator('.event-card__visual--ai img');
+  await expect(image).toBeVisible();
+  expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
+  await expect(image).toHaveAttribute('src', '/brand/demo-ai-cover.webp');
+  expect(await image.evaluate((element) => getComputedStyle(element).objectPosition)).toBe('50% 8%');
+  await assertNoHorizontalOverflow(page);
 });

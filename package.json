@@ -72,8 +72,8 @@
       "VITE_SERVICE_AREA": {
         "description": "Public service area shown on the contact page. Replace the fictional showcase default before a real launch."
       },
-      "VITE_GA_MEASUREMENT_ID": {
-        "description": "Optional public GA4 Measurement ID. Analytics loads only after explicit consent and only on marketing routes."
+      "VITE_GOOGLE_MAPS_EMBED_KEY": {
+        "description": "Optional public, HTTP-referrer-restricted Google Maps Embed API key. Contact-map iframe loads only after visitor click."
       },
       "VITE_SITE_DEFAULT_LANG": {
         "description": "Public website default language: `fr` or `en`."

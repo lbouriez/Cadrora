@@ -1,45 +1,25 @@
 import { Hono } from 'hono';
 
 import { ApiException } from '../../../shared/errors/ApiError';
-import { AdminSiteSettingsSchema, SiteSettingsSchema, UpdateSiteSettingsSchema } from '../../../shared/schemas';
+import { AdminSiteSettingsSchema, UpdateSiteSettingsSchema } from '../../../shared/schemas';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { quotaCeilings, siteQuotaSnapshot } from '../../services/quotas';
 import type { AppEnv } from '../../types';
-
-interface SiteSettingsRow {
-  contact_email: string | null;
-  default_language: 'fr' | 'en';
-  enabled_languages: string;
-  site_name: string;
-  theme_mode: 'dark' | 'light' | 'both' | 'system';
-  updated_at: string;
-}
+import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from '../siteSettings';
+import type { SiteSettingsRow } from '../siteSettings';
 
 function requireAdmin(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
   if (!context.get('auth').admin) throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 401);
 }
 
-function settingsFromRow(row: SiteSettingsRow) {
-  return SiteSettingsSchema.parse({
-    contactEmail: row.contact_email,
-    defaultLanguage: row.default_language,
-    enabledLanguages: JSON.parse(row.enabled_languages) as unknown,
-    siteName: row.site_name,
-    themeMode: row.theme_mode,
-    updatedAt: row.updated_at,
-  });
-}
-
 async function findSettings(database: D1Database) {
-  return database.prepare(
-    'SELECT site_name, default_language, enabled_languages, contact_email, theme_mode, updated_at FROM site_settings WHERE id = 1',
-  ).first<SiteSettingsRow>();
+  return database.prepare(SITE_SETTINGS_SELECT).first<SiteSettingsRow>();
 }
 
 async function adminSettings(context: { env: CloudflareBindings }, row: SiteSettingsRow) {
   const quota = await siteQuotaSnapshot(context.env);
   return AdminSiteSettingsSchema.parse({
-    ...settingsFromRow(row),
+    ...siteSettingsFromRow(row),
     quotaCeilings: quota.ceilings,
     quotas: quota.limits,
     usage: quota.usage,
@@ -74,7 +54,10 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       `UPDATE site_settings
           SET default_language = ?1, enabled_languages = ?2, theme_mode = ?3,
               owner_gallery_limit = ?4, owner_storage_limit_bytes = ?5,
-              owner_face_limit = ?6, updated_at = ?7
+              owner_face_limit = ?6, analytics_measurement_id = ?7,
+              contact_email = ?8, contact_phone = ?9, contact_address = ?10,
+              service_area = ?11, map_center_latitude = ?12, map_center_longitude = ?13,
+              map_radius_km = ?14, enabled_services = ?15, site_name = ?16, updated_at = ?17
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
@@ -83,6 +66,16 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       input.data.quotas.galleryLimit,
       input.data.quotas.storageLimitBytes,
       input.data.quotas.faceLimit,
+      input.data.analyticsMeasurementId,
+      input.data.contactEmail,
+      input.data.contactPhone,
+      input.data.contactAddress,
+      input.data.serviceArea,
+      input.data.map.centerLatitude,
+      input.data.map.centerLongitude,
+      input.data.map.radiusKm,
+      JSON.stringify(input.data.enabledServices),
+      input.data.siteName,
       updatedAt,
     ).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);

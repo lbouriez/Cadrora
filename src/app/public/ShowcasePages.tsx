@@ -2,74 +2,68 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Spinner } from '../components';
-import { getPublicEvents } from './api';
-import { DemoExperienceCards } from './DemoExperienceCards';
+import { MotionReveal, Spinner } from '../components';
+import { getPublicEvents, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
-import { siteProfile } from './siteProfile';
+import { serviceVisuals } from './serviceCatalog';
 
 export function ServicesPage() {
   const { t } = useTranslation();
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const visibleServices = serviceVisuals.filter(({ key }) => settings.data?.enabledServices.includes(key) ?? true);
   return (
     <PublicLayout>
-      <header className="editorial-heading">
+      <MotionReveal as="header" className="editorial-heading editorial-heading--services">
         <p className="site-eyebrow">{t('gallery.servicesPage.eyebrow')}</p>
         <h1>{t('gallery.servicesPage.title')}</h1>
         <p>{t('gallery.servicesPage.lead')}</p>
-      </header>
+      </MotionReveal>
       <div className="service-detail-grid">
-        {(['wedding', 'family', 'brand'] as const).map((service, index) => (
-          <article className="service-detail-card" key={service}>
-            <span>0{index + 1}</span>
-            <div>
-              <h2>{t(`gallery.servicesPage.${service}.title`)}</h2>
-              <p>{t(`gallery.servicesPage.${service}.body`)}</p>
+        {visibleServices.map(({ key, src }, index) => (
+          <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
+            <img alt="" className="service-detail-card__image" loading="lazy" src={src} />
+            <div className="service-detail-card__copy">
+              <h2>{t(`gallery.servicesPage.${key}.title`)}</h2>
+              <p>{t(`gallery.servicesPage.${key}.body`)}</p>
               <ul>
-                <li>{t(`gallery.servicesPage.${service}.point1`)}</li>
-                <li>{t(`gallery.servicesPage.${service}.point2`)}</li>
-                <li>{t(`gallery.servicesPage.${service}.point3`)}</li>
+                <li>{t(`gallery.servicesPage.${key}.point1`)}</li>
+                <li>{t(`gallery.servicesPage.${key}.point2`)}</li>
+                <li>{t(`gallery.servicesPage.${key}.point3`)}</li>
               </ul>
             </div>
-          </article>
+          </MotionReveal>
         ))}
       </div>
-      <section className="process-section">
+      <MotionReveal as="section" className="process-section">
         <div>
           <p className="site-eyebrow">{t('gallery.servicesPage.processEyebrow')}</p>
           <h2>{t('gallery.servicesPage.processTitle')}</h2>
         </div>
         <ol>
-          <li><span>01</span><p>{t('gallery.servicesPage.process1')}</p></li>
-          <li><span>02</span><p>{t('gallery.servicesPage.process2')}</p></li>
-          <li><span>03</span><p>{t('gallery.servicesPage.process3')}</p></li>
+          <li><span aria-hidden="true">•</span><p>{t('gallery.servicesPage.process1')}</p></li>
+          <li><span aria-hidden="true">•</span><p>{t('gallery.servicesPage.process2')}</p></li>
+          <li><span aria-hidden="true">•</span><p>{t('gallery.servicesPage.process3')}</p></li>
         </ol>
-      </section>
-      <section className="site-contact-callout">
+      </MotionReveal>
+      <MotionReveal as="section" className="site-contact-callout">
         <div><p className="site-eyebrow">{t('gallery.contactEyebrow')}</p><h2>{t('gallery.servicesPage.cta')}</h2></div>
         <Link className="button button--primary" to="/contact">{t('gallery.contactCalloutAction')}</Link>
-      </section>
+      </MotionReveal>
     </PublicLayout>
   );
 }
 
-export function EventsPage() {
+export function GalleriesPage() {
   const { i18n, t } = useTranslation();
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents });
   return (
     <PublicLayout>
-      <header className="editorial-heading">
+      <MotionReveal as="header" className="editorial-heading">
         <p className="site-eyebrow">{t('gallery.eventsPage.eyebrow')}</p>
         <h1>{t('gallery.eventsPage.title')}</h1>
         <p>{t('gallery.eventsPage.lead')}</p>
-      </header>
-      {siteProfile.demo.enabled ? <section aria-labelledby="demo-experiences-title" className="site-section site-section--compact">
-        <div className="site-section__heading">
-          <h2 id="demo-experiences-title">{t('gallery.demo.sectionTitle')}</h2>
-          <p>{t('gallery.demo.sectionLead')}</p>
-        </div>
-        <DemoExperienceCards />
-      </section> : null}
+      </MotionReveal>
       <section aria-labelledby="published-events-title" className="site-section site-section--compact">
         <div className="site-section__heading">
           <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>

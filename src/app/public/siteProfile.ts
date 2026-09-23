@@ -17,7 +17,7 @@ export const siteProfile = {
     address: optionalValue(import.meta.env.VITE_CONTACT_ADDRESS) ?? 'Montréal, Québec',
     serviceArea: optionalValue(import.meta.env.VITE_SERVICE_AREA) ?? 'Grand Montréal, Laurentides et Estrie',
   },
-  analyticsMeasurementId: optionalValue(import.meta.env.VITE_GA_MEASUREMENT_ID),
+  mapsEmbedKey: optionalValue(import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY),
   demo: {
     enabled: __CADRORA_SHOWCASE_DEMO__,
     adminPassword: 'cadrora-demo',

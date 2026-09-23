@@ -44,6 +44,16 @@ describe('consented Google Analytics loader', () => {
     expect(document.querySelector('script[data-cadrora-analytics]')).toBeNull();
   });
 
+  it('records the current marketing page when consent is granted without navigation', () => {
+    renderAnalytics('/contact');
+    act(() => savePrivacyConsent('analytics'));
+
+    expect(document.querySelector('script[data-cadrora-analytics]')).not.toBeNull();
+    expect((window as unknown as { dataLayer?: unknown[][] }).dataLayer).toContainEqual([
+      'event', 'page_view', expect.objectContaining({ page_path: '/contact' }),
+    ]);
+  });
+
   it('disables collection and clears GA cookies when consent is withdrawn', () => {
     localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
     document.cookie = '_ga=GA1.1.test; Path=/';
@@ -64,5 +74,16 @@ describe('consented Google Analytics loader', () => {
     rendered.unmount();
 
     expect((window as unknown as Record<string, unknown>)[`ga-disable-${measurementId}`]).toBe(true);
+  });
+
+  it('replaces the Google tag when the owner changes the runtime ID', () => {
+    localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
+    const page = render(<MemoryRouter><GoogleAnalytics measurementId={measurementId} /></MemoryRouter>);
+    expect(document.querySelector<HTMLScriptElement>('script[data-cadrora-analytics]')?.dataset.measurementId).toBe(measurementId);
+
+    page.rerender(<MemoryRouter><GoogleAnalytics measurementId="G-NEWID12345" /></MemoryRouter>);
+
+    expect((window as unknown as Record<string, unknown>)[`ga-disable-${measurementId}`]).toBe(true);
+    expect(document.querySelector<HTMLScriptElement>('script[data-cadrora-analytics]')?.dataset.measurementId).toBe('G-NEWID12345');
   });
 });

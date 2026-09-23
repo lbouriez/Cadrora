@@ -1,9 +1,12 @@
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { BackLink } from '../components';
+import { getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
-import { hasPublishedContactDetails, siteProfile } from './siteProfile';
+import { ServiceAreaMap } from './ServiceAreaMap';
+import { siteProfile } from './siteProfile';
 
 export function PrivacyPage() {
   const { t } = useTranslation();
@@ -53,29 +56,43 @@ export function PrivacyPage() {
 
 export function ContactPage() {
   const { t } = useTranslation();
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const contact = {
+    address: settings.data?.contactAddress ?? siteProfile.contact.address,
+    email: settings.data?.contactEmail ?? siteProfile.contact.email,
+    phone: settings.data?.contactPhone ?? siteProfile.contact.phone,
+    serviceArea: settings.data?.serviceArea ?? siteProfile.contact.serviceArea,
+  };
+  const map = settings.data?.map.centerLatitude !== null && settings.data?.map.centerLatitude !== undefined
+    ? settings.data.map
+    : (siteProfile.demo.enabled || siteProfile.contact.address === 'Montréal, Québec'
+    ? { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 }
+    : { centerLatitude: null, centerLongitude: null, radiusKm: null });
+  const usingTemplateContact = siteProfile.demo.enabled || !settings.data
+    || [settings.data.contactAddress, settings.data.contactEmail, settings.data.contactPhone, settings.data.serviceArea].some((value) => value === null);
   const contactItems = [
-    siteProfile.contact.phone ? {
+    contact.phone ? {
       key: 'phone',
       label: t('gallery.contactPhone'),
-      value: siteProfile.contact.phone,
-      href: `tel:${siteProfile.contact.phone.replace(/[^+\d]/g, '')}`,
+      value: contact.phone,
+      href: `tel:${contact.phone.replace(/[^+\d]/g, '')}`,
     } : null,
-    siteProfile.contact.email ? {
+    contact.email ? {
       key: 'email',
       label: t('gallery.contactEmail'),
-      value: siteProfile.contact.email,
-      href: `mailto:${siteProfile.contact.email}`,
+      value: contact.email,
+      href: `mailto:${contact.email}`,
     } : null,
-    siteProfile.contact.address ? {
+    contact.address ? {
       key: 'address',
       label: t('gallery.contactAddress'),
-      value: siteProfile.contact.address,
+      value: contact.address,
       href: null,
     } : null,
-    siteProfile.contact.serviceArea ? {
+    contact.serviceArea ? {
       key: 'serviceArea',
       label: t('gallery.contactServiceArea'),
-      value: siteProfile.contact.serviceArea,
+      value: contact.serviceArea,
       href: null,
     } : null,
   ].filter((item): item is NonNullable<typeof item> => item !== null);
@@ -87,9 +104,9 @@ export function ContactPage() {
           <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
           <h1>{t('gallery.contactTitle')}</h1>
           <p>{t('gallery.contactBody')}</p>
-          <p className="contact-page__demo-note">{t('gallery.contactDemoNote')}</p>
+          {usingTemplateContact ? <p className="contact-page__demo-note">{t('gallery.contactDemoNote')}</p> : null}
         </header>
-        {hasPublishedContactDetails ? (
+        {contactItems.length > 0 ? (
           <dl className="contact-list">
             {contactItems.map((item) => (
               <div className="contact-list__item" key={item.key}>
@@ -101,6 +118,9 @@ export function ContactPage() {
         ) : (
           <p className="contact-page__unconfigured">{t('gallery.contactUnconfigured')}</p>
         )}
+        {map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
+          <ServiceAreaMap centerLatitude={map.centerLatitude} centerLongitude={map.centerLongitude} radiusKm={map.radiusKm} />
+        ) : null}
         <section className="contact-page__expectations">
           <div>
             <p className="site-eyebrow">{t('gallery.contactExpectationEyebrow')}</p>

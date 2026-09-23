@@ -1,6 +1,6 @@
 # Frozen technical contracts
 
-Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md).
+Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md); owner-approved public-site configuration changes are recorded in [`ADR-008`](../decisions/ADR-008-runtime-website-settings-and-maps.md).
 
 ## Platform boundaries
 
@@ -97,11 +97,13 @@ Photo state progresses `pending -> variants_ready -> published -> deleting -> de
 
 Semantic values live in `src/app/styles/tokens.css`. Reusable typed components live in `src/app/components/` and carry a short contract/example comment. Interactive targets are at least 44 px. Modals trap focus, close on Escape, and restore focus. Every user-visible string ships in FR and EN.
 
-The optional GA4 integration is disabled without `VITE_GA_MEASUREMENT_ID`, starts only after explicit analytics consent, and is allowlisted to `/`, `/services`, `/galleries`, `/contact`, and `/privacy`. Gallery viewer, admin, media, API, and facial-search routes never emit analytics events.
+The optional GA4 integration is disabled without a valid D1-backed `site_settings.analytics_measurement_id`, starts only after explicit analytics consent, and is allowlisted to `/`, `/services`, `/galleries`, `/contact`, and `/privacy`. Gallery viewer, admin, media, API, and facial-search routes never emit analytics events. The ID is public configuration, not a secret. No arbitrary script URL or code may be stored in Site settings.
 
 Gallery links never acquire browser-default underlines or layout-changing hover movement. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
 
 `site_settings.theme_mode` is `light`, `dark`, `both`, or `system`; `default_language` is `fr` or `en`; and `enabled_languages` is a non-empty, unique JSON list drawn from those languages that must contain the default. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. One enabled language is enforced and hides the public language control; multiple enabled languages expose it. The public shell falls back to build-time language selection, both languages, and visitor-selectable colour when the settings read is unavailable.
+
+The same owner settings include public contact fields, a non-empty unique list of enabled service keys, and either a complete map centre/radius tuple or no map tuple. Public pages fall back to build-time contact values on absent/null runtime fields and remain useful without D1. Empty strings intentionally hide individual contact fields. A Google Maps iframe requires an optional restricted public Embed API key and a visitor click; the contact text and outbound map link must still work without it. The configured radius is approximate context and must not be drawn or described as a precise service boundary.
 
 ## Import and facial-search privacy
 

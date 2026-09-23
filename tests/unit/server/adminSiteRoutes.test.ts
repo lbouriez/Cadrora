@@ -7,9 +7,17 @@ import { createAdminSiteRoutes } from '../../../src/server/routes/admin/site';
 import type { AppEnv } from '../../../src/server/types';
 
 const row = {
+  analytics_measurement_id: null,
+  contact_address: null,
   contact_email: null,
+  contact_phone: null,
   default_language: 'fr' as const,
   enabled_languages: '["fr","en"]',
+  enabled_services: '["wedding","family","brand","corporate","children"]',
+  map_center_latitude: null,
+  map_center_longitude: null,
+  map_radius_km: null,
+  service_area: null,
   site_name: 'Cadrora',
   theme_mode: 'both' as const,
   updated_at: '2026-09-21T00:00:00.000Z',
@@ -60,9 +68,17 @@ describe('admin site settings routes', () => {
     });
     const response = await app.request('/api/v1/admin/site', {
       body: JSON.stringify({
+        analyticsMeasurementId: 'G-ABCDEF1234',
+        contactAddress: 'Montréal, Québec',
+        contactEmail: 'bonjour@example.test',
+        contactPhone: '+1 514 555-0142',
         defaultLanguage: 'en',
         enabledLanguages: ['en'],
+        enabledServices: ['wedding', 'corporate'],
+        map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
         quotas: { faceLimit: 2000, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        serviceArea: 'Greater Montréal',
+        siteName: 'Studio North',
         themeMode: 'system',
       }),
       headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },
@@ -71,7 +87,9 @@ describe('admin site settings routes', () => {
 
     expect(response.status).toBe(200);
     expect(update.bind).toHaveBeenCalledWith(
-      'en', '["en"]', 'system', 5, 1000000000, 2000, expect.any(String),
+      'en', '["en"]', 'system', 5, 1000000000, 2000, 'G-ABCDEF1234',
+      'bonjour@example.test', '+1 514 555-0142', 'Montréal, Québec', 'Greater Montréal',
+      45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', expect.any(String),
     );
   });
 
@@ -87,9 +105,17 @@ describe('admin site settings routes', () => {
 
     const response = await appWith().request('/api/v1/admin/site', {
       body: JSON.stringify({
+        analyticsMeasurementId: null,
+        contactAddress: null,
+        contactEmail: null,
+        contactPhone: null,
         defaultLanguage: 'fr',
         enabledLanguages: ['fr'],
+        enabledServices: ['wedding'],
+        map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
         quotas: { faceLimit: 39001, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        serviceArea: null,
+        siteName: 'Cadrora',
         themeMode: 'light',
       }),
       headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },

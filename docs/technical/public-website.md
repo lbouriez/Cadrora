@@ -5,9 +5,9 @@
 Cadrora is both an event-gallery application and the photographer's public website. The two surfaces share the React build and visual system, but they have different availability and authorization characteristics:
 
 - `/` presents the photographer, services, and currently published public events;
-- `/services` describes the available portrait, wedding, and event services;
-- `/galleries` presents the demonstration journeys and live public galleries; no legacy `/events` alias is registered;
-- `/contact` publishes direct contact coordinates without a form or third-party service;
+- `/services` presents the owner-enabled portrait, family, wedding, brand, corporate, and childhood offerings as image-led cards;
+- `/galleries` leads with published public galleries; showcase journeys belong on `/` and no legacy `/events` alias is registered;
+- `/contact` publishes direct contact coordinates without a form, plus an optional click-to-load Google Maps card;
 - `/privacy` explains gallery and face-search privacy;
 - `/e/*` is the event-gallery surface and may require an event grant;
 - `/admin/*` is always authenticated and Worker-guarded.
@@ -16,7 +16,7 @@ The website shell must remain useful when the event API is unavailable. A galler
 
 ## Public profile configuration
 
-Public contact content is compiled into static assets from `VITE_*` build variables. These values are public by design and must never contain secrets.
+Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 overrides. These values are public by design and must never contain secrets. D1 absence or API failure never blanks the public site.
 
 | Variable | Meaning | Required |
 | --- | --- | --- |
@@ -27,21 +27,25 @@ Public contact content is compiled into static assets from `VITE_*` build variab
 | `VITE_CONTACT_EMAIL` | Displayed email and `mailto:` link; replaces the fictional demo email | No |
 | `VITE_CONTACT_ADDRESS` | Studio or business address; replaces the fictional demo location | No |
 | `VITE_SERVICE_AREA` | Cities or region served; replaces the fictional demo area | No |
-| `VITE_GA_MEASUREMENT_ID` | Optional public GA4 Measurement ID | No; analytics remains disabled when absent |
+| `VITE_GOOGLE_MAPS_EMBED_KEY` | Optional public Google Maps Embed API key, restricted to this site's HTTP referrers and the Maps Embed API | No; without it the contact page keeps a Google Maps outbound link and no iframe |
 
-The checked-in Cadrora showcase deliberately provides fictional, clearly labelled template contact values so a fresh deployment is not an empty shell. A real operator must replace them before launch. The canonical reader remains `src/app/public/siteProfile.ts`; do not duplicate public profile values in components or translations.
+The checked-in Cadrora showcase deliberately provides fictional, clearly labelled template contact values so a fresh deployment is not an empty shell. A real operator must replace them before launch, either through the Contact section in Admin Site settings or through the compiled fallbacks. The canonical fallback reader remains `src/app/public/siteProfile.ts`; do not duplicate public profile values in components or translations.
 
 The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations.
 
-## Runtime appearance setting
+## Runtime site settings
 
-An authenticated owner can choose the new-visitor language and visitor-facing appearance at `/admin/settings`. Theme policies are `light`, `dark`, `both`, or `system`. `both` displays a Light / Dark switch and preserves a visitor’s local choice; a fixed policy removes the switch; `system` follows live `prefers-color-scheme` changes without overwriting a saved visitor choice. These are small D1-backed runtime settings, not Vite variables, so they can change without rebuilding public content. The public shell treats this read as optional and falls back to the build language and `both` if `/api/v1/site` is unavailable.
+An authenticated owner can set site name, new-visitor language, visitor appearance, and a GA4 Measurement ID under **Website** at `/admin/settings`. Theme policies are `light`, `dark`, `both`, or `system`. `both` displays a Light / Dark switch and preserves a visitor’s local choice; a fixed policy removes the switch; `system` follows live `prefers-color-scheme` changes. Under **Services**, the owner chooses a non-empty set of offerings shown on the landing and Services pages. Under **Contact**, the owner edits email, phone, studio location, service-area description, and a complete optional latitude/longitude/radius tuple. These are small D1-backed runtime settings, not Vite variables, so they can change without rebuilding public content. The public shell treats the read as optional and falls back to compiled profile values if `/api/v1/site` is unavailable. The public response is cached for 60 seconds; existing open pages may need a refresh.
+
+The GA4 ID must match `G-[A-Z0-9]{6,20}` or be null. With no ID, no Google tag loads. With a valid ID, only explicit analytics consent on the marketing-route allowlist loads `gtag.js`. Changing the ID uses the new runtime value, never arbitrary owner-provided script code. Gallery/admin/media/face-search paths remain unmeasured. The consent banner remains available through the footer.
+
+For Google Maps, the owner supplies the approximate travel centre and radius under **Contact**. With no optional `VITE_GOOGLE_MAPS_EMBED_KEY`, the page offers a Google Maps link but never embeds Google. With a restricted key, a visitor must press **Display Google Maps** before the official Maps Embed API iframe is created. The radius sets an approximate zoom and is stated in text; it is not a polygon or exact travel guarantee. Google requires a Cloud project with billing enabled even though the Maps Embed API currently lists no usage charge. Operators who do not want that separate setup simply omit the key. See [Google's Embed API quickstart](https://developers.google.com/maps/documentation/embed/quickstart) and [key restrictions](https://developers.google.com/maps/api-security-best-practices).
 
 ## Design and content rules
 
 - Keep all user-facing copy in both FR and EN resources.
 - Reuse the semantic tokens and shared button primitives.
-- Do not load remote fonts, maps, forms, or stock images. Google Analytics is the sole supported tracker exception: it is optional, hard-limited to marketing routes, and loaded only after explicit visitor consent.
+- Do not load remote fonts, forms, or stock images. GA4 and the optional map are the only supported Google integrations: GA4 is consent-gated and marketing-route-limited; Maps is click-to-load and contact-only.
 - The landing page and contact page must remain static except for the public event list.
 - A protected or unlisted event is never promoted by the public landing-page query.
 - Treat the supplied logo at `public/brand/cadrora-logo.png` as the canonical brand asset.
@@ -56,7 +60,7 @@ Return navigation on the gallery, face-search, and contact pages uses the shared
 
 `public.css` defines the public card family used by the landing page and `/galleries`: compact demo journeys, image-led service cards, and image-led live-gallery cards. The gallery card renderer is shared in `PublicEventCards.tsx`, so a CTA is always a themed button rather than an underlined text link. The optional AI journey is the primary demo action and must point to `/e/find-your-photos/find`; demo credentials belong only on the protected-gallery unlock or demo-login screen where they are needed, never in a promotional card.
 
-Motion is limited to press feedback, small elevation changes, and image zooms, all using the shared motion tokens. Respect `prefers-reduced-motion`; no transition is required to understand or operate the site. The fictional triptych at `public/brand/demo-services-triptych.png` is project-owned demonstration media: it may be replaced by an operator's licensed imagery, but it must not imply that its fictional people are clients.
+Motion includes press feedback, small elevation changes, image zooms, and shared `MotionReveal` section/card entrances using semantic tokens. Respect `prefers-reduced-motion`; no transition is required to understand or operate the site, and browsers without IntersectionObserver show all content immediately. The fictional triptych, AI gallery cover, and brand/corporate/children photos in `public/brand/` are project-owned generated demonstration media: they may be replaced by an operator's licensed imagery, but must not imply that fictional people are clients. Gallery-card image crops use an upper focal point to preserve faces.
 
 Text placed on photos uses the shared `--color-on-photo` and overlay tokens; never derive its foreground from `--color-background`, which becomes dark in dark mode and loses contrast against the photo overlay.
 

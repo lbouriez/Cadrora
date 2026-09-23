@@ -46,7 +46,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
           <img alt="" height="1600" src="/brand/cadrora-logo.png" width="1600" />
-          <span>{siteProfile.siteName}</span>
+          <span>{settings.data?.siteName ?? siteProfile.siteName}</span>
         </Link>
         <div className="public-header__actions">
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
@@ -87,7 +87,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <main className="public-main">{children}</main>
       <footer className="public-footer">
         <div>
-          <p>{t('gallery.footer', { siteName: siteProfile.siteName })}</p>
+          <p>{t('gallery.footer', { siteName: settings.data?.siteName ?? siteProfile.siteName })}</p>
           {siteProfile.demo.enabled ? <p className="public-footer__note">{t('gallery.footerDemo')}</p> : null}
         </div>
         <nav aria-label={t('gallery.footerNavigation')}>
@@ -99,8 +99,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <Link to="/contact">{t('gallery.contact')}</Link>
         </nav>
       </footer>
-      <GoogleAnalytics />
-      <PrivacyConsent />
+      <GoogleAnalytics measurementId={settings.data?.analyticsMeasurementId ?? null} />
+      <PrivacyConsent analyticsAvailable={Boolean(settings.data?.analyticsMeasurementId)} />
     </div>
   );
 }

@@ -51,6 +51,12 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
           defaultLanguage: 'en',
           enabledLanguages: ['en', 'fr'],
           contactEmail: 'hello@example.test',
+          contactPhone: '+1 514 555-0142',
+          contactAddress: 'Montréal, Québec',
+          serviceArea: 'Greater Montréal',
+          map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
+          enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
+          analyticsMeasurementId: null,
           themeMode: 'both',
           quotaCeilings: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
           quotas: { faceLimit: 10000, galleryLimit: 10, storageLimitBytes: 2000000000 },
@@ -89,6 +95,20 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     history.pushState({}, '', '/admin/settings');
     dispatchEvent(new PopStateEvent('popstate'));
   });
+  await expect(page.getByRole('navigation', { name: /site setting sections|sections des réglages du site/i })).toBeVisible();
+  await expect(page.getByRole('group', { name: /website|site web/i })).toBeVisible();
+  await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
+  await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
+  const analyticsId = page.getByRole('textbox', { name: /google analytics measurement id|identifiant de mesure google analytics/i });
+  await analyticsId.fill('G-ABCDEF1234');
+  await expect(analyticsId).toHaveValue('G-ABCDEF1234');
+  const corporateService = page.getByRole('checkbox', { name: /corporate photography|photographie corporative/i });
+  await corporateService.uncheck();
+  await expect(corporateService).not.toBeChecked();
+  await corporateService.check();
+  const mapRadius = page.getByRole('spinbutton', { name: /travel distance|distance de déplacement/i });
+  await mapRadius.fill('150');
+  await expect(mapRadius).toHaveValue('150');
   const language = page.getByRole('combobox', { name: /default visitor language|langue visiteur par défaut/i });
   const theme = page.getByRole('combobox', { name: /visitor colour theme|thème de couleur visiteur/i });
   await page.locator('.multi-select__summary').click();

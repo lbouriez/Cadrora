@@ -43,23 +43,25 @@ describe('shared schemas', () => {
   });
 
   it('requires at least one unique language and keeps the default enabled', () => {
-    expect(UpdateSiteSettingsSchema.safeParse({
-      defaultLanguage: 'fr',
-      enabledLanguages: ['en'],
-      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
-      themeMode: 'system',
-    }).success).toBe(false);
-    expect(UpdateSiteSettingsSchema.safeParse({
-      defaultLanguage: 'fr',
-      enabledLanguages: ['fr', 'fr'],
-      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
-      themeMode: 'system',
-    }).success).toBe(false);
-    expect(UpdateSiteSettingsSchema.safeParse({
+    const settings = {
+      analyticsMeasurementId: null,
+      contactAddress: null,
+      contactEmail: null,
+      contactPhone: null,
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'en'],
+      enabledServices: ['wedding'],
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
+      serviceArea: null,
+      siteName: 'Cadrora',
       themeMode: 'system',
-    }).success).toBe(true);
+    };
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, enabledLanguages: ['en'] }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, enabledLanguages: ['fr', 'fr'] }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse(settings).success).toBe(true);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, analyticsMeasurementId: 'bad-id' }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, enabledServices: [] }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, map: { centerLatitude: 45.5, centerLongitude: null, radiusKm: 50 } }).success).toBe(false);
   });
 });

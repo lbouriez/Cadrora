@@ -13,7 +13,7 @@ Ship generated, repository-owned showcase media and an idempotent opt-in seed co
 
 In password mode, expose a dedicated demo identity with published, non-secret credentials. It receives a separate one-hour stateless session, HMAC-signed with a domain-separated key derived from the stable `AUTH_PEPPER`. Add an explicit `Session.access` capability and enforce `read-only` on the server with an exact safe-read allowlist. Unknown routes fail closed; no demo request may create a D1 session or perform a provider mutation. Owner password and Cloudflare Access sessions retain `manage` capability.
 
-Support GA4 only as optional public build configuration. Default to no analytics. After explicit consent, load it only on the marketing-route allowlist; never measure gallery, admin, API, media, or face-search paths. Keep necessary storage usable when analytics is refused, and expose privacy settings from the footer.
+Support optional GA4. The original build-configuration mechanism was replaced by owner-managed runtime site settings in [ADR-008](ADR-008-runtime-website-settings-and-maps.md). Default to no analytics. After explicit consent, load it only on the marketing-route allowlist; never measure gallery, admin, API, media, or face-search paths. Keep necessary storage usable when analytics is refused, and expose privacy settings from the footer.
 
 ## Consequences
 

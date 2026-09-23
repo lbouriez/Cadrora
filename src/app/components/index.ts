@@ -1,4 +1,6 @@
 export { Button } from './Button';
+export { MotionReveal } from './MotionReveal';
+export type { MotionRevealProps } from './MotionReveal';
 export type { ButtonProps } from './Button';
 export { BackLink } from './BackLink';
 export type { BackLinkProps } from './BackLink';

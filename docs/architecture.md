@@ -21,14 +21,14 @@ flowchart LR
   M -->|lazy model download| V
 ```
 
-The React SPA is static. It contains a public photographer website at `/` and `/contact`, event galleries under `/e/*`, and the browser-operated admin surface under `/admin/*`. Cloudflare invokes the Worker first for `/api/*`, `/media/*`, authenticated admin pages, model artifacts, and event pages under `/e/*`. Event pages pass through the Worker only so recognized crawlers can receive a narrow metadata shell; ordinary navigation delegates to the static-assets binding and its SPA fallback. The public landing and contact pages remain static, have no external runtime dependency, and stay useful if the gallery API is temporarily unavailable.
+The React SPA is static. It contains a public photographer website at `/` and `/contact`, event galleries under `/e/*`, and the browser-operated admin surface under `/admin/*`. Cloudflare invokes the Worker first for `/api/*`, `/media/*`, authenticated admin pages, model artifacts, and event pages under `/e/*`. Event pages pass through the Worker only so recognized crawlers can receive a narrow metadata shell; ordinary navigation delegates to the static-assets binding and its SPA fallback. The public landing and contact pages retain compiled fallback content and no mandatory external runtime dependency, so they stay useful if D1/gallery API, analytics, or the optional click-to-load map is unavailable.
 
 ## Runtime responsibilities
 
 ### Browser
 
 - React renders public and admin flows with shared components and FR/EN resources.
-- Build-time `VITE_*` values provide the intentionally public photographer name and contact coordinates; they never contain secrets.
+- Build-time `VITE_*` values provide intentionally public fallback photographer/contact content and the optional restricted Google Maps Embed API key; they never contain secrets. Owner-managed D1 site settings override the public presentation at runtime.
 - TanStack Query owns remote state.
 - Import workers decode images, normalize orientation, remove private metadata, encode variants, and upload bounded concurrent streams.
 - Optional ONNX models run locally. A visitor selfie is never uploaded.

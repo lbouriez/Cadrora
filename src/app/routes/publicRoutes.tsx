@@ -7,7 +7,7 @@ import { faceFindRouteObject, installFaceFindResources } from '../public/FindRou
 import { GalleryPage } from '../public/GalleryPage';
 import { HomePage } from '../public/HomePage';
 import { installPublicResources } from '../public/i18n';
-import { EventsPage, ServicesPage } from '../public/ShowcasePages';
+import { GalleriesPage, ServicesPage } from '../public/ShowcasePages';
 import '../public/public.css';
 
 installPublicResources(i18n);
@@ -16,7 +16,7 @@ installFaceFindResources();
 export const publicRouteObjects: RouteObject[] = [
   { path: '/', element: <HomePage /> },
   { path: '/services', element: <ServicesPage /> },
-  { path: '/galleries', element: <EventsPage /> },
+  { path: '/galleries', element: <GalleriesPage /> },
   { path: '/e/:slug', element: <GalleryPage /> },
   { path: '/e/:slug/photo/:photoId', element: <GalleryPage /> },
   faceFindRouteObject,
@@ -24,4 +24,4 @@ export const publicRouteObjects: RouteObject[] = [
   { path: '/contact', element: <ContactPage /> },
 ];
 
-export { ContactPage, EventsPage, GalleryPage, HomePage, PrivacyPage, ServicesPage };
+export { ContactPage, GalleriesPage, GalleryPage, HomePage, PrivacyPage, ServicesPage };

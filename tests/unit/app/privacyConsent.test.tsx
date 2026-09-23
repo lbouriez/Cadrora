@@ -32,4 +32,10 @@ describe('public privacy consent', () => {
     act(() => openPrivacyPreferences());
     expect(screen.getByRole('region', { name: 'Vous choisissez ce qui quitte votre navigateur.' })).toBeTruthy();
   });
+
+  it('offers optional analytics only when a runtime measurement ID is configured', () => {
+    render(<MemoryRouter><PrivacyConsent analyticsAvailable /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: "Autoriser l'analyse" }));
+    expect(readPrivacyConsent()).toBe('analytics');
+  });
 });

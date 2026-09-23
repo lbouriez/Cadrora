@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import type { PublicEvent } from '../../shared/schemas/gallery';
 
 function eventVisual(slug: string): { className: string; src: string } {
-  if (slug === 'find-your-photos') return { className: 'event-card__visual--ai', src: '/demo/face-search/test-portrait-amelia.webp' };
+  if (slug === 'find-your-photos') return { className: 'event-card__visual--ai', src: '/brand/demo-ai-cover.webp' };
   if (slug === 'lumiere-et-promesses') return { className: 'event-card__visual--wedding', src: '/brand/demo-hero.webp' };
   return { className: 'event-card__visual--story', src: '/brand/demo-services-triptych.png' };
 }
