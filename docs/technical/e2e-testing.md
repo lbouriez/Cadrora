@@ -23,7 +23,7 @@ npm run test:e2e
 - redirection Worker de `/admin` vers `/admin/login` sans session;
 - demo admin en lecture seule avec multi-selection des langues, theme, options IA, publication et suppression visibles mais sans ecriture;
 - galerie publique, ouverture/fermeture de la visionneuse et galerie protegee avec echange de mot de passe;
-- selection de plusieurs photos, Maj+clic, Ctrl+A, explication des photos non telechargeables, creation du ZIP, enregistrement dans un dossier simule, refus d'un dossier sensible puis repli ZIP, et bordure complete du lien retour;
+- selection de plusieurs photos, Maj+clic, Ctrl+A, explication des photos non telechargeables, creation du ZIP, enregistrement direct dans le dossier choisi simule et protection des noms existants, refus d'un dossier sensible puis repli ZIP, et style commun des liens retour (galerie, recherche, contact);
 - reprise observable d'un journal IndexedDB de 200 entrees decoupe en quatre lots de 50 : les deux premiers lots sont finalises, l'UI affiche `100/200` et la prochaine declaration reprend au lot 2 avec 50 photos;
 - rejet d'un fichier non image;
 - consentement face-search, selection locale d'une image et absence de requete face-search avant l'analyse.

@@ -352,7 +352,7 @@
   margin-bottom: var(--space-6);
 }
 
-.gallery-heading > .gallery-back {
+.gallery-heading > .back-link {
   margin-bottom: var(--space-3);
 }
 
@@ -808,27 +808,6 @@
   margin-top: var(--space-5);
 }
 
-.gallery-back {
-  display: inline-flex;
-  min-height: var(--control-min-size);
-  align-items: center;
-  padding: 0 var(--space-4);
-  border: 0.0625rem solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
-  border-radius: var(--radius-round);
-  background: var(--color-surface);
-  box-shadow: 0 0.125rem 0.4rem color-mix(in srgb, var(--color-primary) 14%, transparent);
-  color: var(--color-text);
-  font-weight: 800;
-  gap: var(--space-2);
-  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, color var(--motion-fast) ease;
-}
-
-.gallery-back:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 68%, var(--color-border));
-  box-shadow: 0 0.1875rem 0.65rem color-mix(in srgb, var(--color-primary) 20%, transparent);
-  color: var(--color-primary);
-}
-
 .unlock-card {
   display: grid;
   max-width: 32rem;
@@ -936,18 +915,6 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
   background: var(--color-surface-raised);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.gallery-download-selection__shortcut {
-  margin: 0 0 var(--space-3);
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-}
-
-.gallery-download-selection__hint {
-  margin: 0 0 var(--space-4);
   color: var(--color-text-muted);
   font-size: var(--text-sm);
 }

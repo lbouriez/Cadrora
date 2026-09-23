@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+import { BackLink } from '../components';
 import { PublicLayout } from './PublicLayout';
 import { hasPublishedContactDetails, siteProfile } from './siteProfile';
 
@@ -111,7 +112,7 @@ export function ContactPage() {
             <li><strong>03</strong><span>{t('gallery.contactExpectation3')}</span></li>
           </ol>
         </section>
-        <Link className="contact-page__back gallery-back" to="/"><span aria-hidden="true">←</span>{t('gallery.backHome')}</Link>
+        <BackLink className="contact-page__back" to="/">{t('gallery.backHome')}</BackLink>
       </article>
     </PublicLayout>
   );

@@ -86,25 +86,59 @@ describe('visitor photo downloads', () => {
     await expect(createPhotoZip(photos, new AbortController().signal, vi.fn())).rejects.toMatchObject({ code: 'access' });
   });
 
-  it('streams separate files into a unique child folder', async () => {
+  it('streams separate files directly into the selected folder', async () => {
     const written: string[] = [];
     const removeEntry = vi.fn(() => Promise.resolve());
-    const child = {
-      getFileHandle: vi.fn((name: string) => Promise.resolve({
-        createWritable: () => Promise.resolve(new WritableStream<Uint8Array>({ write: (chunk) => { written.push(`${name}:${new TextDecoder().decode(chunk)}`); } })),
-      })),
+    const getDirectoryHandle = vi.fn();
+    const getFileHandle = vi.fn((name: string, options: { create: boolean }) => options.create ? Promise.resolve({
+      createWritable: () => Promise.resolve(new WritableStream<Uint8Array>({ write: (chunk) => { written.push(`${name}:${new TextDecoder().decode(chunk)}`); } })),
+    }) : Promise.reject(new DOMException('Not found', 'NotFoundError')));
+    const directory = {
+      getDirectoryHandle,
+      getFileHandle,
       removeEntry,
-    };
-    const getDirectoryHandle = vi.fn(() => Promise.resolve(child));
-    const directory = { getDirectoryHandle } as unknown as FileSystemDirectoryHandle;
+    } as unknown as FileSystemDirectoryHandle;
     vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(new Blob(['sample'], { type: 'image/webp' }), { headers: { 'Content-Type': 'image/webp' } }))));
     const progress = vi.fn();
 
     await savePhotosSeparately(photos, directory, new AbortController().signal, progress);
 
-    expect(getDirectoryHandle).toHaveBeenCalledWith(expect.stringMatching(/^cadrora-.*-[a-f0-9]{8}$/u), { create: true });
+    expect(getDirectoryHandle).not.toHaveBeenCalled();
     expect(written).toEqual(['First-picture-photo-1.webp:sample', 'Second-picture-photo-2.webp:sample']);
     expect(removeEntry).not.toHaveBeenCalled();
     expect(progress).toHaveBeenLastCalledWith(2);
+  });
+
+  it('preserves an existing file and uses a numbered filename for a repeated save', async () => {
+    const names = new Set(['First-picture-photo-1.webp']);
+    const written: string[] = [];
+    const removeEntry = vi.fn();
+    const directory = {
+      getFileHandle: vi.fn((name: string, options: { create: boolean }) => {
+        if (!options.create && !names.has(name)) return Promise.reject(new DOMException('Not found', 'NotFoundError'));
+        if (options.create) names.add(name);
+        return Promise.resolve({
+          createWritable: () => Promise.resolve(new WritableStream<Uint8Array>({ write: () => { written.push(name); } })),
+        });
+      }),
+      removeEntry,
+    } as unknown as FileSystemDirectoryHandle;
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(new Blob(['sample'], { type: 'image/webp' }), { headers: { 'Content-Type': 'image/webp' } }))));
+
+    await savePhotosSeparately([photos[0]!], directory, new AbortController().signal, vi.fn());
+
+    expect(written).toEqual(['First-picture-photo-1-2.webp']);
+    expect(names.has('First-picture-photo-1.webp')).toBe(true);
+    expect(removeEntry).not.toHaveBeenCalled();
+  });
+
+  it('reports a revoked folder permission as a folder problem', async () => {
+    const directory = {
+      getFileHandle: () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError')),
+    } as unknown as FileSystemDirectoryHandle;
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(new Response(new Blob(['sample'], { type: 'image/webp' }), { headers: { 'Content-Type': 'image/webp' } }))));
+
+    await expect(savePhotosSeparately([photos[0]!], directory, new AbortController().signal, vi.fn()))
+      .rejects.toMatchObject({ code: 'folder' });
   });
 });

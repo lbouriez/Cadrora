@@ -67,6 +67,24 @@ export async function choosePhotoDirectory(): Promise<FileSystemDirectoryHandle>
   }
 }
 
+/** Keep repeat saves in the chosen folder without replacing an existing filename. */
+async function unusedFilename(directory: FileSystemDirectoryHandle, desired: string): Promise<string> {
+  const dot = desired.lastIndexOf('.');
+  const stem = desired.slice(0, dot);
+  const extension = desired.slice(dot);
+  for (let suffix = 0; suffix < 1_000; suffix += 1) {
+    const candidate = suffix === 0 ? desired : `${stem}-${suffix + 1}${extension}`;
+    try {
+      await directory.getFileHandle(candidate, { create: false });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'NotFoundError') return candidate;
+      if (error instanceof DOMException && error.name === 'TypeMismatchError') continue;
+      throw error;
+    }
+  }
+  throw new PhotoDownloadError('folder');
+}
+
 /** One authorized Worker/R2 stream per photo, with no photo bodies held by the app. */
 export async function savePhotosSeparately(
   photos: DownloadPhoto[],
@@ -74,18 +92,24 @@ export async function savePhotosSeparately(
   signal: AbortSignal,
   onProgress: (completed: number) => void,
 ): Promise<void> {
-  const folderName = `cadrora-${new Date().toISOString().replace(/[:.]/gu, '-')}-${crypto.randomUUID().slice(0, 8)}`;
-  const folder = await directory.getDirectoryHandle(folderName, { create: true });
   for (const [index, photo] of photos.entries()) {
     const response = await fetchPhoto(photo, signal);
     if (!response.body) throw new PhotoDownloadError('network');
-    const filename = downloadFilename(photo, response.headers.get('Content-Type') ?? '');
-    const handle = await folder.getFileHandle(filename, { create: true });
-    const writable = await handle.createWritable();
+    let filename: string;
+    let writable: FileSystemWritableFileStream;
+    try {
+      filename = await unusedFilename(directory, downloadFilename(photo, response.headers.get('Content-Type') ?? ''));
+      if (signal.aborted) throw new DOMException('Download cancelled', 'AbortError');
+      const handle = await directory.getFileHandle(filename, { create: true });
+      writable = await handle.createWritable();
+    } catch (error) {
+      if (error instanceof DOMException && ['NotAllowedError', 'SecurityError'].includes(error.name)) throw new PhotoDownloadError('folder');
+      throw error;
+    }
     try {
       await response.body.pipeTo(writable, { signal });
     } catch (error) {
-      await folder.removeEntry(filename).catch(() => undefined);
+      await directory.removeEntry(filename).catch(() => undefined);
       throw error;
     }
     onProgress(index + 1);

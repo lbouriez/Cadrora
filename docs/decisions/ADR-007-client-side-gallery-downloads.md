@@ -10,7 +10,7 @@ The owner can already enable downloads for a gallery and the Worker streams a `d
 ## Decision
 
 - Keep one photo as a direct, authorized `/media/.../download` attachment. The gallery and shared viewer expose a selection control and a themed icon action only when a download variant exists and the owner allows downloads.
-- On browsers with `showDirectoryPicker`, let the visitor choose a non-sensitive parent directory and stream each selected photo into a new uniquely named child directory. Do not steer the picker to the protected Downloads root. Show a useful fallback message if the browser refuses the selected directory. No existing file is overwritten; no photo body is buffered by the app.
+- On browsers with `showDirectoryPicker`, stream each selected photo directly into the visitor's chosen non-sensitive directory. Do not create an unexpected child directory or steer the picker to the protected Downloads root. Before creating each file, check for a name collision and append a numeric suffix rather than intentionally overwriting an existing file. Show a useful ZIP fallback message if the browser refuses the selected directory; no photo body is buffered by the app.
 - On other browsers, or by explicit visitor choice, create one ZIP on the visitor device using dynamically imported `@zip.js/zip.js` version 2.17.0 (BSD-3-Clause). The archive stores already-compressed JPEG/WebP entries without recompression. Bound this memory-backed fallback to 100 photos and 250 decimal MB; larger selections require smaller batches or a browser with directory access. The finished ZIP is offered as a normal user-clicked download link.
 - Do not add a Worker ZIP endpoint, public R2 bucket, external service, or persistent selection state. Each media request is reauthorized by the Worker. `original` variants, if ever present, obey the same gallery download flag as `download` variants.
 - In the official opt-in showcase, make five AI-gallery photos downloadable using separate private R2 objects derived from the tracked generated WebP assets. Real imports continue to produce metadata-stripped JPEG download variants up to 3840 px.
@@ -18,5 +18,7 @@ The owner can already enable downloads for a gallery and the Worker streams a `d
 ## Consequences
 
 Desktop browsers with directory access deliver separate image files without triggering the browser's multiple-automatic-download permission. The portable ZIP fallback adds a lazy client bundle and can use substantial device memory, so its limits and progress must be visible. Mobile browsers without directory access receive an archive for multi-photo selections. A visitor can still save any displayed image through browser tools: the owner flag controls the official high-quality download path, not DRM or already cached copies.
+
+The 2026-09-23 amendment removes the originally proposed extra `cadrora-*` folder at the owner's request. User-selected destination now means exactly that directory; a repeated batch gives colliding filenames a `-2`, `-3`, etc. suffix.
 
 Adding the dependency requires a package-lock change and the repository's full check, test, build, audit, and browser validation. Protected galleries, offline galleries, disabled downloads, absent variants, partial failures, and both language resources require coverage.

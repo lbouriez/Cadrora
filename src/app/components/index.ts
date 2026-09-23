@@ -1,5 +1,7 @@
 export { Button } from './Button';
 export type { ButtonProps } from './Button';
+export { BackLink } from './BackLink';
+export type { BackLinkProps } from './BackLink';
 export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
 export { Carousel } from './Carousel';

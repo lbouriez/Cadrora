@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { Button, IconButton, InfoIcon, Input, Spinner } from '../components';
+import { BackLink, Button, IconButton, InfoIcon, Input, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from './api';
@@ -293,7 +293,7 @@ export function GalleryPage() {
   return (
     <PublicLayout>
       <header className="gallery-heading">
-        <Link className="gallery-back" to="/"><span aria-hidden="true">←</span>{t('gallery.backHome')}</Link>
+        <BackLink to="/">{t('gallery.backHome')}</BackLink>
         <h1>{event.data.title}</h1>
         {event.data.description ? <p>{event.data.description}</p> : null}
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
@@ -324,8 +324,6 @@ export function GalleryPage() {
       {selectionMode && event.data.allowDownloads ? (
         <section aria-label={t('gallery.downloadSelection.label')} className="gallery-download-selection">
           <p>{t('gallery.downloadSelection.count', { count: selectedPhotos.length })}</p>
-          <p className="gallery-download-selection__hint">{t(supportsFolder ? 'gallery.downloadSelection.folderHint' : 'gallery.downloadSelection.zipHint')}</p>
-          <p className="gallery-download-selection__shortcut">{t('gallery.downloadSelection.shortcuts')}</p>
           <div className="gallery-download-selection__actions">
             <div className="gallery-download-selection__select-all">
               <Button disabled={downloadProgress !== null || downloadablePhotos.length === 0} onClick={() => { resetDownloadResult(); setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)])); lastSelectedId.current = null; }} variant="secondary">

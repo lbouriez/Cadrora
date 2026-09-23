@@ -25,10 +25,6 @@
   gap: var(--space-3);
 }
 
-.face-find__back {
-  width: fit-content;
-}
-
 .face-find__preview-stage {
   position: relative;
   display: grid;

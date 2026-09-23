@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
-import { Button, Carousel, Spinner } from '../components';
+import { BackLink, Button, Carousel, Spinner } from '../components';
 import { getPublicEvent } from './api';
 import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
@@ -198,7 +198,7 @@ export function FindPage() {
   return (
     <PublicLayout>
       <section className="face-find">
-        <Link className="button button--secondary face-find__back" to={`/e/${slug}`}>{t('faceFind.back')}</Link>
+        <BackLink to={`/e/${slug}`}>{t('faceFind.back')}</BackLink>
         <h1>{t('faceFind.title')}</h1>
         <p>{t('faceFind.privacy')}</p>
         <label className="face-find__consent">

@@ -51,7 +51,7 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
   await mockGallery(page);
   await page.goto('/e/mariage-lumiere');
 
-  const backHome = page.locator('.gallery-heading .gallery-back');
+  const backHome = page.locator('.gallery-heading .back-link');
   await expect(backHome).toBeVisible();
   await expect(backHome).toHaveAccessibleName(/retour à l'accueil|back to home/i);
   expect(await backHome.evaluate((element) => getComputedStyle(element).borderBottomWidth)).toBe('1px');
@@ -65,6 +65,38 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
   const download = page.waitForEvent('download');
   await page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i }).click();
   expect((await download).suggestedFilename()).toBe('mariage-lumiere-photos.zip');
+});
+
+test('partage le même retour visuel entre la galerie, la recherche et le contact', async ({ page }, testInfo) => {
+  await mockGallery(page);
+  const appearance = async () => page.locator('.back-link').evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      borderBottomColor: style.borderBottomColor,
+      borderBottomWidth: style.borderBottomWidth,
+      color: style.color,
+      fontWeight: style.fontWeight,
+      height: style.height,
+    };
+  });
+
+  await page.goto('/e/mariage-lumiere');
+  const galleryAppearance = await appearance();
+  expect(galleryAppearance.borderBottomWidth).toBe('1px');
+
+  await page.goto('/e/mariage-lumiere/find');
+  await expect(page.locator('.back-link')).toContainText(/retour à la galerie|back to gallery/i);
+  await expect(page.locator('.back-link span')).toHaveText('←');
+  expect(await appearance()).toEqual(galleryAppearance);
+  await page.screenshot({ path: testInfo.outputPath('find-back-link.png') });
+
+  await page.goto('/contact');
+  expect(await appearance()).toEqual(galleryAppearance);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/e/mariage-lumiere/find');
+  await expect(page.locator('.back-link')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('find-back-link-mobile.png') });
 });
 
 test('propose le ZIP apres un dossier refuse par le navigateur', async ({ page }, testInfo) => {
@@ -86,7 +118,7 @@ test('propose le ZIP apres un dossier refuse par le navigateur', async ({ page }
   await expect(page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i })).toBeVisible();
 });
 
-test('enregistre deux fichiers séparés dans un sous-dossier choisi', async ({ page }) => {
+test('enregistre deux fichiers séparés directement dans le dossier choisi', async ({ page }) => {
   await mockGallery(page);
   await page.addInitScript(() => {
     const testWindow = window as Window & { __cadroraWritten?: string[] };
@@ -94,14 +126,13 @@ test('enregistre deux fichiers séparés dans un sous-dossier choisi', async ({ 
     Object.defineProperty(window, 'showDirectoryPicker', {
       configurable: true,
       value: () => Promise.resolve({
-        getDirectoryHandle: () => Promise.resolve({
-          getFileHandle: (filename: string) => Promise.resolve({
+        getDirectoryHandle: () => { throw new Error('No child directory should be created'); },
+        getFileHandle: (filename: string, options: { create: boolean }) => options.create ? Promise.resolve({
             createWritable: () => Promise.resolve(new WritableStream<Uint8Array>({
               write: (chunk) => { testWindow.__cadroraWritten?.push(`${filename}:${chunk.byteLength}`); },
             })),
-          }),
-          removeEntry: () => Promise.resolve(),
-        }),
+          }) : Promise.reject(new DOMException('Not found', 'NotFoundError')),
+        removeEntry: () => Promise.resolve(),
       }),
     });
   });
@@ -124,6 +155,8 @@ test('selectionne une plage avec Maj et toutes les photos disponibles avec Ctrl+
   await page.getByRole('button', { name: /nécessaire seulement|essential only/i }).click();
 
   await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
+  await expect(page.getByRole('region', { name: /sélection des photos|photo download selection/i }))
+    .not.toContainText(/pour des fichiers séparés|for separate files|Maj\+clic|Shift-click/i);
   const unavailable = page.getByRole('button', { name: /portrait-au-jardin.jpg n’est pas disponible|portrait-au-jardin.jpg is not available/i });
   await unavailable.click();
   await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeVisible();
