@@ -43,15 +43,22 @@ The software has no licence fee. Cloudflare has free allowances, but they are **
 
 At a glance, the current Free allowances are **100,000 Worker requests/day** (and 10 ms CPU per invocation), **10 GB-month of R2 Standard storage** plus 1 million writes and 10 million reads/month, **5 million D1 rows read/day and 100,000 written/day** (with a 500 MB limit per database), and **5 million stored / 30 million queried Vectorize dimensions**. These are different meters: 100,000 photo views are not necessarily 100,000 D1 rows, and a photo with several image variants consumes more than one stored object. See the [detailed limits](docs/free-tier.md#relevant-cloudflare-allowances).
 
-These are *illustrative monthly snapshots*, not quotes. They assume all photos remain stored all month, an average **2 MB of stored image variants per photo**, about **0.1 GB** for models/overhead, R2 Standard storage, and traffic/operations below the listed included allowances. Actual image sizes and visitor activity can change the result substantially.
+Here is a **comparison grid, not a quote or load test**. Each photo is assumed to occupy **2 MB across all stored image variants**, plus 0.1 GB for models/overhead; the gallery and face columns are deliberately varied independently. Amounts are **US$/month**. D1 figures use a rough metadata-size model, not a measured database. All rows assume modest traffic and operations within the relevant plan's included amounts.
 
-| Photographer | Galleries × photos | Indexed faces | Approx. stored files | Illustrative Cloudflare cost |
-| --- | ---: | ---: | ---: | ---: |
-| Starting out | 3 × 300 = 900 | 900 | 1.9 GB | **US$0/mo** if all Free limits hold |
-| Growing studio | 15 × 600 = 9,000 | 18,000 | 18.1 GB | **~US$0.14/mo R2**; **~US$5.14/mo** with Workers Paid |
-| Established studio | 50 × 1,000 = 50,000 | 150,000 | 100.1 GB | **~US$6.37/mo** with Workers Paid, including illustrative R2 and Vectorize overage |
+| Pattern | Galleries × photos | Faces/photo | D1 database | R2 files | Vectorize faces | Workers | Total |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| First portfolio | 2 × 200 | 0 | $0 | $0 | $0 | Free | **$0** |
+| Many small galleries | 50 × 100 | 1 | $0 | ~$0.02 | $0 | Free | **~$0.02** |
+| Few larger galleries | 5 × 1,000 | 1 | $0 | ~$0.02 | $0 | Free | **~$0.02** |
+| Few galleries, many faces | 5 × 1,000 | 8 | $0 | ~$0.02 | $0 | $5 Paid | **~$5.02** |
+| Many photos, AI off | 20 × 1,500 | 0 | $0 | ~$0.77 | $0 | Free | **~$0.77** |
+| Growing studio | 15 × 600 | 2 | $0 | ~$0.14 | $0 | Free | **~$0.14** |
+| Established studio | 50 × 1,000 | 3 | $0 | ~$1.37 | <$0.01 | $5 Paid | **~$6.37** |
+| Large archive | 100 × 1,000 | 6 | $0 | ~$2.87 | ~$0.31 | $5 Paid | **~$8.18** |
 
-The last row is your **50 galleries, 1,000 photos and 3 faces per photo** example. It is *not* supported by the repository's default safety ceilings: those allow 50 galleries and 2,000 photos per gallery, but only **9.9 GB of media** and **39,000 indexed faces** overall. Reaching 50,000 photos/150,000 faces requires raising those deployment ceilings and moving beyond Vectorize's Free stored-vector allowance. The 50,000-photo D1 database must also be measured against its plan limit; the table assumes its storage and row operations remain in the Paid included amounts. Do not treat the table as a capacity test.
+The two 5,000-photo rows with one face/photo show that **the number of galleries alone barely changes these costs**. Eight faces/photo instead crosses Vectorize's Free stored-dimension limit and calls for Workers Paid. The **50 × 1,000 × 3** row is your example: 50,000 photos and 150,000 indexed faces. The larger archive illustrates non-zero Vectorize usage; neither row is a validated Cadrora capacity target. D1 can show **$0 in every row** because its Paid plan includes 5 GB of storage, but the Free plan still has a **500 MB hard limit per database**. The [full matrix](docs/free-tier.md#monthly-price-examples) shows estimated D1/R2 size, vector dimensions, formulas, and other charges that could change the bill.
+
+Most rows **exceed Cadrora's checked-in 9.9 GB media ceiling**; the established and large-archive rows also exceed its 39,000-face ceiling, and the large archive exceeds its 50-gallery ceiling. Those are deliberate deployment safeguards, not Cloudflare prices. Raise them explicitly before testing a larger installation. The table does not prove that a large import fits D1 limits or meets performance needs.
 
 Removing an old gallery deletes its owned photos and face vectors after background cleanup, so future storage costs can fall. It does not refund storage already used earlier in a billing month, and it cannot prevent charges from traffic or other projects in the same Cloudflare account. You can also keep a gallery offline without deleting it, but **offline still uses storage**.
 
