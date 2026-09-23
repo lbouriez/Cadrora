@@ -13,14 +13,14 @@ Store site name, contact details, enabled service keys, map centre/radius, and a
 
 GA4 remains disabled by default. Only a valid `G-…` ID and explicit browser consent cause the public marketing-route client to load the Google tag. No gallery, face-search, admin, API, or media route is measured. Changing the ID does not require rebuilding the client. This replaces ADR-002's build-time GA4 configuration; the remaining showcase and read-only-demo decisions in ADR-002 stay in force.
 
-The optional Google Maps Embed API iframe requires a public, referrer- and API-restricted key supplied at build time. Google Cloud billing activation is an operator choice, not a Cadrora deployment prerequisite. The Contact page shows service-area text and a Google Maps link without a key; with a key, it loads the iframe only after a visitor clicks. The admin sets centre latitude, longitude, and a travel radius in kilometres. Radius influences an approximate map zoom and appears in text; it is **not** a polygon or precise boundary drawn on the map. A true radius overlay would require a different Maps API and a separate cost/privacy decision.
+The Contact page defaults to a keyless OpenStreetMap iframe, loaded only after a visitor click. It also offers an outbound Google Maps link. An optional public, referrer- and API-restricted Google Maps Embed API key supplied at build time switches the iframe provider to Google, still click-to-load. Google Cloud billing activation is an operator choice, not a Cadrora deployment prerequisite. The admin sets centre latitude, longitude, and a travel radius in kilometres. Radius frames an approximate map view and appears in text; it is **not** a polygon or precise boundary drawn on the map. Community-hosted OpenStreetMap tiles are best-effort and subject to a usage policy, so high-traffic deployments should choose a suitable provider or their own tile infrastructure. A true radius overlay would require a separate mapping and privacy decision.
 
 Shared motion tokens and a reveal component provide restrained entrance animation on site sections and service cards, with an immediate static presentation when reduced motion is requested or IntersectionObserver is unavailable. Local repository-owned demo images avoid remote image dependencies.
 
 ## Consequences
 
 - D1 migration `012_site_analytics.sql` adds runtime public settings; release scripts must migrate before serving the new Worker.
-- The public website remains useful when D1, GA4, or Google Maps is unavailable.
+- The public website remains useful when D1, GA4, or either map provider is unavailable.
 - Operators must replace fictional fallback contact values before a real launch and provide their own appropriately licensed studio photographs.
 - The Google Maps key is public client configuration, not a secret; restricting it by referrer and API is mandatory when enabled.
-- External calls occur only after the respective visitor choice. Operators remain responsible for their own privacy notice and Google configuration.
+- External calls occur only after the respective visitor choice. Operators remain responsible for their own privacy notice, the OpenStreetMap tile policy, and optional Google configuration.

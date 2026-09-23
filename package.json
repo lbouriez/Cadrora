@@ -73,7 +73,7 @@
         "description": "Public service area shown on the contact page. Replace the fictional showcase default before a real launch."
       },
       "VITE_GOOGLE_MAPS_EMBED_KEY": {
-        "description": "Optional public, HTTP-referrer-restricted Google Maps Embed API key. Contact-map iframe loads only after visitor click."
+        "description": "Optional public, HTTP-referrer-restricted Google Maps Embed API key. Without it, the click-to-load contact map uses OpenStreetMap."
       },
       "VITE_SITE_DEFAULT_LANG": {
         "description": "Public website default language: `fr` or `en`."

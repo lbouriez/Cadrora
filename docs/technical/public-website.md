@@ -7,7 +7,7 @@ Cadrora is both an event-gallery application and the photographer's public websi
 - `/` presents the photographer, services, and currently published public events;
 - `/services` presents the owner-enabled portrait, family, wedding, brand, corporate, and childhood offerings as image-led cards;
 - `/galleries` leads with published public galleries; showcase journeys belong on `/` and no legacy `/events` alias is registered;
-- `/contact` publishes direct contact coordinates without a form, plus an optional click-to-load Google Maps card;
+- `/contact` publishes direct contact coordinates without a form, plus a click-to-load OpenStreetMap card (or optional Google Maps card);
 - `/privacy` explains gallery and face-search privacy;
 - `/e/*` is the event-gallery surface and may require an event grant;
 - `/admin/*` is always authenticated and Worker-guarded.
@@ -27,7 +27,7 @@ Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 ove
 | `VITE_CONTACT_EMAIL` | Displayed email and `mailto:` link; replaces the fictional demo email | No |
 | `VITE_CONTACT_ADDRESS` | Studio or business address; replaces the fictional demo location | No |
 | `VITE_SERVICE_AREA` | Cities or region served; replaces the fictional demo area | No |
-| `VITE_GOOGLE_MAPS_EMBED_KEY` | Optional public Google Maps Embed API key, restricted to this site's HTTP referrers and the Maps Embed API | No; without it the contact page keeps a Google Maps outbound link and no iframe |
+| `VITE_GOOGLE_MAPS_EMBED_KEY` | Optional public Google Maps Embed API key, restricted to this site's HTTP referrers and the Maps Embed API | No; without it the contact page embeds OpenStreetMap after a visitor click |
 
 The checked-in Cadrora showcase deliberately provides fictional, clearly labelled template contact values so a fresh deployment is not an empty shell. A real operator must replace them before launch, either through the Contact section in Admin Site settings or through the compiled fallbacks. The canonical fallback reader remains `src/app/public/siteProfile.ts`; do not duplicate public profile values in components or translations.
 
@@ -39,13 +39,15 @@ An authenticated owner can set site name, new-visitor language, visitor appearan
 
 The GA4 ID must match `G-[A-Z0-9]{6,20}` or be null. With no ID, no Google tag loads. With a valid ID, only explicit analytics consent on the marketing-route allowlist loads `gtag.js`. Changing the ID uses the new runtime value, never arbitrary owner-provided script code. Gallery/admin/media/face-search paths remain unmeasured. The consent banner remains available through the footer.
 
-For Google Maps, the owner supplies the approximate travel centre and radius under **Contact**. With no optional `VITE_GOOGLE_MAPS_EMBED_KEY`, the page offers a Google Maps link but never embeds Google. With a restricted key, a visitor must press **Display Google Maps** before the official Maps Embed API iframe is created. The radius sets an approximate zoom and is stated in text; it is not a polygon or exact travel guarantee. Google requires a Cloud project with billing enabled even though the Maps Embed API currently lists no usage charge. Operators who do not want that separate setup simply omit the key. See [Google's Embed API quickstart](https://developers.google.com/maps/documentation/embed/quickstart) and [key restrictions](https://developers.google.com/maps/api-security-best-practices).
+The owner supplies the approximate travel centre and radius under **Contact**. Without `VITE_GOOGLE_MAPS_EMBED_KEY`, a visitor can press **Display the map** to load an OpenStreetMap iframe; no key or Google Cloud account is required. The map and its tiles are fetched only after that click. The iframe provides OpenStreetMap attribution, also linked in the card. The Google Maps outbound link is optional for visitors. The radius frames an approximate map view and is stated in text; it is not a polygon or exact travel guarantee. The community-hosted OpenStreetMap tile servers are best-effort and have a [usage policy](https://operations.osmfoundation.org/policies/tiles/); a high-traffic deployment should use a suitable tile provider or its own infrastructure. No bulk tile prefetching is permitted.
+
+If the operator supplies a restricted `VITE_GOOGLE_MAPS_EMBED_KEY`, the click-to-load iframe uses the official Google Maps Embed API instead. Google requires a Cloud project with billing enabled even though the Maps Embed API currently lists no usage charge. See [Google's Embed API quickstart](https://developers.google.com/maps/documentation/embed/quickstart) and [key restrictions](https://developers.google.com/maps/api-security-best-practices).
 
 ## Design and content rules
 
 - Keep all user-facing copy in both FR and EN resources.
 - Reuse the semantic tokens and shared button primitives.
-- Do not load remote fonts, forms, or stock images. GA4 and the optional map are the only supported Google integrations: GA4 is consent-gated and marketing-route-limited; Maps is click-to-load and contact-only.
+- Do not load remote fonts, forms, or stock images. GA4 is consent-gated and marketing-route-limited. The contact map is click-to-load only; Google Maps is optional, OpenStreetMap is the keyless default.
 - The landing page and contact page must remain static except for the public event list.
 - A protected or unlisted event is never promoted by the public landing-page query.
 - Treat the supplied logo at `public/brand/cadrora-logo.png` as the canonical brand asset.
@@ -60,7 +62,7 @@ Return navigation on the gallery, face-search, and contact pages uses the shared
 
 `public.css` defines the public card family used by the landing page and `/galleries`: compact demo journeys, image-led service cards, and image-led live-gallery cards. The gallery card renderer is shared in `PublicEventCards.tsx`, so a CTA is always a themed button rather than an underlined text link. The optional AI journey is the primary demo action and must point to `/e/find-your-photos/find`; demo credentials belong only on the protected-gallery unlock or demo-login screen where they are needed, never in a promotional card.
 
-Motion includes press feedback, small elevation changes, image zooms, and shared `MotionReveal` section/card entrances using semantic tokens. Respect `prefers-reduced-motion`; no transition is required to understand or operate the site, and browsers without IntersectionObserver show all content immediately. The fictional triptych, AI gallery cover, and brand/corporate/children photos in `public/brand/` are project-owned generated demonstration media: they may be replaced by an operator's licensed imagery, but must not imply that fictional people are clients. Gallery-card image crops use an upper focal point to preserve faces.
+Motion includes press feedback, small elevation changes, image zooms, and shared `MotionReveal` section/card entrances using semantic tokens. The hero image, demo cards, services, and public gallery cards use the same reveal component. Respect `prefers-reduced-motion`: a browser requesting reduced motion sees the static presentation, with no entrance or hover transform; no transition is required to understand or operate the site, and browsers without IntersectionObserver show all content immediately. The fictional triptych, AI gallery cover, and brand/corporate/children photos in `public/brand/` are project-owned generated demonstration media: they may be replaced by an operator's licensed imagery, but must not imply that fictional people are clients. Gallery-card image crops use an upper focal point to preserve faces.
 
 Text placed on photos uses the shared `--color-on-photo` and overlay tokens; never derive its foreground from `--color-background`, which becomes dark in dark mode and loses contrast against the photo overlay.
 

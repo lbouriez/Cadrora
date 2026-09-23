@@ -2,16 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export interface MotionRevealProps {
-  as?: 'article' | 'div' | 'header' | 'section';
+  as?: 'article' | 'div' | 'figure' | 'header' | 'section';
   children: ReactNode;
   className?: string;
   delay?: 0 | 1 | 2;
+  effect?: 'rise' | 'scale';
   id?: string;
   labelledBy?: string;
 }
 
 /** Reveal a reusable content block once it enters view; reduced-motion and no-IO browsers show it immediately. */
-export function MotionReveal({ as = 'div', children, className, delay = 0, id, labelledBy }: MotionRevealProps) {
+export function MotionReveal({ as = 'div', children, className, delay = 0, effect = 'rise', id, labelledBy }: MotionRevealProps) {
   const element = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(() => typeof window === 'undefined'
     || !('IntersectionObserver' in window)
@@ -32,7 +33,7 @@ export function MotionReveal({ as = 'div', children, className, delay = 0, id, l
   const Element = as;
   return <Element
     aria-labelledby={labelledBy}
-    className={['motion-reveal', `motion-reveal--delay-${delay}`, visible ? 'motion-reveal--visible' : 'motion-reveal--pending', className].filter(Boolean).join(' ')}
+    className={['motion-reveal', `motion-reveal--${effect}`, `motion-reveal--delay-${delay}`, visible ? 'motion-reveal--visible' : 'motion-reveal--pending', className].filter(Boolean).join(' ')}
     id={id}
     ref={(node) => { element.current = node; }}
   >{children}</Element>;

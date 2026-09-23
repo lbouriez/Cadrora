@@ -28,7 +28,7 @@ The React SPA is static. It contains a public photographer website at `/` and `/
 ### Browser
 
 - React renders public and admin flows with shared components and FR/EN resources.
-- Build-time `VITE_*` values provide intentionally public fallback photographer/contact content and the optional restricted Google Maps Embed API key; they never contain secrets. Owner-managed D1 site settings override the public presentation at runtime.
+- Build-time `VITE_*` values provide intentionally public fallback photographer/contact content and the optional restricted Google Maps Embed API key; they never contain secrets. The contact map uses keyless, click-to-load OpenStreetMap by default. Owner-managed D1 site settings override the public presentation at runtime.
 - TanStack Query owns remote state.
 - Import workers decode images, normalize orientation, remove private metadata, encode variants, and upload bounded concurrent streams.
 - Optional ONNX models run locally. A visitor selfie is never uploaded.

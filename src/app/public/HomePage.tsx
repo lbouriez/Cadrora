@@ -32,7 +32,7 @@ export function HomePage() {
             <span>{t('gallery.productProof.open')}</span>
           </div>
         </MotionReveal>
-        <figure className="site-hero__art">
+        <MotionReveal as="figure" className="site-hero__art" delay={1} effect="scale">
           <img
             alt={t('gallery.heroImageAlt')}
             height="1024"
@@ -44,7 +44,7 @@ export function HomePage() {
             <img alt="" src="/demo/face-search/test-portrait-amelia.webp" />
             <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
           </div>
-        </figure>
+        </MotionReveal>
       </section>
 
       {siteProfile.demo.enabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">

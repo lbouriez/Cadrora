@@ -16,15 +16,22 @@ describe('contact service-area map', () => {
     expect(document.querySelector('iframe')).toBeNull();
     expect(screen.getByText(/125 km/)).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Display Google Maps' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Display the map' }));
 
     expect(document.querySelector('iframe')?.getAttribute('src')).toContain('center=45.5019%2C-73.5674');
   });
 
-  it('keeps an external link when the Embed API is not configured', async () => {
+  it('uses OpenStreetMap without a key, only after a visitor click', async () => {
     await i18n.changeLanguage('en');
     render(<ServiceAreaMap centerLatitude={45.5019} centerLongitude={-73.5674} embedKey={null} radiusKm={125} />);
-    expect(screen.queryByRole('button', { name: 'Display Google Maps' })).toBeNull();
+    expect(document.querySelector('iframe')).toBeNull();
+    expect(screen.getByText(/map is supplied by OpenStreetMap/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Display the map' }));
+    const mapUrl = document.querySelector('iframe')?.getAttribute('src');
+    expect(mapUrl).toContain('https://www.openstreetmap.org/export/embed.html?');
+    expect(mapUrl).toContain('marker=45.5019%2C-73.5674');
+    expect(mapUrl).toContain('bbox=');
+    expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /Open the service area in Google Maps/ })).toBeTruthy();
   });
 });

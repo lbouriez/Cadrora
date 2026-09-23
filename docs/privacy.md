@@ -15,7 +15,7 @@ This document describes the current implementation. It is not legal advice, a pr
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
 | Facial-search data | A visitor image remains local. The Worker receives a 128-number embedding; D1 stores gallery-scoped face/vector references and optional expiry, while optional Vectorize stores vectors. |
 | Optional analytics | A GA4 script may run only on public marketing routes after explicit consent and a valid owner-configured D1 Measurement ID. Gallery, admin, media, and face-search routes are excluded. |
-| Optional map | A Google Maps Embed API iframe is created on Contact only after the visitor clicks to display it and the operator has supplied a restricted public Maps key. Google may receive the visitor IP address and set cookies. Without a key or click, Cadrora makes no Google Maps request. An outbound Maps link remains available. |
+| Optional map | The Contact page creates an OpenStreetMap iframe only after the visitor clicks to display it; no key is required. If the operator supplies a restricted public Google Maps Embed API key, the same click instead creates a Google iframe. The chosen provider may receive the visitor IP address and set cookies. Without a click, Cadrora makes no map request. An outbound Google Maps link remains available. |
 
 Withdrawing analytics consent sets Google's disable flag and removes the first-party `_ga` cookies available to the current hostname. It stops future collection from Cadrora; it does not claim to erase information already retained by Google.
 
@@ -25,7 +25,7 @@ Withdrawing analytics consent sets Google's disable flag and removes the first-p
 - It does not expose embeddings, face coordinates, or vector IDs in public API responses.
 - It does not create cross-event biometric profiles or claim to identify a person.
 - It does not put event photos into build assets or a shared public cache when access is protected.
-- `/contact` has direct contact details and no contact form, remote font, or third-party contact service. The optional Google map is click-to-load only; contact details remain available without it.
+- `/contact` has direct contact details and no contact form, remote font, or third-party contact service. The OpenStreetMap or optional Google map is click-to-load only; contact details remain available without it.
 - It does not load Google Analytics before consent or send gallery slugs, event titles, admin paths, media paths, or face-search paths to Google.
 
 ## Access and retention

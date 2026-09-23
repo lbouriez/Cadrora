@@ -13,7 +13,7 @@ const SECURITY_HEADERS = {
     "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline'",
     "connect-src 'self' https://challenges.cloudflare.com https://www.google-analytics.com https://region1.google-analytics.com",
-    'frame-src https://challenges.cloudflare.com https://www.google.com',
+    'frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org',
     "worker-src 'self' blob:",
   ].join('; '),
   'Cross-Origin-Opener-Policy': 'same-origin',

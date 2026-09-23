@@ -37,10 +37,31 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByText('Montreal et environs')).toBeVisible();
     await expect(page.getByRole('heading', { name: /là où nous créons|where we create/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /zone de service sur google maps|service area in google maps/i })).toBeVisible();
-    await expect(page.locator('iframe[src*="google.com/maps"]')).toHaveCount(0);
+    await expect(page.locator('iframe[src*="google.com/maps"], iframe[src*="openstreetmap.org"]')).toHaveCount(0);
     await expect(page.locator('form')).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
     expect(remoteRequests).toEqual([]);
+
+    await page.route('https://www.openstreetmap.org/export/embed.html?**', (route) => route.abort());
+    await page.getByRole('button', { name: /afficher la carte|display the map/i }).click();
+    await expect(page.locator('iframe[src*="openstreetmap.org/export/embed.html"]')).toHaveCount(1);
+    await expect(page.getByRole('link', { name: /OpenStreetMap contributors/i })).toBeVisible();
+  });
+
+  test('reveals landing cards with motion unless the visitor requests reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+    await page.goto('/');
+    const heroArt = page.locator('.site-hero__art');
+    await expect(heroArt).toHaveClass(/motion-reveal--scale/);
+    await expect(heroArt).toHaveClass(/motion-reveal--visible/);
+    expect(await heroArt.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
+    const demoCard = page.locator('.demo-experience-card').first();
+    await demoCard.scrollIntoViewIfNeeded();
+    await expect(demoCard).toHaveClass(/motion-reveal--visible/);
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    expect(await demoCard.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe('0s');
   });
 
   test('relie les services, les demonstrations et la confidentialite', async ({ page }) => {
