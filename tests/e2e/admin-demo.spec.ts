@@ -109,6 +109,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(galleryLimit).toHaveValue('10');
   await expect(storageLimit).toHaveValue('2');
   await expect(faceLimit).toHaveValue('10000');
+  await expect(page.getByText(/750 MB of 2 GB|750 Mo sur 2 Go/u)).toBeVisible();
   await galleryLimit.fill('8');
   await storageLimit.fill('1.5');
   await faceLimit.fill('5000');

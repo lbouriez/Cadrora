@@ -7,6 +7,7 @@ import { AdminSiteSettingsSchema } from '../../shared/schemas';
 import type { Language, QuotaLimits, ThemeMode } from '../../shared/schemas';
 import { Button, Input, MultiSelect, Select, Spinner } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
+import { formatMediaStorage } from './formatMediaStorage';
 
 async function getAdminSiteSettings() {
   const response = await fetch('/api/v1/admin/site', { credentials: 'same-origin' });
@@ -37,7 +38,7 @@ function decimalGigabytes(bytes: number): number {
 }
 
 export function AdminSiteSettingsPage() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const settings = useQuery({ queryFn: getAdminSiteSettings, queryKey: ['admin-site-settings'] });
@@ -57,6 +58,7 @@ export function AdminSiteSettingsPage() {
   if (settings.isError || !settings.data) return <p role="alert">{t('admin.settings.error')}</p>;
   const defaultLanguage = defaultLanguageOverride ?? settings.data.defaultLanguage;
   const enabledLanguages = enabledLanguagesOverride ?? settings.data.enabledLanguages;
+  const storageUsage = formatMediaStorage(settings.data.usage.storageBytes, i18n.language);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -119,7 +121,8 @@ export function AdminSiteSettingsPage() {
           <dl className="admin-quota-usage">
             <div><dt>{t('admin.settings.storageUsage')}</dt><dd>{t('admin.settings.storageUsageValue', {
               limit: decimalGigabytes(settings.data.quotas.storageLimitBytes),
-              used: decimalGigabytes(settings.data.usage.storageBytes),
+              used: storageUsage.amount,
+              unit: t(`admin.settings.storageUnits.${storageUsage.unit}`),
             })}</dd></div>
             <div><dt>{t('admin.settings.galleryUsage')}</dt><dd>{t('admin.settings.countUsageValue', {
               limit: settings.data.quotas.galleryLimit,
