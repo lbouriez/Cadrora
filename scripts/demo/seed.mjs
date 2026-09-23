@@ -121,6 +121,21 @@ export async function seedDemoContent(target, configPath, environment = process.
     ], environment);
   }
 
+  process.stdout.write('Uploading five separate AI-gallery download variants.\n');
+  // The first five AI-gallery photos demonstrate the download control. These
+  // are separate private R2 objects, backed by the checked-in large WebP bytes.
+  for (let number = 1; number <= 5; number += 1) {
+    const photo = String(number).padStart(2, '0');
+    runWrangler([
+      'r2', 'object', 'put', `${bucketName}/demo/ai-face-search/${photo}/1/download.webp`,
+      '--file', join(mediaDirectory, `ai-demo-${photo}-large.webp`),
+      '--content-type', 'image/webp',
+      '--force',
+      '--remote', '--config', configPath,
+      ...target.migrationArgs,
+    ], environment);
+  }
+
   syncFaceModels(target, configPath, environment);
 
   process.stdout.write(`Applying idempotent demo records to ${target.label} D1.\n`);

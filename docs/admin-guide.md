@@ -53,6 +53,14 @@ The mounted browser import screen follows this server sequence; any compatible A
 
 The server enforces `MAX_PHOTOS_PER_EVENT`, `MAX_STORAGE_BYTES`, MIME/magic-byte agreement, byte size, dimensions, and SHA-256 checksum. An import is idempotent only when the same natural IDs and chunk contents are replayed; conflicting IDs return a conflict rather than being silently reused.
 
+## Visitor downloads
+
+**Allow downloads** is a per-gallery setting and can be changed later. It does not create a downloadable file by itself: a photo also needs a ready `download` variant in private R2 and its matching D1 `photo_variants` row. Normal browser imports generate that variant automatically as a metadata-stripped JPEG, at most 3840 pixels wide without upscaling. The public API then includes a `downloadUrl` for that photo; the viewer shows a download icon. If the gallery setting is off, the API hides that URL and the Worker refuses direct `download` (and `original`) media requests even if the object still exists. Disabling downloads cannot revoke files visitors already saved.
+
+In the public gallery, **Select photos to download** lets visitors choose individual photos or all currently visible downloadable photos. One selected photo downloads directly. For two or more, browsers supporting directory selection stream separate images into a new `cadrora-*` subfolder in the visitor's chosen location. A ZIP is always available as an alternative and is the fallback on browsers without directory selection; it is generated on the visitor's device and capped at 100 photos and 250 MB per batch. The Worker only streams individually authorized media, never constructs an archive. If one request fails, the selection remains available for retry; a folder may contain already completed files.
+
+The official `CADRORA_SEED_DEMO=true` showcase enables this setting for the AI gallery and seeds `download` variants for its first five generated photos. Other demo photos intentionally have no download action. Re-running the opt-in demo seed repairs the five private R2 objects and D1 rows idempotently. A real site must not enable demo seeding.
+
 Publication requires at least one photo and no visible photo outside `variants_ready` or `published`. Facial indexing is optional and does not block a gallery.
 
 ## Delete and purge behavior

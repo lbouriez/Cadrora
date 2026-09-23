@@ -23,7 +23,7 @@ INSERT INTO events (
     'demo-ai-face-search', 'find-your-photos', 'Retrouvez vos photos',
     'Démonstration IA : quinze images fictives, créées pour présenter la recherche de photos par selfie. Un troisième invité distinct apparaît dans cinq scènes afin de vérifier que la recherche ne confond pas les visages — essayez le parcours « Trouver mes photos ».',
     '2026-08-30T18:00:00.000Z', 'America/Toronto', 'demo-ai-01',
-    'published', 'public', 0, 1, 1, 1, 0, NULL, 1,
+    'published', 'public', 1, 1, 1, 1, 0, NULL, 1,
     '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z'
   )
 ON CONFLICT(id) DO UPDATE SET
@@ -126,18 +126,23 @@ INSERT INTO photo_variants (
   ('demo-ai-01', 'thumb', 'demo/ai-face-search/01/1/thumb.webp', 'image/webp', 23128, 480, 320, '0ab603f6a70e08cc1fa2a75769651b9cffb8d0a00b5963f49a398357fd59fa97', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-01', 'medium', 'demo/ai-face-search/01/1/medium.webp', 'image/webp', 56418, 960, 640, '06df9024f899721315fb93f372dac9d441eea809070dc66d86cc43342fea88f9', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-01', 'large', 'demo/ai-face-search/01/1/large.webp', 'image/webp', 112916, 1536, 1024, '736e99456e9f7fd68ee0ae6af8839130d51b1ef263bfb520c00c62bc0b250d80', '2026-09-21T00:00:00.000Z'),
+  ('demo-ai-01', 'download', 'demo/ai-face-search/01/1/download.webp', 'image/webp', 112916, 1536, 1024, '736e99456e9f7fd68ee0ae6af8839130d51b1ef263bfb520c00c62bc0b250d80', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-02', 'thumb', 'demo/ai-face-search/02/1/thumb.webp', 'image/webp', 18048, 480, 320, '9a4d07822af421d0a58046e4f20809538ef1e0e22dc3a43b393e51c79c2c1332', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-02', 'medium', 'demo/ai-face-search/02/1/medium.webp', 'image/webp', 44672, 960, 640, '3766a323fdb93a6576b29d0ba3bf58b1738f42e9b8d47e665797c4b6538181da', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-02', 'large', 'demo/ai-face-search/02/1/large.webp', 'image/webp', 92474, 1536, 1024, '46275fe91300beb7fd605572dc88101c7d6b80d8b78ed8eafe8ae9fa92fac762', '2026-09-21T00:00:00.000Z'),
+  ('demo-ai-02', 'download', 'demo/ai-face-search/02/1/download.webp', 'image/webp', 92474, 1536, 1024, '46275fe91300beb7fd605572dc88101c7d6b80d8b78ed8eafe8ae9fa92fac762', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-03', 'thumb', 'demo/ai-face-search/03/1/thumb.webp', 'image/webp', 18540, 480, 320, '31bf96a5612417070f6944287bbd6854621cde48b621d5da34131ae6aeab6a02', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-03', 'medium', 'demo/ai-face-search/03/1/medium.webp', 'image/webp', 46298, 960, 640, '256498fada819337581244ee71ec89c9e76f580fb23eea5fbbe293a49f524f42', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-03', 'large', 'demo/ai-face-search/03/1/large.webp', 'image/webp', 96904, 1536, 1024, 'accc6757dc639839cf9d5012e3c0444d0e387bf6487238e9c5ae10f414adcfbe', '2026-09-21T00:00:00.000Z'),
+  ('demo-ai-03', 'download', 'demo/ai-face-search/03/1/download.webp', 'image/webp', 96904, 1536, 1024, 'accc6757dc639839cf9d5012e3c0444d0e387bf6487238e9c5ae10f414adcfbe', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-04', 'thumb', 'demo/ai-face-search/04/1/thumb.webp', 'image/webp', 35254, 480, 320, '52abc25cb36a7594004d0c8200a8670fe29b809b12f89cd842fe55981778b759', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-04', 'medium', 'demo/ai-face-search/04/1/medium.webp', 'image/webp', 88974, 960, 640, '17c183c402971f381c2b5585a7562fe112355a404652aa5be755a47c85c2a67d', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-04', 'large', 'demo/ai-face-search/04/1/large.webp', 'image/webp', 173802, 1536, 1024, 'a82844118ced860a98baa733123875c5bc0384b5cf1e1b79964bcc9535af4b9e', '2026-09-21T00:00:00.000Z'),
+  ('demo-ai-04', 'download', 'demo/ai-face-search/04/1/download.webp', 'image/webp', 173802, 1536, 1024, 'a82844118ced860a98baa733123875c5bc0384b5cf1e1b79964bcc9535af4b9e', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-05', 'thumb', 'demo/ai-face-search/05/1/thumb.webp', 'image/webp', 29880, 480, 320, '596efcf07fde1cfc154010013f32bcb306e9d3c048ace48b0573e55372f85d5b', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-05', 'medium', 'demo/ai-face-search/05/1/medium.webp', 'image/webp', 72076, 960, 640, 'a5df5f62287b8bafa963c223502c47a9b9642b774d109fe719c5458f5b651861', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-05', 'large', 'demo/ai-face-search/05/1/large.webp', 'image/webp', 147420, 1536, 1024, '8709ef4d40cb2896e5054bfd2676884499ded59a5e1b41ded09991695150ee09', '2026-09-21T00:00:00.000Z'),
+  ('demo-ai-05', 'download', 'demo/ai-face-search/05/1/download.webp', 'image/webp', 147420, 1536, 1024, '8709ef4d40cb2896e5054bfd2676884499ded59a5e1b41ded09991695150ee09', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-06', 'thumb', 'demo/ai-face-search/06/1/thumb.webp', 'image/webp', 16542, 480, 320, 'b48d1cf65f894ead1c890f35a98a3117f6203ad7d9599aabb6a725153f20c08e', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-06', 'medium', 'demo/ai-face-search/06/1/medium.webp', 'image/webp', 39732, 960, 640, '4c97414be1a2ee469380a8a3677d2c7ef217bc31f7938cd955de3439fa7de0b3', '2026-09-21T00:00:00.000Z'),
   ('demo-ai-06', 'large', 'demo/ai-face-search/06/1/large.webp', 'image/webp', 84026, 1536, 1024, 'bdc1cd991df32131ab5acb47c81dc4b4331bc4dee048316d12869a02561ac0e2', '2026-09-21T00:00:00.000Z'),
@@ -194,5 +199,5 @@ WHERE NOT (
     'demo-ai-01', 'demo-ai-02', 'demo-ai-03', 'demo-ai-04', 'demo-ai-05',
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
     'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15'
-  )) = 57
+  )) = 62
 );

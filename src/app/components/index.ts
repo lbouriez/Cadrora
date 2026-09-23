@@ -4,7 +4,7 @@ export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
 export { Carousel } from './Carousel';
 export type { CarouselProps } from './Carousel';
-export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, InfoIcon } from './Icons';
+export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, DownloadIcon, InfoIcon } from './Icons';
 export { Dropzone } from './Dropzone';
 export type { DropzoneProps } from './Dropzone';
 export { Input } from './Input';

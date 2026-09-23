@@ -9,6 +9,7 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/photo\/photo-1$/);
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('link', { name: /télécharger|download/i })).toHaveAttribute('href', '/media/event-1/photo-1/2/download');
   await dialog.evaluate(async (element) => Promise.all(element.getAnimations().map(async (animation) => animation.finished)));
   const desktopDialogBox = await dialog.boundingBox();
   expect(desktopDialogBox?.x).toBeGreaterThan(16);
@@ -44,6 +45,20 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   await expect(dialog).toHaveCSS('border-radius', '0px');
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/e\/mariage-lumiere$/);
+});
+
+test('selectionne des photos et cree le ZIP de secours', async ({ page }) => {
+  await mockGallery(page);
+  await page.goto('/e/mariage-lumiere');
+
+  await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
+  await page.getByRole('button', { name: /sélectionner les photos téléchargeables visibles|select visible downloadable photos/i }).click();
+  await expect(page.getByRole('button', { name: /sélectionner danse-au-coucher-du-soleil|select danse-au-coucher-du-soleil/i })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: /créer un ZIP|create a ZIP/i }).click();
+  await expect(page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i }).click();
+  expect((await download).suggestedFilename()).toBe('mariage-lumiere-photos.zip');
 });
 
 test('conserve les resultats IA dans la session et filtre la galerie', async ({ page }) => {

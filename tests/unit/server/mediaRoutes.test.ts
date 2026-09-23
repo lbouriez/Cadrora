@@ -90,4 +90,32 @@ describe('media route', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('private, max-age=3600');
   });
+
+  it.each(['download', 'original'])('rejects a disabled %s variant before reading R2', async (variant) => {
+    const get = vi.fn();
+    const storage: StorageService = { deleteMany: vi.fn(), get };
+    const response = await createApp({ ...publicMedia, allowDownloads: false }, storage).request(
+      `/media/event-1/photo-1/1/${variant}`,
+    );
+
+    expect(response.status).toBe(403);
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('serves an allowed download as an attachment with the encoded file extension', async () => {
+    const storage: StorageService = {
+      deleteMany: vi.fn(),
+      get: vi.fn().mockResolvedValue({
+        body: new Response('photo').body!,
+        contentLength: 5,
+        contentType: 'image/jpeg',
+        etag: '"etag"',
+      }),
+    };
+    const response = await createApp({ ...publicMedia, contentType: 'image/jpeg', filename: 'source.png' }, storage)
+      .request('/media/event-1/photo-1/1/download');
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Disposition')).toBe('attachment; filename="source.jpg"');
+  });
 });

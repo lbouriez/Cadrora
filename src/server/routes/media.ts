@@ -19,8 +19,11 @@ const defaultDependencies: MediaRouteDependencies = {
   storage: (context) => new R2StorageService(context.env.MEDIA_BUCKET),
 };
 
-function downloadName(filename: string): string {
-  return filename.replace(/[^A-Za-z0-9._-]/g, '_');
+function downloadName(filename: string, contentType: string): string {
+  const extension = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : null;
+  if (!extension) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
+  const basename = filename.replace(/\.[^.]+$/u, '').replace(/[^A-Za-z0-9_-]/gu, '_').slice(0, 100) || 'photo';
+  return `${basename}.${extension}`;
 }
 
 export function registerMediaRoutes(
@@ -49,7 +52,8 @@ export function registerMediaRoutes(
       context.set('cachePolicy', 'media-public');
     }
 
-    if (parsed.data.variant === 'download' && !media.allowDownloads) {
+    const isDownload = parsed.data.variant === 'download' || parsed.data.variant === 'original';
+    if (isDownload && !media.allowDownloads) {
       throw new ApiException('DOWNLOAD_NOT_ALLOWED', 'errors.downloadNotAllowed', 403);
     }
 
@@ -62,11 +66,10 @@ export function registerMediaRoutes(
       ETag: object.etag,
       'X-Content-Type-Options': 'nosniff',
     });
-    if (parsed.data.variant === 'download') {
-      headers.set('Content-Disposition', `attachment; filename="${downloadName(media.filename)}"`);
+    if (isDownload) {
+      headers.set('Content-Disposition', `attachment; filename="${downloadName(media.filename, media.contentType)}"`);
     }
 
     return new Response(object.body, { headers });
   });
 }
-

@@ -6,6 +6,8 @@ Package PD owns media streaming, publication readiness, D1-first deletion, provi
 
 `GET /media/:eventId/:photoId/:revision/:variant` validates the path, looks up a published event/photo/variant join in D1, checks the current event grant when protected, checks download permission, and only then asks R2 for the D1-derived key. The response streams the R2 body and never buffers it as an `ArrayBuffer`.
 
+Both `download` and `original` variants require the gallery's `allow_downloads` flag, even if a caller crafts the URL. An allowed variant is an attachment with a sanitized filename whose extension follows the stored media MIME type, not the upload's original filename. The public photo API emits `downloadUrl` only when both the flag and a D1 `download` variant are present. Existing display variants alone do not make the official download control appear.
+
 Public revisioned media is immutable. Protected media is private for one hour. Missing access classification is never treated as public.
 
 ## Publication

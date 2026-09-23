@@ -33,7 +33,7 @@ export const protectedEvent = {
 
 export const publicPhoto = {
   capturedAt: NOW,
-  downloadUrl: '/e2e/photo-1.svg?download=1',
+  downloadUrl: '/media/event-1/photo-1/2/download',
   eventId: publicEvent.id,
   filename: 'danse-au-coucher-du-soleil.jpg',
   height: 1_200,
@@ -94,6 +94,10 @@ export async function mockGallery(page: Page, options: { protected?: boolean } =
     });
   });
 
+  await page.route('**/media/*/*/*/download', async (route) => {
+    await route.fulfill({ body: 'demo image bytes', contentType: 'image/webp' });
+  });
+
   await page.route('**/api/v1/galleries/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -125,9 +129,10 @@ export async function mockGallery(page: Page, options: { protected?: boolean } =
         eventRevision: event.revision,
         nextCursor: null,
         photos: [
-          { ...publicPhoto, eventId: event.id },
+          { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id },
           {
             ...publicPhoto,
+            downloadUrl: `/media/${event.id}/photo-2/2/download`,
             eventId: event.id,
             filename: 'portrait-au-jardin.jpg',
             id: 'photo-2',
