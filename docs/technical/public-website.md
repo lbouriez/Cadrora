@@ -58,6 +58,8 @@ Return navigation on the gallery, face-search, and contact pages uses the shared
 
 Motion is limited to press feedback, small elevation changes, and image zooms, all using the shared motion tokens. Respect `prefers-reduced-motion`; no transition is required to understand or operate the site. The fictional triptych at `public/brand/demo-services-triptych.png` is project-owned demonstration media: it may be replaced by an operator's licensed imagery, but it must not imply that its fictional people are clients.
 
+Text placed on photos uses the shared `--color-on-photo` and overlay tokens; never derive its foreground from `--color-background`, which becomes dark in dark mode and loses contrast against the photo overlay.
+
 ## Validation
 
 After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/galleries`, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.

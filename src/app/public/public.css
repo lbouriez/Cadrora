@@ -193,8 +193,8 @@
   bottom: 1.5rem;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-round);
-  background: var(--color-text);
-  color: var(--color-background);
+  background: var(--color-overlay);
+  color: var(--color-on-photo);
   font-size: var(--text-sm);
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -1567,7 +1567,6 @@
 .site-hero__art figcaption {
   right: var(--space-4);
   bottom: var(--space-4);
-  background: rgb(26 16 31 / 68%);
   backdrop-filter: blur(0.75rem);
   transform: none;
 }

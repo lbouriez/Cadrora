@@ -86,4 +86,18 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('button', { name: /ouvrir le menu|open menu/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
+
+  test('garde la legende photo lisible en theme sombre', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('cadrora-theme', 'dark');
+      localStorage.setItem('cadrora-privacy-consent-v1', 'necessary');
+    });
+    await page.goto('/');
+
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    const caption = page.locator('.site-hero__art figcaption');
+    await expect(caption).toBeVisible();
+    expect(await caption.evaluate((element) => getComputedStyle(element).color)).toBe('rgb(255, 255, 255)');
+    expect(await caption.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+  });
 });
