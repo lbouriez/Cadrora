@@ -159,6 +159,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await availability.selectOption('offline');
   await expect(page.getByRole('button', { name: /take gallery offline|mettre la galerie hors ligne/i })).toBeDisabled();
   await expect(page.getByRole('button', { name: /delete gallery|supprimer la galerie/i })).toBeDisabled();
+  await expect(page.getByRole('heading', { level: 1, name: /settings|réglages/i })).toBeVisible();
   const workspaceOrder = await page.locator('.admin-workspace > section').evaluateAll((sections) => sections.map((section) => section.getAttribute('class') ?? ''));
   expect(workspaceOrder).toEqual(expect.arrayContaining(['publish-panel', 'admin-card admin-event-settings', 'admin-card admin-danger-zone']));
   expect(workspaceOrder[0]).toBe('publish-panel');

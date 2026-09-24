@@ -175,6 +175,18 @@
   gap: var(--space-5);
 }
 
+.admin-workspace__heading {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: var(--space-3);
+}
+
+.admin-workspace__heading h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: 1.08;
+}
+
 .admin-workspace > .publish-panel {
   grid-column: 1 / -1;
 }
@@ -443,6 +455,7 @@
   }
 
   .admin-workspace > .publish-panel { grid-column: auto; }
+  .admin-workspace__heading { grid-column: auto; }
 
   .admin-event-row {
     align-items: flex-start;

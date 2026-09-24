@@ -254,8 +254,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
 
   return (
     <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">
-      <BackLink to="/admin">{t('admin.events.back')}</BackLink>
-      <h1 className="admin-card__title" id="event-settings-title">{t('admin.events.settingsTitle', { title: event.title })}</h1>
+      <h2 className="admin-card__title" id="event-settings-title">{t('admin.events.settingsSectionTitle')}</h2>
       <form className="admin-event-form" onSubmit={submit}>
         <Input defaultValue={event.title} label={t('admin.events.title')} name="title" required />
         <Input defaultValue={localDateTimeValue(event.startsAt)} label={t('admin.events.date')} name="startsAt" required type="datetime-local" />
@@ -360,6 +359,10 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   if (events.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
+      <header className="admin-workspace__heading">
+        <BackLink to="/admin">{t('admin.events.back')}</BackLink>
+        <h1>{t('admin.events.settingsTitle', { title: event.title })}</h1>
+      </header>
       <PublishPanel
         eventId={eventId}
         onChanged={(updated) => {
