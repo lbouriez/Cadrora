@@ -2,10 +2,11 @@ import type { i18n } from 'i18next';
 
 export const findResources = {
   en: { faceFind: {
+    eyebrow: 'Private photo search', startTitle: 'Start with a photo',
     title: 'Find possible photos of you',
     open: 'Find my possible photos',
-    privacy: 'Your selfie or chosen photo stays on this device. Only a numeric face representation is sent for this gallery search.',
-    consent: 'I understand and agree to process this photo on my device for this search.',
+    privacy: 'Choose a clear photo of your face. The photo stays on your device; only a mathematical signature is used to look for possible matches in this gallery.',
+    consent: 'I agree to process my photo on this device and send its mathematical face signature to search this gallery.',
     selfie: 'Take a selfie', choose: 'Choose a photo', analyze: 'Find faces', loadingModels: 'Preparing private on-device search…',
     cameraUnavailable: 'Camera capture is not available in this browser. Choose a photo instead.', cameraAccess: 'Allow camera access, then frame your face.',
     capture: 'Use this photo', cancelCamera: 'Cancel camera', cameraFailed: 'We could not access the camera. Choose a photo instead.',
@@ -19,14 +20,15 @@ export const findResources = {
     more: 'Search more partitions', noFaces: 'No clear face was found. Try another well-lit photo.',
     noMatches: 'No possible matches were found.', unavailable: 'Face search is unavailable. The gallery remains available.',
     back: 'Back to gallery', imageAlt: 'Locally selected search photo', matchAlt: 'Possible matching event photo',
-    testPortraits: 'Fictional test portraits', testPortraitsHelp: 'Download one of these fictional guests, then select it with “Choose a photo”.',
-    testPortraitAmelia: 'Download Amelia’s test portrait', testPortraitDaniel: 'Download Daniel’s test portrait',
+    testPortraits: 'Want to try the demo?', testPortraitsHelp: 'Save one of these fictional portraits, then choose it above to see matching demo photos.',
+    testPortraitAmelia: 'Save Amelia’s portrait', testPortraitDaniel: 'Save Daniel’s portrait',
   } },
   fr: { faceFind: {
+    eyebrow: 'Recherche photo privée', startTitle: 'Commencez avec une photo',
     title: 'Trouver des photos possibles de vous',
     open: 'Trouver mes photos possibles',
-    privacy: 'Votre égoportrait ou photo choisie reste sur cet appareil. Seule une représentation numérique du visage est transmise pour la recherche dans cette galerie.',
-    consent: "Je comprends et j'accepte le traitement de cette photo sur mon appareil pour cette recherche.",
+    privacy: 'Choisissez une photo nette de votre visage. Elle reste sur votre appareil; seule une signature mathématique sert à chercher des correspondances possibles dans cette galerie.',
+    consent: "J’accepte de traiter ma photo sur cet appareil et d’envoyer sa signature mathématique du visage pour chercher dans cette galerie.",
     selfie: 'Prendre un égoportrait', choose: 'Choisir une photo', analyze: 'Trouver les visages', loadingModels: 'Préparation de la recherche privée sur cet appareil…',
     cameraUnavailable: 'La capture par caméra n’est pas offerte dans ce navigateur. Choisissez plutôt une photo.', cameraAccess: 'Autorisez la caméra, puis cadrez votre visage.',
     capture: 'Utiliser cette photo', cancelCamera: 'Annuler la caméra', cameraFailed: 'Impossible d’accéder à la caméra. Choisissez plutôt une photo.',
@@ -40,8 +42,8 @@ export const findResources = {
     more: "Rechercher dans d'autres partitions", noFaces: "Aucun visage net n'a été trouvé. Essayez une autre photo bien éclairée.",
     noMatches: "Aucune correspondance possible n'a été trouvée.", unavailable: 'La recherche faciale est indisponible. La galerie demeure accessible.',
     back: 'Retour à la galerie', imageAlt: 'Photo de recherche choisie localement', matchAlt: "Photo d'événement possiblement correspondante",
-    testPortraits: 'Portraits de test fictifs', testPortraitsHelp: 'Téléchargez l’un de ces invités fictifs, puis choisissez-le avec « Choisir une photo ».',
-    testPortraitAmelia: 'Télécharger le portrait de test d’Amelia', testPortraitDaniel: 'Télécharger le portrait de test de Daniel',
+    testPortraits: 'Envie d’essayer la démo?', testPortraitsHelp: 'Enregistrez un de ces portraits fictifs, puis choisissez-le ci-dessus pour voir ses photos de démonstration.',
+    testPortraitAmelia: 'Enregistrer le portrait d’Amelia', testPortraitDaniel: 'Enregistrer le portrait de Daniel',
   } },
 } as const;
 

@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
-import { Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
+import { BackLink, Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
 import { getAdminEvents } from './adminEventsApi';
 import { PublishPanel } from './PublishPanel';
@@ -103,19 +103,38 @@ export function AdminEventsPage() {
           <p className="admin-demo-intro__eyebrow">{t('admin.demo.eyebrow')}</p>
           <h1 className="admin-card__title" id="admin-demo-title">{t('admin.demo.dashboardTitle')}</h1>
           <p className="admin-card__description">{t('admin.demo.dashboardBody')}</p>
-          <section aria-labelledby="admin-demo-capabilities-title" className="admin-demo-capabilities">
-            <h2 className="admin-card__title" id="admin-demo-capabilities-title">{t('admin.demo.capabilitiesTitle')}</h2>
-            <p className="admin-card__description">{t('admin.demo.capabilitiesBody')}</p>
-            <div className="admin-demo-capabilities__actions">
-              <Button disabled type="button">{t('admin.demo.createGallery')}</Button>
-              <Button disabled type="button" variant="secondary">{t('admin.demo.importPhotos')}</Button>
-              <Button disabled type="button" variant="secondary">{t('admin.demo.publishGallery')}</Button>
-            </div>
-          </section>
         </section>
       ) : null}
+      <section aria-labelledby="event-list-title" className="admin-card admin-events__list">
+        {readOnly
+          ? <h2 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h2>
+          : <h1 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h1>}
+        {events.isPending ? <Spinner label={t('admin.events.loading')} /> : null}
+        {events.isError ? <p role="alert">{t('admin.events.listError')}</p> : null}
+        {events.data?.length === 0 ? <p>{t('admin.events.empty')}</p> : null}
+        <div className="admin-event-list">
+          {events.data?.map((event) => (
+            <article className="admin-event-row" key={event.id}>
+              <div>
+                <span className="admin-event-row__state">{event.deletingAt
+                  ? t('admin.events.deletionPending')
+                  : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
+                <h3>{event.title}</h3>
+                <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
+              </div>
+              <div className="admin-event-row__actions">
+                {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}`}>
+                  {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
+                </Link> : null}
+                {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/galleries/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
+                {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
       <section aria-labelledby="event-create-title" className="admin-card">
-        <h1 className="admin-card__title" id="event-create-title">{t('admin.events.createTitle')}</h1>
+        <h2 className="admin-card__title" id="event-create-title">{t('admin.events.createTitle')}</h2>
         <p className="admin-card__description">{t('admin.events.createDescription')}</p>
         <form className="admin-event-form" onSubmit={submit}>
           <Input label={t('admin.events.title')} name="title" required />
@@ -150,32 +169,6 @@ export function AdminEventsPage() {
         </form>
       </section>
 
-      <section aria-labelledby="event-list-title" className="admin-card">
-        <h2 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h2>
-        {events.isPending ? <Spinner label={t('admin.events.loading')} /> : null}
-        {events.isError ? <p role="alert">{t('admin.events.listError')}</p> : null}
-        {events.data?.length === 0 ? <p>{t('admin.events.empty')}</p> : null}
-        <div className="admin-event-list">
-          {events.data?.map((event) => (
-            <article className="admin-event-row" key={event.id}>
-              <div>
-                <span className="admin-event-row__state">{event.deletingAt
-                  ? t('admin.events.deletionPending')
-                  : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
-                <h3>{event.title}</h3>
-                <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
-              </div>
-              <div className="admin-event-row__actions">
-                {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}`}>
-                  {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
-                </Link> : null}
-                {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/galleries/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
-                {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
@@ -261,7 +254,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
 
   return (
     <section aria-labelledby="event-settings-title" className="admin-card admin-event-settings">
-      <p><Link to="/admin">← {t('admin.events.back')}</Link></p>
+      <BackLink to="/admin">{t('admin.events.back')}</BackLink>
       <h1 className="admin-card__title" id="event-settings-title">{t('admin.events.settingsTitle', { title: event.title })}</h1>
       <form className="admin-event-form" onSubmit={submit}>
         <Input defaultValue={event.title} label={t('admin.events.title')} name="title" required />
@@ -367,10 +360,6 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   if (events.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <div className="admin-settings-stack">
-        <AdminEventSettingsForm event={event} key={event.updatedAt} />
-        <DeleteGalleryPanel event={event} />
-      </div>
       <PublishPanel
         eventId={eventId}
         onChanged={(updated) => {
@@ -380,6 +369,8 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
         readOnly={readOnly}
         summary={publication.data}
       />
+      <AdminEventSettingsForm event={event} key={event.updatedAt} />
+      <DeleteGalleryPanel event={event} />
     </div>
   );
 }

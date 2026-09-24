@@ -99,6 +99,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('group', { name: /website|site web/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
+  await expect(page.getByRole('group', { name: /free-tier guardrails|garde-fous du niveau gratuit/i })).toBeVisible();
   const analyticsId = page.getByRole('textbox', { name: /google analytics measurement id|identifiant de mesure google analytics/i });
   await analyticsId.fill('G-ABCDEF1234');
   await expect(analyticsId).toHaveValue('G-ABCDEF1234');
@@ -158,5 +159,18 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await availability.selectOption('offline');
   await expect(page.getByRole('button', { name: /take gallery offline|mettre la galerie hors ligne/i })).toBeDisabled();
   await expect(page.getByRole('button', { name: /delete gallery|supprimer la galerie/i })).toBeDisabled();
+  const workspaceOrder = await page.locator('.admin-workspace > section').evaluateAll((sections) => sections.map((section) => section.getAttribute('class') ?? ''));
+  expect(workspaceOrder).toEqual(expect.arrayContaining(['publish-panel', 'admin-card admin-event-settings', 'admin-card admin-danger-zone']));
+  expect(workspaceOrder[0]).toBe('publish-panel');
+  await page.setViewportSize({ width: 320, height: 812 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.evaluate(() => {
+    history.pushState({}, '', '/admin');
+    dispatchEvent(new PopStateEvent('popstate'));
+  });
+  await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
+  const dashboardOrder = await page.locator('.admin-events > section').evaluateAll((sections) => sections.map((section) => section.getAttribute('class') ?? ''));
+  expect(dashboardOrder.slice(0, 2)).toEqual(['admin-card admin-demo-intro', 'admin-card admin-events__list']);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(writes).toEqual([]);
 });

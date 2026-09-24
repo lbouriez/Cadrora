@@ -34,17 +34,16 @@ describe('errorBoundary middleware', () => {
     app.use('*', requestId);
     app.onError(errorBoundary);
     app.get('/test', () => {
-      throw new Error('database mapping failed');
+      throw new Error('private key: secret-value');
     });
 
     const response = await app.request('/test', { headers: { 'x-request-id': 'error-test' } });
 
     expect(response.status).toBe(500);
     expect(log).toHaveBeenCalledWith('cadrora_unhandled_request_error', {
-      errorMessage: 'database mapping failed',
-      errorName: 'Error',
+      errorCategory: 'unexpected',
       requestId: 'error-test',
     });
-    expect(JSON.stringify(log.mock.calls)).not.toContain('stack');
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/stack|secret-value/u);
   });
 });

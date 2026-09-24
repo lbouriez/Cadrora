@@ -15,8 +15,9 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
   }
 
   console.error('cadrora_unhandled_request_error', {
-    errorMessage: error instanceof Error ? error.message : 'Unknown error',
-    errorName: error instanceof Error ? error.name : typeof error,
+    // Provider errors may include private object keys or request payloads in
+    // their message. Keep diagnostics classified, never copy exception text.
+    errorCategory: error instanceof TypeError ? 'type' : error instanceof SyntaxError ? 'syntax' : 'unexpected',
     requestId: context.get('requestId'),
   });
 

@@ -10,6 +10,10 @@ Use this runbook for a deployed Cadrora Worker. It is intentionally conservative
 4. Verify custom hostname, preview hostname, and `workers.dev` behavior separately for admin and protected media.
 5. Never put secrets, cookies, raw embeddings, selfies, private EXIF, or event passwords into change notes.
 
+Unexpected Worker errors log a fixed category and request ID, not the exception message or stack: provider messages can contain private object keys or payload fragments. Use the request ID and safe API code for triage; do not copy raw provider exceptions into tickets.
+
+`npm run build` removes the Cloudflare Vite plugin's local `.dev.vars`/`.env` preview copies from the generated Worker/client output after compilation. The source files remain local and git-ignored; production secrets are supplied through Cloudflare bindings and the release script's temporary secrets file. Before archiving or uploading a build, verify that no development-variable file remains under `dist/cadrora` or `dist/client`. Do not treat a successful local build as evidence that production secrets are configured.
+
 ## Routine checks
 
 | Area | What to verify | Current evidence boundary |

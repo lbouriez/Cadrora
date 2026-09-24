@@ -138,6 +138,7 @@ export function AdminSiteSettingsPage() {
       <p className="admin-card__description">{t('admin.settings.description')}</p>
       <nav aria-label={t('admin.settings.sectionsLabel')} className="admin-settings-nav">
         <a href="#admin-settings-website">{t('admin.settings.websiteSection')}</a>
+        <a href="#admin-settings-quotas">{t('admin.settings.quotasSection')}</a>
         <a href="#admin-settings-services">{t('admin.settings.servicesSection')}</a>
         <a href="#admin-settings-contact">{t('admin.settings.contactSection')}</a>
       </nav>
@@ -178,7 +179,8 @@ export function AdminSiteSettingsPage() {
           placeholder="G-XXXXXXXXXX"
           type="text"
         />
-        <fieldset className="admin-quota-settings">
+        </fieldset>
+        <fieldset className="admin-settings-section admin-quota-settings" id="admin-settings-quotas">
           <legend>{t('admin.settings.quotasTitle')}</legend>
           <p className="admin-card__description">{t('admin.settings.quotasDescription')}</p>
           <dl className="admin-quota-usage">
@@ -232,7 +234,6 @@ export function AdminSiteSettingsPage() {
             />
           </div>
           <p className="field__hint">{t('admin.settings.quotasScope')}</p>
-        </fieldset>
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-services">
           <legend>{t('admin.settings.servicesSection')}</legend>

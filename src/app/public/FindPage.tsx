@@ -199,26 +199,38 @@ export function FindPage() {
     <PublicLayout>
       <section className="face-find">
         <BackLink to={`/e/${slug}`}>{t('faceFind.back')}</BackLink>
-        <h1>{t('faceFind.title')}</h1>
-        <p>{t('faceFind.privacy')}</p>
-        <label className="face-find__consent">
-          <input checked={consent} onChange={(event) => setConsent(event.target.checked)} type="checkbox" />
-          <span>{t('faceFind.consent')}</span>
-        </label>
-        <div className="face-find__actions">
-          <Button disabled={!consent || !cameraSupported} onClick={() => void startCamera()}>{t('faceFind.selfie')}</Button>
-          <Button disabled={!consent} onClick={() => fileInput.current?.click()} variant="secondary">{t('faceFind.choose')}</Button>
-          <input accept="image/jpeg,image/png,image/webp" disabled={!consent} hidden onChange={(event) => void chooseFile(event.target.files?.[0])} ref={fileInput} type="file" />
+        <header className="face-find__intro">
+          <p className="site-eyebrow">{t('faceFind.eyebrow')}</p>
+          <h1>{t('faceFind.title')}</h1>
+          <p>{t('faceFind.privacy')}</p>
+        </header>
+        <div className="face-find__start-card">
+          <h2>{t('faceFind.startTitle')}</h2>
+          <label className="face-find__consent">
+            <input checked={consent} onChange={(event) => setConsent(event.target.checked)} type="checkbox" />
+            <span>{t('faceFind.consent')}</span>
+          </label>
+          <div className="face-find__actions">
+            <Button disabled={!consent || !cameraSupported} onClick={() => void startCamera()}>{t('faceFind.selfie')}</Button>
+            <Button disabled={!consent} onClick={() => fileInput.current?.click()} variant="secondary">{t('faceFind.choose')}</Button>
+            <input accept="image/jpeg,image/png,image/webp" disabled={!consent} hidden onChange={(event) => void chooseFile(event.target.files?.[0])} ref={fileInput} type="file" />
+          </div>
+          {!cameraSupported ? <p className="face-find__camera-message">{t('faceFind.cameraUnavailable')}</p> : null}
+          {cameraError ? <p className="face-find__camera-message" role="alert">{cameraError}</p> : null}
         </div>
-        {!cameraSupported ? <p className="face-find__camera-message">{t('faceFind.cameraUnavailable')}</p> : null}
-        {cameraError ? <p className="face-find__camera-message" role="alert">{cameraError}</p> : null}
         {cameraOpen ? <section className="face-find__camera"><p>{t('faceFind.cameraAccess')}</p><video autoPlay muted playsInline ref={video} /><div className="face-find__actions"><Button onClick={() => void captureCamera()}>{t('faceFind.capture')}</Button><Button onClick={stopCamera} variant="secondary">{t('faceFind.cancelCamera')}</Button></div></section> : null}
         <aside className="face-find__test-portraits">
           <h2>{t('faceFind.testPortraits')}</h2>
           <p>{t('faceFind.testPortraitsHelp')}</p>
           <div className="face-find__test-links">
-            <a download href="/demo/face-search/test-portrait-amelia.webp">{t('faceFind.testPortraitAmelia')}</a>
-            <a download href="/demo/face-search/test-portrait-daniel.webp">{t('faceFind.testPortraitDaniel')}</a>
+            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-amelia.webp">
+              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-amelia.webp" />
+              <span>{t('faceFind.testPortraitAmelia')}</span>
+            </a>
+            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-daniel.webp">
+              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-daniel.webp" />
+              <span>{t('faceFind.testPortraitDaniel')}</span>
+            </a>
           </div>
         </aside>
         {preview ? (
@@ -248,7 +260,7 @@ export function FindPage() {
             ) : null}
           </div>
         ) : null}
-        {image ? <Button disabled={busy} onClick={() => void analyze()}>{t('faceFind.analyze')}</Button> : null}
+        {image ? <Button disabled={!consent || busy} onClick={() => void analyze()}>{t('faceFind.analyze')}</Button> : null}
         {busy ? <><Spinner label={t('faceFind.loadingModels')} /><p>{t('faceFind.loadingModels')}</p></> : null}
         {error ? <p role="alert">{error}</p> : null}
         {faces.length > 0 ? (
@@ -258,7 +270,7 @@ export function FindPage() {
               <p>{faces.length === 1 ? t('faceFind.oneFaceHelp') : t('faceFind.chooseFace')}</p>
             </div>
             {faces.length > 1 ? <p className="face-find__selected-face">{t('faceFind.selectedFace', { number: selected + 1 })}</p> : null}
-            <Button disabled={busy} onClick={() => void runSearch()}>{t('faceFind.search')}</Button>
+            <Button disabled={!consent || busy} onClick={() => void runSearch()}>{t('faceFind.search')}</Button>
           </section>
         ) : null}
         {matches.length > 0 ? (

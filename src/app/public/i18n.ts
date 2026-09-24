@@ -84,7 +84,7 @@ export const publicResources = {
         title: 'Photo information',
       },
       privacy: 'Privacy',
-      privacyBody: 'Event access is controlled by the photographer. Face search, when enabled, processes your selfie on your device and never uploads it. Event data may be deleted after the retention period shown by the photographer.',
+      privacyBody: 'The photographer controls access to each gallery. If face search is available, your selfie stays on your device. Gallery photos may be removed after the photographer’s chosen retention period.',
       contact: 'Contact',
       contactTitle: 'Let’s create something memorable.',
       contactBody: 'Tell me about your event, your people, and the memories you want to keep. No form or automated funnel—just choose the most convenient way to get in touch.',
@@ -242,11 +242,11 @@ export const publicResources = {
       },
       privacyPage: {
         ai: {
-          body: 'Optional face search helps a guest find possible matches inside one event. The selected selfie stays on the device; the browser derives a numeric embedding and sends only that representation for this event search. It is not identity verification.',
-          point1: 'The selfie image is never uploaded by Cadrora.',
-          point2: 'No cross-event face profile is created and face search never grants gallery access.',
-          point3: 'Results are possible visual matches, not a statement of identity or certainty.',
-          point4: 'Event-scoped vectors can expire and are removed through retryable purge jobs; provider deletion can be asynchronous.',
+          body: 'If the photographer turns on face search, you can choose a selfie to look for possible photos of you in that gallery. Your device reads the photo and sends a mathematical face signature for the search—not the photo itself. This does not prove anyone’s identity.',
+          point1: 'Your selfie is not uploaded to Cadrora.',
+          point2: 'A search stays within the gallery you opened. It cannot unlock another gallery.',
+          point3: 'A result is a possible visual match, not a guarantee.',
+          point4: 'Stored face-search data has its own expiry. Removing it from storage may take time after access is closed.',
           title: 'Optional AI and face search',
         },
         analytics: {
@@ -255,13 +255,13 @@ export const publicResources = {
         },
         eyebrow: 'Privacy, explained plainly',
         gallery: {
-          body: 'D1 stores event metadata, access state, and operational records. Private R2 buckets store derived event images. Public, unlisted, and protected galleries have distinct cache rules; a protected gallery requires a current event-scoped grant.',
+          body: 'A gallery can be public, shared only by link, or protected by a password. Cadrora stores the gallery details and photos in the photographer’s Cloudflare account. A protected gallery requires valid access before photos can be opened.',
           title: 'Gallery and media data',
         },
         lead: 'Cadrora is designed to keep private photography private, make optional AI understandable, and give each site operator the tools to set a clear retention policy.',
         onThisPage: 'On this page',
         operator: {
-          body: 'The photographer or organization operating a Cadrora deployment determines the lawful basis, guest notice, retention schedule, Cloudflare and Google settings, data-request process, and incident response. The open-source project does not become the controller of another operator’s galleries.',
+          body: 'The photographer or organization running this site decides what to collect, how long to keep it, and how to answer privacy requests. Each installation needs its own accurate notice and contact details. The open-source Cadrora project does not manage other operators’ galleries.',
           title: 'Operator responsibilities',
         },
         overview: {
@@ -271,19 +271,19 @@ export const publicResources = {
         questionsBody: 'Use the published contact details to ask about access, correction, deletion, retention, or the optional face-search feature.',
         questionsTitle: 'Questions or a privacy request?',
         retention: {
-          body: 'The operator chooses when gallery media is removed. Face-search data has a separate event-level expiry and purge workflow. Removing access in D1 happens before provider cleanup; physical R2 or Vectorize deletion may complete asynchronously and is retried safely.',
+          body: 'The photographer chooses how long to keep each gallery. Face-search data has a separate expiry. When a gallery is removed, access closes first; cleanup of stored photos and search data can finish afterward.',
           title: 'Retention and deletion',
         },
         rights: {
-          body: 'Depending on your location, you may have rights to access, correct, delete, or object to processing. Contact the operator shown on the site. Cadrora stores passwords, admin sessions, and access grants as hashes or scoped tokens rather than readable credentials.',
+          body: 'Depending on where you live, you may be able to ask to see, correct, or delete your data, or object to its use. Contact the photographer using this site. Gallery and admin passwords are not stored as readable text.',
           title: 'Your choices and rights',
         },
         security: {
-          body: 'The browser never receives Cloudflare credentials or storage keys. The Worker authorizes every admin, protected API, and media request; missing configuration fails closed. Private media is not placed in a shared public cache.',
+          body: 'Your browser does not receive the site’s Cloudflare storage credentials. Cadrora checks access before serving private galleries and photos. If a required security setting is missing, access is denied.',
           title: 'Access and security',
         },
         title: 'Privacy is part of the delivery.',
-        updated: 'Demo notice · Last updated September 20, 2026',
+        updated: 'Demo notice · Last updated September 23, 2026',
       },
     },
   },
@@ -370,7 +370,7 @@ export const publicResources = {
         title: 'Informations de la photo',
       },
       privacy: 'Confidentialité',
-      privacyBody: "L'accès à l'événement est contrôlé par le photographe. La recherche faciale, lorsqu'elle est activée, traite votre égoportrait sur votre appareil sans jamais le téléverser. Les données de l'événement peuvent être supprimées après la période de conservation indiquée par le photographe.",
+      privacyBody: "Le photographe contrôle l’accès à chaque galerie. Si la recherche faciale est offerte, votre égoportrait reste sur votre appareil. Les photos peuvent être supprimées après la durée choisie par le photographe.",
       contact: 'Contact',
       contactTitle: 'Créons quelque chose de mémorable.',
       contactBody: "Parlez-moi de votre événement, de vos proches et des souvenirs que vous souhaitez garder. Aucun formulaire ni parcours automatisé : choisissez simplement la façon de communiquer qui vous convient.",
@@ -528,11 +528,11 @@ export const publicResources = {
       },
       privacyPage: {
         ai: {
-          body: "La recherche faciale facultative aide un invité à trouver des correspondances possibles dans un seul événement. L'égoportrait choisi reste sur l'appareil; le navigateur en dérive une représentation numérique et n'envoie que celle-ci pour cette recherche. Ce n'est pas une vérification d'identité.",
-          point1: "L'image de l'égoportrait n'est jamais téléversée par Cadrora.",
-          point2: "Aucun profil facial entre événements n'est créé et la recherche ne donne jamais accès à une galerie.",
-          point3: "Les résultats sont des ressemblances visuelles possibles, pas une affirmation d'identité ou de certitude.",
-          point4: "Les vecteurs limités à l'événement peuvent expirer et sont supprimés par des tâches réessayables; la suppression chez le fournisseur peut être asynchrone.",
+          body: "Si le photographe active la recherche faciale, vous pouvez choisir un égoportrait pour chercher des photos possibles de vous dans cette galerie. Votre appareil lit la photo et envoie une signature mathématique du visage pour la recherche, pas la photo elle-même. Cela ne prouve l’identité de personne.",
+          point1: "Votre égoportrait n’est pas téléversé dans Cadrora.",
+          point2: "La recherche reste dans la galerie ouverte et ne peut en déverrouiller aucune autre.",
+          point3: "Un résultat est une ressemblance possible, pas une certitude.",
+          point4: "Les données de recherche faciale ont leur propre expiration. Leur retrait du stockage peut prendre du temps après la fermeture de l’accès.",
           title: 'IA facultative et recherche faciale',
         },
         analytics: {
@@ -541,13 +541,13 @@ export const publicResources = {
         },
         eyebrow: 'La confidentialité, simplement',
         gallery: {
-          body: "D1 conserve les métadonnées, l'état des accès et les données opérationnelles. Des compartiments R2 privés stockent les images dérivées. Les galeries publiques, non répertoriées et protégées ont des règles de cache distinctes; une galerie protégée exige une autorisation limitée à l'événement.",
+          body: "Une galerie peut être publique, partagée seulement par lien ou protégée par mot de passe. Cadrora conserve ses détails et ses photos dans le compte Cloudflare du photographe. Une galerie protégée exige un accès valide avant d’ouvrir ses photos.",
           title: 'Galeries et médias',
         },
         lead: "Cadrora est conçu pour garder les photographies privées, rendre l'IA facultative compréhensible et donner à chaque exploitant les outils pour fixer une politique de conservation claire.",
         onThisPage: 'Sur cette page',
         operator: {
-          body: "Le photographe ou l'organisation qui exploite Cadrora détermine la base légale, l'information aux invités, la durée de conservation, les réglages Cloudflare et Google, le traitement des demandes et la réponse aux incidents. Le projet libre ne devient pas responsable des galeries d'un autre exploitant.",
+          body: "Le photographe ou l’organisation qui exploite ce site décide quelles données recueillir, combien de temps les conserver et comment répondre aux demandes de confidentialité. Chaque installation doit avoir son propre avis exact et ses coordonnées. Le projet libre Cadrora ne gère pas les galeries des autres exploitants.",
           title: "Responsabilités de l'exploitant",
         },
         overview: {
@@ -557,19 +557,19 @@ export const publicResources = {
         questionsBody: "Utilisez les coordonnées publiées pour demander un accès, une correction, une suppression, la durée de conservation ou des précisions sur la recherche faciale facultative.",
         questionsTitle: 'Une question ou une demande de confidentialité?',
         retention: {
-          body: "L'exploitant choisit quand supprimer les médias de galerie. Les données de recherche faciale ont leur propre expiration et leur propre purge. Le retrait d'accès dans D1 précède le nettoyage chez les fournisseurs; la suppression physique dans R2 ou Vectorize peut être asynchrone et est réessayée de façon sûre.",
+          body: "Le photographe choisit la durée de conservation de chaque galerie. Les données de recherche faciale ont une expiration distincte. Lorsqu’une galerie est supprimée, l’accès ferme d’abord; le nettoyage des photos et des données de recherche peut se terminer ensuite.",
           title: 'Conservation et suppression',
         },
         rights: {
-          body: "Selon votre lieu, vous pouvez avoir des droits d'accès, de correction, de suppression ou d'opposition. Contactez l'exploitant indiqué sur le site. Cadrora conserve les mots de passe, sessions admin et autorisations sous forme de hachages ou de jetons limités plutôt que de données lisibles.",
+          body: "Selon votre lieu de résidence, vous pouvez demander à voir, corriger ou supprimer vos données, ou vous opposer à leur utilisation. Contactez le photographe de ce site. Les mots de passe des galeries et de l’administration ne sont pas stockés en texte lisible.",
           title: 'Vos choix et vos droits',
         },
         security: {
-          body: "Le navigateur ne reçoit jamais les identifiants Cloudflare ni les clés de stockage. Le Worker autorise chaque requête admin, API protégée et média; une configuration manquante ferme l'accès. Les médias privés ne sont pas placés dans un cache public partagé.",
+          body: "Votre navigateur ne reçoit pas les clés de stockage Cloudflare du site. Cadrora vérifie l’accès avant de servir les galeries et photos privées. Si un réglage de sécurité essentiel manque, l’accès est refusé.",
           title: 'Accès et sécurité',
         },
         title: 'La confidentialité fait partie de la livraison.',
-        updated: 'Avis de démonstration · Dernière mise à jour le 20 septembre 2026',
+        updated: 'Avis de démonstration · Dernière mise à jour le 23 septembre 2026',
       },
     },
   },
