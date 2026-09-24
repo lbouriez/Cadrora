@@ -372,14 +372,14 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       `INSERT INTO events (
         id, slug, title, description, starts_at, timezone, cover_photo_id,
         visibility, access, allow_downloads, face_search_enabled, nearby_search_enabled,
-        show_photo_metadata, keep_originals, retention_days, revision, created_at, updated_at
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, 0, ?15, ?15)`,
+        show_photo_metadata, show_on_gallery_page, keep_originals, retention_days, revision, created_at, updated_at
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, 0, ?16, ?16)`,
     ).bind(
       id, slug, input.data.title, input.data.description ?? null, input.data.startsAt,
       input.data.timezone, input.data.visibility, input.data.access,
       Number(input.data.allowDownloads), Number(input.data.faceSearchEnabled),
-      Number(input.data.nearbySearchEnabled), Number(input.data.showPhotoMetadata), Number(input.data.keepOriginals),
-      input.data.retentionDays, now,
+      Number(input.data.nearbySearchEnabled), Number(input.data.showPhotoMetadata), Number(input.data.showOnGalleryPage),
+      Number(input.data.keepOriginals), input.data.retentionDays, now,
     );
     const statements: D1PreparedStatement[] = [eventStatement];
     if (input.data.access === 'protected' && input.data.password) {
@@ -440,6 +440,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.nearbySearchEnabled !== undefined) add('nearby_search_enabled', Number(input.data.nearbySearchEnabled));
     else if (input.data.faceSearchEnabled === false) add('nearby_search_enabled', 0);
     if (input.data.showPhotoMetadata !== undefined) add('show_photo_metadata', Number(input.data.showPhotoMetadata));
+    if (input.data.showOnGalleryPage !== undefined) add('show_on_gallery_page', Number(input.data.showOnGalleryPage));
     if (input.data.keepOriginals !== undefined || !nextAllowDownloads) add('keep_originals', Number(nextKeepOriginals));
     if (input.data.retentionDays !== undefined) add('retention_days', input.data.retentionDays);
     const now = new Date().toISOString();

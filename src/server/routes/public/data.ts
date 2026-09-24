@@ -15,6 +15,7 @@ export interface EventRow {
   face_search_enabled: number;
   nearby_search_enabled: number;
   show_photo_metadata: number;
+  show_on_gallery_page: number;
   keep_originals: number;
   retention_days: number | null;
   offline_at: string | null;
@@ -39,6 +40,7 @@ export function eventFromRow(row: EventRow): Event {
     faceSearchEnabled: row.face_search_enabled === 1,
     nearbySearchEnabled: row.nearby_search_enabled === 1,
     showPhotoMetadata: row.show_photo_metadata === 1,
+    showOnGalleryPage: row.show_on_gallery_page === 1,
     keepOriginals: row.keep_originals === 1,
     retentionDays: row.retention_days,
     offlineAt: row.offline_at,
@@ -71,6 +73,7 @@ export function toPublicEvent(event: Event, coverRevision: number | null = null)
     faceSearchEnabled: event.faceSearchEnabled,
     nearbySearchEnabled: event.nearbySearchEnabled,
     showPhotoMetadata: event.showPhotoMetadata,
+    createdAt: event.createdAt,
     retentionDays: event.retentionDays,
     revision: event.revision,
     updatedAt: event.updatedAt,

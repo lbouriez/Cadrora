@@ -4,6 +4,8 @@ Status: implemented. Approved 2026-09-20; implementation and documentation revie
 
 Post-plan extension (2026-09-24): ADR-011 adds a distinct protected-gallery retouch selection and photographer replacement workflow across PB/PC/PD, plus opaque locked-gallery index cards. Its release gate includes migration 016, private-grant and admin-role tests, desktop/mobile review, and a live replacement/cleanup smoke test.
 
+Post-plan extension (2026-09-24): ADR-012 adds a per-gallery public-directory switch and creation-date card ordering across PB/PD, plus a compact text-only gallery header and progressive, scroll-triggered photo loading in PB. Its release gate includes migration 017, admin/index tests, large-page desktop/mobile browsing, and live verification that hidden galleries still work by direct link.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

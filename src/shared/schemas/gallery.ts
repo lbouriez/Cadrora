@@ -17,6 +17,7 @@ export const PublicEventSchema = EventSchema.pick({
   faceSearchEnabled: true,
   nearbySearchEnabled: true,
   showPhotoMetadata: true,
+  createdAt: true,
   retentionDays: true,
   revision: true,
   updatedAt: true,
@@ -60,15 +61,18 @@ export const AdminFavoritePhotosSchema = z.object({
 export const ReplacePhotoRequestSchema = z.object({ importId: IdSchema }).strict();
 export const ReplacePhotoResponseSchema = z.object({ photoId: IdSchema, revision: z.number().int().nonnegative() }).strict();
 
-export const PublicEventListSchema = z.object({
-  events: z.array(PublicEventSchema),
-  protectedGalleries: z.array(z.object({
+export const ProtectedGalleryPreviewSchema = z.object({
     id: IdSchema,
     slug: SlugSchema,
     title: EventSchema.shape.title,
     description: EventSchema.shape.description,
     startsAt: IsoDateTimeSchema,
-  }).strict()),
+    createdAt: IsoDateTimeSchema,
+}).strict();
+
+export const PublicEventListSchema = z.object({
+  events: z.array(PublicEventSchema),
+  protectedGalleries: z.array(ProtectedGalleryPreviewSchema),
 });
 
 export const AdminEventListSchema = z.object({
@@ -122,6 +126,7 @@ export const CreateEventRequestSchema = z.object({
   faceSearchEnabled: z.boolean().default(false),
   nearbySearchEnabled: z.boolean().default(false),
   showPhotoMetadata: z.boolean().default(false),
+  showOnGalleryPage: z.boolean().default(true),
   keepOriginals: z.boolean().default(false),
   retentionDays: z.number().int().positive().nullable().default(null),
 }).superRefine((value, context) => {
@@ -148,6 +153,7 @@ export const UpdateEventRequestSchema = z.object({
   faceSearchEnabled: z.boolean().optional(),
   nearbySearchEnabled: z.boolean().optional(),
   showPhotoMetadata: z.boolean().optional(),
+  showOnGalleryPage: z.boolean().optional(),
   keepOriginals: z.boolean().optional(),
   retentionDays: z.number().int().positive().nullable().optional(),
 }).strict().refine((value) => Object.keys(value).length > 0, { message: 'at least one field is required' });
@@ -181,7 +187,7 @@ export const PhotoListQuerySchema = z.object({
 });
 
 export type PublicEvent = z.infer<typeof PublicEventSchema>;
-export type ProtectedGalleryPreview = z.infer<typeof PublicEventListSchema>['protectedGalleries'][number];
+export type ProtectedGalleryPreview = z.infer<typeof ProtectedGalleryPreviewSchema>;
 export type PublicPhoto = z.infer<typeof PublicPhotoSchema>;
 export type AdminFavoritePhoto = z.infer<typeof AdminFavoritePhotoSchema>;
 export type CreateEventRequest = z.infer<typeof CreateEventRequestSchema>;

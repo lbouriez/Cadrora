@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, RetouchButton, Spinner } from '../components';
+import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, ProgressivePhoto, RetouchButton, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
-import { GalleryApiError, getPublicEvent, getPublicGalleryIndex, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
+import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -75,19 +75,14 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
     <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
       {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>
       {column.map((photo) => {
-        const sources = [...photo.sources].sort((left, right) => left.width - right.width);
-        const fallback = sources[0];
-        const image = (
-          <img
-            alt={photo.filename}
-            height={photo.height}
-            loading="lazy"
-            sizes="(max-width: 45rem) 100vw, (max-width: 82rem) 50vw, 33vw"
-            src={fallback?.url}
-            srcSet={sources.map((source) => `${source.url} ${source.width}w`).join(', ')}
-            width={photo.width}
-          />
-        );
+        const image = <ProgressivePhoto
+          alt={photo.filename}
+          height={photo.height}
+          key={`${photo.id}:${photo.revision}`}
+          sizes="(max-width: 45rem) 100vw, (max-width: 82rem) 50vw, 33vw"
+          sources={photo.sources}
+          width={photo.width}
+        />;
         return (
           <div className="photo-tile-shell" key={photo.id}>
           {selectionMode ? <button
@@ -143,9 +138,10 @@ export function GalleryPage() {
   const [downloadComplete, setDownloadComplete] = useState(false);
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
-  const publicIndex = useQuery({
-    queryKey: ['public-gallery-index'], queryFn: getPublicGalleryIndex,
+  const lockedGalleryPreview = useQuery({
+    queryKey: ['protected-gallery-preview', slug], queryFn: () => getProtectedGalleryPreview(slug),
     enabled: event.error instanceof GalleryApiError && event.error.status === 401,
   });
   const photos = useInfiniteQuery({
@@ -173,7 +169,7 @@ export function GalleryPage() {
     if (retouch.isPending || event.data?.access !== 'protected') return;
     retouch.mutate({ photo, selected: !photo.selectedForRetouch });
   };
-  const { fetchNextPage, hasNextPage, isFetchingNextPage } = photos;
+  const { fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } = photos;
   const unlock = useMutation({
     mutationFn: async () => {
       const token = turnstile.current
@@ -230,6 +226,19 @@ export function GalleryPage() {
     retouchPendingId: retouch.isPending ? retouch.variables.photo.id : null, onToggleRetouch };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (matchesView || !target || !hasNextPage || isFetchingNextPage || isFetchNextPageError || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        void fetchNextPage();
+      }
+    }, { rootMargin: '700px 0px' });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage, matchesView]);
 
   useEffect(() => () => {
     if (zipResult) URL.revokeObjectURL(zipResult.url);
@@ -309,7 +318,7 @@ export function GalleryPage() {
   };
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
-  const lockedPreview = publicIndex.data?.protectedGalleries.find((gallery) => gallery.id === slug || gallery.slug === slug);
+  const lockedPreview = lockedGalleryPreview.data;
   const isPrivateDemo = siteProfile.demo.enabled && slug === siteProfile.demo.privateGallerySlug;
   const accessError = event.error instanceof GalleryApiError
     ? event.error
@@ -363,7 +372,7 @@ export function GalleryPage() {
   if (accessRequired && !event.data) return <PublicLayout wide>
     {lockedPreview ? <header className="gallery-heading">
       <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
-      <div className="gallery-heading__hero gallery-heading__hero--without-cover">
+      <div className="gallery-heading__hero gallery-heading__hero--compact">
         <div className="gallery-heading__copy">
           <p className="gallery-heading__eyebrow">{t('gallery.headingPrivate')}</p>
           <h1>{lockedPreview.title}</h1>
@@ -380,7 +389,7 @@ export function GalleryPage() {
     <PublicLayout wide>
       <header className="gallery-heading">
         <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
-        <div className={`gallery-heading__hero${event.data.coverPhotoUrl ? '' : ' gallery-heading__hero--without-cover'}`}>
+        <div className="gallery-heading__hero gallery-heading__hero--compact">
           <div className="gallery-heading__copy">
             <p className="gallery-heading__eyebrow">{t(event.data.access === 'protected' ? 'gallery.headingPrivate' : 'gallery.headingEyebrow')}</p>
             <h1>{event.data.title}</h1>
@@ -397,7 +406,6 @@ export function GalleryPage() {
             </div>
             {event.data.access === 'protected' ? <p className="gallery-heading__hint">{t('gallery.retouch.help')}</p> : null}
           </div>
-          {event.data.coverPhotoUrl ? <img alt="" className="gallery-heading__cover" src={event.data.coverPhotoUrl} /> : null}
         </div>
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
@@ -480,7 +488,10 @@ export function GalleryPage() {
         </>
       ) : <GalleryPhotoGrid {...gridFavorites} downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
       {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
-      {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
+      {!matchesView && photos.hasNextPage ? <>
+        <div aria-hidden="true" className="gallery-load-sentinel" ref={loadMoreRef} />
+        {photos.isFetchingNextPage ? <Spinner label={t('gallery.loading')} /> : <Button onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button>}
+      </> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
       </section>
       {photoId && !selected && !photos.hasNextPage && !photos.isPending ? <p role="alert">{t('gallery.unavailable')}</p> : null}

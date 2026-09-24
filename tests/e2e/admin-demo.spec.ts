@@ -16,6 +16,7 @@ const demoEvent = {
   faceSearchEnabled: true,
   nearbySearchEnabled: true,
   showPhotoMetadata: true,
+  showOnGalleryPage: true,
   keepOriginals: false,
   retentionDays: null,
   revision: 1,
@@ -176,6 +177,10 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(originals).toHaveCount(0);
   const faceSearch = page.getByRole('checkbox', { name: /optional face search|recherche faciale facultative/i });
   const nearbySearch = page.getByRole('checkbox', { name: /nearby moments|moments rapprochés/i });
+  const showOnGalleryPage = page.getByRole('checkbox', { name: /show in public gallery lists|afficher dans les listes publiques/i });
+  await expect(showOnGalleryPage).toBeChecked();
+  await showOnGalleryPage.uncheck();
+  await expect(showOnGalleryPage).not.toBeChecked();
   await expect(faceSearch).toBeChecked();
   await expect(nearbySearch).toBeChecked();
   await faceSearch.uncheck();

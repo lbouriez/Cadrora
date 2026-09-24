@@ -9,7 +9,7 @@ const event = {
   id: 'gallery-1', slug: 'private-gallery', title: 'Private gallery', description: null,
   starts_at: '2030-01-01T00:00:00.000Z', timezone: 'UTC', cover_photo_id: null,
   visibility: 'published', access: 'protected', allow_downloads: 0,
-  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, keep_originals: 0,
+  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, show_on_gallery_page: 1, keep_originals: 0,
   retention_days: null, offline_at: null, deleting_at: null, revision: 1,
   created_at: '2030-01-01T00:00:00.000Z', updated_at: '2030-01-01T00:00:00.000Z',
 };

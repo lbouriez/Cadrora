@@ -1,4 +1,59 @@
-import { expect, mockGallery, test } from './fixtures';
+import { expect, mockGallery, publicEvent, publicPhoto, test } from './fixtures';
+
+test('charge les pages et les grandes photos au défilement sans répéter la couverture', async ({ page }) => {
+  await mockGallery(page);
+  const photoRequests: string[] = [];
+  let pageRequests = 0;
+  let releaseFirstLarge: () => void = () => {};
+  const firstLargeGate = new Promise<void>((resolve) => { releaseFirstLarge = resolve; });
+  await page.route('**/api/v1/galleries/mariage-lumiere', async (route) => {
+    await route.fulfill({ body: JSON.stringify({ ...publicEvent, coverPhotoUrl: '/media/event-1/photo-1/2/medium' }), contentType: 'application/json' });
+  });
+  await page.route('**/api/v1/galleries/mariage-lumiere/photos*', async (route) => {
+    pageRequests += 1;
+    const next = new URL(route.request().url()).searchParams.has('cursor');
+    const indexes = next ? [41] : Array.from({ length: 40 }, (_, index) => index + 1);
+    await route.fulfill({ body: JSON.stringify({
+      eventRevision: publicEvent.revision,
+      nextCursor: next ? null : 'next-page',
+      photos: indexes.map((index) => ({
+        ...publicPhoto,
+        id: `photo-${index}`,
+        filename: `photo-${index}.jpg`,
+        sortKey: String(index).padStart(8, '0'),
+        sources: [
+          { contentType: 'image/jpeg', height: 360, url: `/e2e/progressive/photo-${index}-small.svg`, width: 480 },
+          { contentType: 'image/jpeg', height: 1200, url: `/e2e/progressive/photo-${index}-large.svg`, width: 1600 },
+        ],
+      })),
+    }), contentType: 'application/json' });
+  });
+  await page.route('**/e2e/progressive/*.svg', async (route) => {
+    photoRequests.push(route.request().url());
+    if (route.request().url().includes('photo-1-large.svg')) await firstLargeGate;
+    await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200"><rect width="1600" height="1200" fill="#8b5e45"/></svg>', contentType: 'image/svg+xml' });
+  });
+
+  await page.goto('/e/mariage-lumiere');
+  await expect(page.locator('.gallery-heading__hero img')).toHaveCount(0);
+  await expect(page.locator('.photo-tile-shell')).toHaveCount(40);
+  await expect(page.locator('.progressive-photo__preview').first()).toHaveJSProperty('complete', true);
+  await expect(page.locator('.progressive-photo__preview').first()).toHaveCSS('filter', /blur/u);
+  await expect(page.locator('.progressive-photo__full').first()).toHaveCSS('opacity', '0');
+  releaseFirstLarge();
+  await expect(page.locator('.progressive-photo').first()).toHaveClass(/progressive-photo--ready/u);
+  expect(photoRequests.some((url) => url.includes('photo-1-small.svg'))).toBe(true);
+  expect(photoRequests.some((url) => url.includes('photo-1-large.svg'))).toBe(true);
+  expect(photoRequests.some((url) => url.includes('photo-40-large.svg'))).toBe(false);
+  expect(pageRequests).toBe(1);
+
+  await page.locator('.gallery-load-sentinel').scrollIntoViewIfNeeded();
+  await expect(page.locator('.photo-tile-shell')).toHaveCount(41);
+  expect(pageRequests).toBe(2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('.photo-grid__column')).toHaveCount(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
 
 test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) => {
   await mockGallery(page);

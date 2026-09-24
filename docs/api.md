@@ -31,9 +31,10 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `GET /galleries` | Public | Lists published public galleries and published protected-gallery previews (`id`, `slug`, `title`, `startsAt`, `description`). Protected covers and photos are absent. |
+| `GET /galleries` | Public | Lists published, online galleries enabled for public listing, newest by creation time. Public entries include `createdAt`; protected previews include `id`, `slug`, `title`, `startsAt`, `createdAt`, and `description`, but no cover or photo URL. |
 | `GET /site` | Public | Validated public `SiteSettings` singleton; the static portfolio does not depend on it. |
 | `GET /galleries/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
+| `GET /galleries/:eventId/preview` | Public | Title, description, event date, and creation date of a published, online protected gallery, including one hidden from lists. No cover or photo URL. The full gallery still requires its password. |
 | `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
 | `GET /galleries/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
 | `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. |
@@ -57,12 +58,13 @@ Gallery creation accepts:
   "faceSearchEnabled": false,
   "nearbySearchEnabled": false,
   "showPhotoMetadata": false,
+  "showOnGalleryPage": true,
   "keepOriginals": false,
   "retentionDays": null
 }
 ```
 
-Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture date/time, and dimensions panel and defaults to `false`. The capture instant comes from JPEG `DateTimeOriginal` plus its offset, or the gallery timezone when the camera omitted one; upload time is never substituted. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
+Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showOnGalleryPage` defaults to `true` and controls inclusion in the site's public gallery lists, not direct-link access or photo authorization. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture date/time, and dimensions panel and defaults to `false`. The capture instant comes from JPEG `DateTimeOriginal` plus its offset, or the gallery timezone when the camera omitted one; upload time is never substituted. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
 
 ## Imports and media ingress
 

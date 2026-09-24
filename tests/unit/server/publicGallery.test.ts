@@ -21,7 +21,7 @@ describe('public gallery contracts', () => {
     const prepare = vi.fn((sql: string) => ({
       all: () => Promise.resolve({ results: sql.includes("e.access = 'public'") ? [] : [{
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
-        starts_at: '2026-09-21T15:00:00.000Z',
+        starts_at: '2026-09-21T15:00:00.000Z', created_at: '2026-09-18T10:00:00.000Z',
       }] }),
     }));
     const app = new Hono<AppEnv>();
@@ -34,9 +34,14 @@ describe('public gallery contracts', () => {
       events: [], protectedGalleries: [{
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
         startsAt: '2026-09-21T15:00:00.000Z',
+        createdAt: '2026-09-18T10:00:00.000Z',
       }],
     });
     expect(prepare.mock.calls[1]?.[0]).not.toContain('cover_photo_id');
+    expect(prepare.mock.calls[0]?.[0]).toContain('e.show_on_gallery_page = 1');
+    expect(prepare.mock.calls[1]?.[0]).toContain('show_on_gallery_page = 1');
+    expect(prepare.mock.calls[0]?.[0]).toContain('ORDER BY e.created_at DESC');
+    expect(prepare.mock.calls[1]?.[0]).toContain('ORDER BY created_at DESC');
   });
 
   it('round trips a stable sort key, id, and revision cursor', () => {

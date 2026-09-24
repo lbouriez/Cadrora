@@ -22,6 +22,7 @@ const protectedEvent: EventRow = {
   access: 'protected',
   allow_downloads: 0,
   show_photo_metadata: 0,
+  show_on_gallery_page: 1,
   face_search_enabled: 0,
   nearby_search_enabled: 0,
   keep_originals: 0,
@@ -60,6 +61,32 @@ function bindings(database: D1Database): CloudflareBindings {
 }
 
 describe('protected gallery metadata', () => {
+  it('shows public presentation details by direct link even when the gallery is hidden from lists', async () => {
+    const app = new Hono<AppEnv>();
+    app.use('*', requestId);
+    app.onError(errorBoundary);
+    app.use('*', authContext);
+    app.use('*', cacheHeaders);
+    registerPublicRoutes(app);
+
+    const response = await app.request(
+      '/api/v1/galleries/private-wedding/preview',
+      undefined,
+      bindings(databaseReturning({ ...protectedEvent, show_on_gallery_page: 0 })),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+    await expect(response.json()).resolves.toEqual({
+      id: protectedEvent.id,
+      slug: protectedEvent.slug,
+      title: protectedEvent.title,
+      description: protectedEvent.description,
+      startsAt: protectedEvent.starts_at,
+      createdAt: protectedEvent.created_at,
+    });
+  });
+
   it('returns not found for an offline gallery even when its underlying visibility is published', async () => {
     const app = new Hono<AppEnv>();
     app.use('*', requestId);

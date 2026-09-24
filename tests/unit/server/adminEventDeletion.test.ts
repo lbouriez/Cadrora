@@ -23,6 +23,7 @@ const galleryRow = {
   retention_days: null,
   revision: 1,
   show_photo_metadata: 0,
+  show_on_gallery_page: 1,
   slug: 'summer-story',
   starts_at: '2030-01-01T00:00:00.000Z',
   timezone: 'UTC',

@@ -11,7 +11,7 @@ const eventRow = {
   id: 'event-1', slug: 'wedding', title: 'Wedding', description: null,
   starts_at: '2026-09-20T12:00:00.000Z', timezone: 'UTC', cover_photo_id: 'photo-1',
   visibility: 'published', access: 'public', allow_downloads: 1,
-  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, keep_originals: 0,
+  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, show_on_gallery_page: 1, keep_originals: 0,
   retention_days: null, offline_at: null, deleting_at: null, revision: 2,
   created_at: '2026-09-20T12:00:00.000Z', updated_at: '2026-09-20T12:00:00.000Z',
 };

@@ -1,5 +1,7 @@
 export { Button } from './Button';
 export { MotionReveal } from './MotionReveal';
+export { ProgressivePhoto } from './ProgressivePhoto';
+export type { ProgressivePhotoProps } from './ProgressivePhoto';
 export type { MotionRevealProps } from './MotionReveal';
 export type { ButtonProps } from './Button';
 export { BackLink } from './BackLink';

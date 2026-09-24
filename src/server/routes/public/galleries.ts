@@ -11,6 +11,7 @@ import {
   PhotoFavoriteParamsSchema,
   PhotoRetouchRequestSchema,
   PhotoRetouchResponseSchema,
+  ProtectedGalleryPreviewSchema,
   PublicEventListSchema,
   PublicEventSchema,
   PublicPhotoPageSchema,
@@ -86,19 +87,38 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
          AND cover.state = 'published' AND EXISTS (
            SELECT 1 FROM photo_variants v WHERE v.photo_id = cover.id AND v.variant = 'medium'
          )
-       WHERE e.visibility = 'published' AND e.offline_at IS NULL AND e.access = 'public'
-       ORDER BY e.starts_at DESC, e.id ASC`,
+       WHERE e.visibility = 'published' AND e.offline_at IS NULL AND e.deleting_at IS NULL
+         AND e.show_on_gallery_page = 1 AND e.access = 'public'
+       ORDER BY e.created_at DESC, e.id ASC`,
     ).all<EventRow & { cover_revision: number | null }>();
     const protectedResult = await context.env.DB.prepare(
-      `SELECT id, slug, title, description, starts_at FROM events WHERE visibility = 'published' AND access = 'protected'
-       AND offline_at IS NULL AND deleting_at IS NULL ORDER BY starts_at DESC, id ASC`,
-    ).all<{ id: string; slug: string; title: string; description: string | null; starts_at: string }>();
+      `SELECT id, slug, title, description, starts_at, created_at FROM events
+       WHERE visibility = 'published' AND access = 'protected' AND show_on_gallery_page = 1
+       AND offline_at IS NULL AND deleting_at IS NULL ORDER BY created_at DESC, id ASC`,
+    ).all<{ id: string; slug: string; title: string; description: string | null; starts_at: string; created_at: string }>();
     applyCachePolicy(context, 'event-public');
     return validatedJson(context, PublicEventListSchema, {
       events: result.results.map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
       protectedGalleries: protectedResult.results.map((row) => ({
         id: row.id, slug: row.slug, title: row.title, description: row.description, startsAt: row.starts_at,
+        createdAt: row.created_at,
       })),
+    });
+  });
+
+  routes.get('/galleries/:eventId/preview', async (context) => {
+    const event = await findEvent(context.env.DB, context.req.param('eventId'));
+    if (!event || !isEventAvailable(event) || event.access !== 'protected') {
+      throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    }
+    applyCachePolicy(context, 'event-protected');
+    return validatedJson(context, ProtectedGalleryPreviewSchema, {
+      id: event.id,
+      slug: event.slug,
+      title: event.title,
+      description: event.description,
+      startsAt: event.startsAt,
+      createdAt: event.createdAt,
     });
   });
 

@@ -8,6 +8,7 @@ import {
   PhotoFavoriteResponseSchema,
   PhotoRetouchRequestSchema,
   PhotoRetouchResponseSchema,
+  ProtectedGalleryPreviewSchema,
   UnlockEventResponseSchema,
 } from '../../shared/schemas/gallery';
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
@@ -44,6 +45,10 @@ export async function getPublicSiteSettings(): Promise<SiteSettings> {
 
 export async function getPublicEvent(locator: string): Promise<PublicEvent> {
   return validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}`, PublicEventSchema);
+}
+
+export async function getProtectedGalleryPreview(locator: string) {
+  return validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}/preview`, ProtectedGalleryPreviewSchema);
 }
 
 export async function getPublicPhotos(locator: string, cursor?: string): Promise<{

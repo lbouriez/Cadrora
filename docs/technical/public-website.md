@@ -6,7 +6,7 @@ Cadrora is both an event-gallery application and the photographer's public websi
 
 - `/` presents the photographer, services, and currently published public events;
 - `/services` presents the owner-enabled portrait, family, wedding, brand, corporate, and childhood offerings as image-led cards;
-- `/galleries` leads with published public galleries; showcase journeys belong on `/` and no legacy `/events` alias is registered;
+- `/galleries` dynamically lists published public and protected galleries enabled for public listing, newest by creation date first; showcase journeys belong on `/` and no legacy `/events` alias is registered;
 - `/contact` publishes direct contact coordinates without a form, plus a click-to-load OpenStreetMap card (or optional Google Maps card);
 - `/privacy` explains gallery and face-search privacy;
 - `/e/*` is the event-gallery surface and may require an event grant;

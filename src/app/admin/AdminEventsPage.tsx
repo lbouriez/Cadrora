@@ -86,6 +86,7 @@ export function AdminEventsPage() {
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
+      showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       password: access === 'protected' ? values.get('password') : undefined,
       retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
@@ -163,6 +164,7 @@ export function AdminEventsPage() {
           <label><input checked={unlimitedRetention} onChange={(event) => setUnlimitedRetention(event.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
+            <label><input defaultChecked name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}<span className="field__hint">{t('admin.events.showOnGalleryPageHint')}</span></label>
             <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
               setAllowDownloads(changeEvent.target.checked);
               if (!changeEvent.target.checked) setKeepOriginals(false);
@@ -261,6 +263,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
+      showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       ...(password ? { password } : {}),
       retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
@@ -296,6 +299,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <label><input checked={unlimitedRetention} onChange={(changeEvent) => setUnlimitedRetention(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
+          <label><input defaultChecked={event.showOnGalleryPage} name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}<span className="field__hint">{t('admin.events.showOnGalleryPageHint')}</span></label>
           <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
             setAllowDownloads(changeEvent.target.checked);
             if (!changeEvent.target.checked) setKeepOriginals(false);

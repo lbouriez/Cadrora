@@ -242,11 +242,11 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
           timezone: 'America/Toronto', coverPhotoId: 'demo-ai-01', coverPhotoUrl: '/media/demo-ai-face-search/demo-ai-01/0/medium', visibility: 'published',
           access: 'public', allowDownloads: true, faceSearchEnabled: true,
           nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
-          revision: 1, updatedAt: '2026-09-20T15:00:00.000Z',
+          revision: 1, createdAt: '2026-09-18T15:00:00.000Z', updatedAt: '2026-09-20T15:00:00.000Z',
         }],
         protectedGalleries: [{
           id: 'private-sample', slug: 'family-afternoon', title: 'A family afternoon', description: 'An afternoon worth keeping.',
-          startsAt: '2026-09-21T15:00:00.000Z',
+          startsAt: '2026-09-21T15:00:00.000Z', createdAt: '2026-09-19T15:00:00.000Z',
         }],
       }),
       contentType: 'application/json',
@@ -258,14 +258,25 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
       body: JSON.stringify({ code: 'EVENT_ACCESS_REQUIRED', message: 'errors.eventAccessRequired', requestId: 'e2e' }),
     });
   });
+  await page.route('**/api/v1/galleries/private-sample/preview', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: 'private-sample', slug: 'family-afternoon', title: 'A family afternoon',
+        description: 'An afternoon worth keeping.', startsAt: '2026-09-21T15:00:00.000Z',
+        createdAt: '2026-09-19T15:00:00.000Z',
+      }),
+    });
+  });
 
   await page.goto('/galleries');
   await expect(page.getByRole('heading', { name: 'Find your photos' })).toBeVisible();
-  const image = page.locator('.event-card__visual img').first();
+  const image = page.locator('.event-card:not(.event-card--protected) .event-card__visual img').first();
   await expect(image).toBeVisible();
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
   await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/medium');
-  await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/find-your-photos');
+  await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/private-sample');
+  await expect(page.locator('.event-card').nth(1).locator('a')).toHaveAttribute('href', '/e/find-your-photos');
   await expect(page.locator('.event-card--protected')).toHaveCount(1);
   const protectedCard = page.locator('.event-card--protected');
   await expect(protectedCard.getByRole('heading', { name: 'A family afternoon' })).toBeVisible();
