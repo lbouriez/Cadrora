@@ -1,4 +1,4 @@
-import type { AcceptedSourceImageType } from '../images';
+import type { AcceptedSourceImageType, ExifOrientation } from '../images';
 
 export type ImportJobState = 'cancelled' | 'completed' | 'paused' | 'processing';
 export type ImportChunkJournalState = 'finalized' | 'pending' | 'uploading' | 'failed';
@@ -8,6 +8,7 @@ export interface ImportJournalJob {
   createdAt: string;
   eventId: string;
   id: string;
+  keepOriginals?: boolean;
   state: ImportJobState;
   totalPhotos: number;
   updatedAt: string;
@@ -20,6 +21,7 @@ export interface ImportJournalPhoto {
   filename: string;
   height: number;
   id: string;
+  orientation?: ExifOrientation;
   sourceIndex: number;
   sortKey: string;
   state: ImportPhotoJournalState;

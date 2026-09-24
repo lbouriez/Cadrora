@@ -8,8 +8,8 @@ This document describes the current implementation. It is not legal advice, a pr
 | --- | --- |
 | Public website profile | Studio name, email, telephone, address, service area, enabled services, map centre/radius, and optional GA4 ID are public D1 site settings with optional compiled `VITE_*` fallbacks. The official opt-in showcase seeds fictional contact values into D1; the client has no hardcoded contact coordinates. |
 | Event metadata | D1 stores title, description, time, timezone, visibility, access settings, and publication state. |
-| Gallery media | Source images stay in the photographer browser during import. Derived variants are stored in private R2 and served only after Worker authorization. |
-| Source metadata | The browser retains only a normalized capture instant from JPEG `DateTimeOriginal` and optional `OffsetTimeOriginal` as a D1 field. Pixel re-encoding strips the EXIF/XMP payload from stored variants, including GPS, serial, and comments. |
+| Gallery media | Derived variants are stored in private R2 and served only after Worker authorization. If an import opts to keep originals, the unchanged source file is also stored in private R2. |
+| Source metadata | The browser retains a normalized capture instant from JPEG `DateTimeOriginal` and optional `OffsetTimeOriginal` as a D1 field. Pixel re-encoding strips EXIF/XMP, including GPS, serial, and comments, from derived variants. An opted-in original retains all source metadata and may be downloaded by visitors when the gallery allows downloads and originals. |
 | Event passwords | D1 stores a domain-separated HMAC-SHA-256 verifier, never the clear password. Its key is the separate Worker-only `AUTH_PEPPER`; admin and event credentials use different domains. |
 | Admin authentication | D1 stores password-session token hashes, session subject, expiry, and revocation time. It does not store the opaque raw token. |
 | Event grants | A signed cookie contains only event ID and access version. It does not make an event public or survive a password-version change. |
@@ -31,6 +31,8 @@ Withdrawing analytics consent sets Google's disable flag and removes the first-p
 ## Access and retention
 
 Protected event access needs a current event grant and the current access version. Rotating an event password increments that version. Admin state-changing routes require both Worker authentication and a same-origin `Origin` header.
+
+Public-gallery originals can be downloaded by anyone with access to that gallery. Original and prepared-download responses use `private, no-store` to reduce retained browser/proxy copies after settings change, but Cadrora cannot recall a file a visitor has already saved. Turning off original delivery or downloads prevents further original access immediately. Previously stored originals remain until the owner explicitly requests background cleanup from the gallery settings, or deletes the photo or gallery. Cleanup removes only originals; prepared copies remain.
 
 Facial embeddings are gallery-scoped and may expire. With a configured gallery retention period, the server rejects an expiry later than the allowed gallery window. D1 excludes expired matches from every response even if Vectorize returns one during the short interval before provider cleanup. A 15-minute Worker Cron Trigger enqueues cutoff-scoped expired-face purges and runs maintenance, but a queued cleanup must not be represented as immediate physical deletion; verify the specific job completed.
 

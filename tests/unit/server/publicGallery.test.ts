@@ -44,18 +44,28 @@ describe('public gallery contracts', () => {
       {
         id: 'photo-1', event_id: 'event-1', filename: 'moment.jpg', width: 1600, height: 1200,
         captured_at: null, sort_key: '001', revision: 3, variant: 'thumb' as const,
+        liked: 1,
         content_type: 'image/jpeg' as const, variant_width: 480, variant_height: 360,
       },
       {
         id: 'photo-1', event_id: 'event-1', filename: 'moment.jpg', width: 1600, height: 1200,
         captured_at: null, sort_key: '001', revision: 3, variant: 'download' as const,
+        liked: 1,
         content_type: 'image/jpeg' as const, variant_width: 1600, variant_height: 1200,
       },
     ];
     const photo = photosFromRows(rows, false)[0];
     expect(photo?.sources[0]?.url).toBe('/media/event-1/photo-1/3/thumb');
     expect(photo?.downloadUrl).toBeNull();
+    expect(photo?.liked).toBe(false);
+    expect(photosFromRows(rows, false, false, true)[0]?.liked).toBe(true);
     expect(photosFromRows(rows, true)[0]?.downloadUrl).toBe('/media/event-1/photo-1/3/download');
+    const withOriginal = [...rows, {
+      ...rows[1]!, variant: 'original' as const, content_type: 'image/png' as const,
+    }];
+    expect(photosFromRows(withOriginal, true, true)[0]?.downloadUrl).toBe('/media/event-1/photo-1/3/original');
+    expect(photosFromRows(withOriginal, true, false)[0]?.downloadUrl).toBe('/media/event-1/photo-1/3/download');
+    expect(photosFromRows([rows[0]!], true)[0]?.downloadUrl).toBe('/media/event-1/photo-1/3/download');
   });
 
   it('keeps the frozen cache matrix exact', () => {
@@ -66,6 +76,7 @@ describe('public gallery contracts', () => {
       'event-public': 'public, max-age=60',
       'media-protected': 'private, max-age=3600',
       'media-public': 'public, max-age=31536000, immutable',
+      'media-download': 'private, no-store',
     });
   });
 
@@ -81,5 +92,20 @@ describe('public gallery contracts', () => {
     })).resolves.toBeNull();
 
     expect(statements[0]).toContain('e.offline_at IS NULL');
+  });
+
+  it('resolves a missing download variant through the best generated copy', async () => {
+    const bindings: unknown[][] = [];
+    const row = {
+      access: 'public', access_version: null, allow_downloads: 1, keep_originals: 0,
+      byte_size: 40, content_type: 'image/webp', filename: 'photo.png', storage_key: 'large.webp',
+    };
+    const database = { prepare: () => ({ bind: (...values: unknown[]) => {
+      bindings.push(values);
+      return { first: () => Promise.resolve(row) };
+    } }) } as unknown as D1Database;
+    const media = new D1MediaRepository(database);
+    expect((await media.findPublishedVariant({ eventId: 'event-1', photoId: 'photo-1', revision: 1, variant: 'download' }))?.storageKey).toBe('large.webp');
+    expect(bindings[0]).toEqual(['event-1', 'photo-1', 1, 'download', 'large', 'medium', 'small', 'thumb']);
   });
 });

@@ -9,8 +9,9 @@ Package PC keeps all image decode and re-encoding in the photographer browser. T
 3. Each next unfinished chunk contains at most 50 declarations and is atomically upserted through `POST /api/v1/admin/imports/:importId/photos`.
 4. The image worker decodes with `imageOrientation: 'none'`, applies exactly one of the eight EXIF transforms, draws to a new canvas, and re-encodes. This pixel-only path removes source EXIF/XMP metadata including GPS, serial, and comment fields. Only the normalized capture instant from preflight is carried separately in the declaration.
 5. Widths 480, 960, 1600, and 2560 prefer WebP only if both the Blob MIME and magic bytes verify. They fall back to JPEG. The 3840 download variant is always JPEG. No variant is upscaled.
+   When downloads and **Offer original files** are enabled, the import records that choice in D1 and its browser journal, then uploads the unchanged source JPEG, PNG, or WebP (at most 100 MB) as a sixth, optional object. It is not sent through the image worker and retains EXIF/XMP metadata. The Worker checks source MIME/dimensions against the declared photo and verifies the R2 checksum and byte count.
 6. At most two photo encodes and three variant uploads run concurrently. Every binary upload has dimensions, declared size, checksum, and MIME checked again by the Worker. The Worker inspects only the MIME magic-byte prefix, then streams the body to its derived private R2 key with R2 SHA-256 validation; it verifies the completed object's byte size before recording it in D1.
-7. A photo finalizes only after all five variants exist. Resume reads the next non-finalized IndexedDB chunk; natural IDs make repeated declarations, uploads, and finalization safe.
+7. A photo finalizes only after all five variants exist, plus the original when the import opted in. Resume reads the next non-finalized IndexedDB chunk and preserves the original choice; natural IDs make repeated declarations, uploads, and finalization safe. Cancel also marks the server import cancelled; subsequent variant uploads are rejected, including an in-flight R2 upload that completes after cancellation.
 
 ## Integration
 

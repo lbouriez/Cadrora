@@ -12,6 +12,7 @@ import {
 
 export interface ImportPageProps {
   eventId: string;
+  keepOriginals: boolean;
   timezone: string;
 }
 
@@ -23,7 +24,7 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
 };
 
 /** Admin import screen; mount from the PA admin route at `/admin/galleries/:eventId/import`. */
-export function ImportPage({ eventId, timezone }: ImportPageProps) {
+export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
@@ -60,7 +61,7 @@ export function ImportPage({ eventId, timezone }: ImportPageProps) {
   const start = (files: File[]) => {
     if (!pipeline.current) return;
     void pipeline.current
-      .start(eventId, files, timezone)
+      .start(eventId, files, timezone, keepOriginals)
       .then((result) => {
         setRejected(result.rejected);
         setResumableImportId(undefined);
@@ -87,7 +88,7 @@ export function ImportPage({ eventId, timezone }: ImportPageProps) {
       <h1 id="import-title">{t('adminImport.start')}</h1>
       <Dropzone
         accept="image/jpeg,image/png,image/webp"
-        description={t('adminImport.dropzoneDescription')}
+        description={t(keepOriginals ? 'adminImport.dropzoneOriginalDescription' : 'adminImport.dropzoneDescription')}
         disabled={!isReady || isRunning}
         label={t('adminImport.dropzoneLabel')}
         onFiles={start}
@@ -102,8 +103,8 @@ export function ImportPage({ eventId, timezone }: ImportPageProps) {
       <div className="admin-import__actions">
         {canPause ? <Button onClick={() => void pipeline.current?.pause()}>{t('adminImport.pause')}</Button> : null}
         {canResume ? <Button onClick={resume}>{t('adminImport.resume')}</Button> : null}
-        {isRunning || snapshot.state === 'paused' ? (
-          <Button onClick={() => void pipeline.current?.cancel()} variant="danger">
+        {isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' ? (
+          <Button onClick={() => void pipeline.current?.cancel().catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
             {t('adminImport.cancel')}
           </Button>
         ) : null}
@@ -113,7 +114,7 @@ export function ImportPage({ eventId, timezone }: ImportPageProps) {
         <ul>
           {rejected.map((item) => (
             <li key={`${item.file.name}-${item.file.lastModified}`}>
-              {item.file.name}: {t(item.code === 'CORRUPT_IMAGE' ? 'adminImport.corruptFile' : 'adminImport.unsupportedFile')}
+              {item.file.name}: {t(item.code === 'CORRUPT_IMAGE' ? 'adminImport.corruptFile' : item.code === 'ORIGINAL_TOO_LARGE' ? 'adminImport.originalTooLarge' : 'adminImport.unsupportedFile')}
             </li>
           ))}
         </ul>

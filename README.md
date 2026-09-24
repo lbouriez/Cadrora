@@ -9,7 +9,7 @@ You own the deployment and the content. The showcase is a demonstration, not a h
 ## What you get
 
 - A responsive website with home, services, galleries, contact, and privacy pages.
-- Public, unlisted, or password-protected galleries; optional downloads and gallery-scoped face search.
+- Public, unlisted, or password-protected galleries; optional downloads of untouched originals (or the best prepared copy) and gallery-scoped face search. Originals are an optional delivery format, not a photographer's backup: they can be removed from a gallery without removing its prepared photos.
 - An admin area for publishing galleries and editing the site's languages, appearance, services, contact details, and optional analytics.
 - No required contact-form provider, tracker, or external image host. Google Analytics is optional and loads only after visitor consent.
 
@@ -43,7 +43,7 @@ The software has no licence fee. Cloudflare has free allowances, but they are **
 
 At a glance, the current Free allowances are **100,000 Worker requests/day** (and 10 ms CPU per invocation), **10 GB-month of R2 Standard storage** plus 1 million writes and 10 million reads/month, **5 million D1 rows read/day and 100,000 written/day** (with a 500 MB limit per database), and **5 million stored / 30 million queried Vectorize dimensions**. These are different meters: 100,000 photo views are not necessarily 100,000 D1 rows, and a photo with several image variants consumes more than one stored object. See the [detailed limits](docs/free-tier.md#relevant-cloudflare-allowances).
 
-Here is a **comparison grid, not a quote or load test**. Each photo is assumed to occupy **2 MB across all stored image variants**, plus 0.1 GB for models/overhead; the gallery and face columns are deliberately varied independently. Amounts are **US$/month**. D1 figures use a rough metadata-size model, not a measured database. All rows assume modest traffic and operations within the relevant plan's included amounts.
+Here is a **comparison grid, not a quote or load test**. Each photo is assumed to occupy **2 MB across all generated image variants, with original-file retention off**, plus 0.1 GB for models/overhead; the gallery and face columns are deliberately varied independently. Amounts are **US$/month**. D1 figures use a rough metadata-size model, not a measured database. All rows assume modest traffic and operations within the relevant plan's included amounts.
 
 | Pattern | Galleries × photos | Faces/photo | D1 database | R2 files | Vectorize faces | Workers | Total |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

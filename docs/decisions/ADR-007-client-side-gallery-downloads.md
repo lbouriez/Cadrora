@@ -3,6 +3,8 @@
 - Status: accepted
 - Date: 2026-09-23
 
+ADR-009 later extends the allowed download source to an unchanged original or the largest available prepared copy while retaining the client-side multi-download architecture.
+
 ## Context
 
 The owner can already enable downloads for a gallery and the Worker streams a `download` variant, but visitors cannot select multiple photos. Browsers may block a sequence of automatic file downloads, while constructing a large archive inside a Free-plan Worker would add CPU, memory, and per-object operation pressure. The first-party website must remain usable without an external archive service.

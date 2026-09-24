@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,8 @@ import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
-import { getAdminEvents } from './adminEventsApi';
+import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, requestOriginalsCleanup } from './adminEventsApi';
+import { formatMediaStorage } from './formatMediaStorage';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 
@@ -53,6 +54,8 @@ export function AdminEventsPage() {
   const [unlimitedRetention, setUnlimitedRetention] = useState(true);
   const [faceSearchEnabled, setFaceSearchEnabled] = useState(false);
   const [nearbySearchEnabled, setNearbySearchEnabled] = useState(false);
+  const [allowDownloads, setAllowDownloads] = useState(false);
+  const [keepOriginals, setKeepOriginals] = useState(false);
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
   const creation = useMutation({
     mutationFn: createEvent,
@@ -71,14 +74,14 @@ export function AdminEventsPage() {
     if (typeof startsAt !== 'string') return;
     creation.mutate({
       access,
-      allowDownloads: values.get('allowDownloads') === 'on',
+      allowDownloads,
       description: typeof values.get('description') === 'string' && values.get('description')
         ? values.get('description')
         : null,
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
-      keepOriginals: values.get('keepOriginals') === 'on',
+      keepOriginals: allowDownloads && keepOriginals,
       password: access === 'protected' ? values.get('password') : undefined,
       retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
       startsAt: new Date(startsAt).toISOString(),
@@ -92,6 +95,8 @@ export function AdminEventsPage() {
         setUnlimitedRetention(true);
         setFaceSearchEnabled(false);
         setNearbySearchEnabled(false);
+        setAllowDownloads(false);
+        setKeepOriginals(false);
       },
     });
   };
@@ -150,7 +155,11 @@ export function AdminEventsPage() {
           <label><input checked={unlimitedRetention} onChange={(event) => setUnlimitedRetention(event.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
-            <label><input name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
+            <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
+              setAllowDownloads(changeEvent.target.checked);
+              if (!changeEvent.target.checked) setKeepOriginals(false);
+            }} type="checkbox" /> {t('admin.events.allowDownloads')}</label>
+            {allowDownloads ? <label className="admin-event-form__dependent-option"><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}<span>{t('admin.events.keepOriginalsHint')}</span></label> : null}
             <FaceSearchOptions
               faceSearchEnabled={faceSearchEnabled}
               nearbySearchEnabled={nearbySearchEnabled}
@@ -161,7 +170,6 @@ export function AdminEventsPage() {
               onNearbySearchChange={setNearbySearchEnabled}
             />
             <label><input name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
-            <label><input name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
           </fieldset>
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
           {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
@@ -219,6 +227,8 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
   const [unlimitedRetention, setUnlimitedRetention] = useState(event.retentionDays === null);
   const [faceSearchEnabled, setFaceSearchEnabled] = useState(event.faceSearchEnabled);
   const [nearbySearchEnabled, setNearbySearchEnabled] = useState(event.nearbySearchEnabled);
+  const [allowDownloads, setAllowDownloads] = useState(event.allowDownloads);
+  const [keepOriginals, setKeepOriginals] = useState(event.keepOriginals && event.allowDownloads);
   const [saved, setSaved] = useState(false);
   const update = useMutation({
     mutationFn: (payload: unknown) => updateEvent(event.id, payload),
@@ -238,12 +248,12 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
     const password = formString(values, 'password');
     update.mutate({
       access,
-      allowDownloads: values.get('allowDownloads') === 'on',
+      allowDownloads,
       description: formString(values, 'description').trim() || null,
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
-      keepOriginals: values.get('keepOriginals') === 'on',
+      keepOriginals: allowDownloads && keepOriginals,
       ...(password ? { password } : {}),
       retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
       startsAt: new Date(startsAt).toISOString(),
@@ -277,7 +287,11 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <label><input checked={unlimitedRetention} onChange={(changeEvent) => setUnlimitedRetention(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
-          <label><input defaultChecked={event.allowDownloads} name="allowDownloads" type="checkbox" /> {t('admin.events.allowDownloads')}</label>
+          <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
+            setAllowDownloads(changeEvent.target.checked);
+            if (!changeEvent.target.checked) setKeepOriginals(false);
+          }} type="checkbox" /> {t('admin.events.allowDownloads')}</label>
+          {allowDownloads ? <label className="admin-event-form__dependent-option"><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}<span>{t('admin.events.keepOriginalsHint')}</span></label> : null}
           <FaceSearchOptions
             faceSearchEnabled={faceSearchEnabled}
             nearbySearchEnabled={nearbySearchEnabled}
@@ -288,7 +302,6 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             onNearbySearchChange={setNearbySearchEnabled}
           />
           <label><input defaultChecked={event.showPhotoMetadata} name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
-          <label><input defaultChecked={event.keepOriginals} name="keepOriginals" type="checkbox" /> {t('admin.events.keepOriginals')}</label>
         </fieldset>
         {update.isError ? <p role="alert">{t('admin.events.updateError')}</p> : null}
         {saved ? <p role="status">{t('admin.events.updated')}</p> : null}
@@ -297,6 +310,76 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       </form>
     </section>
   );
+}
+
+function OriginalsCleanupPanel({ event }: { event: Event }) {
+  const { i18n, t } = useTranslation();
+  const { readOnly } = useAdminAccess();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [abandonOpen, setAbandonOpen] = useState(false);
+  const status = useQuery({
+    queryKey: ['admin-originals', event.id],
+    queryFn: () => getOriginalsStatus(event.id),
+    refetchInterval: (query) => query.state.data?.cleanupState === 'pending' || query.state.data?.cleanupState === 'running' ? 5_000 : false,
+  });
+  const cleanup = useMutation({
+    mutationFn: () => requestOriginalsCleanup(event.id),
+    onSuccess: async () => {
+      setOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ['admin-originals', event.id] });
+    },
+  });
+  const abandon = useMutation({
+    mutationFn: () => abandonOriginalImports(event.id),
+    onSuccess: async () => {
+      setAbandonOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ['admin-originals', event.id] });
+    },
+  });
+  if (event.allowDownloads && event.keepOriginals) return null;
+  if (status.isPending) return null;
+  if (status.isError) return <section className="admin-card admin-originals-warning"><p role="alert">{t('admin.events.originalsStatusError')}</p></section>;
+  if (!status.data || (status.data.count === 0 && status.data.activeImports === 0)) return null;
+  const value = formatMediaStorage(status.data.bytes, i18n.language);
+  const busy = status.data.cleanupState === 'pending' || status.data.cleanupState === 'running';
+  return <section aria-labelledby="original-cleanup-title" className="admin-card admin-originals-warning">
+    <h2 className="admin-card__title" id="original-cleanup-title">{t(status.data.count > 0 ? 'admin.events.originalsWarningTitle' : 'admin.events.originalsImportTitle')}</h2>
+    {status.data.count > 0 ? <p>{t('admin.events.originalsWarningBody', { count: status.data.count, amount: value.amount, unit: t(`admin.settings.storageUnits.${value.unit}`) })}</p> : null}
+    {busy ? <p role="status">{t('admin.events.originalsCleanupPending')}</p> : null}
+    {status.data.activeImports > 0 ? <>
+      <p>{t('admin.events.originalsImportsPending')}</p>
+      <Button disabled={readOnly || busy} onClick={() => setAbandonOpen(true)} type="button" variant="secondary">{t('admin.events.originalsAbandonImports')}</Button>
+    </> : null}
+    {status.data.cleanupState === 'failed' ? <p role="alert">{t('admin.events.originalsCleanupFailed')}</p> : null}
+    {status.data.count > 0 ? <Button disabled={readOnly || busy || status.data.activeImports > 0} onClick={() => setOpen(true)} type="button" variant="danger">{t('admin.events.originalsDelete')}</Button> : null}
+    <ConfirmDialog
+      cancelLabel={t('admin.events.originalsCancel')}
+      closeLabel={t('admin.events.originalsCancel')}
+      confirmLabel={t('admin.events.originalsDeleteConfirm')}
+      isConfirming={cleanup.isPending}
+      onCancel={() => { if (!cleanup.isPending) setOpen(false); }}
+      onConfirm={() => cleanup.mutate()}
+      open={open}
+      title={t('admin.events.originalsDialogTitle')}
+    >
+      <p>{t('admin.events.originalsDialogBody')}</p>
+      {cleanup.isError ? <p role="alert">{t('admin.events.originalsCleanupError')}</p> : null}
+    </ConfirmDialog>
+    <ConfirmDialog
+      cancelLabel={t('admin.events.originalsCancel')}
+      closeLabel={t('admin.events.originalsCancel')}
+      confirmLabel={t('admin.events.originalsAbandonConfirm')}
+      isConfirming={abandon.isPending}
+      onCancel={() => { if (!abandon.isPending) setAbandonOpen(false); }}
+      onConfirm={() => abandon.mutate()}
+      open={abandonOpen}
+      title={t('admin.events.originalsAbandonTitle')}
+    >
+      <p>{t('admin.events.originalsAbandonBody')}</p>
+      {abandon.isError ? <p role="alert">{t('admin.events.originalsCleanupError')}</p> : null}
+    </ConfirmDialog>
+  </section>;
 }
 
 function DeleteGalleryPanel({ event }: { event: Event }) {
@@ -348,6 +431,64 @@ function DeleteGalleryPanel({ event }: { event: Event }) {
   );
 }
 
+function CoverPhotoPanel({ event }: { event: Event }) {
+  const { t } = useTranslation();
+  const { readOnly } = useAdminAccess();
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<string | null>(event.coverPhotoId);
+  const candidates = useInfiniteQuery({
+    queryKey: ['admin-cover-photos', event.id],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => getCoverPhotos(event.id, pageParam),
+    getNextPageParam: (page) => page.nextOffset ?? undefined,
+  });
+  const update = useMutation({
+    mutationFn: (coverPhotoId: string | null) => updateEvent(event.id, { coverPhotoId }),
+    onSuccess: async (updated) => {
+      setSelectedId(updated.coverPhotoId);
+      await queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+    },
+  });
+  const photos = candidates.data?.pages.flatMap((page) => page.photos) ?? [];
+  const select = (id: string | null) => {
+    if (readOnly) setSelectedId(id);
+    else update.mutate(id);
+  };
+  return (
+    <section aria-labelledby="gallery-cover-title" className="admin-card admin-cover">
+      <h2 className="admin-card__title" id="gallery-cover-title">{t('admin.events.coverTitle')}</h2>
+      <p className="admin-card__description">{t('admin.events.coverDescription')}</p>
+      {selectedId ? <div className="admin-cover__current">
+        <img alt="" src={`/api/v1/admin/galleries/${encodeURIComponent(event.id)}/cover-photos/${encodeURIComponent(selectedId)}`} />
+        <span>{t('admin.events.coverCurrent')}</span>
+      </div> : null}
+      {candidates.isPending ? <Spinner label={t('admin.events.coverLoading')} /> : null}
+      {candidates.isError ? <p role="alert">{t('admin.events.coverError')}</p> : null}
+      {!candidates.isPending && photos.length === 0 ? <p>{t('admin.events.coverEmpty')}</p> : null}
+      <div className="admin-cover__grid">
+        {photos.map((photo) => (
+          <button
+            aria-label={t('admin.events.coverChoose', { filename: photo.filename })}
+            aria-pressed={selectedId === photo.id}
+            className="admin-cover__choice"
+            disabled={update.isPending}
+            key={photo.id}
+            onClick={() => select(photo.id)}
+            type="button"
+          >
+            <img alt="" loading="lazy" src={photo.thumbnailUrl} />
+            <span>{photo.filename}</span>
+          </button>
+        ))}
+      </div>
+      {candidates.hasNextPage ? <Button disabled={candidates.isFetchingNextPage} onClick={() => void candidates.fetchNextPage()} type="button" variant="secondary">{t('admin.events.coverMore')}</Button> : null}
+      {selectedId ? <Button disabled={update.isPending} onClick={() => select(null)} type="button" variant="secondary">{t('admin.events.coverClear')}</Button> : null}
+      {update.isError ? <p role="alert">{t('admin.events.coverSaveError')}</p> : null}
+      {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
+    </section>
+  );
+}
+
 export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
@@ -373,6 +514,8 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
         summary={publication.data}
       />
       <AdminEventSettingsForm event={event} key={event.updatedAt} />
+      <OriginalsCleanupPanel event={event} />
+      <CoverPhotoPanel event={event} key={`cover-${event.updatedAt}`} />
       <DeleteGalleryPanel event={event} />
     </div>
   );

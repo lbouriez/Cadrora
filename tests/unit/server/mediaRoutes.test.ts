@@ -14,6 +14,7 @@ const publicMedia: MediaRecord = {
   access: 'public',
   accessVersion: null,
   allowDownloads: true,
+  keepOriginals: false,
   byteSize: 5,
   contentType: 'image/jpeg',
   filename: 'photo.jpg',
@@ -117,5 +118,21 @@ describe('media route', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Disposition')).toBe('attachment; filename="source.jpg"');
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+  });
+
+  it('serves an unchanged PNG original only while originals and downloads are enabled', async () => {
+    const get = vi.fn().mockResolvedValue({
+      body: new Response('original').body!, contentLength: 8, contentType: 'image/png', etag: '"etag"',
+    });
+    const storage: StorageService = { deleteMany: vi.fn(), get };
+    const media = { ...publicMedia, contentType: 'image/png', keepOriginals: true };
+    const allowed = await createApp(media, storage).request('/media/event-1/photo-1/1/original');
+    expect(allowed.status).toBe(200);
+    expect(allowed.headers.get('Content-Disposition')).toBe('attachment; filename="photo.png"');
+    expect(allowed.headers.get('Cache-Control')).toBe('private, no-store');
+    const denied = await createApp({ ...media, keepOriginals: false }, storage).request('/media/event-1/photo-1/1/original');
+    expect(denied.status).toBe(403);
+    expect(get).toHaveBeenCalledTimes(1);
   });
 });

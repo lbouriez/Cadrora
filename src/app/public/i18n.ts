@@ -35,6 +35,12 @@ export const publicResources = {
       nextPhoto: 'Next photo',
       closeViewer: 'Close photo viewer',
       download: 'Download photo',
+      favorite: {
+        add: 'Like {{filename}}',
+        remove: 'Unlike {{filename}}',
+        shared: 'Hearts are shared with everyone who can open this gallery.',
+        error: 'Could not save that favorite. Please try again.',
+      },
       downloadSelection: {
         label: 'Photo download selection',
         start: 'Select photos to download',
@@ -328,6 +334,12 @@ export const publicResources = {
       nextPhoto: 'Photo suivante',
       closeViewer: 'Fermer la visionneuse',
       download: 'Télécharger la photo',
+      favorite: {
+        add: 'Aimer {{filename}}',
+        remove: 'Ne plus aimer {{filename}}',
+        shared: 'Les coups de cœur sont partagés avec toutes les personnes qui ont accès à cette galerie.',
+        error: 'Impossible d’enregistrer ce coup de cœur. Réessayez.',
+      },
       downloadSelection: {
         label: 'Sélection des photos à télécharger',
         start: 'Sélectionner des photos à télécharger',

@@ -43,7 +43,7 @@
         "description": "Required D1 reference state. Production and preview must use separate databases."
       },
       "MEDIA_BUCKET": {
-        "description": "Required private R2 bucket for derived event media. Do not bind a public bucket."
+        "description": "Required private R2 bucket for gallery display media and optional unchanged originals. Do not bind a public bucket."
       },
       "MODELS_BUCKET": {
         "description": "Required private R2 bucket for checksum-pinned face model artifacts."

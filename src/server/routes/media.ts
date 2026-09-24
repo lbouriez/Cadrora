@@ -56,6 +56,10 @@ export function registerMediaRoutes(
     if (isDownload && !media.allowDownloads) {
       throw new ApiException('DOWNLOAD_NOT_ALLOWED', 'errors.downloadNotAllowed', 403);
     }
+    if (parsed.data.variant === 'original' && !media.keepOriginals) {
+      throw new ApiException('DOWNLOAD_NOT_ALLOWED', 'errors.downloadNotAllowed', 403);
+    }
+    if (isDownload) context.set('cachePolicy', 'media-download');
 
     const object = await dependencies.storage(context).get(media.storageKey);
     if (!object) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);

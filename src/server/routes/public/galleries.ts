@@ -6,6 +6,9 @@ import { ApiException } from '../../../shared/errors/ApiError';
 import type { Event, EventGrant } from '../../../shared/schemas';
 import {
   PhotoListQuerySchema,
+  PhotoFavoriteRequestSchema,
+  PhotoFavoriteResponseSchema,
+  PhotoFavoriteParamsSchema,
   PublicEventListSchema,
   PublicEventSchema,
   PublicPhotoPageSchema,
@@ -15,6 +18,7 @@ import {
 import type { AppEnv } from '../../types';
 import { readEventGrantToken } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
+import { hasSameOrigin } from '../../middleware/adminCsrf';
 import { currentAccessVersion, hasCurrentEventAccess } from './access';
 import { isShowcasePrivateEventPassword, verifyEventPasswordDetailed } from './credentials';
 import { eventFromRow, findEvent, isEventAvailable, photosFromRows, toPublicEvent } from './data';
@@ -75,13 +79,17 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
 
   routes.get('/galleries', async (context) => {
     const result = await context.env.DB.prepare(
-      `SELECT * FROM events
-       WHERE visibility = 'published' AND offline_at IS NULL AND access = 'public'
-       ORDER BY starts_at DESC, id ASC`,
-    ).all<EventRow>();
+      `SELECT e.*, cover.revision AS cover_revision FROM events e
+       LEFT JOIN photos cover ON cover.id = e.cover_photo_id AND cover.event_id = e.id
+         AND cover.state = 'published' AND EXISTS (
+           SELECT 1 FROM photo_variants v WHERE v.photo_id = cover.id AND v.variant = 'medium'
+         )
+       WHERE e.visibility = 'published' AND e.offline_at IS NULL AND e.access = 'public'
+       ORDER BY e.starts_at DESC, e.id ASC`,
+    ).all<EventRow & { cover_revision: number | null }>();
     applyCachePolicy(context, 'event-public');
     return validatedJson(context, PublicEventListSchema, {
-      events: result.results.map((row) => toPublicEvent(eventFromRow(row))),
+      events: result.results.map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
     });
   });
 
@@ -95,7 +103,11 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
     context.header('ETag', `"event-${event.id}-${event.revision}"`);
     context.header('X-Cadrora-Revision', String(event.revision));
-    return validatedJson(context, PublicEventSchema, toPublicEvent(event));
+    const cover = event.coverPhotoId ? await context.env.DB.prepare(
+      `SELECT p.revision FROM photos p JOIN photo_variants v ON v.photo_id = p.id AND v.variant = 'medium'
+       WHERE p.id = ?1 AND p.event_id = ?2 AND p.state = 'published'`,
+    ).bind(event.coverPhotoId, event.id).first<{ revision: number }>() : null;
+    return validatedJson(context, PublicEventSchema, toPublicEvent(event, cover?.revision ?? null));
   });
 
   routes.post('/galleries/:eventId/unlock', async (context) => {
@@ -172,13 +184,13 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const placeholders = pageRows.map(() => '?').join(', ');
     const variantResult = await context.env.DB.prepare(
       `SELECT p.id, p.event_id, p.filename, p.width, p.height, p.captured_at,
-              p.sort_key, p.revision, v.variant, v.content_type,
+              p.sort_key, p.revision, p.liked, v.variant, v.content_type,
               v.width AS variant_width, v.height AS variant_height
        FROM photos p JOIN photo_variants v ON v.photo_id = p.id
        WHERE p.id IN (${placeholders})
        ORDER BY p.sort_key ASC, p.id ASC, v.width ASC`,
     ).bind(...pageRows.map((row) => row.id)).all<PhotoWithVariantRow>();
-    const photos = photosFromRows(variantResult.results, event.allowDownloads);
+    const photos = photosFromRows(variantResult.results, event.allowDownloads, event.keepOriginals, event.access === 'protected');
     const last = pageRows.at(-1);
     const nextCursor = hasMore && last
       ? encodePhotoCursor({ sortKey: last.sort_key, id: last.id, revision: event.revision })
@@ -188,6 +200,34 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
       photos,
       nextCursor,
     });
+  });
+
+  routes.put('/galleries/:eventId/photos/:photoId/favorite', async (context) => {
+    if (!hasSameOrigin(context.req.url, context.req.header('Origin'))) {
+      throw new ApiException('FAVORITE_ORIGIN_REQUIRED', 'errors.adminOriginRequired', 403);
+    }
+    const body = PhotoFavoriteRequestSchema.safeParse(await context.req.json().catch(() => null));
+    if (!body.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const params = PhotoFavoriteParamsSchema.safeParse(context.req.param());
+    if (!params.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, params.data.eventId);
+    if (!event || !isEventAvailable(event) || event.access !== 'protected') {
+      throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    }
+    applyCachePolicy(context, 'event-protected');
+    if (!(await hasCurrentEventAccess(context, event))) throw await eventAccessError(context, event);
+    const accessVersion = context.get('auth').eventGrant?.accessVersion;
+    if (!accessVersion) throw await eventAccessError(context, event);
+    const row = await context.env.DB.prepare(
+      `UPDATE photos SET liked = ?1, updated_at = ?2
+       WHERE id = ?3 AND event_id = ?4 AND state = 'published'
+         AND EXISTS (SELECT 1 FROM event_credentials WHERE event_id = ?4 AND access_version = ?5)
+         AND EXISTS (SELECT 1 FROM events WHERE id = ?4 AND access = 'protected'
+           AND visibility != 'draft' AND offline_at IS NULL AND deleting_at IS NULL)
+       RETURNING liked`,
+    ).bind(Number(body.data.liked), new Date().toISOString(), params.data.photoId, event.id, accessVersion).first<{ liked: number }>();
+    if (!row) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+    return validatedJson(context, PhotoFavoriteResponseSchema, { liked: row.liked === 1 });
   });
 
   return routes;

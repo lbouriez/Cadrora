@@ -19,7 +19,7 @@ export function supportsSeparatePhotoDownloads(): boolean {
 }
 
 export function downloadFilename(photo: DownloadPhoto, contentType: string): string {
-  const extension = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/webp' ? 'webp' : null;
+  const extension = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : null;
   if (!extension) throw new PhotoDownloadError('unavailable');
   const base = photo.filename.replace(/\.[^.]+$/u, '').replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^[.-]+|[.-]+$/gu, '').slice(0, 90) || 'photo';
   const id = photo.id.replace(/[^A-Za-z0-9_-]/gu, '').slice(0, 48);
@@ -29,8 +29,9 @@ export function downloadFilename(photo: DownloadPhoto, contentType: string): str
 function mediaUrl(photo: DownloadPhoto): string {
   if (!photo.downloadUrl) throw new PhotoDownloadError('unavailable');
   const url = new URL(photo.downloadUrl, window.location.origin);
-  const expectedPath = `/media/${encodeURIComponent(photo.eventId)}/${encodeURIComponent(photo.id)}/${photo.revision}/download`;
-  if (url.origin !== window.location.origin || url.pathname !== expectedPath || url.search || url.hash) {
+  const mediaBase = `/media/${encodeURIComponent(photo.eventId)}/${encodeURIComponent(photo.id)}/${photo.revision}/`;
+  if (url.origin !== window.location.origin ||
+    (url.pathname !== `${mediaBase}download` && url.pathname !== `${mediaBase}original`) || url.search || url.hash) {
     throw new PhotoDownloadError('unavailable');
   }
   return url.pathname;
@@ -48,7 +49,7 @@ async function fetchPhoto(photo: DownloadPhoto, signal: AbortSignal): Promise<Re
   if (response.status === 401 || response.status === 403) throw new PhotoDownloadError('access');
   if (!response.ok) throw new PhotoDownloadError('network');
   const type = response.headers.get('Content-Type')?.split(';', 1)[0]?.trim();
-  if (type !== 'image/jpeg' && type !== 'image/webp') throw new PhotoDownloadError('unavailable');
+  if (type !== 'image/jpeg' && type !== 'image/png' && type !== 'image/webp') throw new PhotoDownloadError('unavailable');
   return response;
 }
 

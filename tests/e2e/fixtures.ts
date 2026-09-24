@@ -7,6 +7,7 @@ export const publicEvent = {
   access: 'public',
   allowDownloads: true,
   coverPhotoId: 'photo-1',
+  coverPhotoUrl: null,
   description: 'Une journee lumineuse au bord du fleuve.',
   faceSearchEnabled: true,
   nearbySearchEnabled: true,
@@ -38,6 +39,7 @@ export const publicPhoto = {
   filename: 'danse-au-coucher-du-soleil.jpg',
   height: 1_200,
   id: 'photo-1',
+  liked: false,
   revision: 2,
   sortKey: '00000001',
   sources: [
@@ -85,11 +87,18 @@ export async function installTurnstileStub(page: Page): Promise<void> {
 
 export async function mockGallery(page: Page, options: { protected?: boolean; withUnavailablePhoto?: boolean } = {}): Promise<void> {
   let unlocked = !options.protected;
+  const favorites = new Map<string, boolean>();
   const event = options.protected ? protectedEvent : publicEvent;
 
   await page.route('**/e2e/photo-1.svg*', async (route) => {
     await route.fulfill({
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480"><rect width="720" height="480" fill="#8b5e45"/><circle cx="360" cy="220" r="120" fill="#f1d6ba"/></svg>',
+      contentType: 'image/svg+xml',
+    });
+  });
+  await page.route('**/e2e/photo-2.svg*', async (route) => {
+    await route.fulfill({
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="480" height="720"><rect width="480" height="720" fill="#486c73"/><circle cx="240" cy="260" r="140" fill="#efc7a5"/></svg>',
       contentType: 'image/svg+xml',
     });
   });
@@ -124,18 +133,37 @@ export async function mockGallery(page: Page, options: { protected?: boolean; wi
       await fulfillJson(route, { code: 'EVENT_GRANT_REQUIRED', message: 'errors.eventGrantRequired', requestId: 'e2e' }, 401);
       return;
     }
+    if (request.method() === 'PUT' && tail === 'photos' && segments[6] === 'favorite') {
+      if (!options.protected) {
+        await fulfillJson(route, { code: 'EVENT_NOT_FOUND', message: 'errors.eventNotFound', requestId: 'e2e' }, 404);
+        return;
+      }
+      const photoId = segments[5] ?? '';
+      const payload = request.postDataJSON() as { liked?: boolean };
+      if (typeof payload.liked !== 'boolean') {
+        await fulfillJson(route, { code: 'INVALID_REQUEST', message: 'errors.invalidRequest', requestId: 'e2e' }, 400);
+        return;
+      }
+      favorites.set(photoId, payload.liked);
+      await fulfillJson(route, { liked: payload.liked });
+      return;
+    }
     if (tail === 'photos') {
       await fulfillJson(route, {
         eventRevision: event.revision,
         nextCursor: null,
         photos: [
-          { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id },
+          { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id, liked: favorites.get('photo-1') ?? false },
           {
             ...publicPhoto,
             downloadUrl: options.withUnavailablePhoto ? null : `/media/${event.id}/photo-2/2/download`,
             eventId: event.id,
             filename: 'portrait-au-jardin.jpg',
             id: 'photo-2',
+            liked: favorites.get('photo-2') ?? false,
+            height: 1_800,
+            width: 1_200,
+            sources: [{ contentType: 'image/jpeg', height: 720, url: '/e2e/photo-2.svg', width: 480 }],
             sortKey: '00000002',
           },
           ...(options.withUnavailablePhoto ? [{
@@ -144,6 +172,7 @@ export async function mockGallery(page: Page, options: { protected?: boolean; wi
             eventId: event.id,
             filename: 'portrait-a-la-fete.jpg',
             id: 'photo-3',
+            liked: favorites.get('photo-3') ?? false,
             sortKey: '00000003',
           }] : []),
         ],

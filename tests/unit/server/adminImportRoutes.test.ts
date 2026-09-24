@@ -102,6 +102,47 @@ describe('admin import routes', () => {
     expect(error.code).toBe('VARIANT_CHECKSUM_MISMATCH');
     expect(database.insertedVariant).toBe(false);
   });
+
+  it('stores an unchanged PNG original only for an import that opted in', async () => {
+    const bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
+    const checksum = 'd'.repeat(64);
+    const database = variantDatabase('image/png', true);
+    const put = vi.fn(async (_key: string, body: ReadableStream<Uint8Array>) => {
+      expect(new Uint8Array(await new Response(body).arrayBuffer())).toEqual(bytes);
+      return { size: bytes.length } as unknown as R2Object;
+    });
+    const response = await authorizedApp().request('/api/v1/admin/photos/photo-1/variants/original', {
+      body: bytes,
+      headers: { ...variantHeaders(bytes.length, checksum), 'Content-Type': 'image/png', 'X-Cadrora-Width': '1200', 'X-Cadrora-Height': '800' },
+      method: 'PUT',
+    }, bindings(database, { delete: vi.fn(), put } as unknown as R2Bucket));
+    expect(response.status).toBe(200);
+    expect(put).toHaveBeenCalledWith('events/event-1/photos/photo-1/0/original.png', expect.any(ReadableStream), expect.objectContaining({ httpMetadata: { contentType: 'image/png' } }));
+    expect(database.insertedVariant).toBe(true);
+
+    const denied = await authorizedApp().request('/api/v1/admin/photos/photo-1/variants/original', {
+      body: bytes,
+      headers: { ...variantHeaders(bytes.length, checksum), 'Content-Type': 'image/png', 'X-Cadrora-Width': '1200', 'X-Cadrora-Height': '800' },
+      method: 'PUT',
+    }, bindings(variantDatabase('image/png', false), { delete: vi.fn(), put } as unknown as R2Bucket));
+    expect(denied.status).toBe(422);
+    expect(put).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels a server import and refuses subsequent media uploads', async () => {
+    const database = variantDatabase('image/jpeg', true);
+    const put = vi.fn();
+    const bucket = { delete: vi.fn(), put } as unknown as R2Bucket;
+    const app = authorizedApp();
+    const cancelled = await app.request('/api/v1/admin/imports/import-1/cancel', { method: 'POST' }, bindings(database, bucket));
+    expect(cancelled.status).toBe(200);
+    await expect(cancelled.json()).resolves.toMatchObject({ import: { state: 'cancelled' } });
+    const upload = await app.request('/api/v1/admin/photos/photo-1/variants/original', {
+      body: jpegBytes(), headers: variantHeaders(jpegBytes().byteLength, 'f'.repeat(64)), method: 'PUT',
+    }, bindings(database, bucket));
+    expect(upload.status).toBe(409);
+    expect(put).not.toHaveBeenCalled();
+  });
 });
 
 function authorizedApp(): Hono<AppEnv> {
@@ -144,8 +185,8 @@ interface VariantDatabase extends D1Database {
   insertedVariant: boolean;
 }
 
-function variantDatabase(): VariantDatabase {
-  const state = { insertedVariant: false, values: [] as unknown[], variantValues: [] as unknown[] };
+function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', keepOriginals = false): VariantDatabase {
+  const state = { importState: 'processing', insertedVariant: false, values: [] as unknown[], variantValues: [] as unknown[] };
   const database = {
     get insertedVariant() {
       return state.insertedVariant;
@@ -161,7 +202,7 @@ function variantDatabase(): VariantDatabase {
           if (query.includes('FROM photos WHERE id')) {
             return {
               captured_at: null,
-              content_type: 'image/jpeg',
+              content_type: sourceType,
               created_at: '2026-09-20T12:00:00.000Z',
               event_id: 'event-1',
               face_state: 'disabled',
@@ -178,6 +219,11 @@ function variantDatabase(): VariantDatabase {
             };
           }
           if (query.includes('FROM events WHERE id')) return { id: 'event-1' };
+          if (query.includes('FROM imports WHERE id') && query.includes('completed_photos')) return {
+            id: 'import-1', event_id: 'event-1', state: state.importState, total_photos: 1, completed_photos: 0,
+            created_at: '2026-09-20T12:00:00.000Z', updated_at: '2026-09-20T12:00:00.000Z',
+          };
+          if (query.includes('SELECT keep_originals FROM imports')) return { keep_originals: Number(keepOriginals) };
           if (query.includes('FROM site_settings')) {
             return {
               owner_face_limit: null,
@@ -188,6 +234,7 @@ function variantDatabase(): VariantDatabase {
           if (query.includes('SELECT byte_size FROM photo_variants')) return null;
           if (query.includes('COALESCE(SUM(byte_size)')) return { value: 0 };
           if (query.includes('SELECT photo_id, variant, storage_key')) {
+            if (!state.insertedVariant) return null;
             return {
               byte_size: state.variantValues[4],
               checksum_sha256: state.variantValues[7],
@@ -208,7 +255,8 @@ function variantDatabase(): VariantDatabase {
             state.insertedVariant = true;
             state.variantValues = [...state.values];
           }
-          return { success: true };
+          if (query.includes("UPDATE imports SET state = 'cancelled'")) state.importState = 'cancelled';
+          return { success: true, meta: { changes: 1 } };
         },
       };
       return statement;

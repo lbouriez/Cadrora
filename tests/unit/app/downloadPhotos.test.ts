@@ -45,6 +45,7 @@ describe('visitor photo downloads', () => {
   it('uses the actual encoded format and safe, unique filenames', () => {
     expect(downloadFilename(photos[0]!, 'image/webp')).toBe('First-picture-photo-1.webp');
     expect(downloadFilename({ ...photos[0]!, filename: '../evil.png' }, 'image/jpeg')).toBe('evil-photo-1.jpg');
+    expect(downloadFilename(photos[0]!, 'image/png')).toBe('First-picture-photo-1.png');
     expect(() => downloadFilename(photos[0]!, 'image/svg+xml')).toThrow(PhotoDownloadError);
   });
 
@@ -54,6 +55,14 @@ describe('visitor photo downloads', () => {
     await expect(createPhotoZip([{ ...photos[0]!, downloadUrl: 'https://other.test/media/event-1/photo-1/2/download' }], new AbortController().signal, vi.fn()))
       .rejects.toMatchObject({ code: 'unavailable' });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts only the same-photo original route for a PNG download', async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(new Response(new Blob(['png'], { type: 'image/png' }), { headers: { 'Content-Type': 'image/png' } })));
+    vi.stubGlobal('fetch', fetchMock);
+    const original = { ...photos[0]!, downloadUrl: '/media/event-1/photo-1/2/original' };
+    await createPhotoZip([original], new AbortController().signal, vi.fn());
+    expect(fetchMock).toHaveBeenCalledWith(original.downloadUrl, expect.objectContaining({ credentials: 'same-origin' }));
   });
 
   it('creates a bounded ZIP with correctly named entries from authorized media', async () => {

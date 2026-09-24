@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import {
   FinalizePhotoRequestSchema,
@@ -89,14 +89,16 @@ adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
   const existing = await getImport(context.env.DB, payload.id);
   if (existing) {
     await assertGalleryWritable(context.env.DB, existing.eventId);
-    if (existing.eventId !== eventId || existing.totalPhotos !== payload.totalPhotos) {
+    if (existing.eventId !== eventId || existing.totalPhotos !== payload.totalPhotos ||
+      await importKeepsOriginals(context.env.DB, payload.id) !== payload.keepOriginals) {
       throw new ApiException('IMPORT_ID_CONFLICT', 'errors.importIdConflict', 409);
     }
     return context.json(ImportCreateResponseSchema.parse({ import: existing }));
   }
 
-  const event = await context.env.DB.prepare('SELECT id FROM events WHERE id = ? AND deleting_at IS NULL').bind(eventId).first<IdRow>();
+  const event = await context.env.DB.prepare('SELECT id, keep_originals FROM events WHERE id = ? AND deleting_at IS NULL').bind(eventId).first<IdRow & { keep_originals: number }>();
   if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+  if (payload.keepOriginals && event.keep_originals !== 1) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
 
   const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
   const currentCount = await countEventPhotos(context.env.DB, eventId);
@@ -106,13 +108,27 @@ adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
 
   const now = new Date().toISOString();
   await context.env.DB.prepare(
-    'INSERT INTO imports (id, event_id, state, total_photos, completed_photos, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO imports (id, event_id, state, total_photos, completed_photos, keep_originals, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(payload.id, eventId, 'pending', payload.totalPhotos, 0, now, now)
+    .bind(payload.id, eventId, 'pending', payload.totalPhotos, 0, Number(payload.keepOriginals), now, now)
     .run();
   const created = await getImport(context.env.DB, payload.id);
   if (!created) throw new ApiException('IMPORT_CREATE_FAILED', 'errors.importCreateFailed', 500);
   return context.json(ImportCreateResponseSchema.parse({ import: created }));
+});
+
+adminImportRoutes.post('/imports/:importId/cancel', async (context) => {
+  const importId = parseInput(IdSchema, context.req.param('importId'));
+  const imported = await getImport(context.env.DB, importId);
+  if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
+  await assertGalleryWritable(context.env.DB, imported.eventId);
+  if (imported.state !== 'completed') {
+    await context.env.DB.prepare(
+      "UPDATE imports SET state = 'cancelled', updated_at = ?2 WHERE id = ?1 AND state != 'completed'",
+    ).bind(importId, new Date().toISOString()).run();
+  }
+  const updated = await getImport(context.env.DB, importId);
+  return context.json(ImportCreateResponseSchema.parse({ import: updated }));
 });
 
 adminImportRoutes.post('/imports/:importId/photos', async (context) => {
@@ -175,7 +191,7 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
 /** Binary media ingress: only a small magic-byte prefix is inspected before the body streams to private R2. */
 adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
   const photoId = parseInput(IdSchema, context.req.param('photoId'));
-  const variant = parseInput(PhotoVariantNameSchema, context.req.param('variant'));
+  const variant = parseInput(PhotoVariantNameSchema.or(z.literal('original')), context.req.param('variant'));
   const headers = parseInput(VariantUploadHeadersSchema, {
     byteSize: context.req.header('X-Cadrora-Byte-Size'),
     checksumSha256: context.req.header('X-Cadrora-Checksum-Sha256'),
@@ -188,19 +204,37 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
   }
   await assertGalleryWritable(context.env.DB, photo.eventId);
+  const imported = await getImport(context.env.DB, photo.importId);
+  if (!imported || imported.state === 'cancelled' || imported.state === 'completed') {
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
+  if (variant === 'original') {
+    // EXIF orientations 5-8 swap the source pixel dimensions without changing the displayed photo dimensions.
+    const dimensionsMatch = (headers.width === photo.width && headers.height === photo.height) ||
+      (headers.width === photo.height && headers.height === photo.width);
+    if (!await importKeepsOriginals(context.env.DB, photo.importId) || headers.contentType !== photo.contentType ||
+      !dimensionsMatch) {
+      throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+    }
+  } else if (headers.contentType === 'image/png') {
+    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+  }
 
   const declaredContentLength = parseContentLength(context.req.header('Content-Length'));
   if (declaredContentLength !== undefined && declaredContentLength !== headers.byteSize) {
     throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
   }
 
-  const existing = await context.env.DB
-    .prepare('SELECT byte_size FROM photo_variants WHERE photo_id = ? AND variant = ?')
-    .bind(photoId, variant)
-    .first<{ byte_size: number }>();
+  const existing = await getVariant(context.env.DB, photoId, variant);
+  if (existing) {
+    if (existing.byteSize !== headers.byteSize || existing.checksumSha256 !== headers.checksumSha256 ||
+      existing.contentType !== headers.contentType || existing.width !== headers.width || existing.height !== headers.height) {
+      throw new ApiException('VARIANT_CONFLICT', 'errors.invalidVariantMedia', 409);
+    }
+  }
   const usedBytes = await totalStoredBytes(context.env.DB);
   const limit = (await effectiveQuotaLimits(context.env)).storageLimitBytes;
-  if (usedBytes - (existing?.byte_size ?? 0) + headers.byteSize > limit) {
+  if (usedBytes - (existing?.byteSize ?? 0) + headers.byteSize > limit) {
     throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
   }
 
@@ -213,7 +247,7 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
   }
 
-  const extension = headers.contentType === 'image/webp' ? 'webp' : 'jpg';
+  const extension = headers.contentType === 'image/webp' ? 'webp' : headers.contentType === 'image/png' ? 'png' : 'jpg';
   const storageKey = `events/${photo.eventId}/photos/${photo.id}/${photo.revision}/${variant}.${extension}`;
   let stored: R2Object | null;
   try {
@@ -234,11 +268,18 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
   }
 
+  const currentImport = await getImport(context.env.DB, photo.importId);
+  if (!currentImport || currentImport.state === 'cancelled') {
+    if (!existing) await context.env.MEDIA_BUCKET.delete(storageKey);
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
+
   const now = new Date().toISOString();
-  await context.env.DB
+  const savedVariant = await context.env.DB
     .prepare(
       `INSERT INTO photo_variants (photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
+       WHERE EXISTS (SELECT 1 FROM imports WHERE id = ? AND state NOT IN ('cancelled', 'completed'))
        ON CONFLICT(photo_id, variant) DO UPDATE SET
          storage_key = excluded.storage_key,
          content_type = excluded.content_type,
@@ -257,8 +298,13 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
       headers.height,
       headers.checksumSha256,
       now,
+      photo.importId,
     )
     .run();
+  if ((savedVariant.meta.changes ?? 0) === 0) {
+    if (!existing) await context.env.MEDIA_BUCKET.delete(storageKey);
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
   const saved = await getVariant(context.env.DB, photoId, variant);
   if (!saved) throw new ApiException('VARIANT_SAVE_FAILED', 'errors.variantSaveFailed', 500);
   return context.json(VariantUploadResponseSchema.parse({ variant: saved }));
@@ -275,7 +321,8 @@ adminImportRoutes.post('/photos/:photoId/finalize', async (context) => {
     .bind(photoId)
     .all<{ variant: string }>();
   const names = new Set(variants.results.map((variant) => variant.variant));
-  if (!RequiredPhotoVariantNames.every((name) => names.has(name))) {
+  if (!RequiredPhotoVariantNames.every((name) => names.has(name)) ||
+    (await importKeepsOriginals(context.env.DB, photo.importId) && !names.has('original'))) {
     throw new ApiException('VARIANTS_INCOMPLETE', 'errors.variantsIncomplete', 409);
   }
 
@@ -340,6 +387,11 @@ async function getImport(database: D1Database, importId: string): Promise<Import
     .bind(importId)
     .first<ImportRow>();
   return row ? importFromRow(row) : undefined;
+}
+
+async function importKeepsOriginals(database: D1Database, importId: string): Promise<boolean> {
+  const row = await database.prepare('SELECT keep_originals FROM imports WHERE id = ?').bind(importId).first<{ keep_originals: number }>();
+  return row?.keep_originals === 1;
 }
 
 async function assertGalleryWritable(database: D1Database, eventId: string): Promise<void> {
@@ -561,8 +613,9 @@ async function inspectStreamPrefix(body: ReadableStream<Uint8Array>, prefixLengt
   };
 }
 
-function sniffEncodedMime(bytes: Uint8Array): 'image/jpeg' | 'image/webp' | undefined {
+function sniffEncodedMime(bytes: Uint8Array): 'image/jpeg' | 'image/png' | 'image/webp' | undefined {
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
+  if ([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value)) return 'image/png';
   if (
     bytes.length >= 12 &&
     bytes[0] === 0x52 &&

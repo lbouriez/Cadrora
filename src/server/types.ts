@@ -11,7 +11,8 @@ export type CachePolicy =
   | 'event-protected'
   | 'event-public'
   | 'media-protected'
-  | 'media-public';
+  | 'media-public'
+  | 'media-download';
 
 export interface AppVariables {
   auth: AuthContext;

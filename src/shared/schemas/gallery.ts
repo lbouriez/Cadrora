@@ -20,6 +20,19 @@ export const PublicEventSchema = EventSchema.pick({
   retentionDays: true,
   revision: true,
   updatedAt: true,
+}).extend({ coverPhotoUrl: z.string().startsWith('/media/').nullable() });
+
+export const AdminCoverPhotoQuerySchema = z.object({
+  offset: z.coerce.number().int().nonnegative().default(0),
+}).strict();
+
+export const AdminCoverPhotosSchema = z.object({
+  photos: z.array(z.object({
+    id: IdSchema,
+    filename: z.string().min(1).max(512),
+    thumbnailUrl: z.string().startsWith('/api/v1/admin/galleries/'),
+  })),
+  nextOffset: z.number().int().nonnegative().nullable(),
 });
 
 export const PublicEventListSchema = z.object({
@@ -48,7 +61,12 @@ export const PublicPhotoSchema = z.object({
   revision: z.number().int().nonnegative(),
   sources: z.array(PhotoSourceSchema).min(1),
   downloadUrl: z.string().min(1).nullable(),
+  liked: z.boolean(),
 });
+
+export const PhotoFavoriteRequestSchema = z.object({ liked: z.boolean() }).strict();
+export const PhotoFavoriteResponseSchema = z.object({ liked: z.boolean() }).strict();
+export const PhotoFavoriteParamsSchema = z.object({ eventId: IdSchema, photoId: IdSchema }).strict();
 
 export const PublicPhotoPageSchema = z.object({
   eventRevision: z.number().int().nonnegative(),
@@ -78,6 +96,9 @@ export const CreateEventRequestSchema = z.object({
   if (value.nearbySearchEnabled && !value.faceSearchEnabled) {
     context.addIssue({ code: 'custom', message: 'nearby search requires face search', path: ['nearbySearchEnabled'] });
   }
+  if (value.keepOriginals && !value.allowDownloads) {
+    context.addIssue({ code: 'custom', message: 'original delivery requires downloads', path: ['keepOriginals'] });
+  }
 });
 
 export const UpdateEventRequestSchema = z.object({
@@ -102,6 +123,13 @@ export const DeleteGalleryRequestSchema = z.object({
 
 export const DeleteGalleryResponseSchema = z.object({
   deletionQueued: z.literal(true),
+});
+
+export const AdminOriginalsStatusSchema = z.object({
+  count: z.number().int().nonnegative(),
+  bytes: z.number().int().nonnegative(),
+  activeImports: z.number().int().nonnegative(),
+  cleanupState: z.enum(['idle', 'pending', 'running', 'failed']),
 });
 
 export const UnlockEventRequestSchema = z.object({

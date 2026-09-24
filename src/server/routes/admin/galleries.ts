@@ -3,12 +3,16 @@ import { Hono } from 'hono';
 import { ApiException } from '../../../shared/errors/ApiError';
 import { EventSchema } from '../../../shared/schemas/event';
 import {
+  AdminCoverPhotoQuerySchema,
+  AdminCoverPhotosSchema,
+  AdminOriginalsStatusSchema,
   AdminEventListSchema,
   CreateEventRequestSchema,
   DeleteGalleryRequestSchema,
   DeleteGalleryResponseSchema,
   UpdateEventRequestSchema,
 } from '../../../shared/schemas/gallery';
+import { IdSchema } from '../../../shared/schemas';
 import type { AppEnv } from '../../types';
 import { isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
@@ -51,6 +55,29 @@ async function availableSlug(database: D1Database, requested: string): Promise<s
   throw new ApiException('SLUG_UNAVAILABLE', 'errors.slugUnavailable', 409);
 }
 
+interface OriginalStatusRow { count: number; bytes: number }
+interface OriginalJobRow { id: string; state: 'failed' | 'pending' | 'running' }
+
+async function originalStatus(database: D1Database, eventId: string) {
+  const [files, imports, job] = await Promise.all([
+    database.prepare(
+      `SELECT COUNT(*) AS count, COALESCE(SUM(v.byte_size), 0) AS bytes FROM photo_variants v
+       JOIN photos p ON p.id = v.photo_id WHERE p.event_id = ?1 AND v.variant = 'original'`,
+    ).bind(eventId).first<OriginalStatusRow>(),
+    database.prepare(
+      `SELECT COUNT(*) AS count FROM imports WHERE event_id = ?1 AND keep_originals = 1
+       AND state NOT IN ('completed', 'cancelled')`,
+    ).bind(eventId).first<{ count: number }>(),
+    database.prepare(
+      `SELECT id, state FROM maintenance_jobs WHERE kind = 'delete_gallery_originals'
+       AND json_extract(payload_json, '$.eventId') = ?1 AND state IN ('pending', 'running', 'failed')
+       ORDER BY CASE state WHEN 'running' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END, created_at DESC LIMIT 1`,
+    ).bind(eventId).first<OriginalJobRow>(),
+  ]);
+  return { count: files?.count ?? 0, bytes: files?.bytes ?? 0, activeImports: imports?.count ?? 0,
+    cleanupState: job?.state ?? 'idle', jobId: job?.id };
+}
+
 export function createAdminEventRoutes(): Hono<AppEnv> {
   const routes = new Hono<AppEnv>();
 
@@ -61,6 +88,111 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     const output = AdminEventListSchema.safeParse({ events: result.results.map(eventFromRow) });
     if (!output.success) throw new ApiException('INVALID_RESPONSE', 'errors.internal', 500);
     return context.json(output.data);
+  });
+
+  routes.get('/galleries/:eventId/originals', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    return context.json(AdminOriginalsStatusSchema.parse(await originalStatus(context.env.DB, event.id)));
+  });
+
+  routes.post('/galleries/:eventId/originals/cleanup', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (event.allowDownloads && event.keepOriginals) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    const status = await originalStatus(context.env.DB, event.id);
+    if (status.activeImports > 0) throw new ApiException('IMPORT_IN_PROGRESS', 'errors.invalidRequest', 409);
+    if (status.count === 0 || status.cleanupState === 'pending' || status.cleanupState === 'running') {
+      return context.json(AdminOriginalsStatusSchema.parse(status));
+    }
+    const now = new Date().toISOString();
+    // Let already-streaming uploads settle before the first D1-derived R2 sweep.
+    const availableAt = new Date(Date.parse(now) + 5 * 60_000).toISOString();
+    if (status.cleanupState === 'failed' && status.jobId) {
+      await context.env.DB.prepare(
+        `UPDATE maintenance_jobs SET state = 'pending', attempts = 0, last_error = NULL,
+         available_at = ?2, updated_at = ?2 WHERE id = ?1 AND state = 'failed'`,
+      ).bind(status.jobId, now).run();
+    } else {
+      await context.env.DB.prepare(
+        `INSERT OR IGNORE INTO maintenance_jobs
+         (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
+         VALUES (?1, 'delete_gallery_originals', 'pending', ?2, ?3, 0, ?4, ?5, ?5)`,
+      ).bind(crypto.randomUUID(), JSON.stringify({ eventId: event.id }),
+        `delete-gallery-originals:${event.id}:${crypto.randomUUID()}`, availableAt, now).run();
+    }
+    return context.json(AdminOriginalsStatusSchema.parse(await originalStatus(context.env.DB, event.id)), 202);
+  });
+
+  routes.post('/galleries/:eventId/originals/abandon-imports', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    if (event.allowDownloads && event.keepOriginals) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    await context.env.DB.prepare(
+      `UPDATE imports SET state = 'cancelled', updated_at = ?2
+       WHERE event_id = ?1 AND keep_originals = 1 AND state NOT IN ('completed', 'cancelled')`,
+    ).bind(event.id, new Date().toISOString()).run();
+    return context.json(AdminOriginalsStatusSchema.parse(await originalStatus(context.env.DB, event.id)));
+  });
+
+  routes.get('/galleries/:eventId/cover-photos', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    const query = AdminCoverPhotoQuerySchema.safeParse(context.req.query());
+    if (!eventId.success || !query.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    const rows = await context.env.DB.prepare(
+      `SELECT p.id, p.filename FROM photos p
+       JOIN photo_variants v ON v.photo_id = p.id AND v.variant = 'thumb'
+       WHERE p.event_id = ?1 AND p.state IN ('variants_ready', 'published')
+       ORDER BY p.sort_key, p.id LIMIT 49 OFFSET ?2`,
+    ).bind(event.id, query.data.offset).all<{ id: string; filename: string }>();
+    const photos = rows.results.slice(0, 48).map((photo) => ({
+      id: photo.id,
+      filename: photo.filename,
+      thumbnailUrl: `/api/v1/admin/galleries/${encodeURIComponent(event.id)}/cover-photos/${encodeURIComponent(photo.id)}`,
+    }));
+    return context.json(AdminCoverPhotosSchema.parse({
+      photos,
+      nextOffset: rows.results.length > 48 ? query.data.offset + 48 : null,
+    }));
+  });
+
+  routes.get('/galleries/:eventId/cover-photos/:photoId', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    const photoId = IdSchema.safeParse(context.req.param('photoId'));
+    if (!eventId.success || !photoId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const variant = await context.env.DB.prepare(
+      `SELECT v.storage_key, v.content_type FROM photos p
+       JOIN events e ON e.id = p.event_id
+       JOIN photo_variants v ON v.photo_id = p.id AND v.variant = 'thumb'
+       WHERE e.id = ?1 AND p.id = ?2 AND e.deleting_at IS NULL
+         AND p.state IN ('variants_ready', 'published')`,
+    ).bind(eventId.data, photoId.data).first<{ storage_key: string; content_type: string }>();
+    if (!variant) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+    const object = await context.env.MEDIA_BUCKET.get(variant.storage_key);
+    if (!object) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
+    return new Response(object.body, { headers: {
+      'Cache-Control': 'no-store',
+      'Content-Type': variant.content_type,
+      'X-Content-Type-Options': 'nosniff',
+    } });
   });
 
   routes.post('/galleries', async (context) => {
@@ -114,6 +246,17 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (nextNearbySearchEnabled && !nextFaceSearchEnabled) {
       throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     }
+    const nextAllowDownloads = input.data.allowDownloads ?? event.allowDownloads;
+    const nextKeepOriginals = nextAllowDownloads && (input.data.keepOriginals ?? event.keepOriginals);
+    if (input.data.keepOriginals === true && !nextAllowDownloads) {
+      throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    }
+    if (nextKeepOriginals && (!event.keepOriginals || !event.allowDownloads)) {
+      const status = await originalStatus(context.env.DB, event.id);
+      if (status.cleanupState === 'pending' || status.cleanupState === 'running') {
+        throw new ApiException('ORIGINAL_CLEANUP_PENDING', 'errors.invalidRequest', 409);
+      }
+    }
     const nextAccess = input.data.access ?? event.access;
     const existingVersion = await context.env.DB.prepare(
       'SELECT access_version FROM event_credentials WHERE event_id = ?1',
@@ -137,12 +280,13 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     if (input.data.nearbySearchEnabled !== undefined) add('nearby_search_enabled', Number(input.data.nearbySearchEnabled));
     else if (input.data.faceSearchEnabled === false) add('nearby_search_enabled', 0);
     if (input.data.showPhotoMetadata !== undefined) add('show_photo_metadata', Number(input.data.showPhotoMetadata));
-    if (input.data.keepOriginals !== undefined) add('keep_originals', Number(input.data.keepOriginals));
+    if (input.data.keepOriginals !== undefined || !nextAllowDownloads) add('keep_originals', Number(nextKeepOriginals));
     if (input.data.retentionDays !== undefined) add('retention_days', input.data.retentionDays);
     const now = new Date().toISOString();
     if (input.data.coverPhotoId !== undefined && input.data.coverPhotoId !== null) {
       const cover = await context.env.DB.prepare(
-        "SELECT id FROM photos WHERE id = ?1 AND event_id = ?2 AND state NOT IN ('deleting', 'deleted')",
+        `SELECT p.id FROM photos p JOIN photo_variants v ON v.photo_id = p.id AND v.variant = 'thumb'
+         WHERE p.id = ?1 AND p.event_id = ?2 AND p.state IN ('variants_ready', 'published')`,
       ).bind(input.data.coverPhotoId, event.id).first();
       if (!cover) throw new ApiException('INVALID_COVER_PHOTO', 'errors.invalidCoverPhoto', 400);
     }

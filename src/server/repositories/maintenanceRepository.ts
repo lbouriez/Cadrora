@@ -10,8 +10,9 @@ const PurgeExpiredFacesPayloadSchema = z.object({
 });
 const DeleteFaceVectorPayloadSchema = z.object({ vectorId: z.string().min(1).max(512) });
 const DeleteGalleryPayloadSchema = z.object({ eventId: IdSchema });
+const DeleteGalleryOriginalsPayloadSchema = z.object({ eventId: IdSchema });
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -35,17 +36,20 @@ export interface PhotoCleanupData {
 }
 
 export type GalleryCleanupData = PhotoCleanupData;
+export interface OriginalCleanupRow { photoId: string; storageKey: string }
 
 export interface MaintenanceRepository {
   claimNext(now: string): Promise<MaintenanceJobRecord | null>;
   completeEventFacePurge(jobId: string, eventId: string, now: string): Promise<void>;
   completeExpiredFacePurge(jobId: string, eventId: string, expiresBefore: string, now: string): Promise<void>;
   completeGalleryDeletion(jobId: string, eventId: string, now: string): Promise<void>;
+  completeOriginalCleanupBatch(jobId: string, rows: OriginalCleanupRow[], now: string): Promise<void>;
   completeJob(jobId: string, now: string): Promise<void>;
   completePhotoDeletion(jobId: string, photoId: string, now: string): Promise<void>;
   eventFaceVectorIds(eventId: string): Promise<string[]>;
   expiredFaceVectorIds(eventId: string, expiresBefore: string): Promise<string[]>;
   galleryCleanupData(eventId: string): Promise<GalleryCleanupData>;
+  originalCleanupBatch(eventId: string): Promise<{ shouldDelete: boolean; rows: OriginalCleanupRow[] }>;
   photoCleanupData(photoId: string): Promise<PhotoCleanupData>;
   reconcileUsage(now: string): Promise<void>;
   retryJob(job: MaintenanceJobRecord, error: string, availableAt: string, now: string): Promise<void>;
@@ -127,6 +131,34 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
       storageKeys: variantRows.results.map((row) => row.storage_key),
       vectorIds: faceRows.results.map((row) => row.vector_id),
     };
+  }
+
+  async originalCleanupBatch(eventId: string): Promise<{ shouldDelete: boolean; rows: OriginalCleanupRow[] }> {
+    const event = await this.database.prepare(
+      'SELECT allow_downloads, keep_originals, deleting_at FROM events WHERE id = ?1',
+    ).bind(eventId).first<{ allow_downloads: number; keep_originals: number; deleting_at: string | null }>();
+    if (!event || event.deleting_at || (event.allow_downloads === 1 && event.keep_originals === 1)) {
+      return { shouldDelete: false, rows: [] };
+    }
+    const result = await this.database.prepare(
+      `SELECT v.photo_id, v.storage_key FROM photo_variants v
+       JOIN photos p ON p.id = v.photo_id
+       WHERE p.event_id = ?1 AND v.variant = 'original'
+       ORDER BY v.photo_id LIMIT 100`,
+    ).bind(eventId).all<{ photo_id: string; storage_key: string }>();
+    return { shouldDelete: true, rows: result.results.map((row) => ({ photoId: row.photo_id, storageKey: row.storage_key })) };
+  }
+
+  async completeOriginalCleanupBatch(jobId: string, rows: OriginalCleanupRow[], now: string): Promise<void> {
+    await this.database.batch([
+      ...rows.map((row) => this.database.prepare(
+        "DELETE FROM photo_variants WHERE photo_id = ?1 AND variant = 'original' AND storage_key = ?2",
+      ).bind(row.photoId, row.storageKey)),
+      this.database.prepare(
+        `UPDATE maintenance_jobs SET state = ?2, attempts = 0, last_error = NULL,
+         available_at = ?3, updated_at = ?3 WHERE id = ?1`,
+      ).bind(jobId, rows.length === 0 ? 'completed' : 'pending', now),
+    ]);
   }
 
   async completeGalleryDeletion(jobId: string, eventId: string, now: string): Promise<void> {
@@ -290,6 +322,10 @@ export function parseDeleteFaceVectorPayload(payload: unknown) {
 
 export function parseDeleteGalleryPayload(payload: unknown) {
   return DeleteGalleryPayloadSchema.parse(payload);
+}
+
+export function parseDeleteGalleryOriginalsPayload(payload: unknown) {
+  return DeleteGalleryOriginalsPayloadSchema.parse(payload);
 }
 
 export function parsePurgeFacesPayload(payload: unknown) {

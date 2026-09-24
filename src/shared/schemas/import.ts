@@ -39,6 +39,7 @@ export const ImportCreateRequestSchema = z
   .object({
     id: IdSchema,
     totalPhotos: z.number().int().nonnegative().max(100_000),
+    keepOriginals: z.boolean().default(false),
   })
   .strict();
 
@@ -94,7 +95,7 @@ export const VariantUploadHeadersSchema = z
   .object({
     byteSize: z.coerce.number().int().positive().max(100 * 1024 * 1024),
     checksumSha256: z.string().regex(/^[a-f0-9]{64}$/),
-    contentType: z.enum(['image/jpeg', 'image/webp']),
+    contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
     height: z.coerce.number().int().positive().max(100_000),
     width: z.coerce.number().int().positive().max(100_000),
   })

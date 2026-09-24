@@ -12,7 +12,7 @@ import { siteProfile } from './siteProfile';
 import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
 
-export function PublicLayout({ children }: { children: ReactNode }) {
+export function PublicLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
@@ -84,7 +84,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="public-main">{children}</main>
+      <main className={`public-main${wide ? ' public-main--gallery' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div>
           <p>{t('gallery.footer', { siteName: settings.data?.siteName ?? siteProfile.siteName })}</p>

@@ -14,9 +14,11 @@ function repositoryFor(job: MaintenanceJobRecord) {
   const completePhotoDeletion = vi.fn();
   const completeExpiredFacePurge = vi.fn();
   const completeGalleryDeletion = vi.fn();
+  const completeOriginalCleanupBatch = vi.fn();
   const completeJob = vi.fn();
   const expiredFaceVectorIds = vi.fn().mockResolvedValue([]);
   const retryJob = vi.fn();
+  const originalCleanupBatch = vi.fn().mockResolvedValue({ shouldDelete: true, rows: [{ photoId: 'photo-original', storageKey: 'gallery/original' }] });
   const repository: MaintenanceRepository = {
     claimNext: vi.fn().mockImplementation(() => {
       if (claimed) return Promise.resolve(null);
@@ -26,16 +28,18 @@ function repositoryFor(job: MaintenanceJobRecord) {
     completeEventFacePurge: vi.fn(),
     completeExpiredFacePurge,
     completeGalleryDeletion,
+    completeOriginalCleanupBatch,
     completeJob,
     completePhotoDeletion,
     eventFaceVectorIds: vi.fn().mockResolvedValue([]),
     expiredFaceVectorIds,
     galleryCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['gallery/a'], vectorIds: ['gallery-v'] }),
+    originalCleanupBatch,
     photoCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['a', 'b'], vectorIds: ['v'] }),
     reconcileUsage: vi.fn(),
     retryJob,
   };
-  return { completeExpiredFacePurge, completeGalleryDeletion, completeJob, completePhotoDeletion, expiredFaceVectorIds, repository, retryJob };
+  return { completeExpiredFacePurge, completeGalleryDeletion, completeOriginalCleanupBatch, completeJob, completePhotoDeletion, expiredFaceVectorIds, originalCleanupBatch, repository, retryJob };
 }
 
 describe('maintenance runner', () => {
@@ -148,6 +152,35 @@ describe('maintenance runner', () => {
       'event-1',
       '2030-01-01T00:00:00.000Z',
     );
+  });
+
+  it('deletes only original R2 objects before removing their D1 rows', async () => {
+    const job: MaintenanceJobRecord = { attempts: 1, id: 'job-originals', kind: 'delete_gallery_originals', payload: { eventId: 'gallery-1' } };
+    const { completeOriginalCleanupBatch, repository } = repositoryFor(job);
+    const deleteStorage = vi.fn();
+    const runner = new MaintenanceRunner({
+      now: () => new Date('2030-01-01T00:00:00.000Z'), repository,
+      storage: { deleteMany: deleteStorage, get: vi.fn() }, vectors: { deleteMany: vi.fn() },
+    });
+    expect(await runner.run()).toBe(1);
+    expect(deleteStorage).toHaveBeenCalledWith(['gallery/original']);
+    expect(completeOriginalCleanupBatch).toHaveBeenCalledWith('job-originals', [
+      { photoId: 'photo-original', storageKey: 'gallery/original' },
+    ], '2030-01-01T00:00:00.000Z');
+  });
+
+  it('does not delete originals after delivery is enabled again', async () => {
+    const job: MaintenanceJobRecord = { attempts: 1, id: 'job-originals', kind: 'delete_gallery_originals', payload: { eventId: 'gallery-1' } };
+    const { completeJob, originalCleanupBatch, repository } = repositoryFor(job);
+    originalCleanupBatch.mockResolvedValue({ shouldDelete: false, rows: [] });
+    const deleteStorage = vi.fn();
+    const runner = new MaintenanceRunner({
+      now: () => new Date('2030-01-01T00:00:00.000Z'), repository,
+      storage: { deleteMany: deleteStorage, get: vi.fn() }, vectors: { deleteMany: vi.fn() },
+    });
+    expect(await runner.run()).toBe(1);
+    expect(deleteStorage).not.toHaveBeenCalled();
+    expect(completeJob).toHaveBeenCalledWith('job-originals', '2030-01-01T00:00:00.000Z');
   });
 
   it('deletes only the expired vector batch before completing its D1 purge', async () => {

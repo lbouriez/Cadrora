@@ -4,6 +4,8 @@ import {
   PublicEventListSchema,
   PublicEventSchema,
   PublicPhotoPageSchema,
+  PhotoFavoriteRequestSchema,
+  PhotoFavoriteResponseSchema,
   UnlockEventResponseSchema,
 } from '../../shared/schemas/gallery';
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
@@ -45,6 +47,16 @@ export async function getPublicPhotos(locator: string, cursor?: string): Promise
 }> {
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
   return validatedFetch(`/api/v1/galleries/${encodeURIComponent(locator)}/photos${query}`, PublicPhotoPageSchema);
+}
+
+export async function setPhotoFavorite(locator: string, photoId: string, liked: boolean): Promise<boolean> {
+  const body = PhotoFavoriteRequestSchema.parse({ liked });
+  const result = await validatedFetch(
+    `/api/v1/galleries/${encodeURIComponent(locator)}/photos/${encodeURIComponent(photoId)}/favorite`,
+    PhotoFavoriteResponseSchema,
+    { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+  );
+  return result.liked;
 }
 
 export async function unlockEvent(locator: string, password: string, turnstileToken: string): Promise<void> {

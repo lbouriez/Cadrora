@@ -51,6 +51,13 @@ export class D1PublicationRepository implements PublicationRepository {
         .bind(photoId, now, staleBefore),
       this.database
         .prepare(
+          `UPDATE events SET cover_photo_id = NULL, revision = revision + 1, updated_at = ?3
+           WHERE id = ?1 AND cover_photo_id = ?2
+             AND EXISTS (SELECT 1 FROM photos WHERE id = ?2 AND state = 'deleting' AND updated_at = ?3)`,
+        )
+        .bind(photo.event_id, photoId, now),
+      this.database
+        .prepare(
           `INSERT INTO maintenance_jobs
              (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
            SELECT ?1, 'delete_photo_media', 'pending', ?2, ?3, 0, ?4, ?4, ?4

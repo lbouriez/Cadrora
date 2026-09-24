@@ -3,11 +3,14 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, IconButton, InfoIcon, Modal } from '../components';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal } from '../components';
 
 interface PhotoViewerProps {
+  favoriteEnabled: boolean;
+  favoritePending: boolean;
   onClose: () => void;
   onSelect: (photo: PublicPhoto) => void;
+  onToggleFavorite: (photo: PublicPhoto) => void;
   photo: PublicPhoto;
   photos: PublicPhoto[];
   showMetadata: boolean;
@@ -32,7 +35,7 @@ function formatCapturedAt(value: string | null, language: string, timezone: stri
   }
 }
 
-export function PhotoViewer({ onClose, onSelect, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
+export function PhotoViewer({ favoriteEnabled, favoritePending, onClose, onSelect, onToggleFavorite, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
   const { i18n, t } = useTranslation();
   const metadataId = useId();
   const [metadataState, setMetadataState] = useState({ open: false, photoId: photo.id });
@@ -112,6 +115,13 @@ export function PhotoViewer({ onClose, onSelect, photo, photos, showMetadata, ti
               <InfoIcon />
             </IconButton>
           ) : null}
+          {favoriteEnabled ? <FavoriteButton
+            className="photo-viewer__favorite"
+            disabled={favoritePending}
+            label={t(photo.liked ? 'gallery.favorite.remove' : 'gallery.favorite.add', { filename: photo.filename })}
+            liked={photo.liked}
+            onToggle={() => onToggleFavorite(photo)}
+          /> : null}
           {photo.downloadUrl ? <a aria-label={t('gallery.download')} className="icon-button icon-button--secondary photo-viewer__download" download href={photo.downloadUrl} title={t('gallery.download')}><DownloadIcon /></a> : null}
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {

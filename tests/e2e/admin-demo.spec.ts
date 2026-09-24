@@ -67,6 +67,21 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       });
       return;
     }
+    if (path.endsWith('/cover-photos')) {
+      await route.fulfill({ body: JSON.stringify({ photos: [{
+        id: 'demo-ai-01', filename: 'portrait.webp',
+        thumbnailUrl: `/api/v1/admin/galleries/${demoEvent.id}/cover-photos/demo-ai-01`,
+      }], nextOffset: null }), contentType: 'application/json' });
+      return;
+    }
+    if (path.endsWith('/cover-photos/demo-ai-01')) {
+      await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"/>', contentType: 'image/svg+xml' });
+      return;
+    }
+    if (path.endsWith('/originals')) {
+      await route.fulfill({ body: JSON.stringify({ count: 2, bytes: 800, activeImports: 0, cleanupState: 'idle' }), contentType: 'application/json' });
+      return;
+    }
     if (path.endsWith('/publication')) {
       await route.fulfill({
         body: JSON.stringify({
@@ -144,6 +159,15 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     history.pushState({}, '', `/admin/galleries/${eventId}`);
     dispatchEvent(new PopStateEvent('popstate'));
   }, demoEvent.id);
+  const downloads = page.getByRole('checkbox', { name: /allow photo downloads|autoriser le téléchargement des photos/i });
+  const originals = page.getByRole('checkbox', { name: /offer original files|proposer les fichiers originaux/i });
+  await expect(downloads).not.toBeChecked();
+  await expect(originals).toHaveCount(0);
+  await downloads.check();
+  await expect(originals).toBeVisible();
+  await originals.check();
+  await downloads.uncheck();
+  await expect(originals).toHaveCount(0);
   const faceSearch = page.getByRole('checkbox', { name: /optional face search|recherche faciale facultative/i });
   const nearbySearch = page.getByRole('checkbox', { name: /nearby moments|moments rapprochés/i });
   await expect(faceSearch).toBeChecked();
@@ -154,6 +178,12 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await faceSearch.check();
   await nearbySearch.check();
   await expect(page.getByRole('button', { name: /save settings|enregistrer les réglages/i })).toBeDisabled();
+  await expect(page.getByRole('heading', { name: /gallery cover|couverture de la galerie/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /original files are still stored|fichiers originaux sont encore stockés/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /delete stored originals|supprimer les originaux stockés/i })).toBeDisabled();
+  const cover = page.getByRole('button', { name: /use portrait.webp as the gallery cover|utiliser portrait.webp comme couverture/i });
+  await cover.click();
+  await expect(cover).toHaveAttribute('aria-pressed', 'true');
   const availability = page.getByRole('combobox', { name: /visitor availability|disponibilité pour les visiteurs/i });
   await expect(availability).toBeEnabled();
   await availability.selectOption('offline');

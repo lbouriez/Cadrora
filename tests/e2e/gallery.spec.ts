@@ -251,3 +251,43 @@ test('demande puis echange le mot de passe d une galerie protegee', async ({ pag
   await expect(page.getByRole('heading', { level: 1, name: 'Soiree privee' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' })).toBeVisible();
 });
+
+test('partage un coeur entre la mosaïque et la visionneuse privée, puis le retrouve après rechargement', async ({ page }, testInfo) => {
+  await mockGallery(page, { protected: true });
+  await page.goto('/e/soiree-privee');
+  await page.getByLabel(/mot de passe de la galerie|gallery password/i).fill('mot-de-passe');
+  await page.getByRole('button', { name: /ouvrir la galerie|open gallery/i }).click();
+
+  const tile = page.locator('.photo-tile-shell').first();
+  const like = tile.getByRole('button', { name: /aimer danse|like danse/i });
+  await expect(like).toHaveAttribute('aria-pressed', 'false');
+  await like.click();
+  await expect(tile.getByRole('button', { name: /ne plus aimer danse|unlike danse/i })).toHaveAttribute('aria-pressed', 'true');
+  const tileBoxes = await page.locator('.photo-tile-shell').evaluateAll((tiles) => tiles.map((element) => {
+    const box = element.getBoundingClientRect();
+    return { x: box.x, width: box.width };
+  }));
+  expect(tileBoxes[0]?.x).not.toBe(tileBoxes[1]?.x);
+  expect(tileBoxes[0]?.width).toBeGreaterThan(300);
+  await page.getByRole('button', { name: /nécessaire seulement|essential only/i }).click();
+  await page.screenshot({ path: testInfo.outputPath('private-mosaic-desktop.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: testInfo.outputPath('private-mosaic-mobile.png'), fullPage: true });
+  await page.setViewportSize({ width: 1_440, height: 900 });
+
+  await tile.getByRole('link').click();
+  const viewerUnlike = page.getByRole('dialog').getByRole('button', { name: /ne plus aimer danse|unlike danse/i });
+  await expect(viewerUnlike).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await expect(page.getByRole('dialog').getByRole('button', { name: /ne plus aimer danse|unlike danse/i })).toHaveAttribute('aria-pressed', 'true');
+  await viewerUnlike.click();
+  await expect(page.getByRole('dialog').getByRole('button', { name: /aimer danse|like danse/i })).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('ne montre aucun coeur dans une galerie publique', async ({ page }) => {
+  await mockGallery(page);
+  await page.goto('/e/mariage-lumiere');
+  await expect(page.locator('.favorite-button')).toHaveCount(0);
+  await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
+  await expect(page.locator('.favorite-button')).toHaveCount(0);
+});

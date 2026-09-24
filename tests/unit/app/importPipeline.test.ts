@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 
-import type { ImageEncoder } from '../../../src/browser/images';
+import type { EncodedVariant, ImageEncoder } from '../../../src/browser/images';
 import type { ImportApi } from '../../../src/browser/jobs/ImportApi';
 import type {
   ImportJournal,
@@ -68,10 +68,15 @@ class MemoryImportJournal implements ImportJournal {
 
 class RecordingImportApi implements ImportApi {
   readonly declared: ImportDeclarePhotosRequest[] = [];
+  readonly created: ImportCreateRequest[] = [];
+  readonly uploaded: EncodedVariant[] = [];
 
   constructor(private readonly failChunk?: number) {}
 
+  cancelImport(): Promise<void> { return Promise.resolve(); }
+
   createImport(eventId: string, request: ImportCreateRequest): Promise<Import> {
+    this.created.push(request);
     return Promise.resolve({
       completedPhotos: 0,
       createdAt: TIMESTAMP,
@@ -91,12 +96,21 @@ class RecordingImportApi implements ImportApi {
 
   async finalizePhoto(): Promise<void> {}
 
-  async uploadVariant(): Promise<void> {}
+  uploadVariant(_photoId: string, variant: EncodedVariant): Promise<void> { this.uploaded.push(variant); return Promise.resolve(); }
 }
 
 function makeFiles(count: number): File[] {
   const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
   return Array.from({ length: count }, (_, index) => new File([jpeg], `photo-${index + 1}.jpg`, { type: 'image/jpeg' }));
+}
+
+function jpegWithOrientation(orientation: number): Uint8Array {
+  const bytes = new Uint8Array(40);
+  bytes.set([0xff, 0xd8, 0xff, 0xe1, 0x00, 0x22, 0x45, 0x78, 0x69, 0x66, 0x00, 0x00], 0);
+  bytes.set([0x49, 0x49, 0x2a, 0x00, 0x08, 0x00, 0x00, 0x00], 12);
+  bytes.set([0x01, 0x00, 0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, orientation, 0x00, 0x00, 0x00], 20);
+  bytes.set([0x00, 0x00, 0x00, 0x00, 0xff, 0xd9], 34);
+  return bytes;
 }
 
 function createEncoder(encodedFiles: string[]): ImageEncoder {
@@ -180,6 +194,33 @@ describe('ImportPipeline chunk journal and resume', () => {
       capturedAt: '2026-08-30T18:02:00.000Z',
       filename: 'nearby-amelia-exif.jpg',
     });
+  });
+
+  it('uploads the exact source bytes when originals were selected for the import', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const file = makeFiles(1)[0]!;
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+    await pipeline.start('event-1', [file], 'UTC', true);
+
+    expect(api.created[0]).toMatchObject({ keepOriginals: true });
+    expect(journal.job?.keepOriginals).toBe(true);
+    const original = api.uploaded.find((variant) => variant.name === 'original');
+    expect(original?.byteSize).toBe(file.size);
+    expect(original?.contentType).toBe('image/jpeg');
+    expect(new Uint8Array(await original!.blob.arrayBuffer())).toEqual(new Uint8Array(await file.arrayBuffer()));
+    expect(original?.checksumSha256).toMatch(/^[a-f0-9]{64}$/u);
+  });
+
+  it('records the camera dimensions for an unmodified EXIF-rotated original', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const file = new File([jpegWithOrientation(6).buffer as ArrayBuffer], 'rotated.jpg', { type: 'image/jpeg' });
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+    await pipeline.start('event-rotated', [file], 'UTC', true);
+
+    expect(api.declared[0]?.photos[0]).toMatchObject({ width: 800, height: 1_200 });
+    expect(api.uploaded.find((variant) => variant.name === 'original')).toMatchObject({ width: 1_200, height: 800 });
   });
 
   it('resumes a 200-photo journal at the first unfinished 50-photo chunk after interruption', async () => {

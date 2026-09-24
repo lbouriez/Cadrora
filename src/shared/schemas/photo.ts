@@ -50,7 +50,7 @@ export const PhotoVariantSchema = z.object({
   photoId: IdSchema,
   variant: PhotoVariantNameSchema.or(z.literal('original')),
   storageKey: z.string().min(1).max(1_024),
-  contentType: z.enum(['image/jpeg', 'image/webp']),
+  contentType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
   byteSize: z.number().int().nonnegative(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
@@ -60,4 +60,3 @@ export const PhotoVariantSchema = z.object({
 
 export type Photo = z.infer<typeof PhotoSchema>;
 export type PhotoVariant = z.infer<typeof PhotoVariantSchema>;
-

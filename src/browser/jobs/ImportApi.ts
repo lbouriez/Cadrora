@@ -13,6 +13,7 @@ import {
 import type { EncodedVariant } from '../images';
 
 export interface ImportApi {
+  cancelImport(importId: string): Promise<void>;
   createImport(eventId: string, request: ImportCreateRequest, signal?: AbortSignal): Promise<Import>;
   declarePhotos(importId: string, request: ImportDeclarePhotosRequest, signal?: AbortSignal): Promise<string[]>;
   finalizePhoto(photoId: string, signal?: AbortSignal): Promise<void>;
@@ -22,6 +23,11 @@ export interface ImportApi {
 /** Typed browser client for the isolated PC Worker-route contract. */
 export class FetchImportApi implements ImportApi {
   constructor(private readonly fetcher: typeof fetch = fetch) {}
+
+  async cancelImport(importId: string): Promise<void> {
+    const response = await this.fetcher(`/api/v1/admin/imports/${encodeURIComponent(importId)}/cancel`, { method: 'POST' });
+    ImportCreateResponseSchema.parse(await this.json(response));
+  }
 
   async createImport(eventId: string, request: ImportCreateRequest, signal?: AbortSignal): Promise<Import> {
     const body = ImportCreateRequestSchema.parse(request);

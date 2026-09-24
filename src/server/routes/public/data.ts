@@ -53,7 +53,7 @@ export function isEventAvailable(event: Event): boolean {
   return event.visibility !== 'draft' && event.offlineAt === null;
 }
 
-export function toPublicEvent(event: Event): PublicEvent {
+export function toPublicEvent(event: Event, coverRevision: number | null = null): PublicEvent {
   return {
     id: event.id,
     slug: event.slug,
@@ -62,6 +62,9 @@ export function toPublicEvent(event: Event): PublicEvent {
     startsAt: event.startsAt,
     timezone: event.timezone,
     coverPhotoId: event.coverPhotoId,
+    coverPhotoUrl: event.coverPhotoId && coverRevision !== null
+      ? `/media/${encodeURIComponent(event.id)}/${encodeURIComponent(event.coverPhotoId)}/${coverRevision}/medium`
+      : null,
     visibility: event.visibility,
     access: event.access,
     allowDownloads: event.allowDownloads,
@@ -95,9 +98,10 @@ export interface PhotoWithVariantRow {
   content_type: PhotoVariant['contentType'];
   variant_width: number;
   variant_height: number;
+  liked: number;
 }
 
-export function photosFromRows(rows: PhotoWithVariantRow[], allowDownloads: boolean): PublicPhoto[] {
+export function photosFromRows(rows: PhotoWithVariantRow[], allowDownloads: boolean, keepOriginals = false, showFavorites = false): PublicPhoto[] {
   const byId = new Map<string, PublicPhoto>();
   for (const row of rows) {
     let photo = byId.get(row.id);
@@ -112,14 +116,18 @@ export function photosFromRows(rows: PhotoWithVariantRow[], allowDownloads: bool
         sortKey: row.sort_key,
         revision: row.revision,
         sources: [],
-        downloadUrl: null,
+        downloadUrl: allowDownloads
+          ? `/media/${encodeURIComponent(row.event_id)}/${encodeURIComponent(row.id)}/${row.revision}/download`
+          : null,
+        liked: showFavorites && row.liked === 1,
       };
       byId.set(row.id, photo);
     }
     const url = `/media/${encodeURIComponent(row.event_id)}/${encodeURIComponent(row.id)}/${row.revision}/${row.variant}`;
     if (row.variant === 'download' || row.variant === 'original') {
-      if (allowDownloads && row.variant === 'download') photo.downloadUrl = url;
+      if (allowDownloads && keepOriginals && row.variant === 'original') photo.downloadUrl = url;
     } else {
+      if (row.content_type === 'image/png') continue;
       photo.sources.push({
         url,
         width: row.variant_width,

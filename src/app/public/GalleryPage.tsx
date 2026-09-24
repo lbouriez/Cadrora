@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { BackLink, Button, IconButton, InfoIcon, Input, Spinner } from '../components';
+import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
-import { GalleryApiError, getPublicEvent, getPublicPhotos, unlockEvent } from './api';
+import { GalleryApiError, getPublicEvent, getPublicPhotos, setPhotoFavorite, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -27,6 +27,9 @@ import type { PublicPhoto } from '../../shared/schemas/gallery';
 
 interface GalleryPhotoGridProps {
   downloadHelpId: string;
+  favoritesEnabled: boolean;
+  favoritePendingId: string | null;
+  onToggleFavorite: (photo: PublicPhoto) => void;
   onToggleSelection: (id: string, shiftKey: boolean) => void;
   onUnavailablePhoto: () => void;
   photos: PublicPhoto[];
@@ -36,11 +39,39 @@ interface GalleryPhotoGridProps {
   viewerQuery: string;
 }
 
-function GalleryPhotoGrid({ downloadHelpId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
+function photoColumnCount(width: number): number {
+  return width >= 1440 ? 4 : width >= 1120 ? 3 : width >= 640 ? 2 : 1;
+}
+
+function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId, onToggleFavorite, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columnCount, setColumnCount] = useState(() => typeof window === 'undefined' ? 1 : photoColumnCount(window.innerWidth - 32));
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry?.contentRect.width ?? 0;
+      setColumnCount(photoColumnCount(width));
+    });
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, []);
+  const activeColumnCount = Math.min(columnCount, Math.max(photos.length, 1));
+  const columns = useMemo(() => {
+    const result = Array.from({ length: activeColumnCount }, () => [] as PublicPhoto[]);
+    const heights = Array.from({ length: activeColumnCount }, () => 0);
+    for (const photo of photos) {
+      const shortest = heights.indexOf(Math.min(...heights));
+      result[shortest]?.push(photo);
+      heights[shortest] = (heights[shortest] ?? 0) + photo.height / photo.width;
+    }
+    return result;
+  }, [activeColumnCount, photos]);
   return (
-    <div className="photo-grid">
-      {photos.map((photo) => {
+    <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${activeColumnCount}, minmax(0, 1fr))` }}>
+      {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>
+      {column.map((photo) => {
         const sources = [...photo.sources].sort((left, right) => left.width - right.width);
         const fallback = sources[0];
         const image = (
@@ -54,25 +85,32 @@ function GalleryPhotoGrid({ downloadHelpId, onToggleSelection, onUnavailablePhot
             width={photo.width}
           />
         );
-        return selectionMode ? (
-          <button
+        return (
+          <div className="photo-tile-shell" key={photo.id}>
+          {selectionMode ? <button
             aria-label={t(photo.downloadUrl ? 'gallery.downloadSelection.photo' : 'gallery.downloadSelection.unavailablePhoto', { filename: photo.filename })}
             aria-pressed={photo.downloadUrl ? selectedIds.has(photo.id) : undefined}
             aria-controls={photo.downloadUrl ? undefined : downloadHelpId}
             className={`photo-tile photo-tile--selectable${photo.downloadUrl ? '' : ' photo-tile--unavailable'}`}
-            key={photo.id}
             onClick={(clickEvent) => photo.downloadUrl ? onToggleSelection(photo.id, clickEvent.shiftKey) : onUnavailablePhoto()}
             type="button"
           >
             {image}
             <span aria-hidden="true" className="photo-tile__check">{photo.downloadUrl ? '✓' : <InfoIcon />}</span>
-          </button>
-        ) : (
-          <Link aria-label={photo.filename} className="photo-tile" key={photo.id} to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
+          </button> : <Link aria-label={photo.filename} className="photo-tile" to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
             {image}
-          </Link>
+          </Link>}
+          {!selectionMode && favoritesEnabled ? <FavoriteButton
+            className="photo-tile__favorite"
+            disabled={favoritePendingId !== null}
+            label={t(photo.liked ? 'gallery.favorite.remove' : 'gallery.favorite.add', { filename: photo.filename })}
+            liked={photo.liked}
+            onToggle={() => onToggleFavorite(photo)}
+          /> : null}
+          </div>
         );
       })}
+      </div>)}
     </div>
   );
 }
@@ -103,6 +141,16 @@ export function GalleryPage() {
     getNextPageParam: (page) => page.nextCursor,
     enabled: Boolean(event.data),
   });
+  const favorite = useMutation({
+    mutationFn: ({ photo, liked }: { photo: PublicPhoto; liked: boolean }) => setPhotoFavorite(slug, photo.id, liked),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
+    },
+  });
+  const onToggleFavorite = (photo: PublicPhoto) => {
+    if (favorite.isPending || event.data?.access !== 'protected') return;
+    favorite.mutate({ photo, liked: !photo.liked });
+  };
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = photos;
   const unlock = useMutation({
     mutationFn: async () => {
@@ -156,6 +204,7 @@ export function GalleryPage() {
   const selectedPhotos = useMemo(() => allPhotos.filter((photo) => selectedIds.has(photo.id) && photo.downloadUrl), [allPhotos, selectedIds]);
   const downloadablePhotos = useMemo(() => visiblePhotos.filter((photo) => photo.downloadUrl), [visiblePhotos]);
   const supportsFolder = supportsSeparatePhotoDownloads();
+  const gridFavorites = { favoritesEnabled: event.data?.access === 'protected', favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
 
@@ -291,13 +340,14 @@ export function GalleryPage() {
   if (event.isError || !event.data) return <PublicLayout><p role="alert">{t('gallery.unavailable')}</p></PublicLayout>;
 
   return (
-    <PublicLayout>
+    <PublicLayout wide>
       <header className="gallery-heading">
         <BackLink to="/">{t('gallery.backHome')}</BackLink>
         <h1>{event.data.title}</h1>
         {event.data.description ? <p>{event.data.description}</p> : null}
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
+        {event.data.access === 'protected' ? <p className="gallery-meta">{t('gallery.favorite.shared')}</p> : null}
         <div className="gallery-heading__actions">
           {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
           {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
@@ -315,6 +365,8 @@ export function GalleryPage() {
           </div>
         ) : null}
       </header>
+
+      {favorite.isError ? <p role="alert">{t('gallery.favorite.error')}</p> : null}
 
       {accessRequired ? (
         unlockForm
@@ -366,7 +418,7 @@ export function GalleryPage() {
               <span>{matchedPhotoIds.length}</span>
             </div>
             <p>{t('gallery.photoFilter.matchesHelp')}</p>
-            <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={matchedPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
+            <GalleryPhotoGrid {...gridFavorites} downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={matchedPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
           </section>
           {nearbyPhotoIds.length > 0 ? (
             <section aria-labelledby="gallery-nearby-heading" className="gallery-found-group gallery-found-group--nearby">
@@ -375,11 +427,11 @@ export function GalleryPage() {
                 <span>{nearbyPhotoIds.length}</span>
               </div>
               <p>{t('gallery.photoFilter.nearbyHelp')}</p>
-              <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={nearbyPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
+              <GalleryPhotoGrid {...gridFavorites} downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={nearbyPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />
             </section>
           ) : null}
         </>
-      ) : <GalleryPhotoGrid downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
+      ) : <GalleryPhotoGrid {...gridFavorites} downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
       {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
       {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
@@ -392,6 +444,9 @@ export function GalleryPage() {
           onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}${viewerQuery}`); }}
           photo={selected}
           photos={matchesView ? visiblePhotos : allPhotos}
+          favoriteEnabled={event.data.access === 'protected'}
+          favoritePending={favorite.isPending}
+          onToggleFavorite={onToggleFavorite}
           showMetadata={event.data.showPhotoMetadata}
           timezone={event.data.timezone}
         />

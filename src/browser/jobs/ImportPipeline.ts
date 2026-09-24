@@ -29,7 +29,7 @@ export interface ImportPipelineSnapshot {
 }
 
 export interface RejectedImportFile {
-  code: 'CORRUPT_IMAGE' | 'UNSUPPORTED_IMAGE';
+  code: 'CORRUPT_IMAGE' | 'ORIGINAL_TOO_LARGE' | 'UNSUPPORTED_IMAGE';
   file: File;
 }
 
@@ -83,14 +83,14 @@ export class ImportPipeline {
     return () => this.listeners.delete(listener);
   }
 
-  async start(eventId: string, files: File[], timeZone = 'UTC'): Promise<ImportStartResult> {
+  async start(eventId: string, files: File[], timeZone = 'UTC', keepOriginals = false): Promise<ImportStartResult> {
     if (this.state === 'preparing' || this.state === 'processing' || this.state === 'paused') {
       throw new Error('An import is already active.');
     }
     this.state = 'preparing';
     this.emit();
 
-    const prepared = await this.preflight(files, timeZone);
+    const prepared = await this.preflight(files, timeZone, keepOriginals);
     if (prepared.accepted.length === 0) {
       this.state = 'idle';
       this.emit();
@@ -103,6 +103,7 @@ export class ImportPipeline {
       createdAt: now,
       eventId,
       id: importId,
+      keepOriginals,
       state: 'processing',
       totalPhotos: prepared.accepted.length,
       updatedAt: now,
@@ -121,7 +122,7 @@ export class ImportPipeline {
 
     try {
       // The client-provided id makes a retry after a tab crash naturally idempotent.
-      await this.options.api.createImport(eventId, { id: importId, totalPhotos: job.totalPhotos });
+      await this.options.api.createImport(eventId, { id: importId, totalPhotos: job.totalPhotos, keepOriginals });
       await this.process(importId);
     } catch (error) {
       await this.handleRunError(importId, error);
@@ -155,7 +156,7 @@ export class ImportPipeline {
     await this.saveJobState(job, 'processing');
     this.emit();
     try {
-      await this.options.api.createImport(job.eventId, { id: job.id, totalPhotos: job.totalPhotos });
+      await this.options.api.createImport(job.eventId, { id: job.id, totalPhotos: job.totalPhotos, keepOriginals: job.keepOriginals === true });
       await this.process(importId);
     } catch (error) {
       await this.handleRunError(importId, error);
@@ -172,22 +173,26 @@ export class ImportPipeline {
   }
 
   async cancel(): Promise<void> {
-    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused')) return;
+    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused' && this.state !== 'failed')) return;
     this.abortController?.abort();
     this.checkpointResolver?.();
     this.checkpointResolver = undefined;
-    this.state = 'cancelled';
     const job = await this.requireJob(this.activeImportId);
+    await this.options.api.cancelImport(job.id);
+    this.state = 'cancelled';
     await this.saveJobState(job, 'cancelled');
     this.emit();
   }
 
-  private async preflight(files: File[], timeZone: string): Promise<{
+  private async preflight(files: File[], timeZone: string, keepOriginals: boolean): Promise<{
     accepted: (ValidatedImageFile & { sourceIndex: number })[];
     rejected: RejectedImportFile[];
   }> {
     const results = await mapWithConcurrency(files, 2, async (file, sourceIndex) => {
       try {
+        if (keepOriginals && file.size > 100 * 1024 * 1024) {
+          return { error: { code: 'ORIGINAL_TOO_LARGE' as const }, file, sourceIndex } as const;
+        }
         return { sourceIndex, validated: await validateImageFile(file, timeZone) } as const;
       } catch (error) {
         if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) {
@@ -203,7 +208,7 @@ export class ImportPipeline {
       if ('validated' in result) accepted.push({ ...result.validated, sourceIndex: result.sourceIndex });
       else {
         rejected.push({
-          code: result.error.code === 'CORRUPT_IMAGE' ? 'CORRUPT_IMAGE' : 'UNSUPPORTED_IMAGE',
+          code: result.error.code === 'ORIGINAL_TOO_LARGE' ? 'ORIGINAL_TOO_LARGE' : result.error.code === 'CORRUPT_IMAGE' ? 'CORRUPT_IMAGE' : 'UNSUPPORTED_IMAGE',
           file: result.file,
         });
       }
@@ -216,6 +221,7 @@ export class ImportPipeline {
     this.abortController = abortController;
     const encoder = this.createEncoder();
     const uploadLimiter = new ConcurrencyLimiter(3);
+    const job = await this.requireJob(importId);
     try {
       for (;;) {
         await this.waitForCheckpoint();
@@ -236,7 +242,7 @@ export class ImportPipeline {
           importId,
           chunk.photos.map((photo) => photo.sourceIndex),
         );
-        const errors = await this.processChunk(chunk, files, encoder, uploadLimiter, abortController.signal);
+        const errors = await this.processChunk(chunk, files, encoder, uploadLimiter, abortController.signal, job.keepOriginals === true);
         if (errors > 0) {
           chunk.state = 'failed';
           chunk.updatedAt = this.now().toISOString();
@@ -255,8 +261,8 @@ export class ImportPipeline {
       }
 
       this.state = 'completed';
-      const job = await this.requireJob(importId);
-      await this.saveJobState(job, 'completed');
+      const completedJob = await this.requireJob(importId);
+      await this.saveJobState(completedJob, 'completed');
       this.emit();
     } finally {
       encoder.dispose();
@@ -270,6 +276,7 @@ export class ImportPipeline {
     encoder: ImageEncoder,
     uploadLimiter: ConcurrencyLimiter,
     signal: AbortSignal,
+    keepOriginals: boolean,
   ): Promise<number> {
     const candidates = chunk.photos.filter((photo) => photo.state !== 'finalized');
     const results = await mapWithConcurrency(candidates, 2, async (photo) => {
@@ -278,8 +285,9 @@ export class ImportPipeline {
         const file = files.get(photo.sourceIndex);
         if (!file) throw new ImageProcessingError('CORRUPT_IMAGE', 'The source file is no longer available for resume.');
         const encoded = await encoder.encode(file);
+        const originals = keepOriginals ? [await originalVariant(file, photo)] : [];
         await Promise.all(
-          encoded.variants.map((variant) =>
+          [...encoded.variants, ...originals].map((variant) =>
             uploadLimiter.run(() => this.options.api.uploadVariant(photo.id, variant, signal)),
           ),
         );
@@ -362,6 +370,21 @@ export class ImportPipeline {
   }
 }
 
+async function originalVariant(file: File, photo: ImportJournalPhoto) {
+  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+  // The photo declaration describes the displayed orientation; original bytes retain the camera's dimensions.
+  const swapsDimensions = (photo.orientation ?? 1) >= 5;
+  return {
+    blob: file,
+    byteSize: file.size,
+    checksumSha256: [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
+    contentType: photo.contentType,
+    height: swapsDimensions ? photo.width : photo.height,
+    name: 'original' as const,
+    width: swapsDimensions ? photo.height : photo.width,
+  };
+}
+
 function buildChunks(
   importId: string,
   files: (ValidatedImageFile & { sourceIndex: number })[],
@@ -375,6 +398,7 @@ function buildChunks(
       filename: file.file.name || `photo-${file.sourceIndex + 1}`,
       height: file.height,
       id: crypto.randomUUID(),
+      orientation: file.orientation,
       sourceIndex: file.sourceIndex,
       sortKey: String(file.sourceIndex).padStart(8, '0'),
       state: 'pending',

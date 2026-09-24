@@ -103,7 +103,7 @@ function AdminImportContent({ eventId }: { eventId: string }) {
   if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <ImportPage eventId={eventId} timezone={gallery.timezone} />
+      <ImportPage eventId={eventId} keepOriginals={gallery.keepOriginals} timezone={gallery.timezone} />
       {summary.data ? (
         <PublishPanel
           eventId={eventId}

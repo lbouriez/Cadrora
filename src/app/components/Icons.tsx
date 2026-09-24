@@ -36,3 +36,7 @@ export function InfoIcon(props: IconProps) {
 export function DownloadIcon(props: IconProps) {
   return <svg {...iconProps(props)}><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" /></svg>;
 }
+
+export function HeartIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><path d="M20.8 8.2c0 4.2-5.4 8.3-8.8 10.8C8.6 16.5 3.2 12.4 3.2 8.2a4.4 4.4 0 0 1 8.8-.1 4.4 4.4 0 0 1 8.8.1Z" /></svg>;
+}

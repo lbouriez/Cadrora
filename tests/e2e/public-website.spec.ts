@@ -230,13 +230,16 @@ test.describe('site vitrine statique', () => {
 });
 
 test('presente les galeries publiees avec une couverture plein cadre et les visages visibles', async ({ page }) => {
+  await page.route('**/media/demo-ai-face-search/demo-ai-01/0/medium', async (route) => {
+    await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#ad806a"/></svg>', contentType: 'image/svg+xml' });
+  });
   await page.route('**/api/v1/galleries', async (route) => {
     await route.fulfill({
       body: JSON.stringify({
         events: [{
           id: 'demo-ai-face-search', slug: 'find-your-photos', title: 'Find your photos',
           description: 'A portrait gallery', startsAt: '2026-09-20T15:00:00.000Z',
-          timezone: 'America/Toronto', coverPhotoId: null, visibility: 'published',
+          timezone: 'America/Toronto', coverPhotoId: 'demo-ai-01', coverPhotoUrl: '/media/demo-ai-face-search/demo-ai-01/0/medium', visibility: 'published',
           access: 'public', allowDownloads: true, faceSearchEnabled: true,
           nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
           revision: 1, updatedAt: '2026-09-20T15:00:00.000Z',
@@ -248,10 +251,9 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
 
   await page.goto('/galleries');
   await expect(page.getByRole('heading', { name: 'Find your photos' })).toBeVisible();
-  const image = page.locator('.event-card__visual--ai img');
+  const image = page.locator('.event-card__visual img');
   await expect(image).toBeVisible();
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
-  await expect(image).toHaveAttribute('src', '/brand/demo-ai-cover.webp');
-  expect(await image.evaluate((element) => getComputedStyle(element).objectPosition)).toBe('50% 8%');
+  await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/medium');
   await assertNoHorizontalOverflow(page);
 });

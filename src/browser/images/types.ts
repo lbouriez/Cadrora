@@ -18,9 +18,9 @@ export interface EncodedVariant {
   blob: Blob;
   byteSize: number;
   checksumSha256: string;
-  contentType: EncodedImageType;
+  contentType: AcceptedSourceImageType;
   height: number;
-  name: PhotoVariantName;
+  name: PhotoVariantName | 'original';
   width: number;
 }
 

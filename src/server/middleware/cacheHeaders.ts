@@ -11,6 +11,7 @@ export const CACHE_CONTROL_BY_POLICY: Record<CachePolicy, string> = {
   'event-public': 'public, max-age=60',
   'media-protected': 'private, max-age=3600',
   'media-public': 'public, max-age=31536000, immutable',
+  'media-download': 'private, no-store',
 };
 
 export function applyCachePolicy(context: Context<AppEnv>, policy: CachePolicy): void {

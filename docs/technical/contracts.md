@@ -2,6 +2,9 @@
 
 Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md); owner-approved public-site configuration changes are recorded in [`ADR-008`](../decisions/ADR-008-runtime-website-settings-and-maps.md).
 
+Original delivery and admin-selected gallery covers are recorded in [`ADR-009`](../decisions/ADR-009-original-delivery-and-gallery-covers.md).
+The shared favorites contract for protected galleries is recorded in [`ADR-010`](../decisions/ADR-010-private-gallery-shared-favorites.md).
+
 ## Platform boundaries
 
 - React + TypeScript + Vite with the official Cloudflare plugin.
@@ -20,6 +23,7 @@ GET    /api/v1/galleries
 GET    /api/v1/galleries/:eventId
 POST   /api/v1/galleries/:eventId/unlock
 GET    /api/v1/galleries/:eventId/photos?cursor=...
+PUT    /api/v1/galleries/:eventId/photos/:photoId/favorite
 POST   /api/v1/galleries/:eventId/face-search
 GET    /api/v1/galleries/:eventId/photos/:photoId/related
 GET    /media/:eventId/:photoId/:revision/:variant
@@ -34,10 +38,16 @@ GET    /api/v1/admin/session
 GET    /api/v1/admin/site
 PATCH  /api/v1/admin/site
 GET    /api/v1/admin/galleries
+GET    /api/v1/admin/galleries/:eventId/cover-photos?offset=...
+GET    /api/v1/admin/galleries/:eventId/cover-photos/:photoId
+GET    /api/v1/admin/galleries/:eventId/originals
+POST   /api/v1/admin/galleries/:eventId/originals/cleanup
+POST   /api/v1/admin/galleries/:eventId/originals/abandon-imports
 POST   /api/v1/admin/galleries
 PATCH  /api/v1/admin/galleries/:eventId
 DELETE /api/v1/admin/galleries/:eventId
 POST   /api/v1/admin/galleries/:eventId/imports
+POST   /api/v1/admin/imports/:importId/cancel
 POST   /api/v1/admin/imports/:importId/photos
 PUT    /api/v1/admin/photos/:photoId/variants/:variant
 POST   /api/v1/admin/photos/:photoId/faces
@@ -68,6 +78,7 @@ Hono implements the error boundary through `app.onError`; its module occupies th
 | Content | Public event | Protected event |
 | --- | --- | --- |
 | Revisioned `/media/*` | `public, max-age=31536000, immutable` | `private, max-age=3600` |
+| `/media/*/download` and `/media/*/original` | `private, no-store` | `private, no-store` |
 | Public event API | `public, max-age=60` keyed by revision | `private, no-store` |
 | Admin API | `no-store` | `no-store` |
 | Hashed app assets | `public, immutable` | `public, immutable` |
@@ -91,7 +102,7 @@ D1 contains `site_settings`, `events`, `event_credentials`, `photos`, `photo_var
 
 `site_settings.owner_gallery_limit`, `owner_storage_limit_bytes`, and `owner_face_limit` are nullable positive self-limits. Null means the deployment ceiling. The effective value is always the lower of the owner value, its deployment variable, and any provider allowance encoded as a system ceiling. Lowering a limit never deletes data; it blocks new gallery, media, or face writes until usage is below it. It must never be presented as an account-wide billing guarantee.
 
-Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Permanent deletion sets `events.deleting_at`, cancels open imports, freezes photo/face writes, and enqueues one `delete_gallery` job after exact-title confirmation. Provider cleanup uses only D1-derived gallery object/vector identifiers and never touches the shared model bucket. Natural-key upserts make variant and face declarations idempotent. D1 removes access before R2 and Vectorize cleanup, which is retried from `maintenance_jobs`.
+Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Permanent deletion sets `events.deleting_at`, cancels open imports, freezes photo/face writes, and enqueues one `delete_gallery` job after exact-title confirmation. Provider cleanup uses only D1-derived gallery object/vector identifiers and never touches the shared model bucket. Natural-key upserts make variant and face declarations idempotent. D1 removes access before R2 and Vectorize cleanup, which is retried from `maintenance_jobs`. Original-file delivery requires gallery downloads; disabling either choice fences original media immediately. The owner's explicit `delete_gallery_originals` job then removes only gallery-owned originals from R2 and D1 in retryable batches, leaving derived copies intact.
 
 ## UI and localization
 
@@ -99,7 +110,7 @@ Semantic values live in `src/app/styles/tokens.css`. Reusable typed components l
 
 The optional GA4 integration is disabled without a valid D1-backed `site_settings.analytics_measurement_id`, starts only after explicit analytics consent, and is allowlisted to `/`, `/services`, `/galleries`, `/contact`, and `/privacy`. Gallery viewer, admin, media, API, and facial-search routes never emit analytics events. The ID is public configuration, not a secret. No arbitrary script URL or code may be stored in Site settings.
 
-Gallery links never acquire browser-default underlines or layout-changing hover movement. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there.
+Gallery links never acquire browser-default underlines or layout-changing hover movement. The wide gallery mosaic preserves photo aspect ratios. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there. A heart is shown in the mosaic and viewer only for protected galleries. It represents one shared D1 boolean per photo, not a per-visitor reaction or count. A favorite write requires same-origin CSRF proof, a current gallery grant, and a published photo in that protected gallery; public galleries expose neither active heart state nor the control.
 
 `site_settings.theme_mode` is `light`, `dark`, `both`, or `system`; `default_language` is `fr` or `en`; and `enabled_languages` is a non-empty, unique JSON list drawn from those languages that must contain the default. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. One enabled language is enforced and hides the public language control; multiple enabled languages expose it. The public shell falls back to build-time language selection, both languages, and visitor-selectable colour when the settings read is unavailable.
 
@@ -107,7 +118,7 @@ The same owner settings include public contact fields, a non-empty unique list o
 
 ## Import and facial-search privacy
 
-- The browser accepts decodable JPEG, PNG, and WebP only in v1. For JPEG it retains a normalized capture instant from `DateTimeOriginal` plus optional `OffsetTimeOriginal`, using the gallery timezone only when the camera omitted its offset. It corrects all eight EXIF orientations and strips the source EXIF/XMP payload—including GPS, serial numbers, and private comments—from every derived variant.
+- The browser accepts decodable JPEG, PNG, and WebP only in v1. For JPEG it retains a normalized capture instant from `DateTimeOriginal` plus optional `OffsetTimeOriginal`, using the gallery timezone only when the camera omitted its offset. It corrects all eight EXIF orientations and strips the source EXIF/XMP payload—including GPS, serial numbers, and private comments—from every derived variant. When enabled for a new import, the untouched source is also stored as `original` and retains that metadata.
 - Variant widths are 480, 960, 1600, 2560, and 3840 pixels, without upscaling. WebP is used only after runtime encoding and MIME verification; otherwise use JPEG.
 - A visitor selfie remains local. The Worker receives an embedding only and never returns embeddings or face coordinates.
 - Models load only on the find route. Facial search is disabled by default, event-scoped, expiring, and described as possible matches rather than identity confidence.
