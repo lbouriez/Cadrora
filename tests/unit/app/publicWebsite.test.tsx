@@ -67,7 +67,7 @@ describe('public photographer website', () => {
 
     expect(screen.getByRole('heading', { name: 'IA facultative et recherche faciale' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Conservation et suppression' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: "Témoins et mesure d'audience" })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Comment nous comptons les visites' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Qui est responsable de ce site?' })).toBeTruthy();
   });
 

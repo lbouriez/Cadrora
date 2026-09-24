@@ -42,7 +42,7 @@ export function ServiceAreaMap({ centerLatitude, centerLongitude, embedKey = sit
   return (
     <section aria-labelledby="service-area-map-title" className="service-area-map">
       <div className="service-area-map__copy">
-        <p className="site-eyebrow">{t('gallery.contactServiceArea')}</p>
+        <p className="site-eyebrow">{t('gallery.contactMapEyebrow')}</p>
         <h2 id="service-area-map-title">{t('gallery.contactMapTitle')}</h2>
         <p>{t('gallery.contactMapRadius', { radius: radiusKm })}</p>
         <a className="button button--secondary" href={externalUrl} rel="noreferrer" target="_blank">{t('gallery.contactMapOpen')} <span aria-hidden="true">↗</span></a>

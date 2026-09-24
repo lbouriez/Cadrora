@@ -167,8 +167,8 @@ test.describe('site vitrine statique', () => {
     await page.goto('/services');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/photos pour les moments|photography for the moments/i);
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /photographie corporative|corporate photography/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /enfance et enfants|children and childhood/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /photos d’entreprise|workplace photography/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /portraits d’enfants|children’s portraits/i })).toBeVisible();
     await expect(page.locator('.service-detail-card__image')).toHaveCount(5);
     await assertNoHorizontalOverflow(page);
 
@@ -180,7 +180,7 @@ test.describe('site vitrine statique', () => {
 
     await page.goto('/privacy');
     await expect(page.getByRole('heading', { name: /IA facultative et recherche faciale|optional AI and face search/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /témoins et mesure d'audience|cookies and analytics/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /comment nous comptons les visites|how we count visits/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /nécessaire seulement|necessary only/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });

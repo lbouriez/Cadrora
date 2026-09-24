@@ -103,7 +103,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   const analyticsId = page.getByRole('textbox', { name: /google analytics id|identifiant google analytics/i });
   await analyticsId.fill('G-ABCDEF1234');
   await expect(analyticsId).toHaveValue('G-ABCDEF1234');
-  const corporateService = page.getByRole('checkbox', { name: /corporate photography|photographie corporative/i });
+  const corporateService = page.getByRole('checkbox', { name: /workplace photography|photos d’entreprise/i });
   await corporateService.uncheck();
   await expect(corporateService).not.toBeChecked();
   await corporateService.check();
