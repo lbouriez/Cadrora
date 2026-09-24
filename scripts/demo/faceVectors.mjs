@@ -188,9 +188,19 @@ function sqlString(value) {
   return `'${value.replaceAll("'", "''")}'`;
 }
 
-const negativeControlPhotoIds = new Set(
-  [11, 12, 13, 14, 15, 18, 19].map((number) => `demo-ai-${String(number).padStart(2, '0')}`),
+const malikNegativeControlPhotoIds = new Set(
+  [11, 12, 13, 14, 15].map((number) => `demo-ai-${String(number).padStart(2, '0')}`),
 );
+const distinctGuestPhotoIds = new Set([
+  ...malikNegativeControlPhotoIds,
+  'demo-ai-18',
+  'demo-ai-19',
+]);
+const expectedPortraitMatches = {
+  amelia: new Set(),
+  daniel: new Set(),
+  nora: new Set(['demo-ai-18', 'demo-ai-19']),
+};
 
 export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portraitDirectory }) {
   ortEnv.wasm.numThreads = 1;
@@ -228,14 +238,14 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
     }
   }
 
-  const missingNegativeControls = [...negativeControlPhotoIds].filter((photoId) => photosWithoutFaces.includes(photoId));
+  const missingNegativeControls = [...distinctGuestPhotoIds].filter((photoId) => photosWithoutFaces.includes(photoId));
   if (missingNegativeControls.length > 0) {
     throw new Error(`Expected a detectable face in every negative-control photo: ${missingNegativeControls.join(', ')}.`);
   }
 
   const portraitMatches = {};
   const portraitEmbeddings = {};
-  for (const name of ['amelia', 'daniel']) {
+  for (const name of ['amelia', 'daniel', 'nora']) {
     const image = await detectFaces(detector, join(portraitDirectory, `test-portrait-${name}.webp`));
     if (image.faces.length !== 1) throw new Error(`Expected one face in ${name}'s demo portrait, found ${image.faces.length}.`);
     const embedding = await embedFace(recognizer, image, image.faces[0]);
@@ -245,9 +255,15 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
       .filter((candidate) => candidate.score >= MATCH_THRESHOLD)
       .sort((left, right) => right.score - left.score);
     if (matches.length === 0) throw new Error(`${name}'s demo portrait has no match at the production threshold.`);
-    const falsePositiveControls = matches.filter((candidate) => negativeControlPhotoIds.has(candidate.photoId));
+    const allowedMatches = expectedPortraitMatches[name];
+    const falsePositiveControls = matches.filter(
+      (candidate) => distinctGuestPhotoIds.has(candidate.photoId) && !allowedMatches.has(candidate.photoId),
+    );
     if (falsePositiveControls.length > 0) {
-      throw new Error(`${name}'s portrait incorrectly matched negative-control photos: ${falsePositiveControls.map((candidate) => candidate.photoId).join(', ')}.`);
+      throw new Error(`${name}'s portrait incorrectly matched distinct-guest photos: ${falsePositiveControls.map((candidate) => candidate.photoId).join(', ')}.`);
+    }
+    if (name === 'nora' && !matches.some((candidate) => allowedMatches.has(candidate.photoId))) {
+      throw new Error("Nora's demo portrait did not match either Nora photo in the gallery.");
     }
     portraitMatches[name] = matches;
   }
@@ -273,7 +289,7 @@ ${faceRows};
 `;
   return {
     faceCount: indexed.length,
-    negativeControlCount: negativeControlPhotoIds.size,
+    negativeControlCount: malikNegativeControlPhotoIds.size,
     photosWithoutFaces,
     portraitEmbeddings,
     portraitMatches,

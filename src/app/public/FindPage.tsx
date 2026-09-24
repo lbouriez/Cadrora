@@ -231,6 +231,10 @@ export function FindPage() {
               <img alt="" loading="lazy" src="/demo/face-search/test-portrait-daniel.webp" />
               <span>{t('faceFind.testPortraitDaniel')}</span>
             </a>
+            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-nora.webp">
+              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-nora.webp" />
+              <span>{t('faceFind.testPortraitNora')}</span>
+            </a>
           </div>
         </aside>
         {preview ? (

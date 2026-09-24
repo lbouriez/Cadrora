@@ -21,7 +21,7 @@ export const findResources = {
     noMatches: 'We could not find a possible match in this gallery. You can still browse all its photos.', unavailable: 'Photo search is unavailable right now. You can still browse the gallery.',
     back: 'Back to gallery', imageAlt: 'Locally selected search photo', matchAlt: 'Possible matching event photo',
     testPortraits: 'Want to try it?', testPortraitsHelp: 'Save one of these sample portraits, then choose it above to look for matching photos in the demo gallery.',
-    testPortraitAmelia: 'Save Amelia’s portrait', testPortraitDaniel: 'Save Daniel’s portrait',
+    testPortraitAmelia: 'Save Amelia’s portrait', testPortraitDaniel: 'Save Daniel’s portrait', testPortraitNora: 'Save Nora’s portrait',
   } },
   fr: { faceFind: {
     eyebrow: 'Recherche photo privée', startTitle: 'Commencez avec une photo',
@@ -43,7 +43,7 @@ export const findResources = {
     noMatches: 'Nous n’avons pas trouvé de ressemblance dans cette galerie. Vous pouvez quand même parcourir toutes ses photos.', unavailable: 'La recherche de photos est indisponible pour le moment. Vous pouvez quand même parcourir la galerie.',
     back: 'Retour à la galerie', imageAlt: 'Photo de recherche choisie localement', matchAlt: "Photo d'événement possiblement correspondante",
     testPortraits: 'Envie d’essayer?', testPortraitsHelp: 'Enregistrez un de ces portraits d’exemple, puis choisissez-le ci-dessus pour chercher ses photos dans la galerie de démonstration.',
-    testPortraitAmelia: 'Enregistrer le portrait d’Amelia', testPortraitDaniel: 'Enregistrer le portrait de Daniel',
+    testPortraitAmelia: 'Enregistrer le portrait d’Amelia', testPortraitDaniel: 'Enregistrer le portrait de Daniel', testPortraitNora: 'Enregistrer le portrait de Nora',
   } },
 } as const;
 
