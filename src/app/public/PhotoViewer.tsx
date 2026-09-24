@@ -80,9 +80,11 @@ export function PhotoViewer({ favoriteEnabled, favoritePending, onClose, onSelec
             {photos.map((candidate) => {
               const candidateImage = imageAttributes(candidate);
               const selected = candidate.id === photo.id;
+              const fillsDesktop = candidate.width > candidate.height && candidate.width / candidate.height < 2;
               return (
-                <div aria-hidden={!selected} className="photo-viewer__slide" key={candidate.id}>
-                  <img alt={selected ? candidate.filename : ''} height={candidate.height} sizes="100vw" src={candidateImage.src} srcSet={candidateImage.srcSet} width={candidate.width} />
+                <div aria-hidden={!selected} className={`photo-viewer__slide${fillsDesktop ? ' photo-viewer__slide--fills-desktop' : ''}`} key={candidate.id}>
+                  <img alt="" aria-hidden="true" className="photo-viewer__ambient" height={candidate.height} src={candidateImage.src} width={candidate.width} />
+                  <img alt={selected ? candidate.filename : ''} className="photo-viewer__image" height={candidate.height} sizes="100vw" src={candidateImage.src} srcSet={candidateImage.srcSet} width={candidate.width} />
                 </div>
               );
             })}

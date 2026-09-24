@@ -1135,15 +1135,28 @@
 }
 
 .photo-viewer__slide {
+  position: relative;
   display: flex;
   min-width: 0;
   height: 100%;
   flex: 0 0 100%;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
-.photo-viewer__slide > img {
+.photo-viewer__ambient {
+  position: absolute;
+  inset: -2rem;
+  width: calc(100% + 4rem);
+  height: calc(100% + 4rem);
+  object-fit: cover;
+  filter: blur(2rem) brightness(0.62);
+  pointer-events: none;
+}
+
+.photo-viewer__image {
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
@@ -1287,6 +1300,10 @@
 }
 
 @media (min-width: 64rem) {
+  .photo-viewer__slide--fills-desktop .photo-viewer__image {
+    object-fit: cover;
+  }
+
   .modal-backdrop.modal-backdrop--photo-viewer {
     padding: clamp(1.5rem, 3vw, 3rem);
     background: rgb(18 12 22 / 44%);

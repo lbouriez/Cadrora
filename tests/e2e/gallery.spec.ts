@@ -1,10 +1,14 @@
 import { expect, mockGallery, test } from './fixtures';
 
-test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
+test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) => {
   await mockGallery(page);
   await page.goto('/e/mariage-lumiere');
 
   await expect(page.getByRole('heading', { level: 1, name: 'Mariage Lumiere' })).toBeVisible();
+  const landscapeTile = await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).boundingBox();
+  const portraitTile = await page.getByRole('link', { name: 'portrait-au-jardin.jpg' }).boundingBox();
+  expect((portraitTile?.height ?? 0) / (portraitTile?.width ?? 1)).toBeGreaterThan((landscapeTile?.height ?? 0) / (landscapeTile?.width ?? 1));
+  await page.screenshot({ path: testInfo.outputPath('gallery-mixed-aspects.png') });
   await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/photo\/photo-1$/);
   const dialog = page.getByRole('dialog');
@@ -18,6 +22,8 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   expect(desktopDialogBox?.height).toBeLessThan(900);
   await expect(dialog).not.toHaveCSS('border-radius', '0px');
   await expect(page.locator('.modal-backdrop--photo-viewer')).not.toHaveCSS('backdrop-filter', 'none');
+  await expect(dialog.locator('.photo-viewer__slide--fills-desktop').first().locator('.photo-viewer__image')).toHaveCSS('object-fit', 'cover');
+  await page.screenshot({ path: testInfo.outputPath('viewer-landscape.png') });
   const closeButton = page.getByRole('button', { name: /fermer la visionneuse|close viewer/i });
   const closeBox = await closeButton.boundingBox();
   const closeIconBox = await closeButton.locator('svg').boundingBox();
@@ -34,12 +40,21 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }) => {
   const nextAfterHover = await nextButton.boundingBox();
   expect(nextAfterHover).toEqual(nextBeforeHover);
   await expect(nextButton).toHaveCSS('transform', 'none');
+  await nextButton.click();
+  await expect(page).toHaveURL(/\/photo\/photo-2$/);
+  const portrait = dialog.locator('.photo-viewer__slide').filter({ has: page.locator('img[alt="portrait-au-jardin.jpg"]') });
+  await expect(portrait.locator('.photo-viewer__image')).toHaveCSS('object-fit', 'contain');
+  await expect(portrait.locator('.photo-viewer__ambient')).toHaveCSS('filter', /blur/);
+  await page.screenshot({ path: testInfo.outputPath('viewer-portrait.png') });
+  await page.getByRole('button', { name: /photo précédente|previous photo/i }).click();
+  await expect(page).toHaveURL(/\/photo\/photo-1$/);
   await page.getByRole('button', { name: /afficher les informations|show photo information/i }).click();
   await expect(page.getByText('danse-au-coucher-du-soleil.jpg')).toBeVisible();
   const capturedAt = dialog.locator('dt', { hasText: /prise de vue|captured/i }).locator('..').locator('dd');
   await expect(capturedAt).toContainText(/20.*2026.*12:00:00.*(?:UTC.?4|EDT)/i);
   await expect(page.getByText('1800 × 1200 px')).toBeVisible();
   await page.setViewportSize({ height: 844, width: 390 });
+  await expect(dialog.locator('.photo-viewer__slide--fills-desktop').first().locator('.photo-viewer__image')).toHaveCSS('object-fit', 'contain');
   const mobileDialogBox = await dialog.boundingBox();
   expect(mobileDialogBox).toEqual({ height: 844, width: 390, x: 0, y: 0 });
   await expect(dialog).toHaveCSS('border-radius', '0px');

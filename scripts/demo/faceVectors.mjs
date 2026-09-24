@@ -189,7 +189,7 @@ function sqlString(value) {
 }
 
 const negativeControlPhotoIds = new Set(
-  Array.from({ length: 5 }, (_, index) => `demo-ai-${String(index + 11).padStart(2, '0')}`),
+  [11, 12, 13, 14, 15, 18, 19].map((number) => `demo-ai-${String(number).padStart(2, '0')}`),
 );
 
 export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portraitDirectory }) {
@@ -209,7 +209,7 @@ export async function buildDemoFaceIndex({ mediaDirectory, modelDirectory, portr
   const indexed = [];
   const photosWithoutFaces = [];
 
-  for (let photoNumber = 1; photoNumber <= 15; photoNumber += 1) {
+  for (let photoNumber = 1; photoNumber <= 19; photoNumber += 1) {
     const number = String(photoNumber).padStart(2, '0');
     const image = await detectFaces(detector, join(mediaDirectory, `ai-demo-${number}-large.webp`));
     if (image.faces.length === 0) {

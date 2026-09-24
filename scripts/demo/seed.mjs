@@ -34,7 +34,7 @@ const objectKeyByFile = new Map([
   ['private-newborn-large.webp', 'demo/private/newborn/1/large.webp'],
 ]);
 
-for (let number = 1; number <= 15; number += 1) {
+for (let number = 1; number <= 19; number += 1) {
   const photo = String(number).padStart(2, '0');
   for (const variant of ['thumb', 'medium', 'large']) {
     objectKeyByFile.set(

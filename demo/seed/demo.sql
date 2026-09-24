@@ -48,7 +48,7 @@ INSERT INTO events (
   ),
   (
     'demo-ai-face-search', 'find-your-photos', 'Retrouvez vos photos',
-    'Démonstration IA : quinze images fictives, créées pour présenter la recherche de photos par selfie. Un troisième invité distinct apparaît dans cinq scènes afin de vérifier que la recherche ne confond pas les visages — essayez le parcours « Trouver mes photos ».',
+    'Démonstration IA : dix-neuf images fictives, créées pour présenter la recherche de photos par selfie. Amelia apparaît aussi dans des portraits verticaux, et d''autres invités distincts permettent de vérifier que la recherche ne confond pas les visages — essayez le parcours « Trouver mes photos ».',
     '2026-08-30T18:00:00.000Z', 'America/Toronto', 'demo-ai-01',
     'published', 'public', 1, 1, 1, 1, 0, NULL, 1,
     '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z'
@@ -89,7 +89,7 @@ INSERT INTO imports (
 ) VALUES
   ('demo-public-import', 'demo-public', 'completed', 5, 5, '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
   ('demo-private-import', 'demo-private', 'completed', 2, 2, '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'),
-  ('demo-ai-face-search-import', 'demo-ai-face-search', 'completed', 15, 15, '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z')
+  ('demo-ai-face-search-import', 'demo-ai-face-search', 'completed', 19, 19, '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z')
 ON CONFLICT(id) DO UPDATE SET
   event_id = excluded.event_id,
   state = excluded.state,
@@ -122,7 +122,11 @@ INSERT INTO photos (
   ('demo-ai-12', 'demo-ai-face-search', 'demo-ai-face-search-import', 'applaudissements-malik.webp', 'image/webp', 1536, 1024, '2026-08-30T18:16:00.000Z', 'ceremony', '012', 1, 'published', 'ready', '2026-09-22T00:00:00.000Z', '2026-09-22T00:00:00.000Z'),
   ('demo-ai-13', 'demo-ai-face-search', 'demo-ai-face-search-import', 'cocktail-malik.webp', 'image/webp', 1536, 1024, '2026-08-30T18:32:00.000Z', 'cocktails', '013', 1, 'published', 'ready', '2026-09-22T00:00:00.000Z', '2026-09-22T00:00:00.000Z'),
   ('demo-ai-14', 'demo-ai-face-search', 'demo-ai-face-search-import', 'diner-malik.webp', 'image/webp', 1536, 1024, '2026-08-30T21:02:00.000Z', 'reception', '014', 1, 'published', 'ready', '2026-09-22T00:00:00.000Z', '2026-09-22T00:00:00.000Z'),
-  ('demo-ai-15', 'demo-ai-face-search', 'demo-ai-face-search-import', 'danse-malik.webp', 'image/webp', 1536, 1024, '2026-08-30T21:32:00.000Z', 'dance', '015', 1, 'published', 'ready', '2026-09-22T00:00:00.000Z', '2026-09-22T00:00:00.000Z')
+  ('demo-ai-15', 'demo-ai-face-search', 'demo-ai-face-search-import', 'danse-malik.webp', 'image/webp', 1536, 1024, '2026-08-30T21:32:00.000Z', 'dance', '015', 1, 'published', 'ready', '2026-09-22T00:00:00.000Z', '2026-09-22T00:00:00.000Z'),
+  ('demo-ai-16', 'demo-ai-face-search', 'demo-ai-face-search-import', 'amelia-terrasse.webp', 'image/webp', 1024, 1536, '2026-08-30T18:17:00.000Z', 'ceremony', '002a', 1, 'published', 'ready', '2026-09-24T00:00:00.000Z', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-17', 'demo-ai-face-search', 'demo-ai-face-search-import', 'amelia-jardin.webp', 'image/webp', 1024, 1536, '2026-08-30T21:16:00.000Z', 'sunset', '009a', 1, 'published', 'ready', '2026-09-24T00:00:00.000Z', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-18', 'demo-ai-face-search', 'demo-ai-face-search-import', 'nora-terrasse.webp', 'image/webp', 1024, 1536, '2026-08-30T19:01:00.000Z', 'garden', '005a', 1, 'published', 'ready', '2026-09-24T00:00:00.000Z', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-19', 'demo-ai-face-search', 'demo-ai-face-search-import', 'nora-jardin.webp', 'image/webp', 1024, 1536, '2026-08-30T18:34:00.000Z', 'cocktails', '013a', 1, 'published', 'ready', '2026-09-24T00:00:00.000Z', '2026-09-24T00:00:00.000Z')
 ON CONFLICT(id) DO UPDATE SET
   event_id = excluded.event_id,
   import_id = excluded.import_id,
@@ -211,7 +215,19 @@ INSERT INTO photo_variants (
   ('demo-ai-14', 'large', 'demo/ai-face-search/14/1/large.webp', 'image/webp', 111120, 1536, 1024, 'a025709682387bd240b5caaf30a60f5bd2495f8df9f222b7d257acbbbf9219ea', '2026-09-22T00:00:00.000Z'),
   ('demo-ai-15', 'thumb', 'demo/ai-face-search/15/1/thumb.webp', 'image/webp', 26936, 480, 320, '31002c4895f65e1758bddf909498f64970c77186d5410b4c400685a03be8c12a', '2026-09-22T00:00:00.000Z'),
   ('demo-ai-15', 'medium', 'demo/ai-face-search/15/1/medium.webp', 'image/webp', 62376, 960, 640, 'bd6dc1c97359dd558ccf0d0fdd34886ac0e8b7965e75cfc27320db014aa5dc64', '2026-09-22T00:00:00.000Z'),
-  ('demo-ai-15', 'large', 'demo/ai-face-search/15/1/large.webp', 'image/webp', 112468, 1536, 1024, '3520b4a31e452cca57e49e587e21f2a1904033b6507efe58fb6b655397e8e236', '2026-09-22T00:00:00.000Z')
+  ('demo-ai-15', 'large', 'demo/ai-face-search/15/1/large.webp', 'image/webp', 112468, 1536, 1024, '3520b4a31e452cca57e49e587e21f2a1904033b6507efe58fb6b655397e8e236', '2026-09-22T00:00:00.000Z'),
+  ('demo-ai-16', 'thumb', 'demo/ai-face-search/16/1/thumb.webp', 'image/webp', 31208, 320, 480, '77d1e0dbc7781537c359dbfe7f69db24b9ca27466c7cbb73a6dfafc487a4e46c', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-16', 'medium', 'demo/ai-face-search/16/1/medium.webp', 'image/webp', 81130, 640, 960, '3da7a3c4348ca248ce5277f19b9f04beb5b18a95143240d1001ae02210f0303a', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-16', 'large', 'demo/ai-face-search/16/1/large.webp', 'image/webp', 148576, 1024, 1536, 'be6c6aa9485288b7ec4446b42dd68a0518faaea7d79f867b1c75b324481b4c56', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-17', 'thumb', 'demo/ai-face-search/17/1/thumb.webp', 'image/webp', 30272, 320, 480, '396a7aff03fec40985a944065f4ace025ed2f529d7725cf516a230e949d53d92', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-17', 'medium', 'demo/ai-face-search/17/1/medium.webp', 'image/webp', 81616, 640, 960, '856efd719eed93de65d96315c7c32f4d5d5c09b2635b8c7df50048bd323fda81', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-17', 'large', 'demo/ai-face-search/17/1/large.webp', 'image/webp', 150952, 1024, 1536, '3f7b45ec3ce95f4eef58bcc9757b9e6c3cb2966e8d7c7d6473d7bf726168e83f', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-18', 'thumb', 'demo/ai-face-search/18/1/thumb.webp', 'image/webp', 34174, 320, 480, '11b4b746f95208ffaf070b4a4fede285eb79b5b1d2bb7f6b62c084c3737dcb9b', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-18', 'medium', 'demo/ai-face-search/18/1/medium.webp', 'image/webp', 96958, 640, 960, 'b44c6e6fa5efda500b13ddd26a793253aeacce1617a3a79823d2a904d64d006d', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-18', 'large', 'demo/ai-face-search/18/1/large.webp', 'image/webp', 182764, 1024, 1536, '2049d11f40cb2e54ddeec27b9edc538722146a49f64a3b5c8ae9d604b9b2ef25', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-19', 'thumb', 'demo/ai-face-search/19/1/thumb.webp', 'image/webp', 33828, 320, 480, 'feb6ea761988d86bccc7f6ce12baab72783dd932b69af8d299fa2be934688881', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-19', 'medium', 'demo/ai-face-search/19/1/medium.webp', 'image/webp', 89438, 640, 960, 'd10b8876fbf508d991a9f3fc84872c5dae214d86519d1d8ab44aadda5f626bae', '2026-09-24T00:00:00.000Z'),
+  ('demo-ai-19', 'large', 'demo/ai-face-search/19/1/large.webp', 'image/webp', 162876, 1024, 1536, '577d6e7242099eb4742a91f262189d1274b3620ffe5dc9aa0eaa04e132ed7bf6', '2026-09-24T00:00:00.000Z')
 ON CONFLICT(photo_id, variant) DO UPDATE SET
   storage_key = excluded.storage_key,
   content_type = excluded.content_type,
@@ -231,12 +247,14 @@ WHERE NOT (
     'demo-public-preparation', 'demo-public-ceremony', 'demo-public-toast', 'demo-public-sunset', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
     'demo-ai-01', 'demo-ai-02', 'demo-ai-03', 'demo-ai-04', 'demo-ai-05',
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
-    'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15'
-  )) = 22
+    'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15',
+    'demo-ai-16', 'demo-ai-17', 'demo-ai-18', 'demo-ai-19'
+  )) = 26
   AND (SELECT COUNT(*) FROM photo_variants WHERE photo_id IN (
     'demo-public-preparation', 'demo-public-ceremony', 'demo-public-toast', 'demo-public-sunset', 'demo-public-dance', 'demo-private-family', 'demo-private-newborn',
     'demo-ai-01', 'demo-ai-02', 'demo-ai-03', 'demo-ai-04', 'demo-ai-05',
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
-    'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15'
-  )) = 71
+    'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15',
+    'demo-ai-16', 'demo-ai-17', 'demo-ai-18', 'demo-ai-19'
+  )) = 83
 );
