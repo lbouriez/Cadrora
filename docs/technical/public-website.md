@@ -50,6 +50,8 @@ If the operator supplies a restricted `VITE_GOOGLE_MAPS_EMBED_KEY`, the click-to
 ## Design and content rules
 
 - Keep all user-facing copy in both FR and EN resources.
+- Write for visitors and photographers who do not know the implementation: describe what they can do and what happens to their photos, not Workers, databases, vectors, variants, or deployment details. Keep necessary settings such as a Google Analytics ID specific enough to act on. Preserve accurate consent, gallery-scope, cost-limit, and deletion disclosures in plain language.
+- The privacy overview uses a demo-specific paragraph only when the showcase gate is enabled; other installations must not claim their people or contact details are fictional.
 - Reuse the semantic tokens and shared button primitives.
 - Do not load remote fonts, forms, or stock images. GA4 is consent-gated and marketing-route-limited. The contact map is click-to-load only; Google Maps is optional, OpenStreetMap is the keyless default.
 - The landing page and contact page must remain static except for the public event list.

@@ -12,10 +12,10 @@ export const resources = {
       },
       errors: {
         demoReadOnly: 'This demonstration account is read-only.',
-        faceIndexBusy: 'This photo is being indexed or deleted. Please try again shortly.',
+        faceIndexBusy: 'This photo is still being prepared or removed. Please try again shortly.',
         internal: 'An unexpected error occurred.',
         rateLimited: 'Too many requests. Please try again shortly.',
-        routeNotFound: 'This API route does not exist.',
+        routeNotFound: 'We could not find what you requested.',
       },
       security: {
         challengeLoading: 'Preparing the security check…',
@@ -36,10 +36,10 @@ export const resources = {
       },
       errors: {
         demoReadOnly: 'Ce compte de démonstration est en lecture seule.',
-        faceIndexBusy: "Cette photo est en cours d’indexation ou de suppression. Réessayez dans un instant.",
+        faceIndexBusy: 'Cette photo est encore en préparation ou en cours de suppression. Réessayez dans un instant.',
         internal: 'Une erreur inattendue est survenue.',
         rateLimited: 'Trop de requêtes. Réessayez dans un instant.',
-        routeNotFound: "Cette route d'API n'existe pas.",
+        routeNotFound: 'Nous n’avons pas trouvé ce que vous cherchez.',
       },
       security: {
         challengeLoading: 'Préparation de la vérification de sécurité…',

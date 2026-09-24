@@ -99,8 +99,8 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('group', { name: /website|site web/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
-  await expect(page.getByRole('group', { name: /free-tier guardrails|garde-fous du niveau gratuit/i })).toBeVisible();
-  const analyticsId = page.getByRole('textbox', { name: /google analytics measurement id|identifiant de mesure google analytics/i });
+  await expect(page.getByRole('group', { name: /your site limits|limites de votre site/i })).toBeVisible();
+  const analyticsId = page.getByRole('textbox', { name: /google analytics id|identifiant google analytics/i });
   await analyticsId.fill('G-ABCDEF1234');
   await expect(analyticsId).toHaveValue('G-ABCDEF1234');
   const corporateService = page.getByRole('checkbox', { name: /corporate photography|photographie corporative/i });
@@ -125,8 +125,8 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(language).toHaveValue('fr');
   await expect(theme).toHaveValue('system');
   const galleryLimit = page.getByRole('spinbutton', { name: /maximum separate galleries|nombre maximal de galeries distinctes/i });
-  const storageLimit = page.getByRole('spinbutton', { name: /maximum media storage|stockage média maximal/i });
-  const faceLimit = page.getByRole('spinbutton', { name: /maximum indexed faces|nombre maximal de visages indexés/i });
+  const storageLimit = page.getByRole('spinbutton', { name: /maximum space for photos|espace maximal pour les photos/i });
+  const faceLimit = page.getByRole('spinbutton', { name: /maximum faces saved|nombre maximal de visages conservés/i });
   await expect(galleryLimit).toHaveValue('10');
   await expect(storageLimit).toHaveValue('2');
   await expect(faceLimit).toHaveValue('10000');

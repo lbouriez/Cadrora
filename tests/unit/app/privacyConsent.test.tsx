@@ -19,7 +19,7 @@ beforeEach(async () => {
 describe('public privacy consent', () => {
   it('defaults to necessary-only and remembers that choice', () => {
     render(<MemoryRouter><PrivacyConsent /></MemoryRouter>);
-    expect(screen.getByRole('region', { name: 'Vous choisissez ce qui quitte votre navigateur.' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Votre vie privée, votre choix.' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Nécessaire seulement' }));
     expect(readPrivacyConsent()).toBe('necessary');
     expect(screen.queryByRole('region')).toBeNull();
@@ -30,7 +30,7 @@ describe('public privacy consent', () => {
     render(<MemoryRouter><PrivacyConsent /></MemoryRouter>);
     expect(screen.queryByRole('region')).toBeNull();
     act(() => openPrivacyPreferences());
-    expect(screen.getByRole('region', { name: 'Vous choisissez ce qui quitte votre navigateur.' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Votre vie privée, votre choix.' })).toBeTruthy();
   });
 
   it('offers optional analytics only when a runtime measurement ID is configured', () => {

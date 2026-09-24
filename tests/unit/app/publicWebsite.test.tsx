@@ -9,10 +9,12 @@ import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
 import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
+import { installFindResources } from '../../../src/app/public/FindI18n';
 import { installPublicResources } from '../../../src/app/public/i18n';
 
 beforeAll(() => {
   installPublicResources(i18n);
+  installFindResources(i18n);
 });
 
 beforeEach(async () => {
@@ -36,10 +38,10 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
     renderPage(<HomePage />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Chaque photo. Plus facile à retrouver.' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Une photographie profondément personnelle.' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Essayer le chercheur IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
-    await waitFor(() => expect(screen.getByText(/galeries publiques sont temporairement indisponibles/i)).toBeTruthy());
+    expect(screen.getByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Retrouver des photos avec l’IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
+    await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
   });
 
   it('renders contact details supplied by D1 without a demo disclaimer', async () => {
@@ -66,6 +68,18 @@ describe('public photographer website', () => {
     expect(screen.getByRole('heading', { name: 'IA facultative et recherche faciale' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Conservation et suppression' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: "Témoins et mesure d'audience" })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: "Responsabilités de l'exploitant" })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Qui est responsable de ce site?' })).toBeTruthy();
+  });
+
+  it('uses natural singular and plural labels for photo results in both languages', async () => {
+    expect(i18n.t('faceFind.resultCount', { count: 1 })).toBe('1 photo possible trouvée dans cette galerie.');
+    expect(i18n.t('faceFind.nearbyFound', { count: 2 })).toContain('2 autres photos');
+    expect(i18n.t('gallery.downloadSelection.count', { count: 1 })).toBe('1 photo sélectionnée');
+    expect(i18n.t('gallery.downloadSelection.count', { count: 0 })).toBe('0 photo sélectionnée');
+
+    await i18n.changeLanguage('en');
+    expect(i18n.t('faceFind.resultCount', { count: 1 })).toBe('1 possible photo found in this gallery.');
+    expect(i18n.t('faceFind.nearbyFound', { count: 2 })).toContain('2 more photos');
+    expect(i18n.t('gallery.downloadSelection.count', { count: 1 })).toBe('1 photo selected');
   });
 });

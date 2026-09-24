@@ -18,7 +18,9 @@ export function PrivacyPage() {
           <p className="site-eyebrow">{t('gallery.privacyPage.eyebrow')}</p>
           <h1>{t('gallery.privacyPage.title')}</h1>
           <p>{t('gallery.privacyPage.lead')}</p>
-          <p className="privacy-page__updated">{t('gallery.privacyPage.updated')}</p>
+          <p className="privacy-page__updated">{t(siteProfile.demo.enabled
+            ? 'gallery.privacyPage.updatedDemo'
+            : 'gallery.privacyPage.updated')}</p>
         </header>
         <div className="privacy-page__layout">
           <nav aria-label={t('gallery.privacyPage.onThisPage')} className="privacy-page__nav">
@@ -31,7 +33,9 @@ export function PrivacyPage() {
             {sections.map((section) => (
               <section id={`privacy-${section}`} key={section}>
                 <h2>{t(`gallery.privacyPage.${section}.title`)}</h2>
-                <p>{t(`gallery.privacyPage.${section}.body`)}</p>
+                <p>{t(section === 'overview' && siteProfile.demo.enabled
+                  ? 'gallery.privacyPage.overview.demoBody'
+                  : `gallery.privacyPage.${section}.body`)}</p>
                 {section === 'ai' ? (
                   <ul>
                     <li>{t('gallery.privacyPage.ai.point1')}</li>

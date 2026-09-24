@@ -22,10 +22,10 @@ test.describe('site vitrine statique', () => {
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/chaque photo|every photo/i);
-    await expect(page.getByRole('heading', { name: /photographie profondément personnelle|photography made personal/i })).toBeVisible();
-    await expect(page.getByRole('status')).toContainText(/temporairement indisponibles|temporarily unavailable/i);
-    await expect(page.getByRole('link', { name: /essayer le chercheur ia|try the ai photo finder|tester l’ia|try ai search/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/vos moments préférés|the moments you came for/i);
+    await expect(page.getByRole('heading', { name: /des photos qui vous ressemblent|photos that feel like you/i })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
+    await expect(page.getByRole('link', { name: /retrouver des photos avec l’ia|find photos with ai/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
 
@@ -165,7 +165,7 @@ test.describe('site vitrine statique', () => {
 
   test('relie les services, les demonstrations et la confidentialite', async ({ page }) => {
     await page.goto('/services');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/images sensibles|photography with feeling/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/photos pour les moments|photography for the moments/i);
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /photographie corporative|corporate photography/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /enfance et enfants|children and childhood/i })).toBeVisible();
@@ -175,7 +175,7 @@ test.describe('site vitrine statique', () => {
     await page.goto('/galleries');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/histoires à retrouver|stories to return/i);
     await expect(page.getByRole('heading', { name: /explorer les collections|explore the collections/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /tester le chercheur de photos ia|test the ai photo finder/i })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /essayer la recherche de photos avec l’ia|try finding photos with ai/i })).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/privacy');

@@ -52,7 +52,7 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
   await page.goto('/e/mariage-lumiere');
 
   const galleryActions = page.locator('.gallery-heading__actions');
-  const findAction = galleryActions.getByRole('link', { name: /trouver mes photos possibles|find my possible photos/i });
+  const findAction = galleryActions.getByRole('link', { name: /retrouver mes photos|find photos of me/i });
   const downloadAction = galleryActions.getByRole('button', { name: /sélectionner des photos|select photos to download/i });
   const findBox = await findAction.boundingBox();
   const downloadBox = await downloadAction.boundingBox();
@@ -121,7 +121,7 @@ test('propose le ZIP apres un dossier refuse par le navigateur', async ({ page }
   await page.getByRole('button', { name: /sélectionner des photos|select photos to download/i }).click();
   await page.getByRole('button', { name: /sélectionner les photos téléchargeables visibles|select visible downloadable photos/i }).click();
   await page.getByRole('button', { name: /enregistrer 2 photos séparément|save 2 separate photos/i }).click();
-  await expect(page.getByRole('alert')).toContainText(/aucun dossier accessible en écriture|no writable folder was selected/i);
+  await expect(page.getByRole('alert')).toContainText(/n’a pas pu enregistrer les photos|could not save to that folder/i);
   await page.screenshot({ path: testInfo.outputPath('folder-rejected.png') });
   await page.getByRole('button', { name: /créer un ZIP|create a ZIP/i }).click();
   await expect(page.getByRole('link', { name: /enregistrer le ZIP|save ZIP/i })).toBeVisible();
@@ -168,26 +168,26 @@ test('selectionne une plage avec Maj et toutes les photos disponibles avec Ctrl+
     .not.toContainText(/pour des fichiers séparés|for separate files|Maj\+clic|Shift-click/i);
   const unavailable = page.getByRole('button', { name: /portrait-au-jardin.jpg n’est pas disponible|portrait-au-jardin.jpg is not available/i });
   await unavailable.click();
-  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeVisible();
+  await expect(page.getByText(/télécharger 2 des 3 photos|download 2 of the 3 photos/i)).toBeVisible();
   const help = page.getByRole('button', { name: /pourquoi certaines photos|why are some photos/i });
   await help.click();
-  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeHidden();
+  await expect(page.getByText(/télécharger 2 des 3 photos|download 2 of the 3 photos/i)).toBeHidden();
   await help.click();
-  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeVisible();
+  await expect(page.getByText(/télécharger 2 des 3 photos|download 2 of the 3 photos/i)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('selection-help.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(help).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('selection-help-mobile.png') });
   await help.click();
-  await expect(page.getByText(/2 photos visibles sur 3|2 of 3 visible photos/i)).toBeHidden();
+  await expect(page.getByText(/télécharger 2 des 3 photos|download 2 of the 3 photos/i)).toBeHidden();
 
   await page.getByRole('button', { name: /sélectionner danse-au-coucher-du-soleil|select danse-au-coucher-du-soleil/i }).click();
   await page.getByRole('button', { name: /sélectionner portrait-a-la-fete|select portrait-a-la-fete/i }).click({ modifiers: ['Shift'] });
   await expect(page.getByText(/2 photos sélectionnées|2 photos selected/i)).toBeVisible();
   await expect(unavailable).toBeEnabled();
   await page.getByRole('button', { name: /effacer la sélection|clear selection/i }).click();
-  await expect(page.getByText(/0 photos sélectionnées|0 photos selected/i)).toBeVisible();
+  await expect(page.getByText(/0 photo sélectionnée|0 photos selected/i)).toBeVisible();
   await page.keyboard.press('Control+A');
   await expect(page.getByText(/2 photos sélectionnées|2 photos selected/i)).toBeVisible();
   await page.getByRole('button', { name: /terminer la sélection|finish selecting/i }).click();
@@ -210,8 +210,8 @@ test('conserve les resultats IA dans la session et filtre la galerie', async ({ 
   await page.goto('/e/mariage-lumiere?view=matches');
 
   await expect(page.getByRole('button', { name: /trouvées pour moi|found for me/i })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByRole('heading', { name: /correspondances possibles|possible matches/i })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /moments rapprochés|nearby moments/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: /photos où vous apparaissez peut-être|photos you may be in/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /photos prises autour du même moment|photos taken around the same time/i })).toBeVisible();
   await expect(page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'portrait-au-jardin.jpg' })).toBeVisible();
   await page.getByRole('button', { name: /toutes les photos|all photos/i }).click();
@@ -236,8 +236,8 @@ test('revient aux resultats de recherche apres fermeture de la visionneuse', asy
   await page.getByRole('button', { name: /fermer la visionneuse|close viewer/i }).click();
 
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/find#face-search-results$/);
-  await expect(page.getByRole('heading', { name: /correspondances possibles|possible matches/i })).toBeVisible();
-  await expect(page.getByRole('heading', { name: /photos de moments rapprochés|photos from nearby moments/i })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: /photos où vous apparaissez peut-être|photos you may be in/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /photos prises autour du même moment|photos taken around the same time/i })).toBeVisible();
 });
 
 test('demande puis echange le mot de passe d une galerie protegee', async ({ page }) => {
