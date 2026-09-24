@@ -90,13 +90,15 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
        ORDER BY e.starts_at DESC, e.id ASC`,
     ).all<EventRow & { cover_revision: number | null }>();
     const protectedResult = await context.env.DB.prepare(
-      `SELECT id FROM events WHERE visibility = 'published' AND access = 'protected'
+      `SELECT id, slug, title, description, starts_at FROM events WHERE visibility = 'published' AND access = 'protected'
        AND offline_at IS NULL AND deleting_at IS NULL ORDER BY starts_at DESC, id ASC`,
-    ).all<{ id: string }>();
+    ).all<{ id: string; slug: string; title: string; description: string | null; starts_at: string }>();
     applyCachePolicy(context, 'event-public');
     return validatedJson(context, PublicEventListSchema, {
       events: result.results.map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
-      protectedGalleries: protectedResult.results.map((row) => ({ id: row.id })),
+      protectedGalleries: protectedResult.results.map((row) => ({
+        id: row.id, slug: row.slug, title: row.title, description: row.description, startsAt: row.starts_at,
+      })),
     });
   });
 

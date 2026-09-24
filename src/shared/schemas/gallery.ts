@@ -62,7 +62,13 @@ export const ReplacePhotoResponseSchema = z.object({ photoId: IdSchema, revision
 
 export const PublicEventListSchema = z.object({
   events: z.array(PublicEventSchema),
-  protectedGalleries: z.array(z.object({ id: IdSchema }).strict()),
+  protectedGalleries: z.array(z.object({
+    id: IdSchema,
+    slug: SlugSchema,
+    title: EventSchema.shape.title,
+    description: EventSchema.shape.description,
+    startsAt: IsoDateTimeSchema,
+  }).strict()),
 });
 
 export const AdminEventListSchema = z.object({
@@ -175,6 +181,7 @@ export const PhotoListQuerySchema = z.object({
 });
 
 export type PublicEvent = z.infer<typeof PublicEventSchema>;
+export type ProtectedGalleryPreview = z.infer<typeof PublicEventListSchema>['protectedGalleries'][number];
 export type PublicPhoto = z.infer<typeof PublicPhotoSchema>;
 export type AdminFavoritePhoto = z.infer<typeof AdminFavoritePhotoSchema>;
 export type CreateEventRequest = z.infer<typeof CreateEventRequestSchema>;

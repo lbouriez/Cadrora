@@ -66,7 +66,7 @@ export function GalleriesPage() {
       </MotionReveal>
       <section aria-labelledby="published-events-title" className="site-section site-section--compact">
         <div className="site-section__heading">
-          <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>
+          <p className="site-eyebrow">{t('gallery.galleryListEyebrow')}</p>
           <h2 id="published-events-title">{t('gallery.eventsPage.publishedTitle')}</h2>
         </div>
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}

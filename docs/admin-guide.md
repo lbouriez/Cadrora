@@ -35,6 +35,7 @@ The live admin API can create, list, and update galleries. A gallery has a stabl
 
 - Draft galleries return 404 to public routes.
 - Published public galleries are listed by the landing-page query.
+- Published protected galleries also appear on `/galleries` with their title, date, and description. Their card image is generic; the password still protects the actual gallery photos. Use Unlisted or Offline if the event details should not appear in the public index.
 - Unlisted galleries are available by direct URL but are not listed or promoted.
 - A protected gallery needs a password. Updating it increments the access version and invalidates existing gallery grants.
 - In a protected gallery, visitors with the password can tap the heart on a photo in the gallery or viewer. There is one shared heart per photo: everyone with access sees the current choice after refreshing, and anyone with access can remove it. Public galleries have no hearts, and no visitor-specific favorites or counts are kept.

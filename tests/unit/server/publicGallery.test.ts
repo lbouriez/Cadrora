@@ -1,3 +1,4 @@
+import { Hono } from 'hono';
 import { describe, expect, it, vi } from 'vitest';
 
 import { CACHE_CONTROL_BY_POLICY } from '../../../src/server/middleware/cacheHeaders';
@@ -9,11 +10,34 @@ import {
 } from '../../../src/server/routes/public/credentials';
 import { verifyPassword } from '../../../src/server/auth';
 import { photosFromRows } from '../../../src/server/routes/public/data';
-import { decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/galleries';
+import { createPublicEventRoutes, decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/galleries';
 import { D1MediaRepository } from '../../../src/server/repositories/mediaRepository';
+import type { AppEnv } from '../../../src/server/types';
 
 describe('public gallery contracts', () => {
   const authPepper = 'test-auth-pepper-that-is-at-least-thirty-two-bytes';
+
+  it('publishes protected event details without exposing a private cover or photo URL', async () => {
+    const prepare = vi.fn((sql: string) => ({
+      all: () => Promise.resolve({ results: sql.includes("e.access = 'public'") ? [] : [{
+        id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
+        starts_at: '2026-09-21T15:00:00.000Z',
+      }] }),
+    }));
+    const app = new Hono<AppEnv>();
+    app.route('/api/v1', createPublicEventRoutes());
+    const response = await app.request('/api/v1/galleries', {}, {
+      DB: { prepare } as unknown as D1Database,
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      events: [], protectedGalleries: [{
+        id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
+        startsAt: '2026-09-21T15:00:00.000Z',
+      }],
+    });
+    expect(prepare.mock.calls[1]?.[0]).not.toContain('cover_photo_id');
+  });
 
   it('round trips a stable sort key, id, and revision cursor', () => {
     const cursor = { sortKey: '2026-09-20T10:00:00.000Z', id: 'photo-2', revision: 7 };

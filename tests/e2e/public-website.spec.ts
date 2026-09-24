@@ -244,9 +244,18 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
           nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
           revision: 1, updatedAt: '2026-09-20T15:00:00.000Z',
         }],
-        protectedGalleries: [{ id: 'private-sample' }],
+        protectedGalleries: [{
+          id: 'private-sample', slug: 'family-afternoon', title: 'A family afternoon', description: 'An afternoon worth keeping.',
+          startsAt: '2026-09-21T15:00:00.000Z',
+        }],
       }),
       contentType: 'application/json',
+    });
+  });
+  await page.route('**/api/v1/galleries/private-sample', async (route) => {
+    await route.fulfill({
+      status: 401, contentType: 'application/json',
+      body: JSON.stringify({ code: 'EVENT_ACCESS_REQUIRED', message: 'errors.eventAccessRequired', requestId: 'e2e' }),
     });
   });
 
@@ -258,5 +267,20 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/medium');
   await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/find-your-photos');
   await expect(page.locator('.event-card--protected')).toHaveCount(1);
+  const protectedCard = page.locator('.event-card--protected');
+  await expect(protectedCard.getByRole('heading', { name: 'A family afternoon' })).toBeVisible();
+  await expect(protectedCard.getByText('An afternoon worth keeping.')).toBeVisible();
+  await expect(protectedCard.locator('img')).toHaveAttribute('src', '/brand/private-gallery-cover.webp');
+  await expect(protectedCard.locator('img')).not.toHaveAttribute('src', /\/media\//u);
+  await expect(protectedCard.locator('a')).toHaveAttribute('href', '/e/private-sample');
+  const arrowBottomGaps = await page.locator('.event-card').evaluateAll((cards) => cards.map((card) => {
+    const arrow = card.querySelector('.event-card__arrow');
+    return arrow ? card.getBoundingClientRect().bottom - arrow.getBoundingClientRect().bottom : -1;
+  }));
+  expect(Math.max(...arrowBottomGaps) - Math.min(...arrowBottomGaps)).toBeLessThan(2);
   await assertNoHorizontalOverflow(page);
+  await protectedCard.locator('a').click();
+  await expect(page.getByRole('heading', { level: 1, name: 'A family afternoon' })).toBeVisible();
+  await expect(page.getByText('An afternoon worth keeping.')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: /gallery password|mot de passe de la galerie/i })).toBeVisible();
 });

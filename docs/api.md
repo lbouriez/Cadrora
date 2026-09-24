@@ -31,7 +31,7 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `GET /galleries` | Public | Lists published, public galleries only. |
+| `GET /galleries` | Public | Lists published public galleries and published protected-gallery previews (`id`, `slug`, `title`, `startsAt`, `description`). Protected covers and photos are absent. |
 | `GET /site` | Public | Validated public `SiteSettings` singleton; the static portfolio does not depend on it. |
 | `GET /galleries/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
 | `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |

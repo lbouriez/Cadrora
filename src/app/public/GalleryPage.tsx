@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, RetouchButton, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
-import { GalleryApiError, getPublicEvent, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
+import { GalleryApiError, getPublicEvent, getPublicGalleryIndex, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -144,6 +144,10 @@ export function GalleryPage() {
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
   const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
+  const publicIndex = useQuery({
+    queryKey: ['public-gallery-index'], queryFn: getPublicGalleryIndex,
+    enabled: event.error instanceof GalleryApiError && event.error.status === 401,
+  });
   const photos = useInfiniteQuery({
     queryKey: ['public-photos', slug, event.data?.revision],
     queryFn: ({ pageParam }) => getPublicPhotos(slug, pageParam ?? undefined),
@@ -305,6 +309,7 @@ export function GalleryPage() {
   };
   const accessRequired = (event.error instanceof GalleryApiError && event.error.status === 401)
     || (photos.error instanceof GalleryApiError && photos.error.status === 401);
+  const lockedPreview = publicIndex.data?.protectedGalleries.find((gallery) => gallery.id === slug || gallery.slug === slug);
   const isPrivateDemo = siteProfile.demo.enabled && slug === siteProfile.demo.privateGallerySlug;
   const accessError = event.error instanceof GalleryApiError
     ? event.error
@@ -349,13 +354,26 @@ export function GalleryPage() {
       robots.name = 'robots';
       document.head.append(robots);
     }
-    robots.content = event.data?.visibility === 'unlisted' || event.data?.access === 'protected'
+    robots.content = event.data?.visibility === 'unlisted' || event.data?.access === 'protected' || accessRequired
       ? 'noindex,nofollow'
       : 'index,follow';
-  }, [event.data?.access, event.data?.visibility]);
+  }, [accessRequired, event.data?.access, event.data?.visibility]);
 
   if (event.isPending) return <PublicLayout><Spinner label={t('gallery.loading')} /></PublicLayout>;
-  if (accessRequired && !event.data) return <PublicLayout>{unlockForm}</PublicLayout>;
+  if (accessRequired && !event.data) return <PublicLayout wide>
+    {lockedPreview ? <header className="gallery-heading">
+      <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
+      <div className="gallery-heading__hero gallery-heading__hero--without-cover">
+        <div className="gallery-heading__copy">
+          <p className="gallery-heading__eyebrow">{t('gallery.headingPrivate')}</p>
+          <h1>{lockedPreview.title}</h1>
+          <p className="gallery-heading__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(lockedPreview.startsAt))}</p>
+          {lockedPreview.description ? <p className="gallery-heading__description">{lockedPreview.description}</p> : null}
+        </div>
+      </div>
+    </header> : null}
+    {unlockForm}
+  </PublicLayout>;
   if (event.isError || !event.data) return <PublicLayout><p role="alert">{t('gallery.unavailable')}</p></PublicLayout>;
 
   return (

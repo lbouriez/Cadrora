@@ -35,6 +35,11 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
   return EventSchema.parse(await response.json());
 }
 
+function ProtectedListingHint({ access }: { access: Event['access'] }) {
+  const { t } = useTranslation();
+  return access === 'protected' ? <p className="field__hint">{t('admin.events.protectedListingHint')}</p> : null;
+}
+
 async function deleteGallery(eventId: string, confirmation: string): Promise<void> {
   const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}`, {
     body: JSON.stringify({ confirmation }),
@@ -151,6 +156,7 @@ export function AdminEventsPage() {
               <option value="public">{t('admin.events.public')}</option>
               <option value="protected">{t('admin.events.protected')}</option>
           </Select>
+          <ProtectedListingHint access={access} />
           {access === 'protected' ? <Input label={t('admin.events.password')} minLength={8} name="password" required type="password" /> : null}
           <Input disabled={unlimitedRetention} label={t('admin.events.retention')} min={1} name="retentionDays" type="number" />
           <p className="field__hint">{t('admin.events.retentionHint')}</p>
@@ -275,6 +281,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             <option value="public">{t('admin.events.public')}</option>
             <option value="protected">{t('admin.events.protected')}</option>
         </Select>
+        <ProtectedListingHint access={access} />
         {access === 'protected' ? (
           <Input
             label={event.access === 'protected' ? t('admin.events.newPassword') : t('admin.events.password')}

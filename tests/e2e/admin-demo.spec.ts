@@ -23,6 +23,12 @@ const demoEvent = {
   updatedAt: '2026-09-20T15:00:00.000Z',
 };
 
+const protectedEvent = {
+  ...demoEvent,
+  id: 'private-sample', slug: 'private-sample', title: 'Private family gallery',
+  access: 'protected', retouchSelectionCount: 1,
+};
+
 test('la demo admin laisse explorer les reglages sans autoriser les ecritures', async ({ page }) => {
   const writes: string[] = [];
   await page.route('**/api/v1/admin/**', async (route) => {
@@ -99,7 +105,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       return;
     }
     if (path.endsWith('/galleries')) {
-      await route.fulfill({ body: JSON.stringify({ events: [demoEvent] }), contentType: 'application/json' });
+      await route.fulfill({ body: JSON.stringify({ events: [demoEvent, protectedEvent] }), contentType: 'application/json' });
       return;
     }
     await route.fulfill({ body: '{}', contentType: 'application/json', status: 404 });
@@ -200,6 +206,24 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     dispatchEvent(new PopStateEvent('popstate'));
   });
   await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
+  const privateRow = page.locator('.admin-event-row').filter({ hasText: 'Private family gallery' });
+  await expect(privateRow.getByRole('link', { name: /client photo choices|choix des clients/i })).toBeVisible();
+  await page.setViewportSize({ width: 1200, height: 850 });
+  const actionLayout = await privateRow.evaluate((row) => {
+    const bounds = row.getBoundingClientRect();
+    const actions = row.querySelector('.admin-event-row__actions');
+    if (!actions) return { columns: 0, withinCard: false };
+    const buttons = [...actions.querySelectorAll('a')];
+    return {
+      columns: getComputedStyle(actions).gridTemplateColumns.split(' ').length,
+      withinCard: buttons.every((button) => {
+        const buttonBounds = button.getBoundingClientRect();
+        return buttonBounds.left >= bounds.left && buttonBounds.right <= bounds.right;
+      }),
+    };
+  });
+  expect(actionLayout).toEqual({ columns: 2, withinCard: true });
+  await page.setViewportSize({ width: 320, height: 812 });
   const dashboardOrder = await page.locator('.admin-events > section').evaluateAll((sections) => sections.map((section) => section.getAttribute('class') ?? ''));
   expect(dashboardOrder.slice(0, 2)).toEqual(['admin-card admin-demo-intro', 'admin-card admin-events__list']);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
