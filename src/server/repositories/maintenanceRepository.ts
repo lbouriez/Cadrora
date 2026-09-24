@@ -11,8 +11,17 @@ const PurgeExpiredFacesPayloadSchema = z.object({
 const DeleteFaceVectorPayloadSchema = z.object({ vectorId: z.string().min(1).max(512) });
 const DeleteGalleryPayloadSchema = z.object({ eventId: IdSchema });
 const DeleteGalleryOriginalsPayloadSchema = z.object({ eventId: IdSchema });
+const DeleteReplacedMediaPayloadSchema = z.object({
+  eventId: IdSchema,
+  photoId: IdSchema,
+  revision: z.number().int().nonnegative(),
+  storageKeys: z.array(z.string().min(1).max(1_024)).min(1).max(6),
+}).refine((value) => value.storageKeys.every((key) => key.startsWith(`events/${value.eventId}/photos/`) &&
+  /^events\/[^/]+\/photos\/[^/]+\/\d+\/(thumb|small|medium|large|download|original)\.(jpg|webp|png)$/u.test(key)), {
+  message: 'Replacement cleanup keys must belong to this gallery.',
+});
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -326,6 +335,10 @@ export function parseDeleteGalleryPayload(payload: unknown) {
 
 export function parseDeleteGalleryOriginalsPayload(payload: unknown) {
   return DeleteGalleryOriginalsPayloadSchema.parse(payload);
+}
+
+export function parseDeleteReplacedMediaPayload(payload: unknown) {
+  return DeleteReplacedMediaPayloadSchema.parse(payload);
 }
 
 export function parsePurgeFacesPayload(payload: unknown) {

@@ -9,6 +9,7 @@ export interface ImportJournalJob {
   eventId: string;
   id: string;
   keepOriginals?: boolean;
+  replacementPhotoId?: string;
   state: ImportJobState;
   totalPhotos: number;
   updatedAt: string;
@@ -54,7 +55,7 @@ export interface ImportJournal {
   getFiles(importId: string, sourceIndexes: number[]): Promise<Map<number, File>>;
   getJob(importId: string): Promise<ImportJournalJob | undefined>;
   getNextUnfinishedChunk(importId: string): Promise<ImportJournalChunk | undefined>;
-  getResumable(eventId: string): Promise<ImportJournalJob | undefined>;
+  getResumable(eventId: string, replacementPhotoId?: string): Promise<ImportJournalJob | undefined>;
   saveChunk(chunk: ImportJournalChunk): Promise<void>;
   saveJob(job: ImportJournalJob): Promise<void>;
 }
@@ -119,12 +120,12 @@ export class IndexedDbImportJournal implements ImportJournal {
     return (await this.getChunks(importId)).find((chunk) => chunk.state !== 'finalized');
   }
 
-  async getResumable(eventId: string): Promise<ImportJournalJob | undefined> {
+  async getResumable(eventId: string, replacementPhotoId?: string): Promise<ImportJournalJob | undefined> {
     const jobs = await this.request<ImportJournalJob[]>(JOB_STORE, 'readonly', (store) =>
       readAllFromIndex<ImportJournalJob>(store.index('eventId'), eventId),
     );
     return jobs
-      .filter((job) => job.state === 'processing' || job.state === 'paused')
+      .filter((job) => (job.state === 'processing' || job.state === 'paused') && job.replacementPhotoId === replacementPhotoId)
       .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
   }
 

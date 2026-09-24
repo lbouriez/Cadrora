@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { AdminSessionResponseSchema } from '../../shared/schemas';
 import type { Session } from '../../shared/schemas';
@@ -13,6 +13,7 @@ import { siteProfile } from '../public/siteProfile';
 import { ImportPage } from './Import';
 import { adminImportResources } from './ImportResources';
 import { AdminEventsPage, AdminEventSettingsPage } from './AdminEventsPage';
+import { AdminFavoritesPage } from './AdminFavoritesPage';
 import { AdminAccessProvider, useAdminAccess } from './AdminAccessContext';
 import { getAdminEvents } from './adminEventsApi';
 import { AdminLayout } from './AdminLayout';
@@ -80,7 +81,7 @@ export function AdminLoginRoute() {
   );
 }
 
-function AdminImportContent({ eventId }: { eventId: string }) {
+function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; replacementPhotoId?: string }) {
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
   const summary = useQuery({
@@ -103,7 +104,7 @@ function AdminImportContent({ eventId }: { eventId: string }) {
   if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <ImportPage eventId={eventId} keepOriginals={gallery.keepOriginals} timezone={gallery.timezone} />
+      <ImportPage eventId={eventId} keepOriginals={gallery.keepOriginals} faceSearchEnabled={gallery.faceSearchEnabled} timezone={gallery.timezone} {...(replacementPhotoId ? { replacementPhotoId } : {})} />
       {summary.data ? (
         <PublishPanel
           eventId={eventId}
@@ -121,11 +122,26 @@ export function AdminDashboardRoute() {
 
 export function AdminImportRoute() {
   const { eventId = '' } = useParams<{ eventId: string }>();
+  const [searchParams] = useSearchParams();
+  const replacementPhotoId = searchParams.get('replace') ?? undefined;
   return (
     <AdminFrame>
-      <AdminImportContent eventId={eventId} />
+      <AdminImportContent eventId={eventId} {...(replacementPhotoId ? { replacementPhotoId } : {})} />
     </AdminFrame>
   );
+}
+
+function AdminFavoritesContent({ eventId }: { eventId: string }) {
+  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
+  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
+  const event = events.data?.find((candidate) => candidate.id === eventId && candidate.access === 'protected' && !candidate.deletingAt);
+  if (events.isError || !event) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
+  return <AdminFavoritesPage event={event} />;
+}
+
+export function AdminFavoritesRoute() {
+  const { eventId = '' } = useParams<{ eventId: string }>();
+  return <AdminFrame><AdminFavoritesContent eventId={eventId} /></AdminFrame>;
 }
 
 export function AdminEventSettingsRoute() {

@@ -83,7 +83,7 @@ export class ImportPipeline {
     return () => this.listeners.delete(listener);
   }
 
-  async start(eventId: string, files: File[], timeZone = 'UTC', keepOriginals = false): Promise<ImportStartResult> {
+  async start(eventId: string, files: File[], timeZone = 'UTC', keepOriginals = false, replacementPhotoId?: string): Promise<ImportStartResult> {
     if (this.state === 'preparing' || this.state === 'processing' || this.state === 'paused') {
       throw new Error('An import is already active.');
     }
@@ -104,6 +104,7 @@ export class ImportPipeline {
       eventId,
       id: importId,
       keepOriginals,
+      ...(replacementPhotoId ? { replacementPhotoId } : {}),
       state: 'processing',
       totalPhotos: prepared.accepted.length,
       updatedAt: now,
@@ -122,7 +123,7 @@ export class ImportPipeline {
 
     try {
       // The client-provided id makes a retry after a tab crash naturally idempotent.
-      await this.options.api.createImport(eventId, { id: importId, totalPhotos: job.totalPhotos, keepOriginals });
+      await this.options.api.createImport(eventId, { id: importId, totalPhotos: job.totalPhotos, keepOriginals, ...(replacementPhotoId ? { replacementPhotoId } : {}) });
       await this.process(importId);
     } catch (error) {
       await this.handleRunError(importId, error);
@@ -156,7 +157,7 @@ export class ImportPipeline {
     await this.saveJobState(job, 'processing');
     this.emit();
     try {
-      await this.options.api.createImport(job.eventId, { id: job.id, totalPhotos: job.totalPhotos, keepOriginals: job.keepOriginals === true });
+      await this.options.api.createImport(job.eventId, { id: job.id, totalPhotos: job.totalPhotos, keepOriginals: job.keepOriginals === true, ...(job.replacementPhotoId ? { replacementPhotoId: job.replacementPhotoId } : {}) });
       await this.process(importId);
     } catch (error) {
       await this.handleRunError(importId, error);

@@ -35,8 +35,34 @@ export const AdminCoverPhotosSchema = z.object({
   nextOffset: z.number().int().nonnegative().nullable(),
 });
 
+export const AdminFavoritePhotosQuerySchema = z.object({
+  offset: z.coerce.number().int().nonnegative().default(0),
+  view: z.enum(['retouch', 'favorites']).default('retouch'),
+}).strict();
+
+export const AdminFavoritePhotoSchema = z.object({
+  id: IdSchema,
+  eventId: IdSchema,
+  filename: z.string().min(1).max(512),
+  revision: z.number().int().nonnegative(),
+  thumbnailUrl: z.string().startsWith('/api/v1/admin/galleries/'),
+  downloadUrl: z.string().startsWith('/api/v1/admin/galleries/'),
+  pendingImportId: IdSchema.nullable(),
+  replaceable: z.boolean(),
+});
+
+export const AdminFavoritePhotosSchema = z.object({
+  photos: z.array(AdminFavoritePhotoSchema),
+  total: z.number().int().nonnegative(),
+  nextOffset: z.number().int().nonnegative().nullable(),
+}).strict();
+
+export const ReplacePhotoRequestSchema = z.object({ importId: IdSchema }).strict();
+export const ReplacePhotoResponseSchema = z.object({ photoId: IdSchema, revision: z.number().int().nonnegative() }).strict();
+
 export const PublicEventListSchema = z.object({
   events: z.array(PublicEventSchema),
+  protectedGalleries: z.array(z.object({ id: IdSchema }).strict()),
 });
 
 export const AdminEventListSchema = z.object({
@@ -62,11 +88,14 @@ export const PublicPhotoSchema = z.object({
   sources: z.array(PhotoSourceSchema).min(1),
   downloadUrl: z.string().min(1).nullable(),
   liked: z.boolean(),
+  selectedForRetouch: z.boolean(),
 });
 
 export const PhotoFavoriteRequestSchema = z.object({ liked: z.boolean() }).strict();
 export const PhotoFavoriteResponseSchema = z.object({ liked: z.boolean() }).strict();
 export const PhotoFavoriteParamsSchema = z.object({ eventId: IdSchema, photoId: IdSchema }).strict();
+export const PhotoRetouchRequestSchema = z.object({ selected: z.boolean() }).strict();
+export const PhotoRetouchResponseSchema = z.object({ selected: z.boolean() }).strict();
 
 export const PublicPhotoPageSchema = z.object({
   eventRevision: z.number().int().nonnegative(),
@@ -147,5 +176,6 @@ export const PhotoListQuerySchema = z.object({
 
 export type PublicEvent = z.infer<typeof PublicEventSchema>;
 export type PublicPhoto = z.infer<typeof PublicPhotoSchema>;
+export type AdminFavoritePhoto = z.infer<typeof AdminFavoritePhotoSchema>;
 export type CreateEventRequest = z.infer<typeof CreateEventRequestSchema>;
 export type UpdateEventRequest = z.infer<typeof UpdateEventRequestSchema>;

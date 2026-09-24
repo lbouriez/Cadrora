@@ -133,6 +133,22 @@
   background: rgb(14 10 17 / 75%);
 }
 
+.retouch-button {
+  border-color: color-mix(in srgb, var(--color-on-photo) 42%, transparent);
+  background: rgb(14 10 17 / 55%);
+  color: var(--color-on-photo);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(0.65rem);
+}
+
+.retouch-button--selected {
+  border-color: var(--color-on-photo);
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.retouch-button:not(:disabled):hover { border-color: var(--color-on-photo); }
+
 .carousel {
   position: relative;
   padding: 0 calc(var(--control-min-size) + var(--space-2));

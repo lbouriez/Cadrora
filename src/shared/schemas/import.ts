@@ -40,6 +40,7 @@ export const ImportCreateRequestSchema = z
     id: IdSchema,
     totalPhotos: z.number().int().nonnegative().max(100_000),
     keepOriginals: z.boolean().default(false),
+    replacementPhotoId: IdSchema.optional(),
   })
   .strict();
 

@@ -9,6 +9,7 @@ const SAFE_DEMO_GET_PATHS = [
   /^\/api\/v1\/admin\/galleries$/u,
   /^\/api\/v1\/admin\/galleries\/[^/]+\/publication$/u,
   /^\/api\/v1\/admin\/galleries\/[^/]+\/cover-photos(?:\/[^/]+)?$/u,
+  /^\/api\/v1\/admin\/galleries\/[^/]+\/selections$/u,
   /^\/api\/v1\/admin\/galleries\/[^/]+\/originals$/u,
   /^\/api\/v1\/admin\/usage$/u,
 ];

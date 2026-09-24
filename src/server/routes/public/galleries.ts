@@ -9,6 +9,8 @@ import {
   PhotoFavoriteRequestSchema,
   PhotoFavoriteResponseSchema,
   PhotoFavoriteParamsSchema,
+  PhotoRetouchRequestSchema,
+  PhotoRetouchResponseSchema,
   PublicEventListSchema,
   PublicEventSchema,
   PublicPhotoPageSchema,
@@ -87,9 +89,14 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
        WHERE e.visibility = 'published' AND e.offline_at IS NULL AND e.access = 'public'
        ORDER BY e.starts_at DESC, e.id ASC`,
     ).all<EventRow & { cover_revision: number | null }>();
+    const protectedResult = await context.env.DB.prepare(
+      `SELECT id FROM events WHERE visibility = 'published' AND access = 'protected'
+       AND offline_at IS NULL AND deleting_at IS NULL ORDER BY starts_at DESC, id ASC`,
+    ).all<{ id: string }>();
     applyCachePolicy(context, 'event-public');
     return validatedJson(context, PublicEventListSchema, {
       events: result.results.map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
+      protectedGalleries: protectedResult.results.map((row) => ({ id: row.id })),
     });
   });
 
@@ -184,7 +191,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const placeholders = pageRows.map(() => '?').join(', ');
     const variantResult = await context.env.DB.prepare(
       `SELECT p.id, p.event_id, p.filename, p.width, p.height, p.captured_at,
-              p.sort_key, p.revision, p.liked, v.variant, v.content_type,
+              p.sort_key, p.revision, p.liked, p.selected_for_retouch, v.variant, v.content_type,
               v.width AS variant_width, v.height AS variant_height
        FROM photos p JOIN photo_variants v ON v.photo_id = p.id
        WHERE p.id IN (${placeholders})
@@ -228,6 +235,34 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     ).bind(Number(body.data.liked), new Date().toISOString(), params.data.photoId, event.id, accessVersion).first<{ liked: number }>();
     if (!row) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
     return validatedJson(context, PhotoFavoriteResponseSchema, { liked: row.liked === 1 });
+  });
+
+  routes.put('/galleries/:eventId/photos/:photoId/retouch-selection', async (context) => {
+    if (!hasSameOrigin(context.req.url, context.req.header('Origin'))) {
+      throw new ApiException('SELECTION_ORIGIN_REQUIRED', 'errors.adminOriginRequired', 403);
+    }
+    const body = PhotoRetouchRequestSchema.safeParse(await context.req.json().catch(() => null));
+    const params = PhotoFavoriteParamsSchema.safeParse(context.req.param());
+    if (!body.success || !params.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, params.data.eventId);
+    if (!event || !isEventAvailable(event) || event.access !== 'protected') {
+      throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    }
+    applyCachePolicy(context, 'event-protected');
+    if (!(await hasCurrentEventAccess(context, event))) throw await eventAccessError(context, event);
+    const accessVersion = context.get('auth').eventGrant?.accessVersion;
+    if (!accessVersion) throw await eventAccessError(context, event);
+    const row = await context.env.DB.prepare(
+      `UPDATE photos SET selected_for_retouch = ?1, updated_at = ?2
+       WHERE id = ?3 AND event_id = ?4 AND state = 'published'
+         AND EXISTS (SELECT 1 FROM event_credentials WHERE event_id = ?4 AND access_version = ?5)
+         AND EXISTS (SELECT 1 FROM events WHERE id = ?4 AND access = 'protected'
+           AND visibility != 'draft' AND offline_at IS NULL AND deleting_at IS NULL)
+       RETURNING selected_for_retouch`,
+    ).bind(Number(body.data.selected), new Date().toISOString(), params.data.photoId, event.id, accessVersion)
+      .first<{ selected_for_retouch: number }>();
+    if (!row) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+    return validatedJson(context, PhotoRetouchResponseSchema, { selected: row.selected_for_retouch === 1 });
   });
 
   return routes;

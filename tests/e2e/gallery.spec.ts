@@ -77,7 +77,7 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
 
   const backHome = page.locator('.gallery-heading .back-link');
   await expect(backHome).toBeVisible();
-  await expect(backHome).toHaveAccessibleName(/retour à l'accueil|back to home/i);
+  await expect(backHome).toHaveAccessibleName(/retour aux galeries|back to galleries/i);
   expect(await backHome.evaluate((element) => getComputedStyle(element).borderBottomWidth)).toBe('1px');
   await page.screenshot({ path: testInfo.outputPath('gallery-header.png') });
 
@@ -305,4 +305,23 @@ test('ne montre aucun coeur dans une galerie publique', async ({ page }) => {
   await expect(page.locator('.favorite-button')).toHaveCount(0);
   await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
   await expect(page.locator('.favorite-button')).toHaveCount(0);
+});
+
+test('garde la sélection retouche distincte du coeur sur téléphone', async ({ page }, testInfo) => {
+  await mockGallery(page, { protected: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/e/soiree-privee');
+  await page.getByRole('textbox', { name: /mot de passe|password/i }).fill('mot-de-passe');
+  await page.getByRole('button', { name: /ouvrir la galerie|unlock gallery/i }).click();
+  const tile = page.locator('.photo-tile-shell').first();
+  const retouch = tile.getByRole('button', { name: /sélectionner .*retouche|select .*retouch/i });
+  await retouch.click();
+  await expect(tile.getByRole('button', { name: /retirer .*retouche|remove .*retouch/i })).toHaveAttribute('aria-pressed', 'true');
+  await expect(tile.locator('.favorite-button')).toHaveAttribute('aria-pressed', 'false');
+  await tile.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
+  await expect(page.getByRole('dialog').locator('.retouch-button')).toHaveAttribute('aria-pressed', 'true');
+  const viewer = await page.getByRole('dialog').boundingBox();
+  expect(viewer).toEqual({ height: 844, width: 390, x: 0, y: 0 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath('retouch-viewer-mobile.png') });
 });

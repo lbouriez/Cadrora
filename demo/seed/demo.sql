@@ -142,6 +142,11 @@ ON CONFLICT(id) DO UPDATE SET
   face_state = excluded.face_state,
   updated_at = excluded.updated_at;
 
+-- Curated shared choices make the protected-gallery workflow visible in the
+-- read-only admin showcase. Like the demo photos, these reset on each seed.
+UPDATE photos SET selected_for_retouch = 1 WHERE id = 'demo-private-family';
+UPDATE photos SET liked = 1 WHERE id = 'demo-private-newborn';
+
 INSERT INTO photo_variants (
   photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256, created_at
 ) VALUES

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { MotionReveal, Spinner } from '../components';
-import { getPublicEvents, getPublicSiteSettings } from './api';
+import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceVisuals } from './serviceCatalog';
@@ -56,7 +56,7 @@ export function ServicesPage() {
 
 export function GalleriesPage() {
   const { i18n, t } = useTranslation();
-  const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents });
+  const events = useQuery({ queryKey: ['public-gallery-index'], queryFn: getPublicGalleryIndex });
   return (
     <PublicLayout>
       <MotionReveal as="header" className="editorial-heading">
@@ -71,8 +71,8 @@ export function GalleriesPage() {
         </div>
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
         {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
-        {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <PublicEventCards events={events.data} language={i18n.language} />
+        {events.data?.events.length === 0 && events.data.protectedGalleries.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
+        <PublicEventCards events={events.data?.events} language={i18n.language} protectedGalleries={events.data?.protectedGalleries ?? []} />
       </section>
     </PublicLayout>
   );

@@ -2,6 +2,8 @@
 
 Status: implemented. Approved 2026-09-20; implementation and documentation reviewed 2026-09-21. Release-specific provider evidence must still be recorded for each deployed revision.
 
+Post-plan extension (2026-09-24): ADR-011 adds a distinct protected-gallery retouch selection and photographer replacement workflow across PB/PC/PD, plus opaque locked-gallery index cards. Its release gate includes migration 016, private-grant and admin-role tests, desktop/mobile review, and a live replacement/cleanup smoke test.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

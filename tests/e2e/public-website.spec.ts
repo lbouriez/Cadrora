@@ -244,6 +244,7 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
           nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
           revision: 1, updatedAt: '2026-09-20T15:00:00.000Z',
         }],
+        protectedGalleries: [{ id: 'private-sample' }],
       }),
       contentType: 'application/json',
     });
@@ -251,9 +252,11 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
 
   await page.goto('/galleries');
   await expect(page.getByRole('heading', { name: 'Find your photos' })).toBeVisible();
-  const image = page.locator('.event-card__visual img');
+  const image = page.locator('.event-card__visual img').first();
   await expect(image).toBeVisible();
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
   await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/medium');
+  await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/find-your-photos');
+  await expect(page.locator('.event-card--protected')).toHaveCount(1);
   await assertNoHorizontalOverflow(page);
 });

@@ -6,6 +6,7 @@ import { MediaParamsSchema } from '../../shared/schemas';
 import { D1MediaRepository } from '../repositories/mediaRepository';
 import type { MediaRepository } from '../repositories/mediaRepository';
 import { R2StorageService } from '../services/storage';
+import { downloadName } from '../services/mediaNames';
 import type { StorageService } from '../services/storage';
 import type { AppEnv } from '../types';
 
@@ -18,13 +19,6 @@ const defaultDependencies: MediaRouteDependencies = {
   repository: (context) => new D1MediaRepository(context.env.DB),
   storage: (context) => new R2StorageService(context.env.MEDIA_BUCKET),
 };
-
-function downloadName(filename: string, contentType: string): string {
-  const extension = contentType === 'image/jpeg' ? 'jpg' : contentType === 'image/png' ? 'png' : contentType === 'image/webp' ? 'webp' : null;
-  if (!extension) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
-  const basename = filename.replace(/\.[^.]+$/u, '').replace(/[^A-Za-z0-9_-]/gu, '_').slice(0, 100) || 'photo';
-  return `${basename}.${extension}`;
-}
 
 export function registerMediaRoutes(
   app: Hono<AppEnv>,

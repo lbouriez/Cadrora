@@ -5,6 +5,10 @@ import { EventSchema } from '../../../shared/schemas/event';
 import {
   AdminCoverPhotoQuerySchema,
   AdminCoverPhotosSchema,
+  AdminFavoritePhotosQuerySchema,
+  AdminFavoritePhotosSchema,
+  ReplacePhotoRequestSchema,
+  ReplacePhotoResponseSchema,
   AdminOriginalsStatusSchema,
   AdminEventListSchema,
   CreateEventRequestSchema,
@@ -17,6 +21,7 @@ import type { AppEnv } from '../../types';
 import { isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { effectiveQuotaLimits } from '../../services/quotas';
+import { downloadName } from '../../services/mediaNames';
 import { hashEventPassword } from '../public/credentials';
 import { eventFromRow, findEvent } from '../public/data';
 import type { EventRow } from '../public/data';
@@ -84,8 +89,12 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
   routes.get('/galleries', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
-    const result = await context.env.DB.prepare('SELECT * FROM events ORDER BY starts_at DESC, id ASC').all<EventRow>();
-    const output = AdminEventListSchema.safeParse({ events: result.results.map(eventFromRow) });
+    const result = await context.env.DB.prepare(
+      `SELECT e.*, (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
+       AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count
+       FROM events e ORDER BY e.starts_at DESC, e.id ASC`,
+    ).all<EventRow & { retouch_selection_count: number }>();
+    const output = AdminEventListSchema.safeParse({ events: result.results.map((row) => ({ ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count })) });
     if (!output.success) throw new ApiException('INVALID_RESPONSE', 'errors.internal', 500);
     return context.json(output.data);
   });
@@ -193,6 +202,157 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       'Content-Type': variant.content_type,
       'X-Content-Type-Options': 'nosniff',
     } });
+  });
+
+  routes.get('/galleries/:eventId/selections', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    const query = AdminFavoritePhotosQuerySchema.safeParse(context.req.query());
+    if (!eventId.success || !query.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt || event.access !== 'protected') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    const selectionColumn = query.data.view === 'favorites' ? 'liked' : 'selected_for_retouch';
+    const [count, rows] = await Promise.all([
+      context.env.DB.prepare(`SELECT COUNT(*) AS total FROM photos WHERE event_id = ?1 AND state = 'published' AND ${selectionColumn} = 1`)
+        .bind(event.id).first<{ total: number }>(),
+      context.env.DB.prepare(
+        `SELECT p.id, p.filename, p.revision,
+           (SELECT v.storage_key FROM photo_variants v WHERE v.photo_id = p.id LIMIT 1) AS sample_storage_key,
+           (SELECT i.id FROM imports i JOIN photos staged ON staged.import_id = i.id
+            WHERE i.event_id = p.event_id AND i.replacement_photo_id = p.id
+              AND i.replacement_applied_at IS NULL AND i.state = 'completed'
+              AND staged.state = 'variants_ready' LIMIT 1) AS pending_import_id
+         FROM photos p
+         WHERE p.event_id = ?1 AND p.state = 'published' AND p.${selectionColumn} = 1
+         ORDER BY p.sort_key, p.id LIMIT 49 OFFSET ?2`,
+      ).bind(event.id, query.data.offset).all<{ id: string; filename: string; revision: number; pending_import_id: string | null; sample_storage_key: string | null }>(),
+    ]);
+    const photos = rows.results.slice(0, 48).map((photo) => ({
+      id: photo.id, eventId: event.id, filename: photo.filename, revision: photo.revision,
+      thumbnailUrl: `/api/v1/admin/galleries/${encodeURIComponent(event.id)}/cover-photos/${encodeURIComponent(photo.id)}`,
+      downloadUrl: `/api/v1/admin/galleries/${encodeURIComponent(event.id)}/photos/${encodeURIComponent(photo.id)}/download`,
+      pendingImportId: photo.pending_import_id,
+      replaceable: photo.sample_storage_key?.startsWith(`events/${event.id}/photos/`) ?? false,
+    }));
+    return context.json(AdminFavoritePhotosSchema.parse({
+      photos, total: count?.total ?? 0, nextOffset: rows.results.length > 48 ? query.data.offset + 48 : null,
+    }));
+  });
+
+  routes.get('/galleries/:eventId/photos/:photoId/download', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    if (context.get('auth').admin?.access !== 'manage') throw new ApiException('DEMO_READ_ONLY', 'errors.demoReadOnly', 403);
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    const photoId = IdSchema.safeParse(context.req.param('photoId'));
+    if (!eventId.success || !photoId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const media = await context.env.DB.prepare(
+      `SELECT p.filename, v.storage_key, v.content_type FROM photos p
+       JOIN events e ON e.id = p.event_id
+       JOIN photo_variants v ON v.photo_id = p.id
+       WHERE e.id = ?1 AND p.id = ?2 AND e.deleting_at IS NULL
+         AND e.access = 'protected' AND p.state = 'published' AND (p.selected_for_retouch = 1 OR p.liked = 1)
+         AND v.variant IN ('original', 'download', 'large', 'medium', 'small', 'thumb')
+       ORDER BY CASE v.variant WHEN 'original' THEN 0 WHEN 'download' THEN 1
+         WHEN 'large' THEN 2 WHEN 'medium' THEN 3 WHEN 'small' THEN 4 ELSE 5 END
+       LIMIT 1`,
+    ).bind(eventId.data, photoId.data).first<{ filename: string; storage_key: string; content_type: string }>();
+    if (!media) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+    const object = await context.env.MEDIA_BUCKET.get(media.storage_key);
+    if (!object) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
+    return new Response(object.body, { headers: {
+      'Cache-Control': 'no-store',
+      'Content-Disposition': `attachment; filename="${downloadName(media.filename, media.content_type)}"`,
+      'Content-Length': String(object.size),
+      'Content-Type': media.content_type,
+      'X-Content-Type-Options': 'nosniff',
+    } });
+  });
+
+  routes.post('/galleries/:eventId/photos/:photoId/replace', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    const photoId = IdSchema.safeParse(context.req.param('photoId'));
+    const input = ReplacePhotoRequestSchema.safeParse(await context.req.json().catch(() => null));
+    if (!eventId.success || !photoId.success || !input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || event.deletingAt || event.access !== 'protected') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    const target = await context.env.DB.prepare(
+      "SELECT id, revision, face_state FROM photos WHERE id = ?1 AND event_id = ?2 AND state = 'published' AND selected_for_retouch = 1",
+    ).bind(photoId.data, event.id).first<{ id: string; revision: number; face_state: string }>();
+    if (!target) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+    const imported = await context.env.DB.prepare(
+      'SELECT replacement_photo_id, replacement_applied_at, state, total_photos FROM imports WHERE id = ?1 AND event_id = ?2',
+    ).bind(input.data.importId, event.id).first<{ replacement_photo_id: string | null; replacement_applied_at: string | null; state: string; total_photos: number }>();
+    if (!imported || imported.replacement_photo_id !== target.id || imported.total_photos !== 1) {
+      throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    }
+    if (imported.replacement_applied_at) {
+      return context.json(ReplacePhotoResponseSchema.parse({ photoId: target.id, revision: target.revision }));
+    }
+    if (imported.state !== 'completed' || target.face_state === 'indexing') {
+      throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    }
+    const staged = await context.env.DB.prepare(
+      `SELECT id, filename, content_type, width, height FROM photos
+       WHERE import_id = ?1 AND event_id = ?2 AND state = 'variants_ready' LIMIT 1`,
+    ).bind(input.data.importId, event.id).first<{ id: string; filename: string; content_type: string; width: number; height: number }>();
+    if (!staged) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    const oldVariants = await context.env.DB.prepare('SELECT storage_key FROM photo_variants WHERE photo_id = ?1')
+      .bind(target.id).all<{ storage_key: string }>();
+    if (oldVariants.results.length === 0) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    if (!oldVariants.results.every((variant) => variant.storage_key.startsWith(`events/${event.id}/photos/`))) {
+      throw new ApiException('PHOTO_NOT_REPLACEABLE', 'errors.invalidRequest', 409);
+    }
+    const now = new Date().toISOString();
+    const cleanupAfter = new Date(Date.parse(now) + 5 * 60_000).toISOString();
+    try {
+      await context.env.DB.batch([
+      // D1 batch is transactional. The NOT NULL payload guard aborts the entire
+      // swap if another request changed this photo after our preflight read.
+      context.env.DB.prepare(
+        `INSERT INTO maintenance_jobs
+          (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
+         VALUES (?1, 'delete_replaced_media', 'pending',
+           CASE WHEN EXISTS (
+             SELECT 1 FROM photos p JOIN events e ON e.id = p.event_id
+             JOIN imports i ON i.event_id = e.id
+             WHERE p.id = ?2 AND p.revision = ?3 AND p.state = 'published' AND p.selected_for_retouch = 1
+               AND p.face_state != 'indexing' AND e.deleting_at IS NULL
+               AND i.id = ?4 AND i.replacement_photo_id = p.id
+               AND i.replacement_applied_at IS NULL AND i.state = 'completed'
+           ) THEN ?5 ELSE NULL END,
+           ?6, 0, ?7, ?8, ?8)`,
+      ).bind(crypto.randomUUID(), target.id, target.revision, input.data.importId,
+        JSON.stringify({ eventId: event.id, photoId: target.id, revision: target.revision,
+          storageKeys: oldVariants.results.map((row) => row.storage_key) }),
+        `replace-photo:${target.id}:${target.revision}`, cleanupAfter, now),
+      context.env.DB.prepare('DELETE FROM photo_variants WHERE photo_id = ?1').bind(target.id),
+      context.env.DB.prepare('UPDATE photo_variants SET photo_id = ?1 WHERE photo_id = ?2').bind(target.id, staged.id),
+      context.env.DB.prepare(
+        `UPDATE photos SET filename = ?1, content_type = ?2, width = ?3, height = ?4,
+         revision = revision + 1, updated_at = ?5 WHERE id = ?6 AND revision = ?7 AND state = 'published'`,
+      ).bind(staged.filename, staged.content_type, staged.width, staged.height, now, target.id, target.revision),
+      context.env.DB.prepare('DELETE FROM photos WHERE id = ?1 AND state = ?2').bind(staged.id, 'variants_ready'),
+      context.env.DB.prepare('UPDATE imports SET replacement_applied_at = ?2, updated_at = ?2 WHERE id = ?1').bind(input.data.importId, now),
+      context.env.DB.prepare('UPDATE events SET revision = revision + 1, updated_at = ?2 WHERE id = ?1').bind(event.id, now),
+      ]);
+    } catch (error) {
+      const current = await context.env.DB.prepare(
+        'SELECT revision, state, selected_for_retouch, face_state FROM photos WHERE id = ?1 AND event_id = ?2',
+      ).bind(target.id, event.id).first<{ revision: number; state: string; selected_for_retouch: number; face_state: string }>();
+      const currentImport = await context.env.DB.prepare(
+        'SELECT replacement_applied_at FROM imports WHERE id = ?1 AND event_id = ?2',
+      ).bind(input.data.importId, event.id).first<{ replacement_applied_at: string | null }>();
+      if (!current || current.revision !== target.revision || current.state !== 'published' ||
+        current.selected_for_retouch !== 1 || current.face_state === 'indexing' || currentImport?.replacement_applied_at) {
+        throw new ApiException('PHOTO_REPLACEMENT_STALE', 'errors.invalidRequest', 409);
+      }
+      throw error;
+    }
+    return context.json(ReplacePhotoResponseSchema.parse({ photoId: target.id, revision: target.revision + 1 }));
   });
 
   routes.post('/galleries', async (context) => {

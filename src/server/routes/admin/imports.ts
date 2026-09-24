@@ -90,27 +90,39 @@ adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
   if (existing) {
     await assertGalleryWritable(context.env.DB, existing.eventId);
     if (existing.eventId !== eventId || existing.totalPhotos !== payload.totalPhotos ||
-      await importKeepsOriginals(context.env.DB, payload.id) !== payload.keepOriginals) {
+      await importKeepsOriginals(context.env.DB, payload.id) !== payload.keepOriginals ||
+      await importReplacementPhotoId(context.env.DB, payload.id) !== (payload.replacementPhotoId ?? null)) {
       throw new ApiException('IMPORT_ID_CONFLICT', 'errors.importIdConflict', 409);
     }
     return context.json(ImportCreateResponseSchema.parse({ import: existing }));
   }
 
-  const event = await context.env.DB.prepare('SELECT id, keep_originals FROM events WHERE id = ? AND deleting_at IS NULL').bind(eventId).first<IdRow & { keep_originals: number }>();
+  const event = await context.env.DB.prepare('SELECT id, keep_originals, access FROM events WHERE id = ? AND deleting_at IS NULL').bind(eventId).first<IdRow & { keep_originals: number; access: string }>();
   if (!event) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
   if (payload.keepOriginals && event.keep_originals !== 1) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+  if (payload.replacementPhotoId) {
+    if (payload.totalPhotos !== 1 || event.access !== 'protected') throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    const target = await context.env.DB.prepare(
+      `SELECT p.id FROM photos p WHERE p.id = ?1 AND p.event_id = ?2 AND p.state = 'published'
+       AND p.selected_for_retouch = 1 AND EXISTS (
+         SELECT 1 FROM photo_variants v WHERE v.photo_id = p.id
+           AND substr(v.storage_key, 1, length('events/' || p.event_id || '/photos/')) = 'events/' || p.event_id || '/photos/'
+       )`,
+    ).bind(payload.replacementPhotoId, eventId).first<IdRow>();
+    if (!target) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  }
 
   const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
   const currentCount = await countEventPhotos(context.env.DB, eventId);
-  if (currentCount + payload.totalPhotos > limit) {
+  if (currentCount + payload.totalPhotos > limit + (payload.replacementPhotoId ? 1 : 0)) {
     throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
   }
 
   const now = new Date().toISOString();
   await context.env.DB.prepare(
-    'INSERT INTO imports (id, event_id, state, total_photos, completed_photos, keep_originals, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO imports (id, event_id, state, total_photos, completed_photos, keep_originals, replacement_photo_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
   )
-    .bind(payload.id, eventId, 'pending', payload.totalPhotos, 0, Number(payload.keepOriginals), now, now)
+    .bind(payload.id, eventId, 'pending', payload.totalPhotos, 0, Number(payload.keepOriginals), payload.replacementPhotoId ?? null, now, now)
     .run();
   const created = await getImport(context.env.DB, payload.id);
   if (!created) throw new ApiException('IMPORT_CREATE_FAILED', 'errors.importCreateFailed', 500);
@@ -159,7 +171,7 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
     throw new ApiException('IMPORT_TOTAL_EXCEEDED', 'errors.importTotalExceeded', 409);
   }
   const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
-  if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit) {
+  if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit + ((await importReplacementPhotoId(context.env.DB, importId)) ? 1 : 0)) {
     throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
   }
 
@@ -392,6 +404,11 @@ async function getImport(database: D1Database, importId: string): Promise<Import
 async function importKeepsOriginals(database: D1Database, importId: string): Promise<boolean> {
   const row = await database.prepare('SELECT keep_originals FROM imports WHERE id = ?').bind(importId).first<{ keep_originals: number }>();
   return row?.keep_originals === 1;
+}
+
+async function importReplacementPhotoId(database: D1Database, importId: string): Promise<string | null> {
+  const row = await database.prepare('SELECT replacement_photo_id FROM imports WHERE id = ?').bind(importId).first<{ replacement_photo_id: string | null }>();
+  return row?.replacement_photo_id ?? null;
 }
 
 async function assertGalleryWritable(database: D1Database, eventId: string): Promise<void> {

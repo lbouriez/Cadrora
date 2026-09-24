@@ -40,3 +40,11 @@ export function DownloadIcon(props: IconProps) {
 export function HeartIcon(props: IconProps) {
   return <svg {...iconProps(props)}><path d="M20.8 8.2c0 4.2-5.4 8.3-8.8 10.8C8.6 16.5 3.2 12.4 3.2 8.2a4.4 4.4 0 0 1 8.8-.1 4.4 4.4 0 0 1 8.8.1Z" /></svg>;
 }
+
+export function RetouchIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><rect x="4" y="4" width="16" height="16" rx="3" /><path d="m8 12 3 3 5-6" /></svg>;
+}
+
+export function LockIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>;
+}

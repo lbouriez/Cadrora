@@ -26,6 +26,7 @@ export const EventSchema = z.object({
   revision: z.number().int().nonnegative(),
   createdAt: IsoDateTimeSchema,
   updatedAt: IsoDateTimeSchema,
+  retouchSelectionCount: z.number().int().nonnegative().optional(),
 });
 
 export const EventCredentialsSchema = z.object({

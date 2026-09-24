@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, Spinner } from '../components';
+import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, RetouchButton, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
-import { GalleryApiError, getPublicEvent, getPublicPhotos, setPhotoFavorite, unlockEvent } from './api';
+import { GalleryApiError, getPublicEvent, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -30,6 +30,8 @@ interface GalleryPhotoGridProps {
   favoritesEnabled: boolean;
   favoritePendingId: string | null;
   onToggleFavorite: (photo: PublicPhoto) => void;
+  onToggleRetouch: (photo: PublicPhoto) => void;
+  retouchPendingId: string | null;
   onToggleSelection: (id: string, shiftKey: boolean) => void;
   onUnavailablePhoto: () => void;
   photos: PublicPhoto[];
@@ -40,10 +42,10 @@ interface GalleryPhotoGridProps {
 }
 
 function photoColumnCount(width: number): number {
-  return width >= 1440 ? 4 : width >= 1120 ? 3 : width >= 640 ? 2 : 1;
+  return width >= 1320 ? 3 : width >= 720 ? 2 : 1;
 }
 
-function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId, onToggleFavorite, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
+function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(() => typeof window === 'undefined' ? 1 : photoColumnCount(window.innerWidth - 32));
@@ -58,18 +60,19 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
     return () => observer.disconnect();
   }, []);
   const activeColumnCount = Math.min(columnCount, Math.max(photos.length, 1));
+  const columnWidths = useMemo(() => activeColumnCount === 3 ? [1.18, 1, 1] : activeColumnCount === 2 ? [1.1, 1] : [1], [activeColumnCount]);
   const columns = useMemo(() => {
     const result = Array.from({ length: activeColumnCount }, () => [] as PublicPhoto[]);
     const heights = Array.from({ length: activeColumnCount }, () => 0);
     for (const photo of photos) {
       const shortest = heights.indexOf(Math.min(...heights));
       result[shortest]?.push(photo);
-      heights[shortest] = (heights[shortest] ?? 0) + photo.height / photo.width;
+      heights[shortest] = (heights[shortest] ?? 0) + (photo.height / photo.width) * (columnWidths[shortest] ?? 1);
     }
     return result;
-  }, [activeColumnCount, photos]);
+  }, [activeColumnCount, columnWidths, photos]);
   return (
-    <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: `repeat(${activeColumnCount}, minmax(0, 1fr))` }}>
+    <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
       {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>
       {column.map((photo) => {
         const sources = [...photo.sources].sort((left, right) => left.width - right.width);
@@ -79,7 +82,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
             alt={photo.filename}
             height={photo.height}
             loading="lazy"
-            sizes="(max-width: 40rem) 50vw, (max-width: 70rem) 33vw, 25vw"
+            sizes="(max-width: 45rem) 100vw, (max-width: 82rem) 50vw, 33vw"
             src={fallback?.url}
             srcSet={sources.map((source) => `${source.url} ${source.width}w`).join(', ')}
             width={photo.width}
@@ -107,6 +110,13 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
             liked={photo.liked}
             onToggle={() => onToggleFavorite(photo)}
           /> : null}
+          {!selectionMode && favoritesEnabled ? <RetouchButton
+            className="photo-tile__retouch"
+            disabled={retouchPendingId !== null}
+            label={t(photo.selectedForRetouch ? 'gallery.retouch.remove' : 'gallery.retouch.add', { filename: photo.filename })}
+            onToggle={() => onToggleRetouch(photo)}
+            selected={photo.selectedForRetouch}
+          /> : null}
           </div>
         );
       })}
@@ -117,7 +127,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
 
 export function GalleryPage() {
   const { slug = '', photoId } = useParams<{ slug: string; photoId?: string }>();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
@@ -147,9 +157,17 @@ export function GalleryPage() {
       await queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
     },
   });
+  const retouch = useMutation({
+    mutationFn: ({ photo, selected }: { photo: PublicPhoto; selected: boolean }) => setPhotoRetouchSelection(slug, photo.id, selected),
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['public-photos', slug] }); },
+  });
   const onToggleFavorite = (photo: PublicPhoto) => {
     if (favorite.isPending || event.data?.access !== 'protected') return;
     favorite.mutate({ photo, liked: !photo.liked });
+  };
+  const onToggleRetouch = (photo: PublicPhoto) => {
+    if (retouch.isPending || event.data?.access !== 'protected') return;
+    retouch.mutate({ photo, selected: !photo.selectedForRetouch });
   };
   const { fetchNextPage, hasNextPage, isFetchingNextPage } = photos;
   const unlock = useMutation({
@@ -204,7 +222,8 @@ export function GalleryPage() {
   const selectedPhotos = useMemo(() => allPhotos.filter((photo) => selectedIds.has(photo.id) && photo.downloadUrl), [allPhotos, selectedIds]);
   const downloadablePhotos = useMemo(() => visiblePhotos.filter((photo) => photo.downloadUrl), [visiblePhotos]);
   const supportsFolder = supportsSeparatePhotoDownloads();
-  const gridFavorites = { favoritesEnabled: event.data?.access === 'protected', favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite };
+  const gridFavorites = { favoritesEnabled: event.data?.access === 'protected', favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite,
+    retouchPendingId: retouch.isPending ? retouch.variables.photo.id : null, onToggleRetouch };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
 
@@ -342,20 +361,28 @@ export function GalleryPage() {
   return (
     <PublicLayout wide>
       <header className="gallery-heading">
-        <BackLink to="/">{t('gallery.backHome')}</BackLink>
-        <h1>{event.data.title}</h1>
-        {event.data.description ? <p>{event.data.description}</p> : null}
+        <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
+        <div className={`gallery-heading__hero${event.data.coverPhotoUrl ? '' : ' gallery-heading__hero--without-cover'}`}>
+          <div className="gallery-heading__copy">
+            <p className="gallery-heading__eyebrow">{t(event.data.access === 'protected' ? 'gallery.headingPrivate' : 'gallery.headingEyebrow')}</p>
+            <h1>{event.data.title}</h1>
+            <p className="gallery-heading__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(event.data.startsAt))}</p>
+            {event.data.description ? <p className="gallery-heading__description">{event.data.description}</p> : null}
+            <div className="gallery-heading__actions">
+              <a className="button button--primary" href="#gallery-photos">{t('gallery.browsePhotos')}</a>
+              {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
+              {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
+                <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); setShowDownloadHelp(false); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
+                  {selectionMode ? t('gallery.downloadSelection.done') : t('gallery.downloadSelection.start')}
+                </Button>
+              ) : null}
+            </div>
+            {event.data.access === 'protected' ? <p className="gallery-heading__hint">{t('gallery.retouch.help')}</p> : null}
+          </div>
+          {event.data.coverPhotoUrl ? <img alt="" className="gallery-heading__cover" src={event.data.coverPhotoUrl} /> : null}
+        </div>
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
         {event.data.retentionDays ? <p className="gallery-meta">{t('gallery.retention', { days: event.data.retentionDays })}</p> : null}
-        {event.data.access === 'protected' ? <p className="gallery-meta">{t('gallery.favorite.shared')}</p> : null}
-        <div className="gallery-heading__actions">
-          {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}
-          {event.data.allowDownloads && allPhotos.some((photo) => photo.downloadUrl) ? (
-            <Button disabled={downloadProgress !== null} onClick={() => { setSelectionMode((current) => !current); setSelectedIds(new Set()); setShowDownloadHelp(false); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
-              {selectionMode ? t('gallery.downloadSelection.done') : t('gallery.downloadSelection.start')}
-            </Button>
-          ) : null}
-        </div>
         {foundPhotoIds.length > 0 ? (
           <div aria-label={t('gallery.photoFilter.label')} className="gallery-filter" role="group">
             <button aria-pressed={!matchesView} onClick={() => setSearchParams({})} type="button">{t('gallery.photoFilter.all')}</button>
@@ -367,6 +394,7 @@ export function GalleryPage() {
       </header>
 
       {favorite.isError ? <p role="alert">{t('gallery.favorite.error')}</p> : null}
+      {retouch.isError ? <p role="alert">{t('gallery.retouch.error')}</p> : null}
 
       {accessRequired ? (
         unlockForm
@@ -409,6 +437,7 @@ export function GalleryPage() {
           {selectedPhotos.length > MAX_ZIP_PHOTOS ? <p>{t('gallery.downloadSelection.zipLimit')}</p> : null}
         </section>
       ) : null}
+      <section aria-label={t('gallery.browsePhotos')} id="gallery-photos">
       {matchesView ? (
         <>
           <p className="gallery-filter__summary">{t('gallery.photoFilter.summary', { matchCount: matchedPhotoIds.length, nearbyCount: nearbyPhotoIds.length })}</p>
@@ -435,6 +464,7 @@ export function GalleryPage() {
       {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
       {!matchesView && photos.hasNextPage ? <Button disabled={photos.isFetchingNextPage} onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
+      </section>
       {photoId && !selected && !photos.hasNextPage && !photos.isPending ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photoId && selected ? (
         <PhotoViewer
@@ -446,7 +476,9 @@ export function GalleryPage() {
           photos={matchesView ? visiblePhotos : allPhotos}
           favoriteEnabled={event.data.access === 'protected'}
           favoritePending={favorite.isPending}
+          retouchPending={retouch.isPending}
           onToggleFavorite={onToggleFavorite}
+          onToggleRetouch={onToggleRetouch}
           showMetadata={event.data.showPhotoMetadata}
           timezone={event.data.timezone}
         />

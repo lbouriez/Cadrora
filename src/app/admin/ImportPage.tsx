@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 import { Button, Dropzone, ProgressBar } from '../components';
 import {
@@ -9,11 +10,14 @@ import {
   type ImportPipelineSnapshot,
   type RejectedImportFile,
 } from '../../browser/jobs';
+import { replaceFavoritePhoto } from './adminEventsApi';
 
 export interface ImportPageProps {
   eventId: string;
   keepOriginals: boolean;
+  faceSearchEnabled?: boolean;
   timezone: string;
+  replacementPhotoId?: string;
 }
 
 const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
@@ -24,7 +28,7 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
 };
 
 /** Admin import screen; mount from the PA admin route at `/admin/galleries/:eventId/import`. */
-export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps) {
+export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, timezone, replacementPhotoId }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
@@ -32,6 +36,10 @@ export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps
   const [resumableImportId, setResumableImportId] = useState<string>();
   const [isReady, setIsReady] = useState(false);
   const [setupError, setSetupError] = useState<string>();
+  const [replacementDone, setReplacementDone] = useState(false);
+  const [replacementError, setReplacementError] = useState(false);
+  const [replacementBusy, setReplacementBusy] = useState(false);
+  const replacementAttempted = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -44,7 +52,7 @@ export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps
           onChange: setSnapshot,
         });
         setIsReady(true);
-        const resumable = await journal.getResumable(eventId);
+        const resumable = await journal.getResumable(eventId, replacementPhotoId);
         if (mounted) setResumableImportId(resumable?.id);
       })
       .catch(() => {
@@ -56,12 +64,28 @@ export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps
     return () => {
       mounted = false;
     };
-  }, [eventId, t]);
+  }, [eventId, replacementPhotoId, t]);
+
+  useEffect(() => {
+    if (!replacementPhotoId || !snapshot.importId || snapshot.state !== 'completed' ||
+      replacementDone || replacementAttempted.current === snapshot.importId) return;
+    replacementAttempted.current = snapshot.importId;
+    setReplacementBusy(true);
+    void replaceFavoritePhoto(eventId, replacementPhotoId, snapshot.importId)
+      .then(() => { setReplacementDone(true); setReplacementError(false); })
+      .catch(() => { setReplacementError(true); })
+      .finally(() => setReplacementBusy(false));
+  }, [eventId, replacementPhotoId, replacementDone, snapshot.importId, snapshot.state]);
 
   const start = (files: File[]) => {
     if (!pipeline.current) return;
+    if (replacementPhotoId && files.length !== 1) {
+      setSetupError(t('adminImport.replacementSinglePhoto'));
+      return;
+    }
+    setSetupError(undefined);
     void pipeline.current
-      .start(eventId, files, timezone, keepOriginals)
+      .start(eventId, files, timezone, keepOriginals, replacementPhotoId)
       .then((result) => {
         setRejected(result.rejected);
         setResumableImportId(undefined);
@@ -85,12 +109,14 @@ export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps
 
   return (
     <section aria-labelledby="import-title" className="admin-import">
-      <h1 id="import-title">{t('adminImport.start')}</h1>
+      <h1 id="import-title">{t(replacementPhotoId ? 'adminImport.replacementTitle' : 'adminImport.start')}</h1>
+      {replacementPhotoId ? <p>{t('adminImport.replacementDescription')}</p> : null}
+      {replacementPhotoId && faceSearchEnabled ? <p className="admin-card__description">{t('adminImport.replacementFaceWarning')}</p> : null}
       <Dropzone
         accept="image/jpeg,image/png,image/webp"
         description={t(keepOriginals ? 'adminImport.dropzoneOriginalDescription' : 'adminImport.dropzoneDescription')}
-        disabled={!isReady || isRunning}
-        label={t('adminImport.dropzoneLabel')}
+        disabled={!isReady || isRunning || replacementDone || replacementBusy}
+        label={t(replacementPhotoId ? 'adminImport.replacementDropzone' : 'adminImport.dropzoneLabel')}
         onFiles={start}
       />
       {snapshot.state !== 'idle' ? (
@@ -110,6 +136,9 @@ export function ImportPage({ eventId, keepOriginals, timezone }: ImportPageProps
         ) : null}
       </div>
       {setupError ? <p role="alert">{setupError}</p> : null}
+      {replacementBusy ? <p role="status">{t('adminImport.replacementFinishing')}</p> : null}
+      {replacementDone ? <p role="status">{t('adminImport.replacementDone')} <Link to={`/admin/galleries/${eventId}/selections`}>{t('adminImport.replacementBack')}</Link></p> : null}
+      {replacementError && snapshot.importId ? <div><p role="alert">{t('adminImport.replacementError')}</p><Button onClick={() => { replacementAttempted.current = null; setReplacementError(false); }} variant="secondary">{t('adminImport.replacementRetry')}</Button></div> : null}
       {rejected.length > 0 ? (
         <ul>
           {rejected.map((item) => (

@@ -44,13 +44,13 @@ describe('public gallery contracts', () => {
       {
         id: 'photo-1', event_id: 'event-1', filename: 'moment.jpg', width: 1600, height: 1200,
         captured_at: null, sort_key: '001', revision: 3, variant: 'thumb' as const,
-        liked: 1,
+        liked: 1, selected_for_retouch: 1,
         content_type: 'image/jpeg' as const, variant_width: 480, variant_height: 360,
       },
       {
         id: 'photo-1', event_id: 'event-1', filename: 'moment.jpg', width: 1600, height: 1200,
         captured_at: null, sort_key: '001', revision: 3, variant: 'download' as const,
-        liked: 1,
+        liked: 1, selected_for_retouch: 1,
         content_type: 'image/jpeg' as const, variant_width: 1600, variant_height: 1200,
       },
     ];
@@ -58,7 +58,9 @@ describe('public gallery contracts', () => {
     expect(photo?.sources[0]?.url).toBe('/media/event-1/photo-1/3/thumb');
     expect(photo?.downloadUrl).toBeNull();
     expect(photo?.liked).toBe(false);
+    expect(photo?.selectedForRetouch).toBe(false);
     expect(photosFromRows(rows, false, false, true)[0]?.liked).toBe(true);
+    expect(photosFromRows(rows, false, false, true)[0]?.selectedForRetouch).toBe(true);
     expect(photosFromRows(rows, true)[0]?.downloadUrl).toBe('/media/event-1/photo-1/3/download');
     const withOriginal = [...rows, {
       ...rows[1]!, variant: 'original' as const, content_type: 'image/png' as const,

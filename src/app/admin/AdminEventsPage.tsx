@@ -126,12 +126,14 @@ export function AdminEventsPage() {
                   : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
                 <h3>{event.title}</h3>
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
+                {event.access === 'protected' && event.retouchSelectionCount ? <p className="admin-event-row__favorites">{t('admin.favorites.count', { count: event.retouchSelectionCount })}</p> : null}
               </div>
               <div className="admin-event-row__actions">
                 {!event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}`}>
                   {t(readOnly ? 'admin.demo.inspect' : 'admin.events.settings')}
                 </Link> : null}
                 {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/galleries/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
+                {event.access === 'protected' && !event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}/selections`}>{t('admin.favorites.open')}</Link> : null}
                 {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
             </article>
@@ -514,6 +516,7 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
         summary={publication.data}
       />
       <AdminEventSettingsForm event={event} key={event.updatedAt} />
+      {event.access === 'protected' ? <section className="admin-card"><h2 className="admin-card__title">{t('admin.favorites.sectionTitle')}</h2><p className="admin-card__description">{t('admin.favorites.sectionDescription')}</p><Link className="button button--secondary" to={`/admin/galleries/${event.id}/selections`}>{t('admin.favorites.open')}</Link></section> : null}
       <OriginalsCleanupPanel event={event} />
       <CoverPhotoPanel event={event} key={`cover-${event.updatedAt}`} />
       <DeleteGalleryPanel event={event} />

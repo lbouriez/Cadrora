@@ -9,7 +9,7 @@ You own the deployment and the content. The showcase is a demonstration, not a h
 ## What you get
 
 - A responsive website with home, services, galleries, contact, and privacy pages.
-- Public, unlisted, or password-protected galleries; optional downloads of untouched originals (or the best prepared copy) and gallery-scoped face search. Originals are an optional delivery format, not a photographer's backup: they can be removed from a gallery without removing its prepared photos.
+- Public, unlisted, or password-protected galleries; optional downloads of untouched originals (or the best prepared copy) and gallery-scoped face search. In a private gallery, guests can mark favorites separately from photos they want retouched; the photographer can download the selection and return edited versions. Originals are an optional delivery format, not a photographer's backup: they can be removed from a gallery without removing its prepared photos.
 - An admin area for publishing galleries and editing the site's languages, appearance, services, contact details, and optional analytics.
 - No required contact-form provider, tracker, or external image host. Google Analytics is optional and loads only after visitor consent.
 

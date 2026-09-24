@@ -111,6 +111,31 @@
   color: var(--color-text-muted);
 }
 
+.admin-event-row__favorites,
+.admin-favorites__count {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+.admin-favorites__views { display: flex; flex-wrap: wrap; margin-bottom: var(--space-4); gap: var(--space-2); }
+
+.admin-favorites__downloads,
+.admin-favorites__photo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-favorites__downloads { margin: var(--space-4) 0 var(--space-5); }
+.admin-favorites__downloads p { margin: 0; }
+.admin-favorites__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); gap: var(--space-4); }
+.admin-favorites__photo { min-width: 0; border: 0.0625rem solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-raised); overflow: hidden; }
+.admin-favorites__photo > img { display: block; width: 100%; height: 13rem; object-fit: contain; background: var(--color-surface); }
+.admin-favorites__photo-body { display: grid; padding: var(--space-3); gap: var(--space-3); }
+.admin-favorites__filename { margin: 0; font-weight: 750; overflow-wrap: anywhere; }
+.admin-favorites__badge { justify-self: start; padding: var(--space-1) var(--space-2); border-radius: var(--radius-round); background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface)); color: var(--color-success); font-size: var(--text-sm); font-weight: 800; }
+.admin-favorites__photo-actions .button { min-width: 0; flex: 1 1 auto; justify-content: center; padding-inline: var(--space-2); text-align: center; }
+
 .admin-login {
   display: grid;
   min-height: 100vh;

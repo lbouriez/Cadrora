@@ -4,6 +4,7 @@ export const MAX_ZIP_PHOTOS = 100;
 export const MAX_ZIP_BYTES = 250_000_000;
 
 type DownloadPhoto = Pick<PublicPhoto, 'downloadUrl' | 'eventId' | 'filename' | 'id' | 'revision'>;
+type DownloadScope = 'visitor' | 'owner';
 type DirectoryPickerWindow = Window & {
   showDirectoryPicker?: (options: { id: string; mode: 'readwrite' }) => Promise<FileSystemDirectoryHandle>;
 };
@@ -26,20 +27,23 @@ export function downloadFilename(photo: DownloadPhoto, contentType: string): str
   return `${base}-${id}.${extension}`;
 }
 
-function mediaUrl(photo: DownloadPhoto): string {
+function mediaUrl(photo: DownloadPhoto, scope: DownloadScope): string {
   if (!photo.downloadUrl) throw new PhotoDownloadError('unavailable');
   const url = new URL(photo.downloadUrl, window.location.origin);
   const mediaBase = `/media/${encodeURIComponent(photo.eventId)}/${encodeURIComponent(photo.id)}/${photo.revision}/`;
-  if (url.origin !== window.location.origin ||
-    (url.pathname !== `${mediaBase}download` && url.pathname !== `${mediaBase}original`) || url.search || url.hash) {
+  const ownerPath = `/api/v1/admin/galleries/${encodeURIComponent(photo.eventId)}/photos/${encodeURIComponent(photo.id)}/download`;
+  const allowed = scope === 'owner'
+    ? url.pathname === ownerPath
+    : url.pathname === `${mediaBase}download` || url.pathname === `${mediaBase}original`;
+  if (url.origin !== window.location.origin || !allowed || url.search || url.hash) {
     throw new PhotoDownloadError('unavailable');
   }
   return url.pathname;
 }
 
-async function fetchPhoto(photo: DownloadPhoto, signal: AbortSignal): Promise<Response> {
+async function fetchPhoto(photo: DownloadPhoto, signal: AbortSignal, scope: DownloadScope): Promise<Response> {
   let response: Response;
-  const path = mediaUrl(photo);
+  const path = mediaUrl(photo, scope);
   try {
     response = await fetch(path, { credentials: 'same-origin', signal });
   } catch (error) {
@@ -92,9 +96,10 @@ export async function savePhotosSeparately(
   directory: FileSystemDirectoryHandle,
   signal: AbortSignal,
   onProgress: (completed: number) => void,
+  scope: DownloadScope = 'visitor',
 ): Promise<void> {
   for (const [index, photo] of photos.entries()) {
-    const response = await fetchPhoto(photo, signal);
+    const response = await fetchPhoto(photo, signal, scope);
     if (!response.body) throw new PhotoDownloadError('network');
     let filename: string;
     let writable: FileSystemWritableFileStream;
@@ -122,6 +127,7 @@ export async function createPhotoZip(
   photos: DownloadPhoto[],
   signal: AbortSignal,
   onProgress: (completed: number) => void,
+  scope: DownloadScope = 'visitor',
 ): Promise<Blob> {
   if (photos.length > MAX_ZIP_PHOTOS) throw new PhotoDownloadError('limit');
   const { BlobReader, BlobWriter, ZipWriter } = await import('@zip.js/zip.js');
@@ -129,7 +135,7 @@ export async function createPhotoZip(
   let totalBytes = 0;
   for (const [index, photo] of photos.entries()) {
     if (signal.aborted) throw new DOMException('Download cancelled', 'AbortError');
-    const response = await fetchPhoto(photo, signal);
+    const response = await fetchPhoto(photo, signal, scope);
     const declaredBytes = Number(response.headers.get('Content-Length'));
     if (Number.isFinite(declaredBytes) && declaredBytes > 0 && totalBytes + declaredBytes > MAX_ZIP_BYTES) {
       await response.body?.cancel();

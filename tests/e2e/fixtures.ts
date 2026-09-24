@@ -40,6 +40,7 @@ export const publicPhoto = {
   height: 1_200,
   id: 'photo-1',
   liked: false,
+  selectedForRetouch: false,
   revision: 2,
   sortKey: '00000001',
   sources: [
@@ -88,6 +89,7 @@ export async function installTurnstileStub(page: Page): Promise<void> {
 export async function mockGallery(page: Page, options: { protected?: boolean; withUnavailablePhoto?: boolean } = {}): Promise<void> {
   let unlocked = !options.protected;
   const favorites = new Map<string, boolean>();
+  const retouchSelections = new Map<string, boolean>();
   const event = options.protected ? protectedEvent : publicEvent;
 
   await page.route('**/e2e/photo-1.svg*', async (route) => {
@@ -148,12 +150,27 @@ export async function mockGallery(page: Page, options: { protected?: boolean; wi
       await fulfillJson(route, { liked: payload.liked });
       return;
     }
+    if (request.method() === 'PUT' && tail === 'photos' && segments[6] === 'retouch-selection') {
+      if (!options.protected) {
+        await fulfillJson(route, { code: 'EVENT_NOT_FOUND', message: 'errors.eventNotFound', requestId: 'e2e' }, 404);
+        return;
+      }
+      const photoId = segments[5] ?? '';
+      const payload = request.postDataJSON() as { selected?: boolean };
+      if (typeof payload.selected !== 'boolean') {
+        await fulfillJson(route, { code: 'INVALID_REQUEST', message: 'errors.invalidRequest', requestId: 'e2e' }, 400);
+        return;
+      }
+      retouchSelections.set(photoId, payload.selected);
+      await fulfillJson(route, { selected: payload.selected });
+      return;
+    }
     if (tail === 'photos') {
       await fulfillJson(route, {
         eventRevision: event.revision,
         nextCursor: null,
         photos: [
-          { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id, liked: favorites.get('photo-1') ?? false },
+          { ...publicPhoto, downloadUrl: `/media/${event.id}/photo-1/2/download`, eventId: event.id, liked: favorites.get('photo-1') ?? false, selectedForRetouch: retouchSelections.get('photo-1') ?? false },
           {
             ...publicPhoto,
             downloadUrl: options.withUnavailablePhoto ? null : `/media/${event.id}/photo-2/2/download`,
@@ -161,6 +178,7 @@ export async function mockGallery(page: Page, options: { protected?: boolean; wi
             filename: 'portrait-au-jardin.jpg',
             id: 'photo-2',
             liked: favorites.get('photo-2') ?? false,
+            selectedForRetouch: retouchSelections.get('photo-2') ?? false,
             height: 1_800,
             width: 1_200,
             sources: [{ contentType: 'image/jpeg', height: 720, url: '/e2e/photo-2.svg', width: 480 }],
@@ -173,6 +191,7 @@ export async function mockGallery(page: Page, options: { protected?: boolean; wi
             filename: 'portrait-a-la-fete.jpg',
             id: 'photo-3',
             liked: favorites.get('photo-3') ?? false,
+            selectedForRetouch: retouchSelections.get('photo-3') ?? false,
             sortKey: '00000003',
           }] : []),
         ],

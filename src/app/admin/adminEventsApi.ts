@@ -1,5 +1,5 @@
 import { AdminEventListSchema } from '../../shared/schemas';
-import { AdminCoverPhotosSchema, AdminOriginalsStatusSchema } from '../../shared/schemas/gallery';
+import { AdminCoverPhotosSchema, AdminFavoritePhotosSchema, AdminOriginalsStatusSchema, ReplacePhotoResponseSchema } from '../../shared/schemas/gallery';
 import type { Event } from '../../shared/schemas';
 
 export async function getAdminEvents(): Promise<Event[]> {
@@ -12,6 +12,20 @@ export async function getCoverPhotos(eventId: string, offset: number) {
   const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/cover-photos?offset=${offset}`, { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Cover photos returned ${response.status}`);
   return AdminCoverPhotosSchema.parse(await response.json());
+}
+
+export async function getFavoritePhotos(eventId: string, offset: number, view: 'retouch' | 'favorites') {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/selections?offset=${offset}&view=${view}`, { credentials: 'same-origin' });
+  if (!response.ok) throw new Error(`Favorite photos returned ${response.status}`);
+  return AdminFavoritePhotosSchema.parse(await response.json());
+}
+
+export async function replaceFavoritePhoto(eventId: string, photoId: string, importId: string) {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/photos/${encodeURIComponent(photoId)}/replace`, {
+    body: JSON.stringify({ importId }), credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, method: 'POST',
+  });
+  if (!response.ok) throw new Error(`Photo replacement returned ${response.status}`);
+  return ReplacePhotoResponseSchema.parse(await response.json());
 }
 
 export async function getOriginalsStatus(eventId: string) {

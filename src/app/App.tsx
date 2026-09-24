@@ -9,6 +9,7 @@ import { Spinner } from './components';
 const AdminDashboardRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminDashboardRoute }));
 const AdminEventSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminEventSettingsRoute }));
 const AdminImportRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminImportRoute }));
+const AdminFavoritesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminFavoritesRoute }));
 const AdminLoginRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminLoginRoute }));
 const AdminSiteSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminSiteSettingsRoute }));
 
@@ -44,6 +45,7 @@ export function App() {
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
     { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
     { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },
+    { path: '/admin/galleries/:eventId/selections', element: adminElement(<AdminFavoritesRoute />) },
     ...publicRouteObjects,
     { path: '*', element: <FoundationShell /> },
   ]);

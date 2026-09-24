@@ -17,6 +17,7 @@ const event = {
 function harness(options: { access?: 'protected' | 'public'; grant?: boolean; offline?: boolean } = {}) {
   const statements: Array<{ sql: string; values: unknown[] }> = [];
   let liked = 0;
+  let selected = 0;
   const prepare = vi.fn((sql: string) => {
     const record = { sql, values: [] as unknown[] };
     statements.push(record);
@@ -26,6 +27,7 @@ function harness(options: { access?: 'protected' | 'public'; grant?: boolean; of
         ? { ...event, access: options.access ?? 'protected', offline_at: options.offline ? event.created_at : null }
         : sql.startsWith('SELECT access_version') ? { access_version: 2 }
         : sql.includes('UPDATE photos SET liked') ? (() => { liked = Number(record.values[0]); return { liked }; })()
+        : sql.includes('UPDATE photos SET selected_for_retouch') ? (() => { selected = Number(record.values[0]); return { selected_for_retouch: selected }; })()
         : null),
     };
     return statement;
@@ -42,7 +44,10 @@ function harness(options: { access?: 'protected' | 'public'; grant?: boolean; of
   const request = (body: unknown, origin = 'http://localhost') => app.request('/api/v1/galleries/private-gallery/photos/photo-1/favorite', {
     method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body),
   }, env);
-  return { request, statements, value: () => liked };
+  const retouch = (body: unknown, origin = 'http://localhost') => app.request('/api/v1/galleries/private-gallery/photos/photo-1/retouch-selection', {
+    method: 'PUT', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body),
+  }, env);
+  return { request, retouch, statements, value: () => liked, selected: () => selected };
 }
 
 describe('private gallery shared favorites', () => {
@@ -77,5 +82,34 @@ describe('private gallery shared favorites', () => {
     expect((await test.request({ liked: 1 })).status).toBe(400);
     expect((await test.request({ liked: true, extra: true })).status).toBe(400);
     expect(test.statements).toHaveLength(0);
+  });
+});
+
+describe('private gallery retouch selection', () => {
+  it('is a distinct gallery-scoped choice with the same origin and grant checks as favorites', async () => {
+    const test = harness();
+    expect((await test.retouch({ selected: true })).status).toBe(200);
+    expect(test.selected()).toBe(1);
+    expect(test.value()).toBe(0);
+    expect((await test.request({ liked: true })).status).toBe(200);
+    expect(test.value()).toBe(1);
+    expect(test.selected()).toBe(1);
+    const clear = await test.retouch({ selected: false });
+    expect(clear.status).toBe(200);
+    await expect(clear.json()).resolves.toEqual({ selected: false });
+    expect(test.selected()).toBe(0);
+    expect(test.statements.find(({ sql }) => sql.includes('UPDATE photos SET selected_for_retouch'))?.sql).toContain("access = 'protected'");
+  });
+
+  it('fails closed for public, offline, missing-grant, cross-origin and malformed writes', async () => {
+    for (const options of [{ access: 'public' as const }, { offline: true }, { grant: false }]) {
+      const test = harness(options);
+      expect((await test.retouch({ selected: true })).status).toBe(options.grant === false ? 401 : 404);
+      expect(test.selected()).toBe(0);
+    }
+    const test = harness();
+    expect((await test.retouch({ selected: true }, 'https://elsewhere.example')).status).toBe(403);
+    expect((await test.retouch({ selected: 1 })).status).toBe(400);
+    expect((await test.retouch({ selected: true, extra: true })).status).toBe(400);
   });
 });

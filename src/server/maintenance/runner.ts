@@ -4,6 +4,7 @@ import {
   parseDeleteGalleryPayload,
   parseDeleteGalleryOriginalsPayload,
   parseDeletePhotoPayload,
+  parseDeleteReplacedMediaPayload,
   parsePurgeExpiredFacesPayload,
   parsePurgeFacesPayload,
 } from '../repositories/maintenanceRepository';
@@ -61,6 +62,13 @@ export class MaintenanceRunner {
       await this.dependencies.storage.deleteMany(cleanup.storageKeys);
       await this.dependencies.vectors.deleteMany(cleanup.vectorIds);
       await this.dependencies.repository.completePhotoDeletion(job.id, payload.photoId, now.toISOString());
+      return;
+    }
+
+    if (job.kind === 'delete_replaced_media') {
+      const payload = parseDeleteReplacedMediaPayload(job.payload);
+      await this.dependencies.storage.deleteMany(payload.storageKeys);
+      await this.dependencies.repository.completeJob(job.id, now.toISOString());
       return;
     }
 

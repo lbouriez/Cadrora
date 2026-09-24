@@ -6,6 +6,8 @@ import {
   PublicPhotoPageSchema,
   PhotoFavoriteRequestSchema,
   PhotoFavoriteResponseSchema,
+  PhotoRetouchRequestSchema,
+  PhotoRetouchResponseSchema,
   UnlockEventResponseSchema,
 } from '../../shared/schemas/gallery';
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
@@ -29,6 +31,10 @@ async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T
 
 export async function getPublicEvents(): Promise<PublicEvent[]> {
   return (await validatedFetch('/api/v1/galleries', PublicEventListSchema)).events;
+}
+
+export async function getPublicGalleryIndex() {
+  return validatedFetch('/api/v1/galleries', PublicEventListSchema);
 }
 
 /** Optional runtime presentation setting; public pages retain a safe local fallback if it is unavailable. */
@@ -57,6 +63,16 @@ export async function setPhotoFavorite(locator: string, photoId: string, liked: 
     { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
   );
   return result.liked;
+}
+
+export async function setPhotoRetouchSelection(locator: string, photoId: string, selected: boolean): Promise<boolean> {
+  const body = PhotoRetouchRequestSchema.parse({ selected });
+  const result = await validatedFetch(
+    `/api/v1/galleries/${encodeURIComponent(locator)}/photos/${encodeURIComponent(photoId)}/retouch-selection`,
+    PhotoRetouchResponseSchema,
+    { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+  );
+  return result.selected;
 }
 
 export async function unlockEvent(locator: string, password: string, turnstileToken: string): Promise<void> {

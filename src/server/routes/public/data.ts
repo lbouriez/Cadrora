@@ -99,6 +99,7 @@ export interface PhotoWithVariantRow {
   variant_width: number;
   variant_height: number;
   liked: number;
+  selected_for_retouch: number;
 }
 
 export function photosFromRows(rows: PhotoWithVariantRow[], allowDownloads: boolean, keepOriginals = false, showFavorites = false): PublicPhoto[] {
@@ -120,6 +121,7 @@ export function photosFromRows(rows: PhotoWithVariantRow[], allowDownloads: bool
           ? `/media/${encodeURIComponent(row.event_id)}/${encodeURIComponent(row.id)}/${row.revision}/download`
           : null,
         liked: showFavorites && row.liked === 1,
+        selectedForRetouch: showFavorites && row.selected_for_retouch === 1,
       };
       byId.set(row.id, photo);
     }

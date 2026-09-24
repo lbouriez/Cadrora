@@ -3,14 +3,16 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal } from '../components';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal, RetouchButton } from '../components';
 
 interface PhotoViewerProps {
   favoriteEnabled: boolean;
   favoritePending: boolean;
+  retouchPending: boolean;
   onClose: () => void;
   onSelect: (photo: PublicPhoto) => void;
   onToggleFavorite: (photo: PublicPhoto) => void;
+  onToggleRetouch: (photo: PublicPhoto) => void;
   photo: PublicPhoto;
   photos: PublicPhoto[];
   showMetadata: boolean;
@@ -35,7 +37,7 @@ function formatCapturedAt(value: string | null, language: string, timezone: stri
   }
 }
 
-export function PhotoViewer({ favoriteEnabled, favoritePending, onClose, onSelect, onToggleFavorite, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
+export function PhotoViewer({ favoriteEnabled, favoritePending, retouchPending, onClose, onSelect, onToggleFavorite, onToggleRetouch, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
   const { i18n, t } = useTranslation();
   const metadataId = useId();
   const [metadataState, setMetadataState] = useState({ open: false, photoId: photo.id });
@@ -124,6 +126,9 @@ export function PhotoViewer({ favoriteEnabled, favoritePending, onClose, onSelec
             liked={photo.liked}
             onToggle={() => onToggleFavorite(photo)}
           /> : null}
+          {favoriteEnabled ? <RetouchButton className="photo-viewer__retouch" disabled={retouchPending}
+            label={t(photo.selectedForRetouch ? 'gallery.retouch.remove' : 'gallery.retouch.add', { filename: photo.filename })}
+            onToggle={() => onToggleRetouch(photo)} selected={photo.selectedForRetouch} /> : null}
           {photo.downloadUrl ? <a aria-label={t('gallery.download')} className="icon-button icon-button--secondary photo-viewer__download" download href={photo.downloadUrl} title={t('gallery.download')}><DownloadIcon /></a> : null}
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {

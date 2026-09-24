@@ -13,8 +13,8 @@ test('garde la photo locale avant toute recherche faciale', async ({ page }) => 
   });
 
   await page.goto('/e/mariage-lumiere/find');
-  await expect(page.locator('.face-find__test-links a')).toHaveCount(2);
-  await expect(page.locator('.face-find__test-links img')).toHaveCount(2);
+  await expect(page.locator('.face-find__test-links a')).toHaveCount(3);
+  await expect(page.locator('.face-find__test-links img')).toHaveCount(3);
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   const fileInput = page.locator('input[type="file"]').first();
