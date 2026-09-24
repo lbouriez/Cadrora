@@ -50,6 +50,7 @@ If the operator supplies a restricted `VITE_GOOGLE_MAPS_EMBED_KEY`, the click-to
 ## Design and content rules
 
 - Keep all user-facing copy in both FR and EN resources.
+- On a photographer's own site, address visitors as the studio using "we/you" ("nous/vous") or neutral wording. Do not refer to "the photographer" in the third person in visitor-facing gallery, contact, or privacy copy. Product-demo and owner-login copy may describe the application, but should not make a real studio sound like an external party.
 - Write for visitors and photographers who do not know the implementation: describe what they can do and what happens to their photos, not Workers, databases, vectors, variants, or deployment details. Keep necessary settings such as a Google Analytics ID specific enough to act on. Preserve accurate consent, gallery-scope, cost-limit, and deletion disclosures in plain language.
 - The privacy overview uses a demo-specific paragraph only when the showcase gate is enabled; other installations must not claim their people or contact details are fictional.
 - Reuse the semantic tokens and shared button primitives.

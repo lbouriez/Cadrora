@@ -144,7 +144,7 @@ test.describe('site vitrine statique', () => {
     });
     await page.reload();
     await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toHaveCount(0);
-    await expect(page.getByText(/coordonnées seront publiées|contact details will be published/i)).toBeVisible();
+    await expect(page.getByText(/nos coordonnées seront bientôt disponibles|our contact details will be available here soon/i)).toBeVisible();
   });
 
   test('reveals landing cards with motion unless the visitor requests reduced motion', async ({ page }) => {

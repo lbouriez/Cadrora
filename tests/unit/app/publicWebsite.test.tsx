@@ -10,7 +10,7 @@ import { ContactPage } from '../../../src/app/public/InfoPage';
 import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
 import { installFindResources } from '../../../src/app/public/FindI18n';
-import { installPublicResources } from '../../../src/app/public/i18n';
+import { installPublicResources, publicResources } from '../../../src/app/public/i18n';
 
 beforeAll(() => {
   installPublicResources(i18n);
@@ -34,6 +34,16 @@ function renderPage(page: ReactNode) {
 }
 
 describe('public photographer website', () => {
+  it('speaks to visitors in the site owner’s voice in both languages', async () => {
+    expect(i18n.t('gallery.protectedHelp')).toBe('Entrez le mot de passe qui vous a été transmis.');
+    expect(i18n.t('gallery.privacyPage.operator.body')).toContain('Nous décidons');
+    expect(JSON.stringify(publicResources)).not.toMatch(/\b(?:photographer|photographe)\b/i);
+
+    await i18n.changeLanguage('en');
+    expect(i18n.t('gallery.protectedHelp')).toBe('Enter the password you were given.');
+    expect(i18n.t('gallery.privacyPage.operator.body')).toContain('We decide');
+  });
+
   it('keeps the showcase content useful when the gallery API is unavailable', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
     renderPage(<HomePage />);
