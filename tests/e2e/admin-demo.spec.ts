@@ -186,6 +186,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(originals).toHaveCount(0);
   await downloads.check();
   await expect(originals).toBeVisible();
+  await page.getByRole('button', { name: /new imports keep the original|les prochains imports conserveront l’original/i }).click();
+  await expect(page.getByRole('tooltip')).toContainText(/visitors receive the best prepared copy|visiteurs recevront la meilleure copie préparée/i);
+  await expect(originals).not.toBeChecked();
   await originals.check();
   await downloads.uncheck();
   await expect(originals).toHaveCount(0);
@@ -196,6 +199,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await showOnGalleryPage.uncheck();
   await expect(showOnGalleryPage).not.toBeChecked();
   await expect(faceSearch).toBeChecked();
+  await expect(nearbySearch).toBeChecked();
+  await page.getByRole('button', { name: /available with face search|disponible avec la recherche faciale/i }).click();
+  await expect(page.getByRole('tooltip')).toContainText(/photos taken just before or after|photos prises juste avant ou après/i);
   await expect(nearbySearch).toBeChecked();
   await faceSearch.uncheck();
   await expect(nearbySearch).not.toBeChecked();
@@ -252,6 +258,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     dispatchEvent(new PopStateEvent('popstate'));
   }, protectedEvent.id);
   const retouchSwitch = page.getByRole('checkbox', { name: /select photos for retouching|choisir des photos à retoucher/i });
+  await expect(retouchSwitch).toBeChecked();
+  await page.getByRole('button', { name: /turn off when retouch requests|désactivez cette option lorsque les demandes/i }).click();
+  await expect(page.getByRole('tooltip')).toContainText(/existing selections stay|sélections existantes restent/i);
   await expect(retouchSwitch).toBeChecked();
   await retouchSwitch.uncheck();
   await expect(retouchSwitch).not.toBeChecked();

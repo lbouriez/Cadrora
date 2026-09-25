@@ -170,7 +170,7 @@ export function AdminEventsPage() {
               setAllowDownloads(changeEvent.target.checked);
               if (!changeEvent.target.checked) setKeepOriginals(false);
             }} type="checkbox" /> {t('admin.events.allowDownloads')}</label>
-            {allowDownloads ? <label className="admin-event-form__dependent-option"><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}<span>{t('admin.events.keepOriginalsHint')}</span></label> : null}
+            {allowDownloads ? <div className="admin-event-form__option-with-info admin-event-form__option-with-info--dependent"><label><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}</label><InfoTooltip text={t('admin.events.keepOriginalsHint')} /></div> : null}
             <FaceSearchOptions
               faceSearchEnabled={faceSearchEnabled}
               nearbySearchEnabled={nearbySearchEnabled}
@@ -181,7 +181,7 @@ export function AdminEventsPage() {
               onNearbySearchChange={setNearbySearchEnabled}
             />
             <label><input name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
-            {access === 'protected' ? <label><input defaultChecked name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}<span className="field__hint">{t('admin.events.retouchSelectionEnabledHint')}</span></label> : null}
+            {access === 'protected' ? <div className="admin-event-form__option-with-info"><label><input defaultChecked name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}</label><InfoTooltip text={t('admin.events.retouchSelectionEnabledHint')} /></div> : null}
           </fieldset>
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
           {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
@@ -230,10 +230,10 @@ function FaceSearchOptions({
       <label>
         <input checked={faceSearchEnabled} name="faceSearchEnabled" onChange={(event) => onFaceSearchChange(event.target.checked)} type="checkbox" /> {t('admin.events.faceSearch')}
       </label>
-      <label className="admin-event-form__dependent-option">
-        <input checked={nearbySearchEnabled} disabled={!faceSearchEnabled} name="nearbySearchEnabled" onChange={(event) => onNearbySearchChange(event.target.checked)} type="checkbox" /> {t('admin.events.nearbySearch')}
-        <span>{t('admin.events.nearbySearchHint')}</span>
-      </label>
+      <div className="admin-event-form__option-with-info admin-event-form__option-with-info--dependent">
+        <label><input checked={nearbySearchEnabled} disabled={!faceSearchEnabled} name="nearbySearchEnabled" onChange={(event) => onNearbySearchChange(event.target.checked)} type="checkbox" /> {t('admin.events.nearbySearch')}</label>
+        <InfoTooltip text={t('admin.events.nearbySearchHint')} />
+      </div>
     </>
   );
 }
@@ -314,7 +314,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             setAllowDownloads(changeEvent.target.checked);
             if (!changeEvent.target.checked) setKeepOriginals(false);
           }} type="checkbox" /> {t('admin.events.allowDownloads')}</label>
-          {allowDownloads ? <label className="admin-event-form__dependent-option"><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}<span>{t('admin.events.keepOriginalsHint')}</span></label> : null}
+          {allowDownloads ? <div className="admin-event-form__option-with-info admin-event-form__option-with-info--dependent"><label><input checked={keepOriginals} name="keepOriginals" onChange={(changeEvent) => setKeepOriginals(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.keepOriginals')}</label><InfoTooltip text={t('admin.events.keepOriginalsHint')} /></div> : null}
           <FaceSearchOptions
             faceSearchEnabled={faceSearchEnabled}
             nearbySearchEnabled={nearbySearchEnabled}
@@ -325,7 +325,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             onNearbySearchChange={setNearbySearchEnabled}
           />
           <label><input defaultChecked={event.showPhotoMetadata} name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
-          {access === 'protected' ? <label><input defaultChecked={event.retouchSelectionEnabled} name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}<span className="field__hint">{t('admin.events.retouchSelectionEnabledHint')}</span></label> : null}
+          {access === 'protected' ? <div className="admin-event-form__option-with-info"><label><input defaultChecked={event.retouchSelectionEnabled} name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}</label><InfoTooltip text={t('admin.events.retouchSelectionEnabledHint')} /></div> : null}
         </fieldset>
         {update.isError ? <p role="alert">{t('admin.events.updateError')}</p> : null}
         {saved ? <p role="status">{t('admin.events.updated')}</p> : null}

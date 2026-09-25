@@ -282,6 +282,10 @@
   min-width: 0;
 }
 
+.admin-event-form__option-with-info--dependent {
+  padding-left: var(--space-5);
+}
+
 .admin-event-list {
   display: grid;
   margin-top: var(--space-5);
@@ -336,19 +340,6 @@
 
 .admin-demo-intro {
   grid-column: 1 / -1;
-}
-
-.admin-event-form__dependent-option {
-  display: grid;
-  padding-left: var(--space-5);
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-2);
-}
-
-.admin-event-form__dependent-option span {
-  grid-column: 2;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }
 
 .admin-quota-settings {
