@@ -208,7 +208,9 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
   await page.getByRole('link', { name: /importer des photos|import photos/i }).click();
   await expect(page.getByRole('heading', { name: /photos incomplètes \(1\)|unfinished photos \(1\)/i })).toBeVisible();
   await expect(page.getByText('original.jpg')).toBeVisible();
-  await page.locator('input[type="file"]').first().setInputFiles({
+  await expect(page.locator('input[type="file"]')).toHaveCount(1);
+  await expect(page.getByText(/déposez des photos ici|drop photos here/i)).toHaveCount(0);
+  await page.locator('input[type="file"]').setInputFiles({
     buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]), mimeType: 'image/jpeg', name: 'original.jpg',
   });
   await expect(page.getByRole('status')).toContainText(/aucun fichier sélectionné|none of the selected files/i);

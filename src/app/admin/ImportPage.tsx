@@ -146,6 +146,8 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
   const canUseSavedJob = snapshot.state === 'idle' && Boolean(resumableJob);
   const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || canUseSavedJob;
   const canCancel = isRunning || canResume;
+  const recoveryMode = !replacementPhotoId && !resumableJob && snapshot.state === 'idle' && recoverable.length > 0;
+  const recoveryNeedsFiles = recoveryMode && recoverable.some((photo) => photo.missingVariants.length > 0);
   const progressText = `${snapshot.completedPhotos}/${snapshot.totalPhotos}`;
 
   return (
@@ -153,31 +155,25 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
       <h1 id="import-title">{replacementPhotoId ? t('adminImport.replacementTitle') : t('adminImport.start', { gallery: galleryTitle })}</h1>
       {replacementPhotoId ? <p>{t('adminImport.replacementDescription')}</p> : null}
       {replacementPhotoId && faceSearchEnabled ? <p className="admin-card__description">{t('adminImport.replacementFaceWarning')}</p> : null}
-      {!replacementPhotoId && !resumableJob && snapshot.state === 'idle' && recoverable.length > 0 ? (
+      {recoveryMode ? (
         <div className="admin-card admin-import__recovery">
           <h2 className="admin-card__title">{t('adminImport.recoveryTitle', { count: recoverable.length })}</h2>
           <p className="admin-card__description">{t('adminImport.recoveryDescription')}</p>
           <ul>{recoverable.map((photo) => <li key={photo.id}>{photo.filename}</li>)}</ul>
-          {recoverable.some((photo) => photo.missingVariants.length > 0) ? (
-            <Dropzone
-              accept="image/jpeg,image/png,image/webp"
-              description={t('adminImport.recoveryDropzoneDescription')}
-              disabled={recoveryBusy}
-              label={t('adminImport.recoveryDropzone')}
-              onFiles={recover}
-            />
-          ) : <Button disabled={recoveryBusy} onClick={() => recover([])}>{t('adminImport.recoveryFinalize')}</Button>}
+          {!recoveryNeedsFiles ? <Button disabled={recoveryBusy} onClick={() => recover([])}>{t('adminImport.recoveryFinalize')}</Button> : null}
           {recoveryBusy ? <p role="status">{t('adminImport.recoveryProgress', { completed: recoveryProgress, total: recoverable.length })}</p> : null}
         </div>
       ) : null}
       {recoveryNotice ? <p role="status">{recoveryNotice}</p> : null}
-      <Dropzone
-        accept="image/jpeg,image/png,image/webp"
-        description={t(keepOriginals ? 'adminImport.dropzoneOriginalDescription' : 'adminImport.dropzoneDescription')}
-        disabled={!isReady || isRunning || recoveryBusy || replacementDone || replacementBusy}
-        label={t(replacementPhotoId ? 'adminImport.replacementDropzone' : 'adminImport.dropzoneLabel')}
-        onFiles={start}
-      />
+      {!recoveryMode || recoveryNeedsFiles ? (
+        <Dropzone
+          accept="image/jpeg,image/png,image/webp"
+          description={t(recoveryMode ? 'adminImport.recoveryDropzoneDescription' : keepOriginals ? 'adminImport.dropzoneOriginalDescription' : 'adminImport.dropzoneDescription')}
+          disabled={recoveryMode ? recoveryBusy : !isReady || isRunning || recoveryBusy || replacementDone || replacementBusy}
+          label={t(recoveryMode ? 'adminImport.recoveryDropzone' : replacementPhotoId ? 'adminImport.replacementDropzone' : 'adminImport.dropzoneLabel')}
+          onFiles={recoveryMode ? recover : start}
+        />
+      ) : null}
       {snapshot.state !== 'idle' ? (
         <div className="admin-import__progress">
           <ProgressBar label={t('adminImport.progress')} max={snapshot.totalPhotos} value={snapshot.completedPhotos} valueText={progressText} />

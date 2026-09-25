@@ -33,7 +33,7 @@ The showcase demo deliberately displays the same workflow—including Create gal
 
 The browser UI is still not a substitute for validating deployed authorization. Test the exact protected hostname and API response before relying on it operationally. Do not weaken `/admin` protection or expose a password/token in browser configuration.
 
-If **Photos uploaded** is higher than **Photos ready** and the import page no longer offers **Resume**, use **Finish unfinished photos** on that page. Select the exact original files listed there; selecting the whole original batch is safe. Cadrora matches the bytes locally, uploads only missing prepared copies, and keeps ready photos. Retry the same action after an interruption. A file with the same name but different bytes will not match. No Cloudflare D1 or R2 console cleanup is needed.
+If **Photos uploaded** is higher than **Photos ready** and the import page no longer offers **Resume**, the page's file selection area switches to **Finish unfinished photos**. Select the exact original files listed there; selecting the whole original batch is safe. Cadrora matches the bytes locally, uploads only missing prepared copies, and keeps ready photos. Retry the same action after an interruption. A file with the same name but different bytes will not match. No Cloudflare D1 or R2 console cleanup is needed. Once recovery completes, that same area returns to normal import mode.
 
 ## Gallery lifecycle
 
