@@ -9,6 +9,11 @@ import { ServiceAreaMap } from './ServiceAreaMap';
 import { siteProfile } from './siteProfile';
 
 export function PrivacyPage() {
+  const Override = siteProfile.pages?.privacy;
+  return Override ? <Override /> : <DefaultPrivacyPage />;
+}
+
+export function DefaultPrivacyPage() {
   const { t } = useTranslation();
   const sections = ['overview', 'gallery', 'security', 'ai', 'retention', 'analytics', 'rights', 'operator'] as const;
   return (
@@ -59,6 +64,11 @@ export function PrivacyPage() {
 }
 
 export function ContactPage() {
+  const Override = siteProfile.pages?.contact;
+  return Override ? <Override /> : <DefaultContactPage />;
+}
+
+export function DefaultContactPage() {
   const { t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const contact = {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   assertManifestTarget,
+  assertSiteTarget,
   instanceResourceNames,
   instanceWranglerConfig,
   parseInstanceArguments,
@@ -64,5 +65,14 @@ describe('isolated instance deployment configuration', () => {
       { hostname: 'alice.cadrora.com', instance: 'alice' },
       { hostname: 'alice.cadrora.com', instance: 'alice' },
     )).not.toThrow();
+  });
+
+  it('pins the Atelier Giulia profile to its own instance and exact hostname', () => {
+    const target = { instance: 'atelier-giulia', hostname: 'ateliergiulia.com' };
+    const profile = { id: 'atelier-giulia', deployment: target };
+    expect(() => assertSiteTarget(profile, target)).not.toThrow();
+    expect(() => assertSiteTarget(profile, { ...target, hostname: 'cadrora.com' })).toThrow('only');
+    expect(() => assertSiteTarget({ id: 'cadrora' }, target, false, [profile])).toThrow('reserved');
+    expect(() => assertSiteTarget(profile, target, true)).toThrow('must never be seeded');
   });
 });

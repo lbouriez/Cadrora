@@ -5,6 +5,7 @@ Status: accepted on 2026-09-22. Changes require an ADR and explicit human valida
 Original delivery and admin-selected gallery covers are recorded in [`ADR-009`](../decisions/ADR-009-original-delivery-and-gallery-covers.md).
 The shared favorites contract for protected galleries is recorded in [`ADR-010`](../decisions/ADR-010-private-gallery-shared-favorites.md).
 The separate retouch-selection, replacement, and locked-gallery index contract is recorded in [`ADR-011`](../decisions/ADR-011-private-retouch-selection-and-public-gallery-index.md).
+Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 
 ## Platform boundaries
 

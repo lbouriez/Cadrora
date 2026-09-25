@@ -7,8 +7,14 @@ import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceVisuals } from './serviceCatalog';
+import { siteProfile } from './siteProfile';
 
 export function ServicesPage() {
+  const Override = siteProfile.pages?.services;
+  return Override ? <Override /> : <DefaultServicesPage />;
+}
+
+export function DefaultServicesPage() {
   const { t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const visibleServices = serviceVisuals.filter(({ key }) => settings.data?.enabledServices.includes(key) ?? true);
@@ -55,6 +61,11 @@ export function ServicesPage() {
 }
 
 export function GalleriesPage() {
+  const Override = siteProfile.pages?.galleries;
+  return Override ? <Override /> : <DefaultGalleriesPage />;
+}
+
+export function DefaultGalleriesPage() {
   const { i18n, t } = useTranslation();
   const events = useQuery({ queryKey: ['public-gallery-index'], queryFn: getPublicGalleryIndex });
   return (

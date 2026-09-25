@@ -1,3 +1,5 @@
+import { activeSite } from '../site/activeSite';
+
 function optionalValue(value: string | undefined): string | null {
   const normalized = value?.trim();
   return normalized ? normalized : null;
@@ -9,8 +11,17 @@ function optionalValue(value: string | undefined): string | null {
  * changed through Cloudflare Pages/Workers build variables.
  */
 export const siteProfile = {
-  siteName: optionalValue(import.meta.env.VITE_APP_NAME) ?? 'Cadrora',
-  photographerName: optionalValue(import.meta.env.VITE_PHOTOGRAPHER_NAME) ?? 'Camille Laurent',
+  id: activeSite.id,
+  siteName: optionalValue(import.meta.env.VITE_APP_NAME) ?? activeSite.name,
+  photographerName: optionalValue(import.meta.env.VITE_PHOTOGRAPHER_NAME),
+  logoUrl: activeSite.logoUrl,
+  heroImageUrl: activeSite.heroImageUrl,
+  heroAccentImageUrl: activeSite.heroAccentImageUrl,
+  mapPreviewUrl: activeSite.mapPreviewUrl,
+  privateGalleryCoverUrl: activeSite.privateGalleryCoverUrl,
+  serviceImages: activeSite.serviceImages,
+  home: activeSite.home,
+  pages: activeSite.pages,
   contact: {
     phone: optionalValue(import.meta.env.VITE_CONTACT_PHONE),
     email: optionalValue(import.meta.env.VITE_CONTACT_EMAIL),
@@ -19,11 +30,11 @@ export const siteProfile = {
   },
   mapsEmbedKey: optionalValue(import.meta.env.VITE_GOOGLE_MAPS_EMBED_KEY),
   demo: {
-    enabled: __CADRORA_SHOWCASE_DEMO__,
-    adminPassword: 'cadrora-demo',
-    adminUsername: 'demo',
-    privateGalleryPassword: 'cadrora-demo',
-    privateGallerySlug: 'instants-en-famille',
-    publicGallerySlug: 'lumiere-et-promesses',
+    enabled: __CADRORA_SHOWCASE_DEMO__ && activeSite.demo !== null,
+    adminPassword: activeSite.demo?.adminPassword ?? '',
+    adminUsername: activeSite.demo?.adminUsername ?? '',
+    privateGalleryPassword: activeSite.demo?.privateGalleryPassword ?? '',
+    privateGallerySlug: activeSite.demo?.privateGallerySlug ?? '',
+    publicGallerySlug: activeSite.demo?.publicGallerySlug ?? '',
   },
 } as const;

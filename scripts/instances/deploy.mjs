@@ -6,12 +6,14 @@ import { fileURLToPath } from 'node:url';
 
 import {
   assertManifestTarget,
+  assertSiteTarget,
   instanceResourceNames,
   instanceUsage,
   instanceWranglerConfig,
   parseInstanceArguments,
   parseR2BucketNames,
 } from './instanceConfig.mjs';
+import { listSiteProfiles, loadSiteProfile } from '../sites/loadProfile.mjs';
 
 const wranglerPath = 'node_modules/wrangler/bin/wrangler.js';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -63,6 +65,19 @@ function requiredEnvironment(name) {
 }
 
 async function ensureCredentials(instanceDirectory) {
+  const environmentHash = process.env.ADMIN_SECRET_HASH?.trim();
+  const environmentPepper = process.env.AUTH_PEPPER?.trim();
+  if (environmentHash || environmentPepper) {
+    if (!environmentHash || !environmentPepper) throw new Error('ADMIN_SECRET_HASH and AUTH_PEPPER must be supplied together.');
+    if (!/^hmac-sha256\$[A-Za-z0-9_-]+\$[A-Za-z0-9_-]+$/u.test(environmentHash)
+      || Buffer.byteLength(environmentPepper, 'utf8') < 32) {
+      throw new Error('Deployment credentials have an invalid format. Regenerate them outside CI without printing their values.');
+    }
+    return { adminHash: environmentHash, authPepper: environmentPepper, credentialsPath: null };
+  }
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    throw new Error('CI deployments require stable ADMIN_SECRET_HASH and AUTH_PEPPER secrets.');
+  }
   const credentialsPath = join(instanceDirectory, 'admin-credentials.env');
   if (!existsSync(credentialsPath)) {
     run(process.execPath, ['scripts/setup/adminCredentials.mjs', '--output', credentialsPath]);
@@ -137,6 +152,13 @@ if (argumentsList.includes('--help')) {
 
 try {
   const target = parseInstanceArguments(argumentsList);
+  const siteId = process.env.CADRORA_SITE?.trim() || 'cadrora';
+  const site = loadSiteProfile(siteId, workspace);
+  assertSiteTarget(site, target, process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true', listSiteProfiles(workspace));
+  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
+    requiredEnvironment('CLOUDFLARE_ACCOUNT_ID');
+    requiredEnvironment('CLOUDFLARE_API_TOKEN');
+  }
   requiredEnvironment('VITE_TURNSTILE_SITE_KEY');
   const turnstileSecret = requiredEnvironment('TURNSTILE_SECRET_KEY');
   const names = instanceResourceNames(target.instance);
@@ -168,6 +190,9 @@ try {
   try {
     run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build']);
     wrangler(['d1', 'migrations', 'apply', 'DB', '--remote', '--config', configPath, '--env=']);
+    if (site.deployment?.initialSettingsSql) {
+      wrangler(['d1', 'execute', 'DB', '--remote', '--file', site.deployment.initialSettingsSql, '--config', configPath, '--env=']);
+    }
     await syncModels(names.modelsBucket, configPath);
     wrangler(['deploy', '--config', configPath, '--secrets-file', secretsPath, '--env=']);
   } finally {
@@ -183,7 +208,8 @@ try {
     resources: names,
   }, null, 2)}\n`, 'utf8');
   process.stdout.write(`Instance deployed: https://${target.hostname}\n`);
-  process.stdout.write(`Private admin credentials: ${credentials.credentialsPath}\n`);
+  if (credentials.credentialsPath) process.stdout.write(`Private admin credentials: ${credentials.credentialsPath}\n`);
+  else process.stdout.write('Private admin credentials came from deployment secrets.\n');
 } catch (error) {
   process.stderr.write(`${error instanceof Error ? error.message : 'Instance deployment failed.'}\n`);
   process.exit(2);

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -9,8 +10,23 @@ import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceVisuals } from './serviceCatalog';
 import { siteProfile } from './siteProfile';
+import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
+  const Override = siteProfile.pages?.home;
+  return Override ? <Override /> : <DefaultHomePage />;
+}
+
+function SiteActionLink({ action, primary }: { action: SiteAction; primary: boolean }) {
+  const { t } = useTranslation();
+  const content = <><span className="site-actions__full">{t(action.labelKey)}</span><span aria-hidden="true" className="site-actions__short">{t(action.shortLabelKey)}</span></>;
+  const className = `button ${primary ? 'button--primary' : 'button--secondary'}`;
+  return action.href.startsWith('#')
+    ? <a aria-label={t(action.labelKey)} className={className} href={action.href}>{content}</a>
+    : <Link aria-label={t(action.labelKey)} className={className} to={action.href}>{content}</Link>;
+}
+
+export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents });
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
@@ -23,31 +39,31 @@ export function HomePage() {
           <h1>{t('gallery.heroTitle')}</h1>
           <p className="site-hero__lead">{t('gallery.heroLead')}</p>
           <div className="site-actions">
-            <Link aria-label={t('gallery.tryAi')} className="button button--primary" to="/e/find-your-photos/find"><span className="site-actions__full">{t('gallery.tryAi')}</span><span aria-hidden="true" className="site-actions__short">{t('gallery.tryAiShort')}</span></Link>
-            <a aria-label={t('gallery.discoverGalleries')} className="button button--secondary" href="#galleries"><span className="site-actions__full">{t('gallery.discoverGalleries')}</span><span aria-hidden="true" className="site-actions__short">{t('gallery.discoverGalleriesShort')}</span></a>
+            <SiteActionLink action={siteProfile.home.primaryAction} primary />
+            <SiteActionLink action={siteProfile.home.secondaryAction} primary={false} />
           </div>
-          <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
+          {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
             <span>{t('gallery.productProof.private')}</span>
             <span>{t('gallery.productProof.free')}</span>
             <span>{t('gallery.productProof.open')}</span>
-          </div>
+          </div> : null}
         </MotionReveal>
         <MotionReveal as="figure" className="site-hero__art" delay={1} effect="scale">
           <img
             alt={t('gallery.heroImageAlt')}
             height="1024"
-            src="/brand/demo-hero.webp"
+            src={siteProfile.heroImageUrl}
             width="1536"
           />
           <figcaption>{t('gallery.heroArtCaption')}</figcaption>
-          <div className="site-hero__ai-card">
-            <img alt="" src="/demo/face-search/test-portrait-amelia.webp" />
+          {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
+            <img alt="" src={siteProfile.heroAccentImageUrl} />
             <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
-          </div>
+          </div> : null}
         </MotionReveal>
       </section>
 
-      {siteProfile.demo.enabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
+      {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
         <div className="site-section__heading site-section__heading--row">
           <div>
             <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
@@ -58,16 +74,16 @@ export function HomePage() {
         <DemoExperienceCards />
       </MotionReveal> : null}
 
-      <MotionReveal as="section" labelledBy="stack-title" className="product-stack">
+      {section === 'stack' ? <MotionReveal as="section" labelledBy="stack-title" className="product-stack">
         <div>
           <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
           <h2 id="stack-title">{t('gallery.stack.title')}</h2>
         </div>
         <p>{t('gallery.stack.body')}</p>
         <a className="button button--secondary" href="https://github.com/lbouriez/Cadrora" rel="noreferrer" target="_blank">{t('gallery.stack.github')} <span aria-hidden="true">↗</span></a>
-      </MotionReveal>
+      </MotionReveal> : null}
 
-      <MotionReveal as="section" labelledBy="services-title" className="site-section" id="services">
+      {section === 'services' ? <MotionReveal as="section" labelledBy="services-title" className="site-section" id="services">
         <div className="site-section__heading">
           <p className="site-eyebrow">{t('gallery.servicesEyebrow')}</p>
           <h2 id="services-title">{t('gallery.servicesTitle')}</h2>
@@ -81,15 +97,15 @@ export function HomePage() {
             </MotionReveal>
           ))}
         </div>
-      </MotionReveal>
+      </MotionReveal> : null}
 
-      <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
+      {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
         <p className="site-eyebrow">{t('gallery.approachEyebrow')}</p>
         <h2 id="approach-title">{t('gallery.approachTitle')}</h2>
         <p>{t('gallery.approachBody')}</p>
-      </MotionReveal>
+      </MotionReveal> : null}
 
-      <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
+      {section === 'galleries' ? <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
         <div className="site-section__heading site-section__heading--row">
           <div>
             <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>
@@ -101,15 +117,15 @@ export function HomePage() {
         {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
         {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
         <PublicEventCards events={events.data} language={i18n.language} />
-      </MotionReveal>
+      </MotionReveal> : null}
 
-      <MotionReveal as="section" className="site-contact-callout">
+      {section === 'contact' ? <MotionReveal as="section" className="site-contact-callout">
         <div>
           <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
           <h2>{t('gallery.contactCalloutTitle')}</h2>
         </div>
         <Link className="button button--primary" to="/contact">{t('gallery.contactCalloutAction')}</Link>
-      </MotionReveal>
+      </MotionReveal> : null}</Fragment>)}
     </PublicLayout>
   );
 }

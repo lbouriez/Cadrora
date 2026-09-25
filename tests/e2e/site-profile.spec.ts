@@ -1,0 +1,31 @@
+import { assertNoHorizontalOverflow, expect, test } from './fixtures';
+
+test.skip(process.env.CADRORA_SITE !== 'atelier-giulia', 'Run with CADRORA_SITE=atelier-giulia.');
+
+test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/galleries', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [] }) }));
+  await page.goto('/');
+
+  await expect(page).toHaveTitle('Atelier Giulia');
+  await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre histoire|your story/i);
+  await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
+  await expect(page.locator('.site-section--demo')).toHaveCount(0);
+  await expect(page.locator('.product-stack')).toHaveCount(0);
+  await expect(page.locator('.site-hero__ai-card')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /admin demo|démo admin/i })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /find photos with ai|retrouver des photos avec l’ia/i })).toHaveCount(0);
+  await assertNoHorizontalOverflow(page);
+
+  await page.goto('/services');
+  await expect(page.locator('.service-detail-card')).toHaveCount(5);
+  await page.goto('/contact');
+  await expect(page.locator('.contact-page__unconfigured')).toBeVisible();
+  await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await assertNoHorizontalOverflow(page);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});

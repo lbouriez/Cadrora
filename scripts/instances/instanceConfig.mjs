@@ -45,6 +45,16 @@ export function assertManifestTarget(manifest, target) {
   }
 }
 
+export function assertSiteTarget(profile, target, showcaseEnabled = false, profiles = [profile]) {
+  if (showcaseEnabled) throw new Error('The public showcase must never be seeded by an isolated instance deployment.');
+  if (profile.deployment && (target.instance !== profile.deployment.instance || target.hostname !== profile.deployment.hostname)) {
+    throw new Error(`Site profile ${profile.id} may deploy only as ${profile.deployment.instance} on ${profile.deployment.hostname}.`);
+  }
+  if (profiles.some((candidate) => candidate.id !== profile.id && candidate.deployment?.instance === target.instance)) {
+    throw new Error(`Instance ${target.instance} is reserved by another site profile.`);
+  }
+}
+
 export function instanceWranglerConfig(baseConfig, names, databaseId, hostname) {
   const config = structuredClone(baseConfig);
   config.name = names.worker;

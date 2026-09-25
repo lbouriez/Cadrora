@@ -1,6 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { loadSiteProfile } from './scripts/sites/loadProfile.mjs';
 
 const port = 4_178;
+const site = loadSiteProfile(process.env.CADRORA_SITE || 'cadrora');
+const showcase = site.allowShowcase === true;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -22,7 +25,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-chromium',
-      testMatch: /public-website\.spec\.ts/,
+      testMatch: /(public-website|site-profile)\.spec\.ts/,
       use: { ...devices['Pixel 7'] },
     },
   ],
@@ -30,13 +33,13 @@ export default defineConfig({
     command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     env: {
       ...process.env,
-      CADRORA_SEED_DEMO: 'true',
-      VITE_APP_NAME: 'Atelier Cadrora',
-      VITE_PHOTOGRAPHER_NAME: 'Camille Cadrora',
-      VITE_CONTACT_PHONE: '+1 514 555 0142',
-      VITE_CONTACT_EMAIL: 'bonjour@example.test',
-      VITE_CONTACT_ADDRESS: '123 rue Lumiere, Montreal',
-      VITE_SERVICE_AREA: 'Montreal et environs',
+      CADRORA_SEED_DEMO: showcase ? 'true' : 'false',
+      VITE_APP_NAME: showcase ? 'Atelier Cadrora' : site.name,
+      VITE_PHOTOGRAPHER_NAME: showcase ? 'Camille Cadrora' : '',
+      VITE_CONTACT_PHONE: showcase ? '+1 514 555 0142' : '',
+      VITE_CONTACT_EMAIL: showcase ? 'bonjour@example.test' : '',
+      VITE_CONTACT_ADDRESS: showcase ? '123 rue Lumiere, Montreal' : '',
+      VITE_SERVICE_AREA: showcase ? 'Montreal et environs' : '',
       VITE_TURNSTILE_SITE_KEY: 'e2e-site-key',
     },
     reuseExistingServer: !process.env.CI,

@@ -24,6 +24,7 @@ The approved contracts cannot be changed merely because current code differs. Co
 | D1 schema or repository | [`../architecture.md`](../architecture.md), migration itself | local migration, tests, check, build |
 | React UI or design system | [`contracts.md`](contracts.md), token/component source | check, tests, build, keyboard/mobile review |
 | Public photographer website | [`public-website.md`](public-website.md), public i18n resources | check, tests, build, FR/EN desktop/mobile review |
+| Site profile or build pipeline | [`../decisions/ADR-013-site-profiles.md`](../decisions/ADR-013-site-profiles.md), [`../deployment.md`](../deployment.md) | check, tests, both profile builds, desktop/mobile review |
 | Browser image import | [`../implementation-plan.md`](../implementation-plan.md) package PC | check, tests, fixture-based metadata tests |
 | Facial search | [`security.md`](security.md), package PE | check, tests, real-device WASM validation before release |
 | Dependency | [`../decisions/ADR-001-stack.md`](../decisions/ADR-001-stack.md) | new/updated ADR, check, tests, build, audit |

@@ -1,4 +1,5 @@
 import type { i18n } from 'i18next';
+import { activeSite } from '../site/activeSite';
 
 export const publicResources = {
   en: {
@@ -266,7 +267,7 @@ export const publicResources = {
       privacyPage: {
         ai: {
           body: 'If face search is available in a gallery, you can choose a selfie to look for photos you may be in. The selfie stays on your device. To search this gallery, we send a face pattern made from it—not the photo itself. A match does not confirm who someone is.',
-          point1: 'Your selfie is not sent to Cadrora.',
+          point1: 'Your selfie is not sent to this site.',
           point2: 'A search stays within the gallery you opened. It cannot unlock another gallery.',
           point3: 'A result is a possible visual match, not a guarantee.',
           point4: 'Face-search data has its own expiry date. After access closes, deleting stored data may take some time.',
@@ -284,7 +285,7 @@ export const publicResources = {
         lead: 'Here is what happens to your photos and choices when you use this site.',
         onThisPage: 'On this page',
         operator: {
-          body: 'We decide what information to collect, how long to keep it, and how to respond to privacy requests on this site. If you use another site made with Cadrora, use the contact details published there.',
+          body: 'We decide what information to collect, how long to keep it, and how to respond to privacy requests about this site. Use the contact details published here to reach us.',
           title: 'Who is responsible for this site?',
         },
         overview: {
@@ -577,7 +578,7 @@ export const publicResources = {
       privacyPage: {
         ai: {
           body: 'Si la recherche faciale est proposée dans une galerie, vous pouvez choisir un égoportrait pour retrouver les photos où vous apparaissez peut-être. Il reste sur votre appareil. Pour chercher dans cette galerie, nous envoyons une empreinte créée à partir de votre visage, pas la photo elle-même. Une ressemblance ne confirme pas l’identité d’une personne.',
-          point1: 'Votre égoportrait n’est pas envoyé à Cadrora.',
+          point1: 'Votre égoportrait n’est pas envoyé à ce site.',
           point2: "La recherche reste dans la galerie ouverte et ne peut en déverrouiller aucune autre.",
           point3: "Un résultat est une ressemblance possible, pas une certitude.",
           point4: 'Les données de recherche faciale ont leur propre date d’expiration. Après la fermeture de l’accès, leur suppression peut prendre un certain temps.',
@@ -595,7 +596,7 @@ export const publicResources = {
         lead: 'Voici ce qu’il advient de vos photos et de vos choix lorsque vous utilisez ce site.',
         onThisPage: 'Sur cette page',
         operator: {
-          body: 'Nous décidons quelles informations recueillir, combien de temps les garder et comment répondre aux demandes de confidentialité sur ce site. Si vous utilisez un autre site créé avec Cadrora, utilisez les coordonnées qui y sont publiées.',
+          body: 'Nous décidons quelles informations recueillir, combien de temps les garder et comment répondre aux demandes de confidentialité concernant ce site. Utilisez les coordonnées publiées ici pour nous joindre.',
           title: 'Qui est responsable de ce site?',
         },
         overview: {
@@ -628,4 +629,6 @@ export const publicResources = {
 export function installPublicResources(instance: i18n): void {
   instance.addResourceBundle('en', 'translation', publicResources.en, true, true);
   instance.addResourceBundle('fr', 'translation', publicResources.fr, true, true);
+  instance.addResourceBundle('en', 'translation', activeSite.copy.en, true, true);
+  instance.addResourceBundle('fr', 'translation', activeSite.copy.fr, true, true);
 }

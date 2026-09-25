@@ -20,6 +20,5 @@
     "exactOptionalPropertyTypes": true,
     "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src/app", "src/browser", "src/shared", "tests/unit/app"]
+  "include": ["src/app", "src/browser", "src/shared", "sites", "tests/unit/app"]
 }
-

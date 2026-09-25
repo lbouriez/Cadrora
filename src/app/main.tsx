@@ -5,8 +5,12 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { App } from './App';
 import { ToastProvider } from './components';
+import { siteProfile } from './public/siteProfile';
 import './i18n';
 import './styles/base.css';
+import '@site-theme';
+
+document.documentElement.dataset.site = siteProfile.id;
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,4 +35,3 @@ createRoot(root).render(
     </QueryClientProvider>
   </StrictMode>,
 );
-

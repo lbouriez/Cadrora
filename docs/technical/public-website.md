@@ -16,6 +16,8 @@ The website shell must remain useful when the event API is unavailable. A galler
 
 ## Public profile configuration
 
+Build-time presentation profiles live under `sites/<id>/site.ts` and are selected by `CADRORA_SITE`. The default `cadrora` profile retains the product showcase; `atelier-giulia` reuses the same pages/components with its own brand, section order, bilingual copy and semantic theme tokens. Put shared layout and interaction improvements in `src/app` so both sites inherit them. Use `pages` in a site definition only for a genuinely distinct marketing page; gallery, contact settings, privacy behavior, and admin remain shared. Profiles must not contain credentials or invented real-world contact coordinates. See [ADR-013](../decisions/ADR-013-site-profiles.md) and the [Atelier Giulia deployment runbook](../deployment.md#atelier-giulia-from-this-repository).
+
 Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 overrides. These values are public by design and must never contain secrets. D1 absence or API failure never blanks the public site.
 
 | Variable | Meaning | Required |
@@ -31,7 +33,7 @@ Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 ove
 
 The client has no hardcoded contact coordinates. The opt-in Cadrora showcase seeds fictional contact values into the singleton D1 row only while that row is untouched; the Contact page does not display a demo disclaimer. A real operator sets the actual values in Admin Site settings before launch and may also provide real compiled fallbacks for outages. Null D1 fields use any configured compiled fallback; an empty string intentionally hides a field. The canonical fallback reader remains `src/app/public/siteProfile.ts`; do not duplicate public profile values in components or translations.
 
-The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations.
+The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations. Site-specific copy overrides are merged into the shared FR/EN resources at initialization, not hardcoded in a page.
 
 ## Runtime site settings
 

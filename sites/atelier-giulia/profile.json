@@ -1,0 +1,14 @@
+{
+  "id": "atelier-giulia",
+  "name": "Atelier Giulia",
+  "document": {
+    "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
+    "themeColor": "#181d18",
+    "icon": null
+  },
+  "deployment": {
+    "instance": "atelier-giulia",
+    "hostname": "ateliergiulia.com",
+    "initialSettingsSql": "sites/atelier-giulia/initial-settings.sql"
+  }
+}

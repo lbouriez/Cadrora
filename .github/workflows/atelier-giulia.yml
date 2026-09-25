@@ -1,0 +1,74 @@
+name: Atelier Giulia production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atelier-giulia-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.repository == 'lbouriez/Cadrora'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run test
+      - name: Build Cadrora showcase
+        run: npm run build
+        env:
+          CADRORA_SITE: cadrora
+      - name: Build Atelier Giulia
+        run: npm run build
+        env:
+          CADRORA_SITE: atelier-giulia
+      - name: Install browser for profile smoke test
+        run: npx playwright install --with-deps chromium
+      - name: Check Atelier Giulia on desktop and phone
+        run: npx playwright test tests/e2e/site-profile.spec.ts --reporter=dot
+        env:
+          CADRORA_SITE: atelier-giulia
+
+  deploy:
+    needs: verify
+    if: github.repository == 'lbouriez/Cadrora' && github.ref == 'refs/heads/main' && vars.ATELIER_GIULIA_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: atelier-giulia-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Refuse to deploy an outdated commit
+        run: |
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          test "$latest" = "$GITHUB_SHA"
+      - name: Deploy the isolated Atelier Giulia instance
+        run: npm run deploy:instance -- --instance atelier-giulia --hostname ateliergiulia.com --confirm
+        env:
+          CADRORA_SITE: atelier-giulia
+          CADRORA_SEED_DEMO: 'false'
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ADMIN_SECRET_HASH: ${{ secrets.ADMIN_SECRET_HASH }}
+          AUTH_PEPPER: ${{ secrets.AUTH_PEPPER }}
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+      - name: Verify public HTTPS pages
+        run: |
+          curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/ -o /dev/null
+          curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/contact -o /dev/null
+          curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/api/v1/galleries -o /dev/null

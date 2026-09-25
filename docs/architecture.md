@@ -63,12 +63,15 @@ Taking a gallery offline sets a reversible D1 fence and revokes existing protect
 
 An additional root domain or subdomain is another isolated single-tenant instance, not a tenant inside the production Worker. `npm run deploy:instance` derives a separate Worker, D1 database, media/model buckets, Vectorize index, credentials, and exact Custom Domain from an explicit instance name. Re-running the same pair is idempotent at the resource-discovery boundary; it never redirects the original Cadrora bindings.
 
+The static frontend selects a typed site profile at build time (`CADRORA_SITE`, default `cadrora`). `sites/cadrora` owns showcase presentation; `sites/atelier-giulia` owns temporary studio presentation. Core components and behavior are shared, so future common design improvements flow to both profiles. Profile-owned page replacements are an exceptional escape hatch and must be reconciled manually. D1 owner settings still take precedence for editable site/contact/service fields; each Cloudflare instance has separate data and secrets. The Atelier Giulia GitHub workflow targets its own account and exact hostname, never the Cadrora deployment.
+
 Deployment variables define hard application ceilings. The owner can only lower the gallery, stored-media, and total-face limits from Site settings. The Worker enforces the lower effective value before the corresponding write. These are instance safeguards, not billing controls: Cloudflare allowances are pooled across the account, and request/operation/query quotas remain observable only through provider usage data.
 
 ## Related decisions
 
 - [`ADR-001-stack.md`](decisions/ADR-001-stack.md)
 - [`ADR-006-isolated-instances-and-owner-quotas.md`](decisions/ADR-006-isolated-instances-and-owner-quotas.md)
+- [`ADR-013-site-profiles.md`](decisions/ADR-013-site-profiles.md)
 - [`technical/contracts.md`](technical/contracts.md)
 - [`technical/public-website.md`](technical/public-website.md)
 - [`implementation-plan.md`](implementation-plan.md)

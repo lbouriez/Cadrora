@@ -10,6 +10,7 @@ import { getPublicEvent } from './api';
 import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
 import { PublicLayout } from './PublicLayout';
+import { siteProfile } from './siteProfile';
 
 type RelatedPhoto = Awaited<ReturnType<typeof getRelatedPhotos>>['photos'][number];
 
@@ -219,7 +220,7 @@ export function FindPage() {
           {cameraError ? <p className="face-find__camera-message" role="alert">{cameraError}</p> : null}
         </div>
         {cameraOpen ? <section className="face-find__camera"><p>{t('faceFind.cameraAccess')}</p><video autoPlay muted playsInline ref={video} /><div className="face-find__actions"><Button onClick={() => void captureCamera()}>{t('faceFind.capture')}</Button><Button onClick={stopCamera} variant="secondary">{t('faceFind.cancelCamera')}</Button></div></section> : null}
-        <aside className="face-find__test-portraits">
+        {siteProfile.demo.enabled ? <aside className="face-find__test-portraits">
           <h2>{t('faceFind.testPortraits')}</h2>
           <p>{t('faceFind.testPortraitsHelp')}</p>
           <div className="face-find__test-links">
@@ -236,7 +237,7 @@ export function FindPage() {
               <span>{t('faceFind.testPortraitNora')}</span>
             </a>
           </div>
-        </aside>
+        </aside> : null}
         {preview ? (
           <div className="face-find__preview-stage">
             <img alt={t('faceFind.imageAlt')} className="face-find__preview" src={preview} />

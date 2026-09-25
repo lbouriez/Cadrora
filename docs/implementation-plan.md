@@ -6,6 +6,8 @@ Post-plan extension (2026-09-24): ADR-011 adds a distinct protected-gallery reto
 
 Post-plan extension (2026-09-24): ADR-012 adds a per-gallery public-directory switch and creation-date card ordering across PB/PD, plus a compact text-only gallery header and progressive, scroll-triggered photo loading in PB. Its release gate includes migration 017, admin/index tests, large-page desktop/mobile browsing, and live verification that hidden galleries still work by direct link.
 
+Post-plan extension (2026-09-24): ADR-013 adds build-time site profiles across the shared public UI, Vite configuration and isolated-instance deployment. The `cadrora` showcase and `atelier-giulia` profile must each build from the same commit without a named-site branch in core code. Acceptance includes FR/EN and mobile checks for the studio profile, full Cadrora browser regression, separate account-scoped GitHub secrets, and live exact-hostname HTTPS verification before claiming release completion.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation
