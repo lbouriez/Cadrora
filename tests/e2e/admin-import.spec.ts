@@ -50,7 +50,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
           access: 'manage',
           authMode: 'password',
           createdAt: '2026-09-20T15:00:00.000Z',
-          expiresAt: '2026-09-20T23:00:00.000Z',
+          expiresAt: '2030-09-20T23:00:00.000Z',
           id: 'session-e2e',
           revokedAt: null,
           subject: 'photographe@example.test',
@@ -174,4 +174,18 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
     name: 'notes.txt',
   });
   await expect(page.getByText(/notes\.txt/)).toContainText(/seuls les fichiers JPEG|only JPEG/i);
+
+  let cancelRequests = 0;
+  await page.route(`**/api/v1/admin/imports/${importId}/cancel`, async (route) => {
+    cancelRequests += 1;
+    await route.fulfill({
+      body: JSON.stringify({ code: 'IMPORT_NOT_FOUND', message: 'Not found', requestId: 'request-e2e' }),
+      contentType: 'application/json', status: 404,
+    });
+  });
+  await page.getByRole('link', { name: /tableau de bord|dashboard/i }).click();
+  await page.getByRole('link', { name: /importer des photos|import photos/i }).click();
+  await page.getByRole('button', { name: /annuler l'importation|cancel import/i }).click();
+  await expect(page.getByRole('button', { name: /reprendre l'importation|resume import/i })).toHaveCount(0);
+  expect(cancelRequests).toBe(1);
 });

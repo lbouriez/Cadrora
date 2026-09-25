@@ -311,7 +311,10 @@ describe('ImportPipeline chunk journal and resume', () => {
     await expect(first.start('event-1', makeFiles(1))).rejects.toThrow('Try again.');
 
     const reconnected = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
-    await reconnected.cancel(journal.job!.id);
+    const savedJob = (await journal.getResumable('event-1'))!;
+    const getJob = vi.spyOn(journal, 'getJob').mockRejectedValueOnce(new Error('Second read unavailable'));
+    await reconnected.cancel(savedJob);
+    expect(getJob).not.toHaveBeenCalled();
     expect(journal.job?.state).toBe('cancelled');
     await expect(journal.getResumable('event-1')).resolves.toBeUndefined();
   });

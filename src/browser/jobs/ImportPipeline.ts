@@ -173,13 +173,15 @@ export class ImportPipeline {
     this.emit();
   }
 
-  async cancel(resumableImportId?: string): Promise<void> {
-    if (!this.activeImportId && resumableImportId) this.activeImportId = resumableImportId;
-    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused' && this.state !== 'failed' && !resumableImportId)) return;
+  async cancel(resumableJob?: ImportJournalJob): Promise<void> {
+    if (resumableJob) this.activeImportId = resumableJob.id;
+    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused' && this.state !== 'failed' && !resumableJob)) return;
     this.abortController?.abort();
     this.checkpointResolver?.();
     this.checkpointResolver = undefined;
-    const job = await this.requireJob(this.activeImportId);
+    // The import page already read this durable job when it offered Resume/Cancel.
+    // Reuse the selected record instead of requiring a second IndexedDB read.
+    const job = resumableJob ?? await this.requireJob(this.activeImportId);
     try {
       await this.options.api.cancelImport(job.id);
     } catch (error) {

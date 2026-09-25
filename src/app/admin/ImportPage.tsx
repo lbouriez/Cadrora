@@ -8,6 +8,7 @@ import {
   ImportPipeline,
   ImportRequestError,
   IndexedDbImportJournal,
+  type ImportJournalJob,
   type ImportPipelineSnapshot,
   type RejectedImportFile,
 } from '../../browser/jobs';
@@ -34,7 +35,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
   const [rejected, setRejected] = useState<RejectedImportFile[]>([]);
-  const [resumableImportId, setResumableImportId] = useState<string>();
+  const [resumableJob, setResumableJob] = useState<ImportJournalJob>();
   const [isReady, setIsReady] = useState(false);
   const [setupError, setSetupError] = useState<string>();
   const [replacementDone, setReplacementDone] = useState(false);
@@ -54,7 +55,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
         });
         setIsReady(true);
         const resumable = await journal.getResumable(eventId, replacementPhotoId);
-        if (mounted) setResumableImportId(resumable?.id);
+        if (mounted) setResumableJob(resumable);
       })
       .catch(() => {
         if (mounted) {
@@ -89,7 +90,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
       .start(eventId, files, timezone, keepOriginals, replacementPhotoId)
       .then((result) => {
         setRejected(result.rejected);
-        setResumableImportId(undefined);
+        setResumableJob(undefined);
       })
       .catch((error: unknown) => {
         setSetupError(t(importErrorKey(error)));
@@ -97,7 +98,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
   };
 
   const resume = () => {
-    const importId = snapshot.importId ?? resumableImportId;
+    const importId = snapshot.importId ?? resumableJob?.id;
     if (!pipeline.current || !importId) return;
     setSetupError(undefined);
     void pipeline.current.resume(importId).catch((error: unknown) => setSetupError(t(importErrorKey(error))));
@@ -105,8 +106,8 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
 
   const isRunning = snapshot.state === 'preparing' || snapshot.state === 'processing';
   const canPause = snapshot.state === 'processing';
-  const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableImportId);
-  const canCancel = isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableImportId);
+  const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableJob);
+  const canCancel = isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableJob);
   const progressText = `${snapshot.completedPhotos}/${snapshot.totalPhotos}`;
 
   return (
@@ -132,7 +133,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
         {canPause ? <Button onClick={() => void pipeline.current?.pause()}>{t('adminImport.pause')}</Button> : null}
         {canResume ? <Button onClick={resume}>{t('adminImport.resume')}</Button> : null}
         {canCancel ? (
-          <Button onClick={() => void pipeline.current?.cancel(resumableImportId).then(() => { setResumableImportId(undefined); setSetupError(undefined); }).catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
+          <Button onClick={() => void pipeline.current?.cancel(resumableJob).then(() => { setResumableJob(undefined); setSetupError(undefined); }).catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
             {t('adminImport.cancel')}
           </Button>
         ) : null}
