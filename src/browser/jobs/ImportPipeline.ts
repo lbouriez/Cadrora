@@ -7,7 +7,7 @@ import {
   validateImageFile,
 } from '../images';
 import { ConcurrencyLimiter, mapWithConcurrency } from './concurrency';
-import { declarationFromJournal, type ImportApi } from './ImportApi';
+import { declarationFromJournal, ImportRequestError, type ImportApi } from './ImportApi';
 import type {
   ImportJournal,
   ImportJournalChunk,
@@ -173,15 +173,22 @@ export class ImportPipeline {
     this.emit();
   }
 
-  async cancel(): Promise<void> {
-    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused' && this.state !== 'failed')) return;
+  async cancel(resumableImportId?: string): Promise<void> {
+    if (!this.activeImportId && resumableImportId) this.activeImportId = resumableImportId;
+    if (!this.activeImportId || (this.state !== 'processing' && this.state !== 'paused' && this.state !== 'failed' && !resumableImportId)) return;
     this.abortController?.abort();
     this.checkpointResolver?.();
     this.checkpointResolver = undefined;
     const job = await this.requireJob(this.activeImportId);
-    await this.options.api.cancelImport(job.id);
+    try {
+      await this.options.api.cancelImport(job.id);
+    } catch (error) {
+      // A failed preflight can leave only a local journal, with no server import to cancel.
+      if (!(error instanceof ImportRequestError && error.code === 'IMPORT_NOT_FOUND')) throw error;
+    }
     this.state = 'cancelled';
     await this.saveJobState(job, 'cancelled');
+    this.totalPhotos = job.totalPhotos;
     this.emit();
   }
 

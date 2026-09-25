@@ -6,6 +6,7 @@ import { Button, Dropzone, ProgressBar } from '../components';
 import {
   FetchImportApi,
   ImportPipeline,
+  ImportRequestError,
   IndexedDbImportJournal,
   type ImportPipelineSnapshot,
   type RejectedImportFile,
@@ -91,20 +92,21 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
         setResumableImportId(undefined);
       })
       .catch((error: unknown) => {
-        const message = error instanceof Error && error.message === 'errors.photoQuotaExceeded' ? t('adminImport.quota') : t('adminImport.failed');
-        setSetupError(message);
+        setSetupError(t(importErrorKey(error)));
       });
   };
 
   const resume = () => {
     const importId = snapshot.importId ?? resumableImportId;
     if (!pipeline.current || !importId) return;
-    void pipeline.current.resume(importId).catch(() => setSetupError(t('adminImport.failed')));
+    setSetupError(undefined);
+    void pipeline.current.resume(importId).catch((error: unknown) => setSetupError(t(importErrorKey(error))));
   };
 
   const isRunning = snapshot.state === 'preparing' || snapshot.state === 'processing';
   const canPause = snapshot.state === 'processing';
-  const canResume = snapshot.state === 'paused' || Boolean(resumableImportId);
+  const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableImportId);
+  const canCancel = isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableImportId);
   const progressText = `${snapshot.completedPhotos}/${snapshot.totalPhotos}`;
 
   return (
@@ -129,8 +131,8 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
       <div className="admin-import__actions">
         {canPause ? <Button onClick={() => void pipeline.current?.pause()}>{t('adminImport.pause')}</Button> : null}
         {canResume ? <Button onClick={resume}>{t('adminImport.resume')}</Button> : null}
-        {isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' ? (
-          <Button onClick={() => void pipeline.current?.cancel().catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
+        {canCancel ? (
+          <Button onClick={() => void pipeline.current?.cancel(resumableImportId).then(() => { setResumableImportId(undefined); setSetupError(undefined); }).catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
             {t('adminImport.cancel')}
           </Button>
         ) : null}
@@ -150,4 +152,12 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
       ) : null}
     </section>
   );
+}
+
+function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.failed' {
+  if (!(error instanceof ImportRequestError)) return 'adminImport.failed';
+  if (error.code === 'ADMIN_AUTH_REQUIRED') return 'adminImport.authExpired';
+  if (error.code === 'EVENT_NOT_FOUND') return 'adminImport.galleryUnavailable';
+  if (error.code === 'PHOTO_QUOTA_EXCEEDED') return 'adminImport.quota';
+  return 'adminImport.failed';
 }

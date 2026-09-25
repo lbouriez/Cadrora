@@ -18,6 +18,8 @@ Public revisioned media is immutable. Protected media is private for one hour. M
 
 An event publishes only when it contains at least one photo and every visible photo is `variants_ready` or already `published`. Facial indexing can remain pending; it is optional and must not block a gallery. The publish operation promotes ready photos and increments the event revision.
 
+The publication summary remains available for an empty draft gallery: its aggregate photo counters are zero, never SQL `NULL`, so the admin can show readiness before the first import.
+
 `events.offline_at` is the reversible withdrawal fence. Public metadata, media resolution, crawler metadata, protected unlock, and face-search routes all treat a non-null value as unavailable. Taking a gallery offline leaves photo states and provider objects intact, increments the event revision, and increments any protected credential access version. Republishing clears the fence after the normal readiness check; deletion remains a separate lifecycle.
 
 ## Deletion

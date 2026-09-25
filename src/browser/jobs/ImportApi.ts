@@ -10,6 +10,7 @@ import {
   type ImportDeclarePhotosRequest,
   type PhotoDeclaration,
 } from '../../shared/schemas';
+import { ApiErrorSchema } from '../../shared/schemas/apiError';
 import type { EncodedVariant } from '../images';
 
 export interface ImportApi {
@@ -18,6 +19,13 @@ export interface ImportApi {
   declarePhotos(importId: string, request: ImportDeclarePhotosRequest, signal?: AbortSignal): Promise<string[]>;
   finalizePhoto(photoId: string, signal?: AbortSignal): Promise<void>;
   uploadVariant(photoId: string, variant: EncodedVariant, signal?: AbortSignal): Promise<void>;
+}
+
+export class ImportRequestError extends Error {
+  constructor(readonly status: number, readonly code: string | undefined, message: string) {
+    super(message);
+    this.name = 'ImportRequestError';
+  }
 }
 
 /** Typed browser client for the isolated PC Worker-route contract. */
@@ -81,13 +89,11 @@ export class FetchImportApi implements ImportApi {
   }
 
   private async json(response: Response): Promise<unknown> {
-    const value: unknown = await response.json();
+    const value: unknown = await response.json().catch(() => null);
     if (!response.ok) {
-      const message =
-        typeof value === 'object' && value !== null && 'message' in value && typeof value.message === 'string'
-          ? value.message
-          : 'Import request failed.';
-      throw new Error(message);
+      const parsed = ApiErrorSchema.safeParse(value);
+      throw new ImportRequestError(response.status, parsed.success ? parsed.data.code : undefined,
+        parsed.success ? parsed.data.message : 'Import request failed.');
     }
     return value;
   }

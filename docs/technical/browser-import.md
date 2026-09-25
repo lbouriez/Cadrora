@@ -23,6 +23,8 @@ The root Worker registers `registerAdminImportRoutes` from `src/server/routes/ad
 
 The Worker rejects import declarations over `MAX_PHOTOS_PER_EVENT` and media uploads over `MAX_STORAGE_BYTES`. It fails closed if either binding is invalid. A stopped upload leaves an idempotent partial object at its derived key and an unfinished journal chunk; it is safe to resume. Cancelling stops browser work and retains no publishable photo state.
 
+The browser retains the request's API error code (not its arbitrary message) so the UI can distinguish an expired admin session, an unavailable gallery, and the per-gallery photo limit in both languages. A failure before the server creates an import leaves a paused local journal: **Resume** retries the same idempotent ID and **Cancel** may complete locally if the server returns `IMPORT_NOT_FOUND`. Do not turn an unknown request failure into a claim that upload succeeded. When diagnosing a 0-photo failure, check whether an `imports` row exists in the instance's D1 before inspecting R2; never ask an owner to discard the local journal first.
+
 ## Acceptance coverage
 
 `tests/unit/app/importPipeline.test.ts` exercises the real `ImportPipeline` orchestration with deterministic browser/provider fakes. It processes a 200-file journal as exactly four ordered declarations of 50 photos. A second scenario imports the tracked fictional `nearby-amelia-exif.jpg` fixture and verifies its `DateTimeOriginal`/`OffsetTimeOriginal` becomes `2026-08-30T18:02:00.000Z` in the server declaration. A resume scenario interrupts declaration of chunk 2 after 100 finalized photos, constructs a fresh pipeline over the same durable journal, and verifies that only chunks 2 and 3 are encoded and declared during resume.

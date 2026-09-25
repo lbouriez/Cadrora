@@ -3,6 +3,25 @@ import { describe, expect, it, vi } from 'vitest';
 import { D1PublicationRepository } from '../../../src/server/repositories/publicationRepository';
 
 describe('publication repository deletion fence', () => {
+  it('returns zero photo counters for a new empty gallery', async () => {
+    let query = '';
+    const statement = {
+      bind: vi.fn(() => statement),
+      first: vi.fn().mockResolvedValue({
+        total_photos: 0, ready_photos: 0, published_photos: 0, indexing_photos: 0,
+        published_at: null, visibility: 'draft', offline_at: null,
+      }),
+    };
+    const database = {
+      prepare: vi.fn((sql: string) => { query = sql; return statement; }),
+    } as unknown as D1Database;
+
+    await expect(new D1PublicationRepository(database).publicationSummary('event-1')).resolves.toMatchObject({
+      totalPhotos: 0, readyPhotos: 0, publishedPhotos: 0, indexingPhotos: 0,
+    });
+    expect(query.match(/COALESCE\(SUM\(/g)).toHaveLength(3);
+  });
+
   it('takes a published gallery offline without changing photo state and revokes guest grants', async () => {
     const statements: string[] = [];
     const bindings: unknown[][] = [];

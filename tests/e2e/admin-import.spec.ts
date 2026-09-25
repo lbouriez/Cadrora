@@ -160,7 +160,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
 
   await resume.click();
   await expect(page.getByText('100/200')).toBeVisible();
-  await expect(page.getByRole('alert')).toContainText(/pause|paused/i);
+  await expect(page.getByRole('alert')).toContainText(/arrêtée|stopped|reprendre|resume/i);
   const resumedDeclaration = await page.evaluate(() => {
     const record = globalThis as typeof globalThis & { __cadroraResumedDeclaration?: unknown };
     return record.__cadroraResumedDeclaration;

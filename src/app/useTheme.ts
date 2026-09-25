@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 
 import type { ThemeMode } from '../shared/schemas';
 
@@ -48,7 +48,7 @@ export function useTheme(mode: ThemeMode = 'both') {
     return () => query.removeEventListener('change', update);
   }, [mode]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyTheme(effectiveTheme, mode === 'both');
   }, [effectiveTheme, mode]);
 

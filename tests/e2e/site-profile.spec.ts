@@ -31,3 +31,28 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await assertNoHorizontalOverflow(page);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
+
+test('fixed light appearance does not flash a dark theme or a theme switch while settings load', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('cadrora-theme', 'dark'));
+  let releaseSettings: (() => void) | undefined;
+  const waiting = new Promise<void>((resolve) => { releaseSettings = resolve; });
+  await page.route('**/api/v1/site', async (route) => {
+    await waiting;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+      contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+      updatedAt: '2026-09-25T00:00:00.000Z',
+    }) });
+  });
+  await page.route('**/api/v1/galleries', (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [] }),
+  }));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('.public-header__theme')).toHaveCount(0);
+  releaseSettings?.();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect(page.locator('.public-header__theme')).toHaveCount(0);
+});

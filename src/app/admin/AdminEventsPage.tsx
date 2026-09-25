@@ -90,7 +90,7 @@ export function AdminEventsPage() {
       keepOriginals: allowDownloads && keepOriginals,
       password: access === 'protected' ? values.get('password') : undefined,
       retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
-      startsAt: new Date(startsAt).toISOString(),
+      startsAt: galleryDateToIso(startsAt),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
       title: values.get('title'),
       visibility: 'draft',
@@ -131,7 +131,7 @@ export function AdminEventsPage() {
                   ? t('admin.events.deletionPending')
                   : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
                 <h3>{event.title}</h3>
-                <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeStyle: 'short' }).format(new Date(event.startsAt))}</p>
+                <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeZone: event.timezone }).format(new Date(event.startsAt))}</p>
                 {event.access === 'protected' && event.retouchSelectionCount ? <p className="admin-event-row__favorites">{t('admin.favorites.count', { count: event.retouchSelectionCount })}</p> : null}
               </div>
               <div className="admin-event-row__actions">
@@ -151,7 +151,7 @@ export function AdminEventsPage() {
         <p className="admin-card__description">{t('admin.events.createDescription')}</p>
         <form className="admin-event-form" onSubmit={submit}>
           <Input label={t('admin.events.title')} name="title" required />
-          <Input label={t('admin.events.date')} name="startsAt" required type="datetime-local" />
+          <Input label={t('admin.events.date')} name="startsAt" required type="date" />
           <Textarea className="admin-event-form__textarea" label={t('admin.events.description')} maxLength={5000} name="description" />
           <Select label={t('admin.events.access')} onChange={(event) => setAccess(event.target.value as 'protected' | 'public')} value={access}>
               <option value="public">{t('admin.events.public')}</option>
@@ -191,10 +191,17 @@ export function AdminEventsPage() {
   );
 }
 
-function localDateTimeValue(isoDate: string): string {
-  const date = new Date(isoDate);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
+function galleryDateValue(isoDate: string, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    day: '2-digit', month: '2-digit', timeZone, year: 'numeric',
+  }).formatToParts(new Date(isoDate));
+  const value = (part: string) => parts.find((item) => item.type === part)?.value ?? '';
+  return `${value('year')}-${value('month')}-${value('day')}`;
+}
+
+function galleryDateToIso(date: string): string {
+  // Noon avoids a date rollover in zones with midnight DST transitions.
+  return new Date(`${date}T12:00:00`).toISOString();
 }
 
 function formString(values: FormData, name: string): string {
@@ -267,7 +274,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       keepOriginals: allowDownloads && keepOriginals,
       ...(password ? { password } : {}),
       retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
-      startsAt: new Date(startsAt).toISOString(),
+      startsAt: galleryDateToIso(startsAt),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || event.timezone,
       title: values.get('title'),
     });
@@ -278,7 +285,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       <h2 className="admin-card__title" id="event-settings-title">{t('admin.events.settingsSectionTitle')}</h2>
       <form className="admin-event-form" onSubmit={submit}>
         <Input defaultValue={event.title} label={t('admin.events.title')} name="title" required />
-        <Input defaultValue={localDateTimeValue(event.startsAt)} label={t('admin.events.date')} name="startsAt" required type="datetime-local" />
+        <Input defaultValue={galleryDateValue(event.startsAt, event.timezone)} label={t('admin.events.date')} name="startsAt" required type="date" />
         <Textarea className="admin-event-form__textarea" defaultValue={event.description ?? ''} label={t('admin.events.description')} maxLength={5000} name="description" />
         <Select label={t('admin.events.access')} onChange={(changeEvent) => setAccess(changeEvent.target.value as Event['access'])} value={access}>
             <option value="public">{t('admin.events.public')}</option>

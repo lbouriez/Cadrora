@@ -3,6 +3,7 @@ export const adminImportResources = {
   en: {
     translation: {
       adminImport: {
+        authExpired: 'Your session has expired. Sign in again before resuming this import.',
         cancel: 'Cancel import',
         corruptFile: 'We could not open this file, so it was skipped.',
         dropzoneDescription: 'JPEG, PNG, or WebP. Private details, such as location, are removed before your photos are sent.',
@@ -10,7 +11,8 @@ export const adminImportResources = {
         dropzoneLabel: 'Drop photos here or choose files',
         encoding: 'Getting your photos ready…',
         eta: 'About {{seconds}} seconds remaining',
-        failed: 'The import paused. You can resume it after checking your connection.',
+        failed: 'The import stopped before it could finish. Check your connection, then try Resume import. Your chosen files are still saved in this browser.',
+        galleryUnavailable: 'This gallery is no longer available. Return to your galleries to check its status.',
         pause: 'Pause import',
         paused: 'Import paused',
         progress: 'Import progress',
@@ -35,6 +37,7 @@ export const adminImportResources = {
   fr: {
     translation: {
       adminImport: {
+        authExpired: 'Votre session a expiré. Reconnectez-vous avant de reprendre cette importation.',
         cancel: "Annuler l'importation",
         corruptFile: 'Nous n’avons pas pu ouvrir ce fichier. Il a été ignoré.',
         dropzoneDescription: 'JPEG, PNG ou WebP. Les données privées, comme la localisation, sont retirées avant l’envoi des photos.',
@@ -42,7 +45,8 @@ export const adminImportResources = {
         dropzoneLabel: 'Déposez des photos ici ou choisissez des fichiers',
         encoding: 'Préparation de vos photos…',
         eta: 'Environ {{seconds}} secondes restantes',
-        failed: "L'importation est en pause. Vous pouvez la reprendre après avoir vérifié votre connexion.",
+        failed: "L’importation s’est arrêtée avant la fin. Vérifiez votre connexion, puis choisissez Reprendre l’importation. Les fichiers sélectionnés restent enregistrés dans ce navigateur.",
+        galleryUnavailable: 'Cette galerie n’est plus disponible. Revenez à vos galeries pour vérifier son état.',
         pause: "Mettre l'importation en pause",
         paused: 'Importation en pause',
         progress: "Progression de l'importation",

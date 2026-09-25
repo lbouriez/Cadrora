@@ -140,9 +140,9 @@ export class D1PublicationRepository implements PublicationRepository {
     const row = await this.database
       .prepare(
         `SELECT COUNT(*) AS total_photos,
-                SUM(CASE WHEN state IN ('variants_ready', 'published') THEN 1 ELSE 0 END) AS ready_photos,
-                SUM(CASE WHEN state = 'published' THEN 1 ELSE 0 END) AS published_photos,
-                SUM(CASE WHEN face_state IN ('pending', 'indexing') THEN 1 ELSE 0 END) AS indexing_photos,
+                COALESCE(SUM(CASE WHEN state IN ('variants_ready', 'published') THEN 1 ELSE 0 END), 0) AS ready_photos,
+                COALESCE(SUM(CASE WHEN state = 'published' THEN 1 ELSE 0 END), 0) AS published_photos,
+                COALESCE(SUM(CASE WHEN face_state IN ('pending', 'indexing') THEN 1 ELSE 0 END), 0) AS indexing_photos,
                 (SELECT CASE WHEN visibility != 'draft' AND offline_at IS NULL THEN updated_at ELSE NULL END FROM events WHERE id = ?1) AS published_at,
                 (SELECT visibility FROM events WHERE id = ?1) AS visibility,
                 (SELECT offline_at FROM events WHERE id = ?1) AS offline_at

@@ -177,6 +177,8 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     history.pushState({}, '', `/admin/galleries/${eventId}`);
     dispatchEvent(new PopStateEvent('popstate'));
   }, demoEvent.id);
+  await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
+  await expect(page.locator('input[name="startsAt"]')).toHaveValue('2026-09-20');
   const downloads = page.getByRole('checkbox', { name: /allow photo downloads|autoriser le téléchargement des photos/i });
   const originals = page.getByRole('checkbox', { name: /offer original files|proposer les fichiers originaux/i });
   await expect(downloads).not.toBeChecked();
@@ -222,6 +224,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
     dispatchEvent(new PopStateEvent('popstate'));
   });
   await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
+  await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   const privateRow = page.locator('.admin-event-row').filter({ hasText: 'Private family gallery' });
   await expect(privateRow.getByRole('link', { name: /client photo choices|choix des clients/i })).toBeVisible();
   await page.setViewportSize({ width: 1200, height: 850 });

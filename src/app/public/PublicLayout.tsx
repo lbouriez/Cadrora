@@ -22,7 +22,9 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
     retry: false,
     staleTime: 60_000,
   });
-  const { canChooseTheme, theme, toggleTheme } = useTheme(settings.data?.themeMode ?? 'both');
+  // Until D1 resolves, keep the static light shell and hide controls whose policy is unknown.
+  const themePolicy = settings.isPending ? 'light' : settings.data?.themeMode ?? 'both';
+  const { canChooseTheme, theme, toggleTheme } = useTheme(themePolicy);
   const enabledLanguages = settings.data?.enabledLanguages ?? ['fr', 'en'];
   const canChooseLanguage = enabledLanguages.length > 1;
 

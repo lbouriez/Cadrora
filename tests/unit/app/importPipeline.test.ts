@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { readFile } from 'node:fs/promises';
 
 import type { EncodedVariant, ImageEncoder } from '../../../src/browser/images';
-import type { ImportApi } from '../../../src/browser/jobs/ImportApi';
+import { ImportRequestError, type ImportApi } from '../../../src/browser/jobs/ImportApi';
 import type {
   ImportJournal,
   ImportJournalChunk,
@@ -267,5 +267,52 @@ describe('ImportPipeline chunk journal and resume', () => {
     expect(journal.job).toMatchObject({ id: importId, state: 'completed', totalPhotos: 200 });
     expect(resumedSnapshots).toContainEqual(expect.objectContaining({ completedPhotos: 100, state: 'processing', totalPhotos: 200 }));
     expect(resumedSnapshots.at(-1)).toMatchObject({ completedPhotos: 200, failedPhotos: 0, state: 'completed' });
+  });
+
+  it('retries a 119-photo import refused before the server created it', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const create = vi.spyOn(api, 'createImport');
+    create.mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'));
+    const snapshots: ImportPipelineSnapshot[] = [];
+    const pipeline = new ImportPipeline({
+      api, createEncoder: () => createEncoder([]), journal,
+      onChange: (snapshot) => snapshots.push(snapshot),
+    });
+
+    await expect(pipeline.start('event-119', makeFiles(119))).rejects.toThrow('Try again.');
+    expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 0, state: 'failed', totalPhotos: 119 });
+    expect(journal.job).toMatchObject({ state: 'paused', totalPhotos: 119 });
+
+    await pipeline.resume(journal.job!.id);
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(api.declared.map(({ photos }) => photos.length)).toEqual([50, 50, 19]);
+    expect(journal.job?.state).toBe('completed');
+  });
+
+  it('cancels a failed local journal when the server import does not exist', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    vi.spyOn(api, 'createImport').mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'));
+    vi.spyOn(api, 'cancelImport').mockRejectedValueOnce(new ImportRequestError(404, 'IMPORT_NOT_FOUND', 'Missing.'));
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+
+    await expect(pipeline.start('event-1', makeFiles(1))).rejects.toThrow('Try again.');
+    await pipeline.cancel();
+    expect(journal.job?.state).toBe('cancelled');
+  });
+
+  it('cancels a paused browser journal after reconnecting before it exists on the server', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    vi.spyOn(api, 'createImport').mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'));
+    vi.spyOn(api, 'cancelImport').mockRejectedValueOnce(new ImportRequestError(404, 'IMPORT_NOT_FOUND', 'Missing.'));
+    const first = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+    await expect(first.start('event-1', makeFiles(1))).rejects.toThrow('Try again.');
+
+    const reconnected = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+    await reconnected.cancel(journal.job!.id);
+    expect(journal.job?.state).toBe('cancelled');
+    await expect(journal.getResumable('event-1')).resolves.toBeUndefined();
   });
 });

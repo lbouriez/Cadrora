@@ -1,4 +1,4 @@
-export { FetchImportApi } from './ImportApi';
+export { FetchImportApi, ImportRequestError } from './ImportApi';
 export type { ImportApi } from './ImportApi';
 export { IndexedDbImportJournal } from './ImportJournal';
 export type {
