@@ -82,3 +82,17 @@ See [Cloudflare free limits, assumptions, calculations, and sensitivity examples
 | Develop or review the code | [Contributor guide](CONTRIBUTING.md), [technical documentation](docs/technical/README.md), and [agent rules](AGENTS.md) |
 
 Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## FAQ
+
+### Where do I find the admin password?
+
+`npm run setup:admin-credentials` generates a random password; it does not ask you to choose one. Open the ignored local file `.artifacts/setup/admin-credentials.env` and copy the value after `ADMIN_PASSWORD=` into your password manager. For the maintained Atelier Giulia deployment, the file is `.artifacts/instances/atelier-giulia/admin-credentials.env`. Only the matching `ADMIN_SECRET_HASH` and `AUTH_PEPPER` are stored as deployment secrets—not the password itself. Do not regenerate or replace credentials for an existing site: that would invalidate its current login. See the [credential steps](docs/deployment.md#existing-repository-cloudflare-builds) and the [Atelier Giulia setup](docs/deployment.md#atelier-giulia-from-this-repository).
+
+### How do I change the home page?
+
+Edit your site's `sites/<site-id>/site.ts` to change its home sections, text, image choices, and links; use the matching `theme.css` for its colours. The default showcase is in [`sites/cadrora/`](sites/cadrora/) and the Atelier Giulia profile is in [`sites/atelier-giulia/`](sites/atelier-giulia/). Commit and deploy those changes. Shared layouts and components live in `src/app`, so improve them there when every site should benefit. The admin can change the site name, enabled services, language, and appearance, but it is not a home-page editor. See [public profile configuration](docs/technical/public-website.md#public-profile-configuration).
+
+### How do I change contact information?
+
+Sign in at `/admin/login`, open **Site settings → Contact**, enter the email, phone, studio location, service area, and optional map centre/radius, then save. These changes appear on the Contact page without a code change or redeployment. Leave a field empty to hide it. See the [admin guide](docs/admin-guide.md#admin-ui).
