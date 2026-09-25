@@ -46,6 +46,7 @@ export const publicResources = {
         add: 'Like {{filename}}',
         remove: 'Unlike {{filename}}',
         shared: 'Hearts are shared with everyone who can open this gallery.',
+        local: 'Hearts are saved in this browser only.',
         error: 'Could not save that favorite. Please try again.',
       },
       retouch: {
@@ -279,7 +280,7 @@ export const publicResources = {
         },
         eyebrow: 'Privacy, explained plainly',
         gallery: {
-          body: 'A gallery can be open to everyone, shared only by link, or protected by a password. We keep its photos in our own account. You need the right access to open a protected gallery. In a private gallery, hearts and photos selected for retouching are shared choices: anyone with access can see or change them, and we can see and download those photos.',
+          body: 'A gallery can be open to everyone, shared only by link, or protected by a password. We keep its photos in our own account. You need the right access to open a protected gallery. Hearts in a public gallery stay in your browser and are not sent to us. In a private gallery, hearts and photos selected for retouching are shared choices: anyone with access can see or change them, and we can see and download those photos.',
           title: 'Galleries and photos',
         },
         lead: 'Here is what happens to your photos and choices when you use this site.',
@@ -357,6 +358,7 @@ export const publicResources = {
         add: 'Aimer {{filename}}',
         remove: 'Ne plus aimer {{filename}}',
         shared: 'Les coups de cœur sont partagés avec toutes les personnes qui ont accès à cette galerie.',
+        local: 'Les coups de cœur sont enregistrés uniquement dans ce navigateur.',
         error: 'Impossible d’enregistrer ce coup de cœur. Réessayez.',
       },
       retouch: {
@@ -590,7 +592,7 @@ export const publicResources = {
         },
         eyebrow: 'La confidentialité, simplement',
         gallery: {
-          body: 'Une galerie peut être ouverte à tous, partagée seulement par lien ou protégée par mot de passe. Nous conservons ses photos dans notre propre compte. Il faut avoir le bon accès pour ouvrir une galerie protégée. Dans une galerie privée, les coups de cœur et les photos choisies pour retouche sont partagés : toute personne qui y a accès peut les voir ou les modifier, et nous pouvons voir et télécharger ces photos.',
+          body: 'Une galerie peut être ouverte à tous, partagée seulement par lien ou protégée par mot de passe. Nous conservons ses photos dans notre propre compte. Il faut avoir le bon accès pour ouvrir une galerie protégée. Dans une galerie publique, les coups de cœur restent dans votre navigateur et ne nous sont pas transmis. Dans une galerie privée, les coups de cœur et les photos choisies pour retouche sont partagés : toute personne qui y a accès peut les voir ou les modifier, et nous pouvons voir et télécharger ces photos.',
           title: 'Galeries et photos',
         },
         lead: 'Voici ce qu’il advient de vos photos et de vos choix lorsque vous utilisez ce site.',

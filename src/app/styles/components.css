@@ -671,11 +671,13 @@
   transition: filter var(--motion-reveal) ease, transform var(--motion-reveal) ease;
 }
 
+.progressive-photo__medium,
 .progressive-photo__full {
   opacity: 0;
   transition: opacity var(--motion-reveal) ease;
 }
 
+.progressive-photo--medium-ready .progressive-photo__medium { opacity: 1; }
 .progressive-photo--ready .progressive-photo__preview { filter: none; transform: none; }
 .progressive-photo--ready .progressive-photo__full { opacity: 1; }
 
@@ -683,5 +685,6 @@
   .motion-reveal.motion-reveal--pending,
   .motion-reveal.motion-reveal--visible { opacity: 1; transform: none; transition: none; }
   .progressive-photo__preview,
+  .progressive-photo__medium,
   .progressive-photo__full { transition: none; }
 }

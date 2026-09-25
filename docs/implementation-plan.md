@@ -8,6 +8,8 @@ Post-plan extension (2026-09-24): ADR-012 adds a per-gallery public-directory sw
 
 Post-plan extension (2026-09-24): ADR-013 adds build-time site profiles across the shared public UI, Vite configuration and isolated-instance deployment. The `cadrora` showcase and `atelier-giulia` profile must each build from the same commit without a named-site branch in core code. Acceptance includes FR/EN and mobile checks for the studio profile, full Cadrora browser regression, separate account-scoped GitHub secrets, and live exact-hostname HTTPS verification before claiming release completion.
 
+Post-plan extension (2026-09-25): ADR-015 adds browser-local public hearts across PB, and a protected-gallery retouch switch across PB/PD admin settings and shared schemas. Acceptance includes migration 020, server rejection after closure, retained admin selections, and public hearts surviving reload without a favorite API request.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

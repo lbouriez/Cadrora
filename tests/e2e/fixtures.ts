@@ -12,6 +12,7 @@ export const publicEvent = {
   faceSearchEnabled: true,
   nearbySearchEnabled: true,
   showPhotoMetadata: true,
+  retouchSelectionEnabled: true,
   showOnGalleryPage: true,
   id: 'event-1',
   retentionDays: 30,
@@ -88,11 +89,13 @@ export async function installTurnstileStub(page: Page): Promise<void> {
   });
 }
 
-export async function mockGallery(page: Page, options: { protected?: boolean; withUnavailablePhoto?: boolean } = {}): Promise<void> {
+export async function mockGallery(page: Page, options: { protected?: boolean; retouchEnabled?: boolean; withUnavailablePhoto?: boolean } = {}): Promise<void> {
   let unlocked = !options.protected;
   const favorites = new Map<string, boolean>();
   const retouchSelections = new Map<string, boolean>();
-  const event = options.protected ? protectedEvent : publicEvent;
+  const event = options.protected
+    ? { ...protectedEvent, retouchSelectionEnabled: options.retouchEnabled ?? true }
+    : publicEvent;
 
   await page.route('**/e2e/photo-1.svg*', async (route) => {
     await route.fulfill({

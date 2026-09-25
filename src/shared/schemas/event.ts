@@ -19,6 +19,7 @@ export const EventSchema = z.object({
   faceSearchEnabled: z.boolean(),
   nearbySearchEnabled: z.boolean(),
   showPhotoMetadata: z.boolean(),
+  retouchSelectionEnabled: z.boolean(),
   showOnGalleryPage: z.boolean(),
   keepOriginals: z.boolean(),
   retentionDays: z.number().int().positive().nullable(),

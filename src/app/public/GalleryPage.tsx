@@ -21,6 +21,7 @@ import {
   supportsSeparatePhotoDownloads,
 } from './downloadPhotos';
 import { PhotoViewer } from './PhotoViewer';
+import { browserFavoritesKey, readBrowserFavorites, writeBrowserFavorites } from './browserFavorites';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
 import type { PublicPhoto } from '../../shared/schemas/gallery';
@@ -28,6 +29,7 @@ import type { PublicPhoto } from '../../shared/schemas/gallery';
 interface GalleryPhotoGridProps {
   downloadHelpId: string;
   favoritesEnabled: boolean;
+  retouchEnabled: boolean;
   favoritePendingId: string | null;
   onToggleFavorite: (photo: PublicPhoto) => void;
   onToggleRetouch: (photo: PublicPhoto) => void;
@@ -45,7 +47,7 @@ function photoColumnCount(width: number): number {
   return width >= 1320 ? 3 : width >= 720 ? 2 : 1;
 }
 
-function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
+function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, retouchEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(() => typeof window === 'undefined' ? 1 : photoColumnCount(window.innerWidth - 32));
@@ -105,7 +107,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, favoritePendingId,
             liked={photo.liked}
             onToggle={() => onToggleFavorite(photo)}
           /> : null}
-          {!selectionMode && favoritesEnabled ? <RetouchButton
+          {!selectionMode && retouchEnabled ? <RetouchButton
             className="photo-tile__retouch"
             disabled={retouchPendingId !== null}
             label={t(photo.selectedForRetouch ? 'gallery.retouch.remove' : 'gallery.retouch.add', { filename: photo.filename })}
@@ -128,6 +130,7 @@ export function GalleryPage() {
   const queryClient = useQueryClient();
   const turnstile = useRef<TurnstileChallengeHandle>(null);
   const [password, setPassword] = useState('');
+  const [browserFavorites, setBrowserFavorites] = useState<{ galleryId: string; ids: Set<string> } | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [showDownloadHelp, setShowDownloadHelp] = useState(false);
@@ -162,11 +165,19 @@ export function GalleryPage() {
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['public-photos', slug] }); },
   });
   const onToggleFavorite = (photo: PublicPhoto) => {
+    if (event.data?.access === 'public') {
+      const ids = new Set(browserFavorites?.galleryId === event.data.id ? browserFavorites.ids : readBrowserFavorites(event.data.id));
+      if (ids.has(photo.id)) ids.delete(photo.id);
+      else ids.add(photo.id);
+      writeBrowserFavorites(event.data.id, ids);
+      setBrowserFavorites({ galleryId: event.data.id, ids });
+      return;
+    }
     if (favorite.isPending || event.data?.access !== 'protected') return;
     favorite.mutate({ photo, liked: !photo.liked });
   };
   const onToggleRetouch = (photo: PublicPhoto) => {
-    if (retouch.isPending || event.data?.access !== 'protected') return;
+    if (retouch.isPending || event.data?.access !== 'protected' || !event.data.retouchSelectionEnabled) return;
     retouch.mutate({ photo, selected: !photo.selectedForRetouch });
   };
   const { fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError } = photos;
@@ -186,7 +197,27 @@ export function GalleryPage() {
       void queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
     },
   });
-  const allPhotos = useMemo(() => photos.data?.pages.flatMap((page) => page.photos) ?? [], [photos.data]);
+  const galleryId = event.data?.id;
+  const localFavoriteIds = useMemo(() => galleryId
+    ? browserFavorites?.galleryId === galleryId ? browserFavorites.ids : readBrowserFavorites(galleryId)
+    : new Set<string>(), [galleryId, browserFavorites]);
+  const allPhotos = useMemo(() => {
+    const loaded = photos.data?.pages.flatMap((page) => page.photos) ?? [];
+    return event.data?.access === 'public'
+      ? loaded.map((photo) => ({ ...photo, liked: localFavoriteIds.has(photo.id) }))
+      : loaded;
+  }, [photos.data, event.data?.access, localFavoriteIds]);
+  useEffect(() => {
+    if (!galleryId || event.data?.access !== 'public') return;
+    const key = browserFavoritesKey(galleryId);
+    const onStorage = (change: StorageEvent) => {
+      if (change.key === key || change.key === null) {
+        setBrowserFavorites({ galleryId, ids: readBrowserFavorites(galleryId) });
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [galleryId, event.data?.access]);
   const searchResults = useMemo(() => readFaceSearchResults(slug), [slug]);
   const matchedPhotoIds = searchResults.matchedPhotoIds;
   const nearbyPhotoIds = useMemo(() => {
@@ -222,7 +253,7 @@ export function GalleryPage() {
   const selectedPhotos = useMemo(() => allPhotos.filter((photo) => selectedIds.has(photo.id) && photo.downloadUrl), [allPhotos, selectedIds]);
   const downloadablePhotos = useMemo(() => visiblePhotos.filter((photo) => photo.downloadUrl), [visiblePhotos]);
   const supportsFolder = supportsSeparatePhotoDownloads();
-  const gridFavorites = { favoritesEnabled: event.data?.access === 'protected', favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite,
+  const gridFavorites = { favoritesEnabled: Boolean(event.data), retouchEnabled: event.data?.access === 'protected' && event.data.retouchSelectionEnabled, favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite,
     retouchPendingId: retouch.isPending ? retouch.variables.photo.id : null, onToggleRetouch };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
@@ -404,7 +435,9 @@ export function GalleryPage() {
                 </Button>
               ) : null}
             </div>
-            {event.data.access === 'protected' ? <p className="gallery-heading__hint">{t('gallery.retouch.help')}</p> : null}
+            <p className="gallery-heading__hint">{t(event.data.access === 'protected'
+              ? event.data.retouchSelectionEnabled ? 'gallery.retouch.help' : 'gallery.favorite.shared'
+              : 'gallery.favorite.local')}</p>
           </div>
         </div>
         {event.data.visibility === 'unlisted' ? <p className="gallery-notice">{t('gallery.unlisted')}</p> : null}
@@ -503,7 +536,8 @@ export function GalleryPage() {
           onSelect={(photo) => { void navigate(`/e/${event.data.slug}/photo/${photo.id}${viewerQuery}`); }}
           photo={selected}
           photos={matchesView ? visiblePhotos : allPhotos}
-          favoriteEnabled={event.data.access === 'protected'}
+          favoriteEnabled
+          retouchEnabled={event.data.access === 'protected' && event.data.retouchSelectionEnabled}
           favoritePending={favorite.isPending}
           retouchPending={retouch.isPending}
           onToggleFavorite={onToggleFavorite}

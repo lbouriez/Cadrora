@@ -9,12 +9,12 @@ const event = {
   id: 'gallery-1', slug: 'private-gallery', title: 'Private gallery', description: null,
   starts_at: '2030-01-01T00:00:00.000Z', timezone: 'UTC', cover_photo_id: null,
   visibility: 'published', access: 'protected', allow_downloads: 0,
-  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, show_on_gallery_page: 1, keep_originals: 0,
+  face_search_enabled: 0, nearby_search_enabled: 0, show_photo_metadata: 0, retouch_selection_enabled: 1, show_on_gallery_page: 1, keep_originals: 0,
   retention_days: null, offline_at: null, deleting_at: null, revision: 1,
   created_at: '2030-01-01T00:00:00.000Z', updated_at: '2030-01-01T00:00:00.000Z',
 };
 
-function harness(options: { access?: 'protected' | 'public'; grant?: boolean; offline?: boolean } = {}) {
+function harness(options: { access?: 'protected' | 'public'; grant?: boolean; offline?: boolean; retouchEnabled?: boolean } = {}) {
   const statements: Array<{ sql: string; values: unknown[] }> = [];
   let liked = 0;
   let selected = 0;
@@ -24,7 +24,8 @@ function harness(options: { access?: 'protected' | 'public'; grant?: boolean; of
     const statement = {
       bind: (...values: unknown[]) => { record.values = values; return statement; },
       first: () => Promise.resolve(sql.startsWith('SELECT * FROM events')
-        ? { ...event, access: options.access ?? 'protected', offline_at: options.offline ? event.created_at : null }
+        ? { ...event, access: options.access ?? 'protected', offline_at: options.offline ? event.created_at : null,
+          retouch_selection_enabled: options.retouchEnabled === false ? 0 : 1 }
         : sql.startsWith('SELECT access_version') ? { access_version: 2 }
         : sql.includes('UPDATE photos SET liked') ? (() => { liked = Number(record.values[0]); return { liked }; })()
         : sql.includes('UPDATE photos SET selected_for_retouch') ? (() => { selected = Number(record.values[0]); return { selected_for_retouch: selected }; })()
@@ -111,5 +112,12 @@ describe('private gallery retouch selection', () => {
     expect((await test.retouch({ selected: true }, 'https://elsewhere.example')).status).toBe(403);
     expect((await test.retouch({ selected: 1 })).status).toBe(400);
     expect((await test.retouch({ selected: true, extra: true })).status).toBe(400);
+  });
+
+  it('closes retouch writes while keeping shared hearts available', async () => {
+    const test = harness({ retouchEnabled: false });
+    expect((await test.retouch({ selected: true })).status).toBe(409);
+    expect(test.statements.some(({ sql }) => sql.includes('UPDATE photos SET selected_for_retouch'))).toBe(false);
+    expect((await test.request({ liked: true })).status).toBe(200);
   });
 });

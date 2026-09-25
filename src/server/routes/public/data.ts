@@ -15,6 +15,7 @@ export interface EventRow {
   face_search_enabled: number;
   nearby_search_enabled: number;
   show_photo_metadata: number;
+  retouch_selection_enabled: number;
   show_on_gallery_page: number;
   keep_originals: number;
   retention_days: number | null;
@@ -40,6 +41,7 @@ export function eventFromRow(row: EventRow): Event {
     faceSearchEnabled: row.face_search_enabled === 1,
     nearbySearchEnabled: row.nearby_search_enabled === 1,
     showPhotoMetadata: row.show_photo_metadata === 1,
+    retouchSelectionEnabled: row.retouch_selection_enabled === 1,
     showOnGalleryPage: row.show_on_gallery_page === 1,
     keepOriginals: row.keep_originals === 1,
     retentionDays: row.retention_days,
@@ -73,6 +75,7 @@ export function toPublicEvent(event: Event, coverRevision: number | null = null)
     faceSearchEnabled: event.faceSearchEnabled,
     nearbySearchEnabled: event.nearbySearchEnabled,
     showPhotoMetadata: event.showPhotoMetadata,
+    retouchSelectionEnabled: event.retouchSelectionEnabled,
     createdAt: event.createdAt,
     retentionDays: event.retentionDays,
     revision: event.revision,

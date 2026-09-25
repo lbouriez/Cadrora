@@ -39,7 +39,7 @@ test('charge les pages et les grandes photos au défilement sans répéter la co
   await expect(page.locator('.photo-tile-shell')).toHaveCount(40);
   await expect(page.locator('.progressive-photo__preview').first()).toHaveJSProperty('complete', true);
   await expect(page.locator('.progressive-photo__preview').first()).toHaveCSS('filter', /blur/u);
-  await expect(page.locator('.progressive-photo__full').first()).toHaveCSS('opacity', '0');
+  await expect(page.locator('.progressive-photo__medium').first()).toHaveCSS('opacity', '0');
   releaseFirstLarge();
   await expect(page.locator('.progressive-photo').first()).toHaveClass(/progressive-photo--ready/u);
   expect(photoRequests.some((url) => url.includes('photo-1-small.svg'))).toBe(true);
@@ -53,6 +53,59 @@ test('charge les pages et les grandes photos au défilement sans répéter la co
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator('.photo-grid__column')).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('la visionneuse montre la petite photo pendant le chargement des copies moyenne et grande', async ({ page }) => {
+  await mockGallery(page);
+  const photoRequests: string[] = [];
+  let releaseMedium: () => void = () => {};
+  let releaseFull: () => void = () => {};
+  const mediumGate = new Promise<void>((resolve) => { releaseMedium = resolve; });
+  const fullGate = new Promise<void>((resolve) => { releaseFull = resolve; });
+  await page.route('**/api/v1/galleries/mariage-lumiere/photos*', async (route) => {
+    await route.fulfill({ body: JSON.stringify({
+      eventRevision: publicEvent.revision,
+      nextCursor: null,
+      photos: Array.from({ length: 40 }, (_, position) => {
+        const number = position + 1;
+        return {
+          ...publicPhoto,
+          id: `photo-${number}`,
+          filename: `photo-${number}.jpg`,
+          sortKey: String(number).padStart(8, '0'),
+          sources: [480, 960, 1600].map((width) => ({
+            contentType: 'image/jpeg',
+            height: width * 3 / 4,
+            url: `/e2e/viewer/photo-${number}-${width}.svg`,
+            width,
+          })),
+        };
+      }),
+    }), contentType: 'application/json' });
+  });
+  await page.route('**/e2e/viewer/*.svg', async (route) => {
+    const url = route.request().url();
+    photoRequests.push(url);
+    if (url.includes('photo-40-960.svg')) await mediumGate;
+    if (url.includes('photo-40-1600.svg')) await fullGate;
+    await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200"><rect width="1600" height="1200" fill="#8b5e45"/></svg>', contentType: 'image/svg+xml' });
+  });
+
+  await page.goto('/e/mariage-lumiere/photo/photo-40', { waitUntil: 'domcontentloaded' });
+  const selected = page.locator('.photo-viewer__slide[aria-hidden="false"]');
+  await expect(selected.locator('.progressive-photo__preview')).toHaveJSProperty('naturalWidth', 1600);
+  await expect(selected.locator('.progressive-photo__preview')).toHaveCSS('filter', /blur/u);
+  await expect(selected.locator('.photo-viewer__ambient')).toHaveAttribute('src', '/e2e/viewer/photo-40-480.svg');
+  await expect.poll(() => photoRequests.some((url) => url.includes('photo-40-960.svg'))).toBe(true);
+  expect(photoRequests.some((url) => url.includes('photo-40-1600.svg'))).toBe(false);
+
+  releaseMedium();
+  await expect(selected.locator('.progressive-photo')).toHaveClass(/progressive-photo--medium-ready/u);
+  await expect.poll(() => photoRequests.some((url) => url.includes('photo-40-1600.svg'))).toBe(true);
+  await expect(selected.locator('.progressive-photo__full')).toHaveCSS('opacity', '0');
+  releaseFull();
+  await expect(selected.locator('.progressive-photo')).toHaveClass(/progressive-photo--ready/u);
+  expect(photoRequests.some((url) => url.includes('photo-38-1600.svg'))).toBe(false);
 });
 
 test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) => {
@@ -354,12 +407,22 @@ test('partage un coeur entre la mosaïque et la visionneuse privée, puis le ret
   await expect(page.getByRole('dialog').getByRole('button', { name: /aimer danse|like danse/i })).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('ne montre aucun coeur dans une galerie publique', async ({ page }) => {
+test('garde les coeurs publics dans le navigateur sans ecriture serveur', async ({ page }) => {
   await mockGallery(page);
+  let favoriteWrites = 0;
+  page.on('request', (request) => {
+    if (request.method() === 'PUT' && request.url().includes('/favorite')) favoriteWrites += 1;
+  });
   await page.goto('/e/mariage-lumiere');
-  await expect(page.locator('.favorite-button')).toHaveCount(0);
+  const tile = page.locator('.photo-tile-shell').first();
+  await tile.getByRole('button', { name: /aimer danse|like danse/i }).click();
+  await expect(tile.locator('.favorite-button')).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => localStorage.getItem('cadrora:public-favorites:event-1'))).toContain('photo-1');
+  await page.reload();
+  await expect(page.locator('.photo-tile-shell').first().locator('.favorite-button')).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
-  await expect(page.locator('.favorite-button')).toHaveCount(0);
+  await expect(page.getByRole('dialog').locator('.favorite-button')).toHaveAttribute('aria-pressed', 'true');
+  expect(favoriteWrites).toBe(0);
 });
 
 test('garde la sélection retouche distincte du coeur sur téléphone', async ({ page }, testInfo) => {
@@ -379,4 +442,16 @@ test('garde la sélection retouche distincte du coeur sur téléphone', async ({
   expect(viewer).toEqual({ height: 844, width: 390, x: 0, y: 0 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('retouch-viewer-mobile.png') });
+});
+
+test('masque la sélection retouche fermée et garde les coeurs privés', async ({ page }) => {
+  await mockGallery(page, { protected: true, retouchEnabled: false });
+  await page.goto('/e/soiree-privee');
+  await page.getByRole('textbox', { name: /mot de passe|password/i }).fill('mot-de-passe');
+  await page.getByRole('button', { name: /ouvrir la galerie|unlock gallery/i }).click();
+  await expect(page.locator('.retouch-button')).toHaveCount(0);
+  await expect(page.locator('.favorite-button')).toHaveCount(2);
+  await page.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
+  await expect(page.getByRole('dialog').locator('.retouch-button')).toHaveCount(0);
+  await expect(page.getByRole('dialog').locator('.favorite-button')).toHaveCount(1);
 });

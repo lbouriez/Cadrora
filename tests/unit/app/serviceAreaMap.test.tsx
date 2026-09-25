@@ -35,6 +35,7 @@ describe('contact service-area map', () => {
     expect(mapUrl).toContain('https://www.openstreetmap.org/export/embed.html?');
     expect(mapUrl).toContain('marker=45.5019%2C-73.5674');
     expect(mapUrl).toContain('bbox=');
+    expect(mapUrl).toContain('layer=shortbread');
     expect(screen.getByRole('link', { name: /OpenStreetMap contributors/ })).toBeTruthy();
     expect(screen.getByRole('link', { name: /Open the service area in Google Maps/ })).toBeTruthy();
   });
@@ -44,5 +45,17 @@ describe('contact service-area map', () => {
     render(<ServiceAreaMap centerLatitude={45.5019} centerLongitude={-73.5674} embedKey={null} radiusKm={180} />);
     expect(screen.getByText(/180 km/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Afficher la carte' })).toBeTruthy();
+  });
+
+  it('frames a 50 km radius with 10% margin around the selected centre', async () => {
+    await i18n.changeLanguage('en');
+    render(<ServiceAreaMap centerLatitude={45.5930624} centerLongitude={-73.3395943} embedKey={null} radiusKm={50} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Display the map' }));
+    const url = new URL(document.querySelector('iframe')?.getAttribute('src') ?? '');
+    const bounds = url.searchParams.get('bbox')?.split(',').map(Number) ?? [];
+    expect(bounds).toHaveLength(4);
+    expect((bounds[3]! - 45.5930624) * 111.32).toBeCloseTo(55, 1);
+    expect((45.5930624 - bounds[1]!) * 111.32).toBeCloseTo(55, 1);
+    expect((bounds[0]! + bounds[2]!) / 2).toBeCloseTo(-73.3395943, 5);
   });
 });

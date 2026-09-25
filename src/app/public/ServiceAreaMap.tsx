@@ -15,9 +15,10 @@ function approximateZoom(radiusKm: number): number {
 }
 
 function openStreetMapUrl(latitude: number, longitude: number, radiusKm: number): string {
-  // The bounding box frames the approximate travel area; it does not draw a service boundary.
-  const latitudeSpan = radiusKm / 111.32;
-  const longitudeSpan = radiusKm / (111.32 * Math.max(0.01, Math.abs(Math.cos(latitude * Math.PI / 180))));
+  // Frame the approximate travel radius with 10% breathing room; this is not a drawn boundary.
+  const viewRadiusKm = radiusKm * 1.1;
+  const latitudeSpan = viewRadiusKm / 111.32;
+  const longitudeSpan = viewRadiusKm / (111.32 * Math.max(0.01, Math.abs(Math.cos(latitude * Math.PI / 180))));
   const bounds = [
     Math.max(-85, latitude - latitudeSpan),
     Math.max(-180, longitude - longitudeSpan),
@@ -25,7 +26,8 @@ function openStreetMapUrl(latitude: number, longitude: number, radiusKm: number)
     Math.min(180, longitude + longitudeSpan),
   ];
   const bbox = `${bounds[1]},${bounds[0]},${bounds[3]},${bounds[2]}`;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${latitude},${longitude}`)}`;
+  // OSM's vector layer permits fractional zoom when fitting the bounds.
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=shortbread&marker=${encodeURIComponent(`${latitude},${longitude}`)}`;
 }
 
 /** Consent-by-click map; the radius is labelled, not represented as a precise drawn boundary. */

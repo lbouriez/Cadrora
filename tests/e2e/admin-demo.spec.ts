@@ -16,6 +16,7 @@ const demoEvent = {
   faceSearchEnabled: true,
   nearbySearchEnabled: true,
   showPhotoMetadata: true,
+  retouchSelectionEnabled: true,
   showOnGalleryPage: true,
   keepOriginals: false,
   retentionDays: null,
@@ -246,5 +247,14 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   const dashboardOrder = await page.locator('.admin-events > section').evaluateAll((sections) => sections.map((section) => section.getAttribute('class') ?? ''));
   expect(dashboardOrder.slice(0, 2)).toEqual(['admin-card admin-demo-intro', 'admin-card admin-events__list']);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.evaluate((eventId) => {
+    history.pushState({}, '', `/admin/galleries/${eventId}`);
+    dispatchEvent(new PopStateEvent('popstate'));
+  }, protectedEvent.id);
+  const retouchSwitch = page.getByRole('checkbox', { name: /select photos for retouching|choisir des photos à retoucher/i });
+  await expect(retouchSwitch).toBeChecked();
+  await retouchSwitch.uncheck();
+  await expect(retouchSwitch).not.toBeChecked();
+  await expect(page.getByRole('button', { name: /save settings|enregistrer les réglages/i })).toBeDisabled();
   expect(writes).toEqual([]);
 });

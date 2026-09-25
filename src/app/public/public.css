@@ -1210,7 +1210,10 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: transparent;
 }
+
+.photo-viewer__image > img { object-fit: inherit; }
 
 .photo-viewer__arrow {
   position: absolute;
@@ -1349,6 +1352,8 @@
   height: 100%;
   object-fit: cover;
 }
+
+.photo-viewer__rail .progressive-photo { width: 100%; height: 100%; }
 
 @media (min-width: 64rem) {
   .photo-viewer__slide--fills-desktop .photo-viewer__image {
@@ -1817,7 +1822,7 @@
 .service-area-map__copy p { margin: 0; line-height: 1.6; }
 .service-area-map__attribution { margin-top: var(--space-2); color: var(--color-text-muted); font-size: var(--text-sm); }
 .service-area-map__copy .button { margin-top: var(--space-2); }
-.service-area-map__visual { min-height: 22rem; background: var(--color-surface-raised); }
+.service-area-map__visual { display: grid; min-height: 22rem; background: var(--color-surface-raised); }
 .service-area-map__visual iframe { display: block; width: 100%; height: 100%; min-height: 22rem; border: 0; }
 .service-area-map__preview { position: relative; display: flex; min-height: 22rem; align-items: flex-end; overflow: hidden; isolation: isolate; }
 .service-area-map__preview::after { position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--color-overlay) 100%); content: ''; }

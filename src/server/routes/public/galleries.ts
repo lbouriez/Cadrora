@@ -272,6 +272,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     }
     applyCachePolicy(context, 'event-protected');
     if (!(await hasCurrentEventAccess(context, event))) throw await eventAccessError(context, event);
+    if (!event.retouchSelectionEnabled) throw new ApiException('RETOUCH_SELECTION_CLOSED', 'errors.invalidRequest', 409);
     const accessVersion = context.get('auth').eventGrant?.accessVersion;
     if (!accessVersion) throw await eventAccessError(context, event);
     const row = await context.env.DB.prepare(
@@ -279,7 +280,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
        WHERE id = ?3 AND event_id = ?4 AND state = 'published'
          AND EXISTS (SELECT 1 FROM event_credentials WHERE event_id = ?4 AND access_version = ?5)
          AND EXISTS (SELECT 1 FROM events WHERE id = ?4 AND access = 'protected'
-           AND visibility != 'draft' AND offline_at IS NULL AND deleting_at IS NULL)
+           AND retouch_selection_enabled = 1 AND visibility != 'draft' AND offline_at IS NULL AND deleting_at IS NULL)
        RETURNING selected_for_retouch`,
     ).bind(Number(body.data.selected), new Date().toISOString(), params.data.photoId, event.id, accessVersion)
       .first<{ selected_for_retouch: number }>();

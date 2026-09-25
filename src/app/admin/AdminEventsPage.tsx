@@ -86,6 +86,7 @@ export function AdminEventsPage() {
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
+      retouchSelectionEnabled: access === 'protected' && values.get('retouchSelectionEnabled') === 'on',
       showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       password: access === 'protected' ? values.get('password') : undefined,
@@ -180,6 +181,7 @@ export function AdminEventsPage() {
               onNearbySearchChange={setNearbySearchEnabled}
             />
             <label><input name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
+            {access === 'protected' ? <label><input defaultChecked name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}<span className="field__hint">{t('admin.events.retouchSelectionEnabledHint')}</span></label> : null}
           </fieldset>
           {creation.isError ? <p role="alert">{t('admin.events.createError')}</p> : null}
           {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
@@ -270,6 +272,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
+      retouchSelectionEnabled: access === 'protected' && values.get('retouchSelectionEnabled') === 'on',
       showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       ...(password ? { password } : {}),
@@ -322,6 +325,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
             onNearbySearchChange={setNearbySearchEnabled}
           />
           <label><input defaultChecked={event.showPhotoMetadata} name="showPhotoMetadata" type="checkbox" /> {t('admin.events.showPhotoMetadata')}</label>
+          {access === 'protected' ? <label><input defaultChecked={event.retouchSelectionEnabled} name="retouchSelectionEnabled" type="checkbox" /> {t('admin.events.retouchSelectionEnabled')}<span className="field__hint">{t('admin.events.retouchSelectionEnabledHint')}</span></label> : null}
         </fieldset>
         {update.isError ? <p role="alert">{t('admin.events.updateError')}</p> : null}
         {saved ? <p role="status">{t('admin.events.updated')}</p> : null}

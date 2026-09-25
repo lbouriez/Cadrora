@@ -62,6 +62,9 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByText(/175 km/)).toBeVisible();
     await expect(page.locator('.service-area-map__preview-image')).toBeVisible();
     await expect(page.locator('.service-area-map__preview')).toContainText(/afficher la carte|display the map/i);
+    const previewGap = await page.locator('.service-area-map__visual').evaluate((visual) =>
+      visual.getBoundingClientRect().bottom - visual.querySelector('.service-area-map__preview')!.getBoundingClientRect().bottom);
+    expect(Math.abs(previewGap)).toBeLessThan(1);
     await expect(page.getByText(/map is supplied by OpenStreetMap|carte est fournie par OpenStreetMap/i)).toHaveCount(0);
     await expect(page.getByRole('link', { name: /zone de service sur google maps|service area in google maps/i })).toBeVisible();
     await expect(page.locator('iframe[src*="google.com/maps"], iframe[src*="openstreetmap.org"]')).toHaveCount(0);
@@ -72,6 +75,7 @@ test.describe('site vitrine statique', () => {
     await page.route('https://www.openstreetmap.org/export/embed.html?**', (route) => route.abort());
     await page.getByRole('button', { name: /afficher la carte|display the map/i }).click();
     await expect(page.locator('iframe[src*="openstreetmap.org/export/embed.html"]')).toHaveCount(1);
+    await expect(page.locator('iframe[src*="layer=shortbread"]')).toHaveCount(1);
     await expect(page.locator('.service-area-map__preview')).toHaveCount(0);
     await expect(page.getByRole('link', { name: /OpenStreetMap contributors/i })).toBeVisible();
   });
@@ -241,7 +245,7 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
           description: 'A portrait gallery', startsAt: '2026-09-20T15:00:00.000Z',
           timezone: 'America/Toronto', coverPhotoId: 'demo-ai-01', coverPhotoUrl: '/media/demo-ai-face-search/demo-ai-01/0/medium', visibility: 'published',
           access: 'public', allowDownloads: true, faceSearchEnabled: true,
-          nearbySearchEnabled: true, showPhotoMetadata: true, retentionDays: null,
+          nearbySearchEnabled: true, showPhotoMetadata: true, retouchSelectionEnabled: true, retentionDays: null,
           revision: 1, createdAt: '2026-09-18T15:00:00.000Z', updatedAt: '2026-09-20T15:00:00.000Z',
         }],
         protectedGalleries: [{

@@ -3,10 +3,11 @@ import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { PublicPhoto } from '../../shared/schemas/gallery';
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal, RetouchButton } from '../components';
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal, ProgressivePhoto, RetouchButton } from '../components';
 
 interface PhotoViewerProps {
   favoriteEnabled: boolean;
+  retouchEnabled: boolean;
   favoritePending: boolean;
   retouchPending: boolean;
   onClose: () => void;
@@ -19,15 +20,6 @@ interface PhotoViewerProps {
   timezone: string;
 }
 
-function imageAttributes(photo: PublicPhoto) {
-  const sources = [...photo.sources].sort((left, right) => left.width - right.width);
-  const fallback = sources.at(-1);
-  return {
-    src: fallback?.url ?? '',
-    srcSet: sources.map((source) => `${source.url} ${source.width}w`).join(', '),
-  };
-}
-
 function formatCapturedAt(value: string | null, language: string, timezone: string): string | null {
   if (!value) return null;
   try {
@@ -37,7 +29,7 @@ function formatCapturedAt(value: string | null, language: string, timezone: stri
   }
 }
 
-export function PhotoViewer({ favoriteEnabled, favoritePending, retouchPending, onClose, onSelect, onToggleFavorite, onToggleRetouch, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
+export function PhotoViewer({ favoriteEnabled, retouchEnabled, favoritePending, retouchPending, onClose, onSelect, onToggleFavorite, onToggleRetouch, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
   const { i18n, t } = useTranslation();
   const metadataId = useId();
   const [metadataState, setMetadataState] = useState({ open: false, photoId: photo.id });
@@ -79,14 +71,14 @@ export function PhotoViewer({ favoriteEnabled, favoritePending, retouchPending, 
       <div className="photo-viewer">
         <div className="photo-viewer__viewport" ref={carouselRef}>
           <div className="photo-viewer__container">
-            {photos.map((candidate) => {
-              const candidateImage = imageAttributes(candidate);
+            {photos.map((candidate, candidateIndex) => {
               const selected = candidate.id === photo.id;
               const fillsDesktop = candidate.width > candidate.height && candidate.width / candidate.height < 2;
+              const nearby = Math.abs(candidateIndex - index) <= 1;
               return (
-                <div aria-hidden={!selected} className={`photo-viewer__slide${fillsDesktop ? ' photo-viewer__slide--fills-desktop' : ''}`} key={candidate.id}>
-                  <img alt="" aria-hidden="true" className="photo-viewer__ambient" height={candidate.height} src={candidateImage.src} width={candidate.width} />
-                  <img alt={selected ? candidate.filename : ''} className="photo-viewer__image" height={candidate.height} sizes="100vw" src={candidateImage.src} srcSet={candidateImage.srcSet} width={candidate.width} />
+                <div aria-hidden={!selected} className={`photo-viewer__slide${fillsDesktop ? ' photo-viewer__slide--fills-desktop' : ''}`} key={`${candidate.id}:${candidate.revision}`}>
+                  {nearby ? <img alt="" aria-hidden="true" className="photo-viewer__ambient" height={candidate.height} src={candidate.sources[0]?.url} width={candidate.width} /> : null}
+                  <ProgressivePhoto alt={selected ? candidate.filename : ''} className="photo-viewer__image" enabled={nearby} height={candidate.height} immediate={nearby} maxQuality={selected ? 'full' : 'medium'} sizes="100vw" sources={candidate.sources} width={candidate.width} />
                 </div>
               );
             })}
@@ -126,16 +118,15 @@ export function PhotoViewer({ favoriteEnabled, favoritePending, retouchPending, 
             liked={photo.liked}
             onToggle={() => onToggleFavorite(photo)}
           /> : null}
-          {favoriteEnabled ? <RetouchButton className="photo-viewer__retouch" disabled={retouchPending}
+          {retouchEnabled ? <RetouchButton className="photo-viewer__retouch" disabled={retouchPending}
             label={t(photo.selectedForRetouch ? 'gallery.retouch.remove' : 'gallery.retouch.add', { filename: photo.filename })}
             onToggle={() => onToggleRetouch(photo)} selected={photo.selectedForRetouch} /> : null}
           {photo.downloadUrl ? <a aria-label={t('gallery.download')} className="icon-button icon-button--secondary photo-viewer__download" download href={photo.downloadUrl} title={t('gallery.download')}><DownloadIcon /></a> : null}
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {
-              const thumbnail = imageAttributes(candidate);
               return (
                 <button aria-current={candidate.id === photo.id ? 'true' : undefined} aria-label={candidate.filename} key={candidate.id} onClick={() => onSelect(candidate)} type="button">
-                  <img alt="" height={candidate.height} src={thumbnail.src} width={candidate.width} />
+                  <ProgressivePhoto alt="" height={candidate.height} maxQuality="preview" sizes="44px" sources={candidate.sources} width={candidate.width} />
                 </button>
               );
             })}
