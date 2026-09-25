@@ -27,6 +27,8 @@ The browser retains the request's API error code (not its arbitrary message) so 
 
 An unsuccessful Cancel shows a distinct localized message and retains the journal. Its browser-console diagnostic contains only the operation, error category, and typed API status/code if present; it never logs exception text, filenames, photos, or credentials.
 
+The production `FetchImportApi` uses a wrapper around the browser's global `fetch`. Do not store native `fetch` directly and invoke it as a class method: some browsers reject the foreign receiver with a `TypeError` before a request reaches the Worker. This affects both import creation and cancellation.
+
 ## Acceptance coverage
 
 `tests/unit/app/importPipeline.test.ts` exercises the real `ImportPipeline` orchestration with deterministic browser/provider fakes. It processes a 200-file journal as exactly four ordered declarations of 50 photos. A second scenario imports the tracked fictional `nearby-amelia-exif.jpg` fixture and verifies its `DateTimeOriginal`/`OffsetTimeOriginal` becomes `2026-08-30T18:02:00.000Z` in the server declaration. A resume scenario interrupts declaration of chunk 2 after 100 finalized photos, constructs a fresh pipeline over the same durable journal, and verifies that only chunks 2 and 3 are encoded and declared during resume.

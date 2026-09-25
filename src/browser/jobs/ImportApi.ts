@@ -30,7 +30,9 @@ export class ImportRequestError extends Error {
 
 /** Typed browser client for the isolated PC Worker-route contract. */
 export class FetchImportApi implements ImportApi {
-  constructor(private readonly fetcher: typeof fetch = fetch) {}
+  // Keep the native fetch invocation anchored to its browser global. Calling a
+  // stored Window method as `this.fetcher(...)` can throw before any request is sent.
+  constructor(private readonly fetcher: typeof fetch = (input, init) => globalThis.fetch(input, init)) {}
 
   async cancelImport(importId: string): Promise<void> {
     const response = await this.fetcher(`/api/v1/admin/imports/${encodeURIComponent(importId)}/cancel`, { method: 'POST' });
