@@ -163,6 +163,23 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
   await expect(page.getByRole('heading', { name: /démarrer l'importation pour Resume test|start import for Resume test/i })).toBeVisible();
   const resume = page.getByRole('button', { name: /reprendre l'importation|resume import/i });
   await expect(resume).toBeVisible();
+  await page.getByRole('link', { name: /réglages de la galerie|gallery settings/i }).click();
+  await expect(page).toHaveURL(new RegExp(`/admin/galleries/${eventId}$`));
+  await expect(page.getByRole('heading', { name: /réglages — Resume test|settings — Resume test/i })).toBeVisible();
+  await page.goBack();
+  await expect(resume).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  const publishButton = page.getByRole('button', { name: /publier la galerie|publish gallery/i });
+  const settingsLink = page.getByRole('link', { name: /réglages de la galerie|gallery settings/i });
+  await expect(publishButton).toBeVisible();
+  await expect(settingsLink).toBeVisible();
+  const publishBounds = await publishButton.boundingBox();
+  const settingsBounds = await settingsLink.boundingBox();
+  expect(publishBounds && settingsBounds && (
+    publishBounds.x + publishBounds.width <= settingsBounds.x
+    || publishBounds.y + publishBounds.height <= settingsBounds.y
+  )).toBeTruthy();
+  await page.setViewportSize({ width: 1440, height: 900 });
 
   await resume.click();
   await expect(page.getByText('100/200')).toBeVisible();

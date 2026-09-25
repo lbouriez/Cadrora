@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 import type { PublicationState, PublicationSummary } from '../../shared/schemas';
 import { Badge, Button, ConfirmDialog, Select } from '../components';
@@ -15,6 +16,7 @@ export interface PublishPanelProps {
   eventId: string;
   onChanged?: (summary: PublicationSummary) => void;
   readOnly?: boolean;
+  showSettingsLink?: boolean;
   summary: PublicationSummary;
 }
 
@@ -27,7 +29,7 @@ function defaultTarget(summary: PublicationSummary): PublicationState {
 }
 
 /** Shared reversible availability control used by gallery settings and import workflows. */
-export function PublishPanel({ eventId, onChanged, readOnly = false, summary }: PublishPanelProps) {
+export function PublishPanel({ eventId, onChanged, readOnly = false, showSettingsLink = false, summary }: PublishPanelProps) {
   const { t } = useTranslation();
   const state = currentState(summary);
   const [target, setTarget] = useState<PublicationState>(() => defaultTarget(summary));
@@ -89,9 +91,14 @@ export function PublishPanel({ eventId, onChanged, readOnly = false, summary }: 
       </Select>
       {readOnly ? <p className="publish-panel__note">{t('publication.readOnly')}</p> : null}
       {mutation.isError ? <p role="alert">{t('publication.error')}</p> : null}
-      <Button disabled={disabled} onClick={apply} variant={target === 'offline' ? 'danger' : 'primary'}>
-        {mutation.isPending ? t('publication.saving') : t(actionKey)}
-      </Button>
+      <div className="publish-panel__actions">
+        <Button disabled={disabled} onClick={apply} variant={target === 'offline' ? 'danger' : 'primary'}>
+          {mutation.isPending ? t('publication.saving') : t(actionKey)}
+        </Button>
+        {showSettingsLink ? <Link className="button button--secondary" to={`/admin/galleries/${encodeURIComponent(eventId)}`}>
+          {t('publication.gallerySettings')}
+        </Link> : null}
+      </div>
       <ConfirmDialog
         cancelLabel={t('publication.cancel')}
         closeLabel={t('publication.close')}

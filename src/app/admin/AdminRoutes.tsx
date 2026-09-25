@@ -96,7 +96,7 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
         <h1 className="admin-card__title">{i18n.t('admin.demo.importTitle')}</h1>
         <p className="admin-card__description">{i18n.t('admin.demo.importBody')}</p>
       </section>
-      {summary.data ? <PublishPanel eventId={eventId} readOnly summary={summary.data} /> : null}
+      {summary.data ? <PublishPanel eventId={eventId} readOnly showSettingsLink summary={summary.data} /> : null}
     </div>;
   }
   if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
@@ -109,6 +109,7 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
         <PublishPanel
           eventId={eventId}
           onChanged={(published) => queryClient.setQueryData(['publication-summary', eventId], published)}
+          showSettingsLink
           summary={summary.data}
         />
       ) : null}

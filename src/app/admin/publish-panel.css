@@ -36,6 +36,12 @@
   font-size: var(--font-size-sm);
 }
 
+.publish-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .publish-panel__status {
   display: grid;
   margin: 0;
