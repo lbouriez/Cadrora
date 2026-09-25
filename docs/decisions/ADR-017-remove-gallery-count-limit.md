@@ -10,7 +10,7 @@ The number of galleries is not a Cloudflare Free quota and contributes little to
 
 - Remove the gallery-count setting, its `MAX_EVENTS` Worker variable, and the count check on gallery creation. Keep the separate per-gallery photo limit, media-byte limit, and face limits.
 - Remove gallery count from the Site settings quota response and usage display. The gallery list remains the place to see existing galleries.
-- Retire the former D1 owner-limit column in a follow-up migration only after the Worker no longer reads it. This keeps the prior Worker compatible while the first deployment is in progress.
+- Retire the former D1 owner-limit column with `021_remove_gallery_limit.sql` after the Worker no longer reads it. This keeps the prior Worker compatible while the first deployment is in progress.
 
 ## Consequences
 

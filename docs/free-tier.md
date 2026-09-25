@@ -87,4 +87,4 @@ These settings do **not** reserve Cloudflare capacity, create billing alerts, or
 
 ## Launch decision
 
-Use free tier only after a representative import, gallery view, protected unlock, download, deletion, and—if enabled—face search are measured in the target Cloudflare account. Record the actual plan, usage dashboard date, application caps, and a paid-plan escalation decision. Do not promise unlimited galleries, unlimited storage, or free service in customer copy.
+Use free tier only after a representative import, gallery view, protected unlock, download, deletion, and—if enabled—face search are measured in the target Cloudflare account. Record the actual plan, usage dashboard date, application caps, and a paid-plan escalation decision. Do not promise unlimited storage or free service in customer copy.
