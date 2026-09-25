@@ -55,16 +55,22 @@ export function assertSiteTarget(profile, target, showcaseEnabled = false, profi
   }
 }
 
-export function instanceWranglerConfig(baseConfig, names, databaseId, hostname) {
+export function instanceWranglerConfig(baseConfig, names, databaseId, hostname, projectRootFromConfig) {
   const config = structuredClone(baseConfig);
+  const fromProjectRoot = (path) => `${projectRootFromConfig}/${path.replace(/^\.\//u, '')}`;
   config.name = names.worker;
   delete config.env;
+  // Wrangler resolves these paths relative to the generated config, not the process cwd.
+  config.$schema = fromProjectRoot(config.$schema);
+  config.main = fromProjectRoot(config.main);
+  config.assets.directory = fromProjectRoot(config.assets.directory);
   config.routes = [{ custom_domain: true, pattern: hostname }];
   config.vars.DEMO_SHOWCASE_ENABLED = 'false';
   config.d1_databases[0] = {
     ...config.d1_databases[0],
     database_id: databaseId,
     database_name: names.database,
+    migrations_dir: fromProjectRoot(config.d1_databases[0].migrations_dir),
   };
   config.r2_buckets[0] = { ...config.r2_buckets[0], bucket_name: names.mediaBucket };
   config.r2_buckets[1] = { ...config.r2_buckets[1], bucket_name: names.modelsBucket };

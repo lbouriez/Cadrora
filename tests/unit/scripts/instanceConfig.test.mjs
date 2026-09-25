@@ -25,14 +25,17 @@ describe('isolated instance deployment configuration', () => {
   it('derives isolated resource names and an exact custom-domain route', () => {
     const names = instanceResourceNames('alice');
     const base = {
-      d1_databases: [{ binding: 'DB', database_name: 'cadrora' }],
+      $schema: './node_modules/wrangler/config-schema.json',
+      main: './src/server/app.ts',
+      assets: { directory: './dist/client', binding: 'ASSETS' },
+      d1_databases: [{ binding: 'DB', database_name: 'cadrora', migrations_dir: 'migrations' }],
       env: { preview: {} },
       name: 'cadrora',
       r2_buckets: [{ binding: 'MEDIA_BUCKET' }, { binding: 'MODELS_BUCKET' }],
       vars: { DEMO_SHOWCASE_ENABLED: 'true' },
       vectorize: [{ binding: 'FACE_INDEX', index_name: 'cadrora-face-index' }],
     };
-    const config = instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com');
+    const config = instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com', '../../..');
 
     expect(names).toEqual({
       database: 'cadrora-alice',
@@ -42,7 +45,10 @@ describe('isolated instance deployment configuration', () => {
       worker: 'cadrora-alice',
     });
     expect(config).toMatchObject({
-      d1_databases: [{ database_id: 'database-uuid', database_name: 'cadrora-alice' }],
+      $schema: '../../../node_modules/wrangler/config-schema.json',
+      main: '../../../src/server/app.ts',
+      assets: { directory: '../../../dist/client' },
+      d1_databases: [{ database_id: 'database-uuid', database_name: 'cadrora-alice', migrations_dir: '../../../migrations' }],
       name: 'cadrora-alice',
       routes: [{ custom_domain: true, pattern: 'alice.cadrora.com' }],
       vars: { DEMO_SHOWCASE_ENABLED: 'false' },

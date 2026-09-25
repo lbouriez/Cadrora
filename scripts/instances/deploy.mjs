@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -177,8 +177,9 @@ try {
   process.stdout.write(`Provisioning isolated instance ${target.instance} for ${target.hostname}.\n`);
   const resources = await ensureResources(names);
   const baseConfig = JSON.parse(await readFile(resolve(workspace, 'wrangler.jsonc'), 'utf8'));
-  const config = instanceWranglerConfig(baseConfig, names, resources.databaseId, target.hostname);
   const configPath = join(instanceDirectory, 'wrangler.json');
+  const projectRootFromConfig = relative(dirname(configPath), workspace).replaceAll('\\', '/');
+  const config = instanceWranglerConfig(baseConfig, names, resources.databaseId, target.hostname, projectRootFromConfig);
   const secretsPath = join(instanceDirectory, 'deploy-secrets.env');
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, 'utf8');
   await writeFile(
