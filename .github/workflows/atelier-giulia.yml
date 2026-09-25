@@ -72,3 +72,10 @@ jobs:
           curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/ -o /dev/null
           curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/contact -o /dev/null
           curl --fail --silent --show-error --retry 6 --retry-delay 10 https://ateliergiulia.com/api/v1/galleries -o /dev/null
+      - name: Verify domain HTTPS policy
+        run: |
+          https_headers="$(curl --fail --silent --show-error --head https://ateliergiulia.com/ | tr -d '\r')"
+          printf '%s\n' "$https_headers" | grep -Eiq '^strict-transport-security:[[:space:]]*max-age=[1-9][0-9]*'
+          ! printf '%s\n' "$https_headers" | grep -Eiq '^strict-transport-security:.*(includesubdomains|preload)'
+          http_headers="$(curl --silent --show-error --head http://ateliergiulia.com/ | tr -d '\r')"
+          printf '%s\n' "$http_headers" | grep -Eiq '^location:[[:space:]]*https://ateliergiulia.com/?$'
