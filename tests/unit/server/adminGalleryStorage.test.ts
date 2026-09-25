@@ -17,12 +17,12 @@ const eventRow = {
   retouch_selection_count: 0,
 };
 
-describe('admin gallery storage', () => {
-  it('returns D1-recorded bytes for each gallery, including empty galleries', async () => {
+describe('admin gallery metrics', () => {
+  it('returns D1-recorded bytes and active photo counts, including empty galleries', async () => {
     const prepare = vi.fn((sql: string) => ({
       all: () => Promise.resolve({ results: [
-        { ...eventRow, storage_bytes: 1_750_000 },
-        { ...eventRow, id: 'gallery-2', slug: 'gallery-2', storage_bytes: 0 },
+        { ...eventRow, photo_count: 12, storage_bytes: 1_750_000 },
+        { ...eventRow, id: 'gallery-2', slug: 'gallery-2', photo_count: 0, storage_bytes: 0 },
       ] }),
       sql,
     }));
@@ -43,11 +43,12 @@ describe('admin gallery storage', () => {
     });
     expect(response.status).toBe(200);
     const body = AdminEventListSchema.parse(await response.json());
-    expect(body.events.map(({ id, storageBytes }) => ({ id, storageBytes }))).toEqual([
-      { id: 'gallery-1', storageBytes: 1_750_000 },
-      { id: 'gallery-2', storageBytes: 0 },
+    expect(body.events.map(({ id, photoCount, storageBytes }) => ({ id, photoCount, storageBytes }))).toEqual([
+      { id: 'gallery-1', photoCount: 12, storageBytes: 1_750_000 },
+      { id: 'gallery-2', photoCount: 0, storageBytes: 0 },
     ]);
     const query = prepare.mock.calls[0]?.[0] ?? '';
+    expect(query).toContain("p.state NOT IN ('deleting', 'deleted')");
     expect(query).toContain('SUM(v.byte_size)');
     expect(query).toContain('JOIN photo_variants v ON v.photo_id = p.id');
     expect(query).not.toContain('v.variant =');

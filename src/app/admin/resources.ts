@@ -98,6 +98,8 @@ export const adminResourceFragment = {
         listTitle: 'Your galleries',
         loading: 'Loading galleries…',
         storageUsed: 'Stored photos: {{amount}} {{unit}}',
+        photoCount_one: '{{count}} photo',
+        photoCount_other: '{{count}} photos',
         newPassword: 'New guest password (leave empty to keep the current password)',
         notFound: 'This gallery could not be found.',
         options: 'Gallery options',
@@ -117,6 +119,7 @@ export const adminResourceFragment = {
         updateError: 'The settings could not be saved. Review the fields and try again.',
         updated: 'Settings saved.',
         view: 'View gallery',
+        viewError: 'The gallery could not be opened. Sign in again or try again.',
         visibility: {
           draft: 'Draft',
           offline: 'Offline',
@@ -340,6 +343,8 @@ export const adminResourceFragment = {
         listTitle: 'Vos galeries',
         loading: 'Chargement des galeries…',
         storageUsed: 'Photos stockées : {{amount}} {{unit}}',
+        photoCount_one: '{{count}} photo',
+        photoCount_other: '{{count}} photos',
         newPassword: "Nouveau mot de passe invité (laissez vide pour conserver l'actuel)",
         notFound: 'Cette galerie est introuvable.',
         options: 'Options de la galerie',
@@ -359,6 +364,7 @@ export const adminResourceFragment = {
         updateError: "Impossible d'enregistrer les réglages. Vérifiez les champs et réessayez.",
         updated: 'Réglages enregistrés.',
         view: 'Voir la galerie',
+        viewError: 'Impossible d’ouvrir la galerie. Reconnectez-vous ou réessayez.',
         visibility: {
           draft: 'Brouillon',
           offline: 'Hors ligne',

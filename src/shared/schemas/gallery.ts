@@ -76,12 +76,17 @@ export const PublicEventListSchema = z.object({
   protectedGalleries: z.array(ProtectedGalleryPreviewSchema),
 });
 
-export const AdminEventSchema = EventSchema.extend({ storageBytes: z.number().int().nonnegative() });
+export const AdminEventSchema = EventSchema.extend({
+  photoCount: z.number().int().nonnegative(),
+  storageBytes: z.number().int().nonnegative(),
+});
 export type AdminEvent = z.infer<typeof AdminEventSchema>;
 
 export const AdminEventListSchema = z.object({
   events: z.array(AdminEventSchema),
 });
+
+export const AdminGalleryViewResponseSchema = z.object({ slug: SlugSchema }).strict();
 
 export const PhotoSourceSchema = z.object({
   url: z.string().min(1),

@@ -8,7 +8,7 @@ import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
-import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, requestOriginalsCleanup } from './adminEventsApi';
+import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
 import { formatMediaStorage } from './formatMediaStorage';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
@@ -38,6 +38,27 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
 function ProtectedListingHint({ access }: { access: Event['access'] }) {
   const { t } = useTranslation();
   return access === 'protected' ? <p className="field__hint">{t('admin.events.protectedListingHint')}</p> : null;
+}
+
+function ViewGalleryButton({ event, readOnly }: { event: Event; readOnly: boolean }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (event.access === 'public' || readOnly) {
+    return <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link>;
+  }
+  return <>
+    <Button disabled={pending} onClick={() => {
+      setFailed(false);
+      setPending(true);
+      void openAdminGallery(event.id)
+        .then((slug) => { void navigate(`/e/${slug}`); })
+        .catch(() => setFailed(true))
+        .finally(() => setPending(false));
+    }} type="button" variant="secondary">{t('admin.events.view')}</Button>
+    {failed ? <span role="alert">{t('admin.events.viewError')}</span> : null}
+  </>;
 }
 
 async function deleteGallery(eventId: string, confirmation: string): Promise<void> {
@@ -133,9 +154,10 @@ export function AdminEventsPage() {
                   <span className="admin-event-row__state">{event.deletingAt
                     ? t('admin.events.deletionPending')
                     : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
-                  <span className="admin-event-row__storage">{t('admin.events.storageUsed', {
+                  <span className="admin-event-row__badge">{t('admin.events.storageUsed', {
                     amount: storage.amount, unit: t(`admin.settings.storageUnits.${storage.unit}`),
                   })}</span>
+                  <span className="admin-event-row__badge">{t('admin.events.photoCount', { count: event.photoCount })}</span>
                 </div>
                 <h3>{event.title}</h3>
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeZone: event.timezone }).format(new Date(event.startsAt))}</p>
@@ -147,7 +169,7 @@ export function AdminEventsPage() {
                 </Link> : null}
                 {!readOnly && !event.deletingAt ? <Link className="button button--primary" to={`/admin/galleries/${event.id}/import`}>{t('admin.events.import')}</Link> : null}
                 {event.access === 'protected' && !event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}/selections`}>{t('admin.favorites.open')}</Link> : null}
-                {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
+                {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <ViewGalleryButton event={event} readOnly={readOnly} /> : null}
               </div>
             </article>;
           })}

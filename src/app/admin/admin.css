@@ -329,7 +329,7 @@
   gap: var(--space-2);
 }
 
-.admin-event-row__storage {
+.admin-event-row__badge {
   padding: var(--space-1) var(--space-2);
   border: 0.0625rem solid var(--color-border);
   border-radius: var(--radius-round);

@@ -11,6 +11,7 @@ import {
   ReplacePhotoResponseSchema,
   AdminOriginalsStatusSchema,
   AdminEventListSchema,
+  AdminGalleryViewResponseSchema,
   CreateEventRequestSchema,
   DeleteGalleryRequestSchema,
   DeleteGalleryResponseSchema,
@@ -18,11 +19,11 @@ import {
 } from '../../../shared/schemas/gallery';
 import { IdSchema } from '../../../shared/schemas';
 import type { AppEnv } from '../../types';
-import { isAuthPepper } from '../../auth';
+import { eventGrantCookie, isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { downloadName } from '../../services/mediaNames';
 import { hashEventPassword } from '../public/credentials';
-import { eventFromRow, findEvent } from '../public/data';
+import { eventFromRow, findEvent, isEventAvailable } from '../public/data';
 import type { EventRow } from '../public/data';
 
 function requireAdmin(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
@@ -91,15 +92,44 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     const result = await context.env.DB.prepare(
       `SELECT e.*, (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
        AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count,
+       (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
+        AND p.state NOT IN ('deleting', 'deleted')) AS photo_count,
        (SELECT COALESCE(SUM(v.byte_size), 0) FROM photos p
         JOIN photo_variants v ON v.photo_id = p.id WHERE p.event_id = e.id) AS storage_bytes
        FROM events e ORDER BY e.starts_at DESC, e.id ASC`,
-    ).all<EventRow & { retouch_selection_count: number; storage_bytes: number }>();
+    ).all<EventRow & { retouch_selection_count: number; photo_count: number; storage_bytes: number }>();
     const output = AdminEventListSchema.safeParse({ events: result.results.map((row) => ({
-      ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count, storageBytes: row.storage_bytes,
+      ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count,
+      photoCount: row.photo_count, storageBytes: row.storage_bytes,
     })) });
     if (!output.success) throw new ApiException('INVALID_RESPONSE', 'errors.internal', 500);
     return context.json(output.data);
+  });
+
+  routes.post('/galleries/:eventId/view', async (context) => {
+    const admin = context.get('auth').admin;
+    if (!admin) throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 401);
+    if (admin.access !== 'manage') throw new ApiException('DEMO_READ_ONLY', 'errors.demoReadOnly', 403);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const event = await findEvent(context.env.DB, eventId.data);
+    if (!event || !isEventAvailable(event) || event.deletingAt) {
+      throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    }
+    if (event.access === 'protected') {
+      const secret = requiredAuthPepper(context.env.AUTH_PEPPER);
+      const credential = await context.env.DB.prepare(
+        'SELECT access_version FROM event_credentials WHERE event_id = ?1',
+      ).bind(event.id).first<{ access_version: number }>();
+      if (!credential || !Number.isSafeInteger(credential.access_version) || credential.access_version < 1) {
+        throw new ApiException('EVENT_PASSWORD_UNAVAILABLE', 'errors.serviceUnavailable', 503);
+      }
+      context.header('Set-Cookie', await eventGrantCookie(
+        { eventId: event.id, accessVersion: credential.access_version }, secret, context.env.SESSION_TTL_H,
+      ));
+    }
+    return context.json(AdminGalleryViewResponseSchema.parse({ slug: event.slug }));
   });
 
   routes.get('/galleries/:eventId/originals', async (context) => {

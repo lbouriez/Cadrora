@@ -37,7 +37,8 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 | `GET /galleries/:eventId/preview` | Public | Title, description, event date, and creation date of a published, online protected gallery, including one hidden from lists. No cover or photo URL. The full gallery still requires its password. |
 | `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
 | `GET /galleries/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
-| `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. |
+| `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. Each item includes `storageBytes` and `photoCount`; the count excludes photo rows in `deleting` or `deleted` state. |
+| `POST /admin/galleries/:eventId/view` | Owner admin | For a published, online gallery, returns `{ slug }`. For protected galleries it also issues a current gallery-scoped grant cookie, so the owner can open the ordinary viewer without entering the visitor password. Read-only demo sessions cannot use it. |
 | `POST /admin/galleries` | Admin | Creates a gallery; returns `201` with the full internal event record. |
 | `PATCH /admin/galleries/:eventId` | Admin | Partial gallery update; slug is intentionally absent from the update schema. A deletion-pending gallery rejects updates. |
 | `DELETE /admin/galleries/:eventId` | Admin | Body `{ "confirmation": "Exact gallery title" }`; returns `202 { "deletionQueued": true }`, removes visitor access immediately, and queues complete gallery-owned D1/R2/Vectorize cleanup. |

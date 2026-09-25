@@ -1,11 +1,19 @@
 import { AdminEventListSchema } from '../../shared/schemas';
-import { AdminCoverPhotosSchema, AdminFavoritePhotosSchema, AdminOriginalsStatusSchema, ReplacePhotoResponseSchema } from '../../shared/schemas/gallery';
+import { AdminCoverPhotosSchema, AdminFavoritePhotosSchema, AdminGalleryViewResponseSchema, AdminOriginalsStatusSchema, ReplacePhotoResponseSchema } from '../../shared/schemas/gallery';
 import type { AdminEvent } from '../../shared/schemas/gallery';
 
 export async function getAdminEvents(): Promise<AdminEvent[]> {
   const response = await fetch('/api/v1/admin/galleries', { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Event list returned ${response.status}`);
   return AdminEventListSchema.parse(await response.json()).events;
+}
+
+export async function openAdminGallery(eventId: string): Promise<string> {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/view`, {
+    credentials: 'same-origin', method: 'POST',
+  });
+  if (!response.ok) throw new Error(`Opening gallery returned ${response.status}`);
+  return AdminGalleryViewResponseSchema.parse(await response.json()).slug;
 }
 
 export async function getCoverPhotos(eventId: string, offset: number) {

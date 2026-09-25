@@ -77,6 +77,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
           faceSearchEnabled: false, id: eventId, keepOriginals: false, nearbySearchEnabled: false,
           offlineAt: null, retentionDays: null, revision: 0, showPhotoMetadata: false, retouchSelectionEnabled: true, showOnGalleryPage: true,
           storageBytes: 0,
+          photoCount: 0,
           slug: 'event-resume', startsAt: '2026-09-20T16:00:00.000Z', timezone: 'America/Toronto',
           title: 'Resume test', updatedAt: '2026-09-20T16:00:00.000Z', visibility: 'draft',
         }] }),
