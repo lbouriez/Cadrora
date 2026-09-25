@@ -4,6 +4,7 @@ import {
   ImportCreateResponseSchema,
   ImportDeclarePhotosRequestSchema,
   ImportDeclarePhotosResponseSchema,
+  ImportRecoveryResponseSchema,
   PhotoDuplicateCheckRequestSchema,
   PhotoDuplicateCheckResponseSchema,
   VariantUploadResponseSchema,
@@ -11,6 +12,7 @@ import {
   type ImportCreateRequest,
   type ImportDeclarePhotosRequest,
   type PhotoDeclaration,
+  type RecoverablePhoto,
 } from '../../shared/schemas';
 import { ApiErrorSchema } from '../../shared/schemas/apiError';
 import type { EncodedVariant } from '../images';
@@ -21,6 +23,7 @@ export interface ImportApi {
   createImport(eventId: string, request: ImportCreateRequest, signal?: AbortSignal): Promise<Import>;
   declarePhotos(importId: string, request: ImportDeclarePhotosRequest, signal?: AbortSignal): Promise<string[]>;
   finalizePhoto(photoId: string, signal?: AbortSignal): Promise<void>;
+  getRecoverablePhotos(eventId: string): Promise<RecoverablePhoto[]>;
   uploadVariant(photoId: string, variant: EncodedVariant, signal?: AbortSignal): Promise<void>;
 }
 
@@ -84,6 +87,11 @@ export class FetchImportApi implements ImportApi {
     FinalizePhotoResponseSchema.parse(await this.json(response));
   }
 
+  async getRecoverablePhotos(eventId: string): Promise<RecoverablePhoto[]> {
+    const response = await this.fetcher(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}/import-recovery`);
+    return ImportRecoveryResponseSchema.parse(await this.json(response)).photos;
+  }
+
   async uploadVariant(photoId: string, variant: EncodedVariant, signal?: AbortSignal): Promise<void> {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       if (signal?.aborted) throw new DOMException('Upload cancelled.', 'AbortError');
@@ -113,7 +121,9 @@ export class FetchImportApi implements ImportApi {
         return;
       } catch (error) {
         const transientStatus = error instanceof ImportRequestError &&
-          [429, 500, 502, 503, 504].includes(error.status) && error.code !== 'CONFIGURATION_INVALID';
+          [429, 500, 502, 503, 504].includes(error.status) &&
+          error.code !== 'CONFIGURATION_INVALID' && error.code !== 'WORKER_RESOURCE_LIMIT' &&
+          error.code !== 'D1_DAILY_QUOTA_EXCEEDED';
         const transientNetwork = timedOut || error instanceof TypeError;
         if (attempt === 2 || signal?.aborted || (!transientStatus && !transientNetwork)) throw error;
         clearTimeout(timer);
@@ -127,11 +137,20 @@ export class FetchImportApi implements ImportApi {
   }
 
   private async json(response: Response): Promise<unknown> {
-    const value: unknown = await response.json().catch(() => null);
+    const body = await response.text();
+    let value: unknown = null;
+    try {
+      value = JSON.parse(body);
+    } catch {
+      // Cloudflare error pages are HTML rather than Cadrora API JSON.
+    }
     if (!response.ok) {
       const parsed = ApiErrorSchema.safeParse(value);
-      throw new ImportRequestError(response.status, parsed.success ? parsed.data.code : undefined,
-        parsed.success ? parsed.data.message : 'Import request failed.');
+      const resourceLimit = response.headers.get('cf-error-type') === '1102' ||
+        (response.status === 503 && /<title>\s*Worker exceeded resource limits\s*<\/title>/i.test(body));
+      throw new ImportRequestError(response.status,
+        resourceLimit ? 'WORKER_RESOURCE_LIMIT' : parsed.success ? parsed.data.code : undefined,
+        resourceLimit ? 'Worker exceeded resource limits.' : parsed.success ? parsed.data.message : 'Import request failed.');
     }
     return value;
   }

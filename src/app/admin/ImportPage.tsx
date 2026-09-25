@@ -8,10 +8,12 @@ import {
   ImportPipeline,
   ImportRequestError,
   IndexedDbImportJournal,
+  recoverPendingPhotos,
   type ImportJournalJob,
   type ImportPipelineSnapshot,
   type RejectedImportFile,
 } from '../../browser/jobs';
+import type { RecoverablePhoto } from '../../shared/schemas';
 import { replaceFavoritePhoto } from './adminEventsApi';
 
 export interface ImportPageProps {
@@ -34,9 +36,14 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
 export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEnabled = false, timezone, replacementPhotoId }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
+  const api = useRef<FetchImportApi | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
   const [rejected, setRejected] = useState<RejectedImportFile[]>([]);
   const [resumableJob, setResumableJob] = useState<ImportJournalJob>();
+  const [recoverable, setRecoverable] = useState<RecoverablePhoto[]>([]);
+  const [recoveryBusy, setRecoveryBusy] = useState(false);
+  const [recoveryProgress, setRecoveryProgress] = useState(0);
+  const [recoveryNotice, setRecoveryNotice] = useState<string>();
   const [isReady, setIsReady] = useState(false);
   const [setupError, setSetupError] = useState<string>();
   const [replacementDone, setReplacementDone] = useState(false);
@@ -46,11 +53,18 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
 
   useEffect(() => {
     let mounted = true;
+    const importApi = new FetchImportApi();
+    api.current = importApi;
+    if (!replacementPhotoId) {
+      void importApi.getRecoverablePhotos(eventId)
+        .then((photos) => { if (mounted) setRecoverable(photos); })
+        .catch((error: unknown) => { if (mounted) setSetupError(t(importErrorKey(error))); });
+    }
     void IndexedDbImportJournal.open()
       .then(async (journal) => {
         if (!mounted) return;
         pipeline.current = new ImportPipeline({
-          api: new FetchImportApi(),
+          api: importApi,
           journal,
           onChange: setSnapshot,
         });
@@ -105,6 +119,28 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
     void pipeline.current.resume(importId).catch((error: unknown) => setSetupError(t(importErrorKey(error))));
   };
 
+  const recover = (files: File[]) => {
+    if (!api.current || recoveryBusy) return;
+    setSetupError(undefined);
+    setRecoveryNotice(undefined);
+    setRecoveryProgress(0);
+    setRecoveryBusy(true);
+    void recoverPendingPhotos(api.current, eventId, files, {
+      onProgress: (completed) => setRecoveryProgress(completed),
+    }).then((result) => {
+      setRecoverable(result.remaining);
+      setRecoveryNotice(t(result.remaining.length === 0 ? 'adminImport.recoveryComplete' :
+        result.recovered === 0 ? 'adminImport.recoveryNoMatch' : 'adminImport.recoveryPartial', {
+        count: result.remaining.length,
+      }));
+    }).catch((error: unknown) => {
+      setSetupError(t(error instanceof ImportRequestError ? importErrorKey(error) : 'adminImport.recoveryFailed'));
+    }).finally(() => {
+      setRecoveryBusy(false);
+      void api.current?.getRecoverablePhotos(eventId).then(setRecoverable).catch(() => undefined);
+    });
+  };
+
   const isRunning = snapshot.state === 'preparing' || snapshot.state === 'processing';
   const canPause = snapshot.state === 'processing';
   const canUseSavedJob = snapshot.state === 'idle' && Boolean(resumableJob);
@@ -117,10 +153,28 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
       <h1 id="import-title">{replacementPhotoId ? t('adminImport.replacementTitle') : t('adminImport.start', { gallery: galleryTitle })}</h1>
       {replacementPhotoId ? <p>{t('adminImport.replacementDescription')}</p> : null}
       {replacementPhotoId && faceSearchEnabled ? <p className="admin-card__description">{t('adminImport.replacementFaceWarning')}</p> : null}
+      {!replacementPhotoId && !resumableJob && snapshot.state === 'idle' && recoverable.length > 0 ? (
+        <div className="admin-card admin-import__recovery">
+          <h2 className="admin-card__title">{t('adminImport.recoveryTitle', { count: recoverable.length })}</h2>
+          <p className="admin-card__description">{t('adminImport.recoveryDescription')}</p>
+          <ul>{recoverable.map((photo) => <li key={photo.id}>{photo.filename}</li>)}</ul>
+          {recoverable.some((photo) => photo.missingVariants.length > 0) ? (
+            <Dropzone
+              accept="image/jpeg,image/png,image/webp"
+              description={t('adminImport.recoveryDropzoneDescription')}
+              disabled={recoveryBusy}
+              label={t('adminImport.recoveryDropzone')}
+              onFiles={recover}
+            />
+          ) : <Button disabled={recoveryBusy} onClick={() => recover([])}>{t('adminImport.recoveryFinalize')}</Button>}
+          {recoveryBusy ? <p role="status">{t('adminImport.recoveryProgress', { completed: recoveryProgress, total: recoverable.length })}</p> : null}
+        </div>
+      ) : null}
+      {recoveryNotice ? <p role="status">{recoveryNotice}</p> : null}
       <Dropzone
         accept="image/jpeg,image/png,image/webp"
         description={t(keepOriginals ? 'adminImport.dropzoneOriginalDescription' : 'adminImport.dropzoneDescription')}
-        disabled={!isReady || isRunning || replacementDone || replacementBusy}
+        disabled={!isReady || isRunning || recoveryBusy || replacementDone || replacementBusy}
         label={t(replacementPhotoId ? 'adminImport.replacementDropzone' : 'adminImport.dropzoneLabel')}
         onFiles={start}
       />
@@ -160,12 +214,14 @@ export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEna
   );
 }
 
-function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.storageQuota' | 'adminImport.duplicateConflict' | 'adminImport.failed' {
+function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.storageQuota' | 'adminImport.d1DailyQuota' | 'adminImport.resourceLimit' | 'adminImport.duplicateConflict' | 'adminImport.failed' {
   if (!(error instanceof ImportRequestError)) return 'adminImport.failed';
   if (error.code === 'ADMIN_AUTH_REQUIRED') return 'adminImport.authExpired';
   if (error.code === 'EVENT_NOT_FOUND') return 'adminImport.galleryUnavailable';
   if (error.code === 'PHOTO_QUOTA_EXCEEDED') return 'adminImport.quota';
   if (error.code === 'STORAGE_QUOTA_EXCEEDED') return 'adminImport.storageQuota';
+  if (error.code === 'D1_DAILY_QUOTA_EXCEEDED') return 'adminImport.d1DailyQuota';
+  if (error.code === 'WORKER_RESOURCE_LIMIT') return 'adminImport.resourceLimit';
   if (error.code === 'PHOTO_DUPLICATE_CONFLICT') return 'adminImport.duplicateConflict';
   return 'adminImport.failed';
 }

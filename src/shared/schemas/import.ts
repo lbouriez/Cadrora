@@ -2,8 +2,7 @@ import { z } from 'zod';
 
 import { PHOTO_VARIANT_WIDTHS } from '../constants';
 import { IdSchema, IsoDateTimeSchema } from './primitives';
-import { PhotoSchema, PhotoVariantSchema } from './photo';
-import type { PhotoVariantNameSchema } from './photo';
+import { PhotoSchema, PhotoVariantNameSchema, PhotoVariantSchema } from './photo';
 
 export const ImportStateSchema = z.enum([
   'pending',
@@ -71,6 +70,21 @@ export const PhotoDuplicateCheckRequestSchema = z.object({
 export const PhotoDuplicateCheckResponseSchema = z.object({
   existingHashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(50),
 }).strict();
+
+/** Admin-only recovery metadata for photos whose original browser journal is unavailable. */
+export const RecoverablePhotoSchema = z.object({
+  id: IdSchema,
+  filename: z.string().min(1).max(512),
+  sourceSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  missingVariants: z.array(PhotoVariantNameSchema.or(z.literal('original'))).max(6),
+  keepOriginals: z.boolean(),
+}).strict();
+
+export const ImportRecoveryResponseSchema = z.object({
+  photos: z.array(RecoverablePhotoSchema),
+}).strict();
+
+export type RecoverablePhoto = z.infer<typeof RecoverablePhotoSchema>;
 
 /** A server transaction accepts no more than one durable browser work chunk. */
 export const ImportDeclarePhotosRequestSchema = z

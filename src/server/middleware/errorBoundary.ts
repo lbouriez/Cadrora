@@ -14,6 +14,10 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
     );
   }
 
+  if (isD1DailyQuotaError(error)) {
+    return apiErrorResponse(context, 503, 'D1_DAILY_QUOTA_EXCEEDED', 'errors.d1DailyQuotaExceeded');
+  }
+
   console.error('cadrora_unhandled_request_error', {
     // Provider errors may include private object keys or request payloads in
     // their message. Keep diagnostics classified, never copy exception text.
@@ -23,3 +27,11 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
 
   return apiErrorResponse(context, 500, 'INTERNAL_ERROR', 'errors.internal');
 };
+
+function isD1DailyQuotaError(error: unknown): boolean {
+  // D1 may prefix its documented limit message with D1_ERROR. Match the
+  // specific provider wording so unrelated quota or database errors stay generic.
+  const message = error instanceof Error ? error.message : '';
+  return message.includes("Your account has exceeded D1's free tier daily row read limit") ||
+    message.includes("Your account has exceeded D1's free tier daily row write limit");
+}

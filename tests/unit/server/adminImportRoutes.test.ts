@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiErrorSchema } from '../../../src/shared/schemas';
+import { ApiErrorSchema, ImportRecoveryResponseSchema } from '../../../src/shared/schemas';
 import { errorBoundary } from '../../../src/server/middleware';
 import { registerAdminImportRoutes } from '../../../src/server/routes/admin/imports';
 import type { AppEnv } from '../../../src/server/types';
@@ -41,6 +41,10 @@ describe('admin import routes', () => {
     expect(response.status).toBe(401);
     expect(body.code).toBe('ADMIN_AUTH_REQUIRED');
     expect(response.headers.get('Cache-Control')).toBeNull();
+
+    const recovery = await testApp.request('/api/v1/admin/galleries/event-1/import-recovery');
+    expect(recovery.status).toBe(401);
+    expect(ApiErrorSchema.parse(await recovery.json()).code).toBe('ADMIN_AUTH_REQUIRED');
   });
 
   it('returns only future-import hashes already present in the selected gallery', async () => {
@@ -66,6 +70,32 @@ describe('admin import routes', () => {
     await expect(response.json()).resolves.toEqual({ existingHashes: [hash] });
   });
 
+  it('lists only missing variants for an authorized unfinished import', async () => {
+    const hash = 'c'.repeat(64);
+    const prepare = vi.fn((query: string) => ({
+      bind: (...values: unknown[]) => ({
+        first: () => Promise.resolve(query.includes('FROM events') ? { id: 'event-1' } : null),
+        all: () => {
+          expect(query).toContain("p.state = 'pending'");
+          expect(query).toContain('i.replacement_photo_id IS NULL');
+          expect(values).toEqual(['event-1']);
+          return Promise.resolve({ results: ['thumb', 'small', 'medium'].map((variant) => ({
+            id: 'photo-1', filename: 'original.jpg', source_sha256: hash, keep_originals: 0, variant,
+          })) });
+        },
+      }),
+    }));
+    const database = { prepare } as unknown as D1Database;
+    const response = await authorizedApp().request('/api/v1/admin/galleries/event-1/import-recovery', {},
+      bindings(database, {} as R2Bucket));
+
+    expect(response.status).toBe(200);
+    expect(ImportRecoveryResponseSchema.parse(await response.json())).toEqual({ photos: [{
+      id: 'photo-1', filename: 'original.jpg', sourceSha256: hash,
+      keepOriginals: false, missingVariants: ['large', 'download'],
+    }] });
+  });
+
   it.each([100, 120])('refuses a new import before creating any D1 row when %i bytes meet or exceed the owner storage limit', async (usedBytes) => {
     const insert = vi.fn();
     const database = {
@@ -74,7 +104,7 @@ describe('admin import routes', () => {
           bind: () => statement,
           first: () => Promise.resolve(query.includes('FROM site_settings')
             ? { owner_face_limit: null, owner_storage_limit_bytes: 100 }
-            : query.includes('COALESCE(SUM(byte_size)') ? { value: usedBytes }
+            : query.includes("FROM usage_counters WHERE key = 'storage_bytes'") ? { value: usedBytes }
               : query.includes('SELECT id, keep_originals, access FROM events') ? { id: 'event-1', keep_originals: 0, access: 'public' }
                 : query.includes('COUNT(*)') ? { value: 0 } : null),
           run: insert,
@@ -111,7 +141,7 @@ describe('admin import routes', () => {
           all: () => Promise.resolve({ results: [] }),
           first: () => Promise.resolve(query.includes('FROM site_settings')
             ? { owner_face_limit: null, owner_storage_limit_bytes: 100 }
-            : query.includes('COALESCE(SUM(byte_size)') ? { value: 100 }
+            : query.includes("FROM usage_counters WHERE key = 'storage_bytes'") ? { value: 100 }
               : query.includes('FROM imports WHERE id') && query.includes('completed_photos') ? importRow
                 : query.includes('SELECT keep_originals FROM imports') ? { keep_originals: 0 }
                   : query.includes('SELECT replacement_photo_id FROM imports') ? { replacement_photo_id: null }
@@ -189,6 +219,25 @@ describe('admin import routes', () => {
     );
     expect(database.insertedVariant).toBe(true);
   });
+
+  it('streams a multi-chunk download-sized photo without changing its bytes', async () => {
+    const media = new Uint8Array(1_724_741);
+    media.set([0xff, 0xd8, 0xff], 0);
+    media.set([0xff, 0xd9], media.length - 2);
+    const database = variantDatabase();
+    const put = vi.fn(async (_key: string, body: ReadableStream<Uint8Array>) => {
+      expect(fixedLengthBodies.get(body)).toBe(media.length);
+      expect(new Uint8Array(await new Response(body).arrayBuffer())).toEqual(media);
+      return { size: media.length } as unknown as R2Object;
+    });
+    const response = await authorizedApp().request('/api/v1/admin/photos/photo-1/variants/download', {
+      body: media, headers: variantHeaders(media.length, 'a'.repeat(64)), method: 'PUT',
+    }, { ...bindings(database, { delete: vi.fn(), put } as unknown as R2Bucket), MAX_STORAGE_BYTES: '5000000' });
+
+    expect(response.status).toBe(200);
+    expect(put).toHaveBeenCalledTimes(1);
+    expect(database.insertedVariant).toBe(true);
+  }, 15_000);
 
   it('deletes a streamed object and leaves D1 unchanged when its completed size differs from the declaration', async () => {
     const media = jpegBytes();
@@ -377,7 +426,7 @@ function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', 
             };
           }
           if (query.includes('SELECT byte_size FROM photo_variants')) return null;
-          if (query.includes('COALESCE(SUM(byte_size)')) return { value: usedBytes };
+          if (query.includes("FROM usage_counters WHERE key = 'storage_bytes'")) return { value: usedBytes };
           if (query.includes('SELECT photo_id, variant, storage_key')) {
             if (!state.insertedVariant) return null;
             return {

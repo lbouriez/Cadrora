@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { effectiveQuotaLimits, quotaCeilings, quotaUsage } from '../../../src/server/services/quotas';
+import { effectiveQuotaLimits, quotaCeilings, quotaUsage, storedMediaBytes } from '../../../src/server/services/quotas';
 
 const deploymentLimits = {
   MAX_FACES_PER_EVENT: '10000',
@@ -36,7 +36,7 @@ describe('owner quota guardrails', () => {
   it('reports D1-backed usage for media variants and indexed faces', async () => {
     const prepare = vi.fn((query: string) => ({
       first: vi.fn().mockResolvedValue({
-        value: query.includes('photo_variants') ? 750000 : 24,
+        value: query.includes('usage_counters') ? 750000 : 24,
       }),
     }));
 
@@ -44,5 +44,10 @@ describe('owner quota guardrails', () => {
       faces: 24,
       storageBytes: 750000,
     });
+  });
+
+  it('fails closed if the migrated storage counter is unavailable', async () => {
+    const database = { prepare: vi.fn().mockReturnValue({ first: vi.fn().mockResolvedValue(null) }) } as unknown as D1Database;
+    await expect(storedMediaBytes(database)).rejects.toMatchObject({ code: 'CONFIGURATION_INVALID', status: 503 });
   });
 });

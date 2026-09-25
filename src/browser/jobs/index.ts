@@ -11,4 +11,6 @@ export type {
   JournalFile,
 } from './ImportJournal';
 export { ImportPipeline } from './ImportPipeline';
+export { recoverPendingPhotos } from './RecoverPendingPhotos';
+export type { ImportRecoveryResult } from './RecoverPendingPhotos';
 export type { ImportPipelineSnapshot, ImportPipelineState, ImportStartResult, RejectedImportFile } from './ImportPipeline';

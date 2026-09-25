@@ -55,6 +55,47 @@ describe('FetchImportApi', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
+  it('does not retry a D1 daily quota failure', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      code: 'D1_DAILY_QUOTA_EXCEEDED', message: 'errors.d1DailyQuotaExceeded', requestId: 'd1-quota-1',
+    }), { status: 503 }));
+    const api = new FetchImportApi(fetcher);
+    await expect(api.uploadVariant('photo-1', {
+      blob: new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' }),
+      byteSize: 4, checksumSha256: 'a'.repeat(64), contentType: 'image/jpeg',
+      height: 4, name: 'download', width: 4,
+    })).rejects.toMatchObject({ code: 'D1_DAILY_QUOTA_EXCEEDED', status: 503 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not repeat a Cloudflare resource-limit upload', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(
+      '<title>Worker exceeded resource limits</title>',
+      { status: 503, headers: { 'Content-Type': 'text/html', 'cf-error-type': '1102' } },
+    ));
+    const api = new FetchImportApi(fetcher);
+    await expect(api.uploadVariant('photo-1', {
+      blob: new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' }),
+      byteSize: 4, checksumSha256: 'a'.repeat(64), contentType: 'image/jpeg',
+      height: 4, name: 'download', width: 4,
+    })).rejects.toMatchObject({ code: 'WORKER_RESOURCE_LIMIT', status: 503 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('recognizes the Cloudflare resource-limit page when its diagnostic header is absent', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(
+      '<html><title>Worker exceeded resource limits</title></html>',
+      { status: 503, headers: { 'Content-Type': 'text/html' } },
+    ));
+    const api = new FetchImportApi(fetcher);
+    await expect(api.uploadVariant('photo-1', {
+      blob: new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: 'image/jpeg' }),
+      byteSize: 4, checksumSha256: 'a'.repeat(64), contentType: 'image/jpeg',
+      height: 4, name: 'download', width: 4,
+    })).rejects.toMatchObject({ code: 'WORKER_RESOURCE_LIMIT', status: 503 });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it('aborts a hanging variant request and retries the same photo', async () => {
     vi.useFakeTimers();
     try {

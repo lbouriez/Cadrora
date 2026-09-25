@@ -33,6 +33,8 @@ The showcase demo deliberately displays the same workflow—including Create gal
 
 The browser UI is still not a substitute for validating deployed authorization. Test the exact protected hostname and API response before relying on it operationally. Do not weaken `/admin` protection or expose a password/token in browser configuration.
 
+If **Photos uploaded** is higher than **Photos ready** and the import page no longer offers **Resume**, use **Finish unfinished photos** on that page. Select the exact original files listed there; selecting the whole original batch is safe. Cadrora matches the bytes locally, uploads only missing prepared copies, and keeps ready photos. Retry the same action after an interruption. A file with the same name but different bytes will not match. No Cloudflare D1 or R2 console cleanup is needed.
+
 ## Gallery lifecycle
 
 The live admin API can create, list, and update galleries. A gallery has a stable slug, one of `draft`, `published`, or `unlisted` visibility states, and either `public` or `protected` access. The internal D1 table is still named `events`, but that storage name never appears in an HTTP path or interface label.

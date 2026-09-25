@@ -15,6 +15,7 @@ import type {
   ImportJournalPhoto,
   JournalFile,
 } from './ImportJournal';
+import { originalVariant, sourceSha256 } from './sourceFile';
 
 export type ImportPipelineState = 'cancelled' | 'completed' | 'idle' | 'paused' | 'preparing' | 'processing' | 'failed';
 
@@ -235,9 +236,7 @@ export class ImportPipeline {
           return { error: { code: 'ORIGINAL_TOO_LARGE' as const }, file, sourceIndex } as const;
         }
         const validated = await validateImageFile(file, timeZone);
-        const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-        const sourceSha256 = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
-        return { sourceIndex, validated, sourceSha256 } as const;
+        return { sourceIndex, validated, sourceSha256: await sourceSha256(file) } as const;
       } catch (error) {
         if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) {
           return { error, file, sourceIndex } as const;
@@ -292,7 +291,7 @@ export class ImportPipeline {
           chunk.state = 'failed';
           chunk.updatedAt = this.now().toISOString();
           await this.options.journal.saveChunk(chunk);
-          if (result.quotaError) throw result.quotaError;
+          if (result.blockingError) throw result.blockingError;
           this.state = 'paused';
           const job = await this.requireJob(importId);
           await this.saveJobState(job, 'paused');
@@ -324,11 +323,11 @@ export class ImportPipeline {
     uploadLimiter: ConcurrencyLimiter,
     signal: AbortSignal,
     keepOriginals: boolean,
-  ): Promise<{ errors: number; quotaError?: ImportRequestError }> {
+  ): Promise<{ errors: number; blockingError?: ImportRequestError }> {
     const candidates = chunk.photos.filter((photo) => photo.state !== 'finalized');
-    let quotaError: ImportRequestError | undefined;
+    let blockingError: ImportRequestError | undefined;
     const results = await mapWithConcurrency(candidates, 2, async (photo) => {
-      if (quotaError) return false;
+      if (blockingError) return false;
       try {
         await this.waitForCheckpoint();
         const file = files.get(photo.sourceIndex);
@@ -344,8 +343,12 @@ export class ImportPipeline {
         if (failures.length > 0) {
           const storageFailure = failures.map((failure) => failure.reason as unknown).find((reason) =>
             reason instanceof ImportRequestError && reason.code === 'STORAGE_QUOTA_EXCEEDED');
+          const resourceFailure = failures.map((failure) => failure.reason as unknown).find((reason) =>
+            reason instanceof ImportRequestError && reason.code === 'WORKER_RESOURCE_LIMIT');
+          const d1QuotaFailure = failures.map((failure) => failure.reason as unknown).find((reason) =>
+            reason instanceof ImportRequestError && reason.code === 'D1_DAILY_QUOTA_EXCEEDED');
           const firstFailure: unknown = failures[0]?.reason;
-          throw storageFailure ?? firstFailure;
+          throw storageFailure ?? d1QuotaFailure ?? resourceFailure ?? firstFailure;
         }
         await this.options.api.finalizePhoto(photo.id, signal);
         if (photo.state === 'failed') this.failedPhotos = Math.max(0, this.failedPhotos - 1);
@@ -355,8 +358,12 @@ export class ImportPipeline {
         return true;
       } catch (error) {
         if (error instanceof ImportCancelledError || this.abortController?.signal.aborted) throw new ImportCancelledError();
-        if (error instanceof ImportRequestError && error.code === 'STORAGE_QUOTA_EXCEEDED') quotaError ??= error;
-        photo.errorCode = error instanceof ImportRequestError && error.code === 'STORAGE_QUOTA_EXCEEDED'
+        if (error instanceof ImportRequestError &&
+          (error.code === 'STORAGE_QUOTA_EXCEEDED' || error.code === 'D1_DAILY_QUOTA_EXCEEDED' ||
+            error.code === 'WORKER_RESOURCE_LIMIT')) blockingError ??= error;
+        photo.errorCode = error instanceof ImportRequestError &&
+          (error.code === 'STORAGE_QUOTA_EXCEEDED' || error.code === 'D1_DAILY_QUOTA_EXCEEDED' ||
+            error.code === 'WORKER_RESOURCE_LIMIT')
           ? error.code : error instanceof ImageProcessingError ? error.code : 'UPLOAD_FAILED';
         if (photo.state !== 'failed') this.failedPhotos += 1;
         photo.state = 'failed';
@@ -364,7 +371,7 @@ export class ImportPipeline {
         return false;
       }
     });
-    return { errors: results.filter((result) => !result).length, ...(quotaError ? { quotaError } : {}) };
+    return { errors: results.filter((result) => !result).length, ...(blockingError ? { blockingError } : {}) };
   }
 
   private async waitForCheckpoint(): Promise<void> {
@@ -426,21 +433,6 @@ export class ImportPipeline {
     const snapshot = this.snapshot();
     for (const listener of this.listeners) listener(snapshot);
   }
-}
-
-async function originalVariant(file: File, photo: ImportJournalPhoto) {
-  const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-  // The photo declaration describes the displayed orientation; original bytes retain the camera's dimensions.
-  const swapsDimensions = (photo.orientation ?? 1) >= 5;
-  return {
-    blob: file,
-    byteSize: file.size,
-    checksumSha256: [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
-    contentType: photo.contentType,
-    height: swapsDimensions ? photo.width : photo.height,
-    name: 'original' as const,
-    width: swapsDimensions ? photo.height : photo.width,
-  };
 }
 
 function buildChunks(

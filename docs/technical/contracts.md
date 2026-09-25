@@ -11,6 +11,7 @@ Per-gallery D1-recorded storage in the admin list is recorded in [`ADR-016`](../
 The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-admin-gallery-photo-count.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
+Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).
 
 ## Platform boundaries
 
@@ -55,6 +56,7 @@ POST   /api/v1/admin/galleries
 PATCH  /api/v1/admin/galleries/:eventId
 DELETE /api/v1/admin/galleries/:eventId
 POST   /api/v1/admin/galleries/:eventId/imports
+GET    /api/v1/admin/galleries/:eventId/import-recovery
 POST   /api/v1/admin/galleries/:eventId/photo-duplicates
 POST   /api/v1/admin/imports/:importId/cancel
 POST   /api/v1/admin/imports/:importId/photos
@@ -70,6 +72,7 @@ GET    /api/v1/admin/usage
 
 Each event in the authenticated `GET /api/v1/admin/galleries` response includes `storageBytes`, the nonnegative sum of all recorded `photo_variants.byte_size` values for that gallery's photos. It includes prepared formats and retained originals, including rows from unfinished imports. Public gallery responses do not include this field.
 Each event also includes `photoCount`, the nonnegative count of its D1 photo rows except those in `deleting` or `deleted` state. This matches the admin publication summary's total and can include unfinished imports. Public gallery responses do not include this field.
+The admin import-recovery response contains only pending ordinary-import photo IDs, filenames, source SHA-256 hashes, whether originals were retained, and D1-missing variant names. It grants no new media access; the existing upload and finalize routes enforce gallery and import state.
 
 All API errors are JSON `{ code, message, requestId }`. `message` is an i18n key. `/api/*` never falls back to HTML.
 

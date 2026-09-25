@@ -53,10 +53,12 @@ function appWith() {
 
 describe('admin site settings routes', () => {
   it('returns and persists the public theme mode for an owner', async () => {
-    const select = { first: vi.fn().mockResolvedValue(row) };
+    const siteSelect = { first: vi.fn().mockResolvedValue(row) };
+    const countSelect = { first: vi.fn().mockResolvedValue({ value: 0 }) };
     const update = { bind: vi.fn().mockReturnThis(), run: vi.fn().mockResolvedValue({ meta: { changes: 1 } }) };
     const database = {
-      prepare: vi.fn((query: string) => query.startsWith('UPDATE') ? update : select),
+      prepare: vi.fn((query: string) => query.startsWith('UPDATE') ? update :
+        query.includes('usage_counters') || query.includes('COUNT(*)') ? countSelect : siteSelect),
     } as unknown as D1Database;
     const app = appWith();
 

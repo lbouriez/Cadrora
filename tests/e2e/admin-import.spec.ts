@@ -69,6 +69,10 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
       });
       return;
     }
+    if (request.method() === 'GET' && path.endsWith('/import-recovery')) {
+      await route.fulfill({ body: JSON.stringify({ photos: [] }), contentType: 'application/json' });
+      return;
+    }
     if (request.method() === 'GET' && path.endsWith('/admin/galleries')) {
       await route.fulfill({
         body: JSON.stringify({ events: [{
@@ -190,4 +194,22 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
   await page.getByRole('button', { name: /annuler l'importation|cancel import/i }).click();
   await expect(page.getByRole('button', { name: /reprendre l'importation|resume import/i })).toHaveCount(0);
   expect(cancelRequests).toBe(1);
+
+  await page.route(`**/api/v1/admin/galleries/${eventId}/import-recovery`, async (route) => {
+    await route.fulfill({
+      body: JSON.stringify({ photos: [{
+        id: 'pending-photo', filename: 'original.jpg', sourceSha256: 'a'.repeat(64),
+        keepOriginals: false, missingVariants: ['large', 'download'],
+      }] }),
+      contentType: 'application/json',
+    });
+  });
+  await page.getByRole('link', { name: /tableau de bord|dashboard/i }).click();
+  await page.getByRole('link', { name: /importer des photos|import photos/i }).click();
+  await expect(page.getByRole('heading', { name: /photos incomplètes \(1\)|unfinished photos \(1\)/i })).toBeVisible();
+  await expect(page.getByText('original.jpg')).toBeVisible();
+  await page.locator('input[type="file"]').first().setInputFiles({
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]), mimeType: 'image/jpeg', name: 'original.jpg',
+  });
+  await expect(page.getByRole('status')).toContainText(/aucun fichier sélectionné|none of the selected files/i);
 });

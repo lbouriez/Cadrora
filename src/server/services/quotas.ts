@@ -68,13 +68,23 @@ export async function effectiveQuotaLimits(bindings: QuotaBindings): Promise<Quo
 
 export async function quotaUsage(database: D1Database): Promise<QuotaUsage> {
   const [storage, faces] = await Promise.all([
-    database.prepare('SELECT COALESCE(SUM(byte_size), 0) AS value FROM photo_variants').first<CountRow>(),
+    storedMediaBytes(database),
     database.prepare('SELECT COUNT(*) AS value FROM faces').first<CountRow>(),
   ]);
   return QuotaUsageSchema.parse({
     faces: faces?.value ?? 0,
-    storageBytes: storage?.value ?? 0,
+    storageBytes: storage,
   });
+}
+
+export async function storedMediaBytes(database: D1Database): Promise<number> {
+  const row = await database.prepare("SELECT value FROM usage_counters WHERE key = 'storage_bytes'").first<CountRow>();
+  if (!row || !Number.isSafeInteger(row.value) || row.value < 0) {
+    throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, {
+      cause: new Error('Storage usage counter is missing or invalid'),
+    });
+  }
+  return row.value;
 }
 
 export async function siteQuotaSnapshot(bindings: QuotaBindings) {

@@ -9,6 +9,7 @@ import {
   ImportCreateResponseSchema,
   ImportDeclarePhotosRequestSchema,
   ImportDeclarePhotosResponseSchema,
+  ImportRecoveryResponseSchema,
   ImportSchema,
   IdSchema,
   PhotoSchema,
@@ -22,10 +23,11 @@ import {
   type Photo,
   type PhotoDeclaration,
   type PhotoVariant,
+  type RecoverablePhoto,
 } from '../../../shared/schemas';
 import { ApiException } from '../../../shared/errors/ApiError';
 import { requireAdmin } from '../../middleware';
-import { effectiveQuotaLimits } from '../../services/quotas';
+import { effectiveQuotaLimits, storedMediaBytes } from '../../services/quotas';
 import type { AppEnv } from '../../types';
 
 interface ImportRow {
@@ -98,6 +100,53 @@ adminImportRoutes.post('/galleries/:eventId/photo-duplicates', async (context) =
   return context.json(PhotoDuplicateCheckResponseSchema.parse({
     existingHashes: rows.results.map((row) => row.source_sha256),
   }));
+});
+
+adminImportRoutes.get('/galleries/:eventId/import-recovery', async (context) => {
+  const eventId = parseInput(IdSchema, context.req.param('eventId'));
+  await assertGalleryWritable(context.env.DB, eventId);
+  const rows = await context.env.DB.prepare(
+    `SELECT p.id, p.filename, p.source_sha256, i.keep_originals, v.variant
+       FROM photos p
+       JOIN imports i ON i.id = p.import_id
+       LEFT JOIN photo_variants v ON v.photo_id = p.id
+      WHERE p.event_id = ? AND p.state = 'pending' AND p.source_sha256 IS NOT NULL
+        AND i.state IN ('pending', 'processing', 'paused', 'failed')
+        AND i.replacement_photo_id IS NULL
+      ORDER BY p.sort_key, p.id`,
+  ).bind(eventId).all<{
+    id: string;
+    filename: string;
+    source_sha256: string;
+    keep_originals: number;
+    variant: string | null;
+  }>();
+  const grouped = new Map<string, { id: string; filename: string; sourceSha256: string; keepOriginals: boolean; existing: Set<string> }>();
+  for (const row of rows.results) {
+    let photo = grouped.get(row.id);
+    if (!photo) {
+      photo = {
+        id: row.id,
+        filename: row.filename,
+        sourceSha256: row.source_sha256,
+        keepOriginals: row.keep_originals === 1,
+        existing: new Set<string>(),
+      };
+      grouped.set(row.id, photo);
+    }
+    if (row.variant) photo.existing.add(row.variant);
+  }
+  const photos: RecoverablePhoto[] = [...grouped.values()].map((photo) => ({
+    id: photo.id,
+    filename: photo.filename,
+    sourceSha256: photo.sourceSha256,
+    keepOriginals: photo.keepOriginals,
+    missingVariants: [
+      ...RequiredPhotoVariantNames.filter((name) => !photo.existing.has(name)),
+      ...(photo.keepOriginals && !photo.existing.has('original') ? ['original' as const] : []),
+    ],
+  }));
+  return context.json(ImportRecoveryResponseSchema.parse({ photos }));
 });
 
 adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
@@ -300,7 +349,7 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
       throw new ApiException('VARIANT_CONFLICT', 'errors.invalidVariantMedia', 409);
     }
   }
-  const usedBytes = await totalStoredBytes(context.env.DB);
+  const usedBytes = await storedMediaBytes(context.env.DB);
   const limit = (await effectiveQuotaLimits(context.env)).storageLimitBytes;
   if (usedBytes - (existing?.byteSize ?? 0) + headers.byteSize > limit) {
     throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
@@ -334,7 +383,7 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     }
     throw error;
   }
-  if (!stored || stored.size !== headers.byteSize || inspected.streamedByteSize() !== headers.byteSize) {
+  if (!stored || stored.size !== headers.byteSize) {
     if (stored) await context.env.MEDIA_BUCKET.delete(storageKey);
     throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
   }
@@ -556,13 +605,9 @@ async function countImportPhotos(database: D1Database, importId: string): Promis
   );
 }
 
-async function totalStoredBytes(database: D1Database): Promise<number> {
-  return (await database.prepare('SELECT COALESCE(SUM(byte_size), 0) AS value FROM photo_variants').first<CountRow>())?.value ?? 0;
-}
-
 async function assertStorageAvailable(bindings: CloudflareBindings): Promise<void> {
   const limit = (await effectiveQuotaLimits(bindings)).storageLimitBytes;
-  if (await totalStoredBytes(bindings.DB) >= limit) {
+  if (await storedMediaBytes(bindings.DB) >= limit) {
     throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
   }
 }
@@ -647,64 +692,32 @@ function parseContentLength(value: string | undefined): number | undefined {
 interface InspectedStream {
   prefix: Uint8Array;
   stream: ReadableStream<Uint8Array>;
-  streamedByteSize: () => number;
 }
 
 async function inspectStreamPrefix(body: ReadableStream<Uint8Array>, prefixLength: number): Promise<InspectedStream> {
-  const reader = body.getReader();
-  const bufferedChunks: Uint8Array[] = [];
+  // Let the runtime forward the upload branch directly to R2. A JavaScript
+  // pull loop over every large image chunk can exhaust Workers Free CPU time.
+  const [inspection, stream] = body.tee();
+  const reader = inspection.getReader();
   const prefix = new Uint8Array(prefixLength);
   let prefixBytes = 0;
-  let sourceFinished = false;
-
-  while (prefixBytes < prefixLength) {
-    const next = await reader.read();
-    if (next.done) {
-      sourceFinished = true;
-      break;
+  try {
+    while (prefixBytes < prefixLength) {
+      const next = await reader.read();
+      if (next.done) break;
+      const copied = Math.min(next.value.byteLength, prefixLength - prefixBytes);
+      prefix.set(next.value.subarray(0, copied), prefixBytes);
+      prefixBytes += copied;
     }
-    bufferedChunks.push(next.value);
-    const copied = Math.min(next.value.byteLength, prefixLength - prefixBytes);
-    prefix.set(next.value.subarray(0, copied), prefixBytes);
-    prefixBytes += copied;
+  } catch (error) {
+    void reader.cancel().catch(() => {});
+    void stream.cancel().catch(() => {});
+    throw error;
   }
-
-  let streamedBytes = 0;
-  const stream = new ReadableStream<Uint8Array>({
-    async pull(controller) {
-      const chunk = bufferedChunks.shift();
-      if (chunk) {
-        streamedBytes += chunk.byteLength;
-        controller.enqueue(chunk);
-        return;
-      }
-      if (sourceFinished) {
-        controller.close();
-        return;
-      }
-      try {
-        const next = await reader.read();
-        if (next.done) {
-          sourceFinished = true;
-          controller.close();
-          return;
-        }
-        streamedBytes += next.value.byteLength;
-        controller.enqueue(next.value);
-      } catch (error) {
-        controller.error(error);
-      }
-    },
-    async cancel(reason) {
-      await reader.cancel(reason);
-    },
-  });
-
-  return {
-    prefix: prefix.subarray(0, prefixBytes),
-    stream,
-    streamedByteSize: () => streamedBytes,
-  };
+  // Cancellation of one tee branch resolves after the other finishes, so do
+  // not await it before R2 starts consuming the upload branch.
+  void reader.cancel().catch(() => {});
+  return { prefix: prefix.subarray(0, prefixBytes), stream };
 }
 
 function sniffEncodedMime(bytes: Uint8Array): 'image/jpeg' | 'image/png' | 'image/webp' | undefined {

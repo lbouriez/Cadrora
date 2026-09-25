@@ -102,6 +102,8 @@ class RecordingImportApi implements ImportApi {
 
   async finalizePhoto(): Promise<void> {}
 
+  getRecoverablePhotos(): Promise<[]> { return Promise.resolve([]); }
+
   uploadVariant(_photoId: string, variant: EncodedVariant): Promise<void> { this.uploaded.push(variant); return Promise.resolve(); }
 }
 
@@ -364,22 +366,26 @@ describe('ImportPipeline chunk journal and resume', () => {
     expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 1, failedPhotos: 0, state: 'completed' });
   });
 
-  it('surfaces a full-storage response, stops the chunk, and keeps it resumable', async () => {
+  it.each([
+    [413, 'STORAGE_QUOTA_EXCEEDED'],
+    [503, 'WORKER_RESOURCE_LIMIT'],
+    [503, 'D1_DAILY_QUOTA_EXCEEDED'],
+  ])('surfaces a blocking %i %s response, stops the chunk, and keeps it resumable', async (status, code) => {
     const journal = new MemoryImportJournal();
     const api = new RecordingImportApi();
-    const quota = new ImportRequestError(413, 'STORAGE_QUOTA_EXCEEDED', 'Storage quota exceeded.');
-    vi.spyOn(api, 'uploadVariant').mockRejectedValueOnce(quota);
+    const blocked = new ImportRequestError(status, code, 'Upload blocked.');
+    vi.spyOn(api, 'uploadVariant').mockRejectedValueOnce(blocked);
     const snapshots: ImportPipelineSnapshot[] = [];
     const pipeline = new ImportPipeline({
       api, createEncoder: () => createEncoder([]), journal,
       onChange: (snapshot) => snapshots.push(snapshot),
     });
 
-    await expect(pipeline.start('event-1', makeFiles(1))).rejects.toBe(quota);
+    await expect(pipeline.start('event-1', makeFiles(1))).rejects.toBe(blocked);
     expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 0, failedPhotos: 1, state: 'failed' });
     expect(journal.job?.state).toBe('paused');
     expect(journal.chunks.get(0)?.state).toBe('failed');
-    expect(journal.chunks.get(0)?.photos[0]?.errorCode).toBe('STORAGE_QUOTA_EXCEEDED');
+    expect(journal.chunks.get(0)?.photos[0]?.errorCode).toBe(code);
     expect(api.created).toHaveLength(1);
     expect(api.declared).toHaveLength(1);
   });
