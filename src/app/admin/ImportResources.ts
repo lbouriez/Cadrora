@@ -5,6 +5,7 @@ export const adminImportResources = {
       adminImport: {
         authExpired: 'Your session has expired. Sign in again before resuming this import.',
         cancel: 'Cancel import',
+        cancelFailed: 'We could not cancel this import. Your selected files are still saved in this browser.',
         corruptFile: 'We could not open this file, so it was skipped.',
         dropzoneDescription: 'JPEG, PNG, or WebP. Private details, such as location, are removed before your photos are sent.',
         dropzoneOriginalDescription: 'JPEG, PNG, or WebP. Original files are also saved so visitors can download them.',
@@ -39,6 +40,7 @@ export const adminImportResources = {
       adminImport: {
         authExpired: 'Votre session a expiré. Reconnectez-vous avant de reprendre cette importation.',
         cancel: "Annuler l'importation",
+        cancelFailed: 'Nous n’avons pas pu annuler cette importation. Les fichiers sélectionnés restent enregistrés dans ce navigateur.',
         corruptFile: 'Nous n’avons pas pu ouvrir ce fichier. Il a été ignoré.',
         dropzoneDescription: 'JPEG, PNG ou WebP. Les données privées, comme la localisation, sont retirées avant l’envoi des photos.',
         dropzoneOriginalDescription: 'JPEG, PNG ou WebP. Les fichiers originaux sont aussi conservés pour le téléchargement.',

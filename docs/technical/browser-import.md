@@ -25,6 +25,8 @@ The Worker rejects import declarations over `MAX_PHOTOS_PER_EVENT` and media upl
 
 The browser retains the request's API error code (not its arbitrary message) so the UI can distinguish an expired admin session, an unavailable gallery, and the per-gallery photo limit in both languages. A failure before the server creates an import leaves a paused local journal: **Resume** retries the same idempotent ID and **Cancel** uses the already-selected durable job instead of rereading it, then may complete locally if the server returns `IMPORT_NOT_FOUND`. Do not turn an unknown request failure into a claim that upload succeeded. When diagnosing a 0-photo failure, check whether an `imports` row exists in the instance's D1 before inspecting R2; never ask an owner to discard the local journal first.
 
+An unsuccessful Cancel shows a distinct localized message and retains the journal. Its browser-console diagnostic contains only the operation, error category, and typed API status/code if present; it never logs exception text, filenames, photos, or credentials.
+
 ## Acceptance coverage
 
 `tests/unit/app/importPipeline.test.ts` exercises the real `ImportPipeline` orchestration with deterministic browser/provider fakes. It processes a 200-file journal as exactly four ordered declarations of 50 photos. A second scenario imports the tracked fictional `nearby-amelia-exif.jpg` fixture and verifies its `DateTimeOriginal`/`OffsetTimeOriginal` becomes `2026-08-30T18:02:00.000Z` in the server declaration. A resume scenario interrupts declaration of chunk 2 after 100 finalized photos, constructs a fresh pipeline over the same durable journal, and verifies that only chunks 2 and 3 are encoded and declared during resume.

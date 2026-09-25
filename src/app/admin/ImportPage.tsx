@@ -133,7 +133,10 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
         {canPause ? <Button onClick={() => void pipeline.current?.pause()}>{t('adminImport.pause')}</Button> : null}
         {canResume ? <Button onClick={resume}>{t('adminImport.resume')}</Button> : null}
         {canCancel ? (
-          <Button onClick={() => void pipeline.current?.cancel(resumableJob).then(() => { setResumableJob(undefined); setSetupError(undefined); }).catch(() => setSetupError(t('adminImport.failed')))} variant="danger">
+          <Button onClick={() => void pipeline.current?.cancel(resumableJob).then(() => { setResumableJob(undefined); setSetupError(undefined); }).catch((error: unknown) => {
+            reportImportFailure('cancel', error);
+            setSetupError(t('adminImport.cancelFailed'));
+          })} variant="danger">
             {t('adminImport.cancel')}
           </Button>
         ) : null}
@@ -161,4 +164,13 @@ function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImpor
   if (error.code === 'EVENT_NOT_FOUND') return 'adminImport.galleryUnavailable';
   if (error.code === 'PHOTO_QUOTA_EXCEEDED') return 'adminImport.quota';
   return 'adminImport.failed';
+}
+
+function reportImportFailure(operation: 'cancel', error: unknown): void {
+  // Never log the exception message: browser/provider errors can include filenames or request details.
+  console.warn('cadrora_import_operation_failed', {
+    operation,
+    category: error instanceof Error ? error.name : 'unknown',
+    ...(error instanceof ImportRequestError ? { code: error.code, status: error.status } : {}),
+  });
 }
