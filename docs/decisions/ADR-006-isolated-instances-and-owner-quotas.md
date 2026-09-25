@@ -4,7 +4,7 @@ Status: accepted, 2026-09-22.
 
 ## Context
 
-Cadrora is primarily an open-source product that a photographer forks, customizes, and deploys to a domain in their own Cloudflare account. A small number of trials may instead use an exact subdomain such as `alice.cadrora.com`. Turning the main Worker into a multi-tenant application or building an operator control plane now would add tenant filters, fleet credentials, lifecycle state, aggregate accounting, and failure recovery before those needs are proven.
+Cadrora is primarily a source-available product that a photographer forks, customizes, and deploys to a domain in their own Cloudflare account under the repository license. A small number of trials may instead use an exact subdomain such as `alice.cadrora.com`. Turning the main Worker into a multi-tenant application or building an operator control plane now would add tenant filters, fleet credentials, lifecycle state, aggregate accounting, and failure recovery before those needs are proven.
 
 Cloudflare Free allowances are account-level pools. A bucket, database, index, or Worker does not receive a fresh allowance. Some persistent quantities can be bounded before a write, while daily Worker requests, R2 operations, D1 row operations, and queried vector dimensions require provider usage data.
 

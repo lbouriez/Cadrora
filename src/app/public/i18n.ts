@@ -137,7 +137,7 @@ export const publicResources = {
       heroAiLabel: 'Find photos with AI',
       heroAiValue: 'Your selfie stays with you',
       productProofLabel: 'Cadrora principles',
-      productProof: { private: 'Privacy comes first', free: 'Free plan to start', open: 'Open source' },
+      productProof: { private: 'Privacy comes first', free: 'Free plan to start', open: 'Your own site' },
       tryAi: 'Find photos with AI',
       tryAiShort: 'Try AI search',
       discoverGalleries: 'Explore live galleries',
@@ -146,7 +146,7 @@ export const publicResources = {
       stack: {
         eyebrow: 'Your site, your choice',
         title: 'A home for your photography.',
-        body: 'Cadrora is open source. Set it up in your own Cloudflare account, keep control of your galleries, and start with a free plan. Hosting costs depend on how much you use.',
+        body: 'Set up Cadrora in your own Cloudflare account, keep control of your galleries, and start with a free plan. Hosting costs depend on how much you use. See the repository license for permitted uses.',
         github: 'View on GitHub',
       },
       servicesEyebrow: 'The experience',
@@ -175,7 +175,7 @@ export const publicResources = {
       contactCalloutTitle: 'Have a date or an idea in mind?',
       contactCalloutAction: 'Contact us',
       footer: '© {{siteName}} · Photographs made to be remembered.',
-      footerDemo: 'Open-source demonstration · No real client information',
+      footerDemo: 'Product demonstration · No real client information',
       adminDemo: 'Admin demo',
       consent: {
         analytics: 'Allow analytics',
@@ -448,7 +448,7 @@ export const publicResources = {
       heroAiLabel: 'Retrouver ses photos avec l’IA',
       heroAiValue: 'Votre égoportrait reste chez vous',
       productProofLabel: 'Les principes Cadrora',
-      productProof: { private: 'La vie privée d’abord', free: 'Offre gratuite pour commencer', open: 'Code source ouvert' },
+      productProof: { private: 'La vie privée d’abord', free: 'Offre gratuite pour commencer', open: 'Votre propre site' },
       tryAi: 'Retrouver des photos avec l’IA',
       tryAiShort: 'Tester l’IA',
       discoverGalleries: 'Explorer les galeries en ligne',
@@ -457,7 +457,7 @@ export const publicResources = {
       stack: {
         eyebrow: 'Votre site, votre choix',
         title: 'Un espace pour vos photos.',
-        body: 'Cadrora est un projet libre. Installez-le dans votre propre compte Cloudflare, gardez le contrôle de vos galeries et commencez avec une offre gratuite. Le coût d’hébergement dépend ensuite de votre utilisation.',
+        body: 'Installez Cadrora dans votre propre compte Cloudflare, gardez le contrôle de vos galeries et commencez avec une offre gratuite. Le coût d’hébergement dépend ensuite de votre utilisation. Consultez la licence du dépôt pour connaître les usages permis.',
         github: 'Voir sur GitHub',
       },
       servicesEyebrow: "L'expérience",
@@ -486,7 +486,7 @@ export const publicResources = {
       contactCalloutTitle: 'Vous avez une date ou une idée en tête ?',
       contactCalloutAction: 'Nous contacter',
       footer: '© {{siteName}} · Des photographies faites pour durer.',
-      footerDemo: 'Démonstration libre · Aucune donnée de vrai client',
+      footerDemo: 'Démonstration du produit · Aucune donnée de vrai client',
       adminDemo: 'Démo admin',
       consent: {
         analytics: "Autoriser l'analyse",

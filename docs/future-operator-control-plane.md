@@ -4,7 +4,7 @@ Status: design note only; intentionally not implemented. Last reviewed: 2026-09-
 
 ## Decision
 
-Cadrora remains a single-photographer, single-deployment open-source product. A photographer normally forks the repository, changes the public frontend, and deploys it into their own Cloudflare account and primary domain.
+Cadrora remains a single-photographer, single-deployment source-available product. A photographer normally forks the repository under its license, changes the public frontend, and deploys it into their own Cloudflare account and primary domain.
 
 A future optional operator project may live in this repository and deploy separately at a hostname such as `admin.example.com` or `ops.example.com`. The normal Cadrora build and Deploy button must not deploy it. Providing its explicit Cloudflare bindings, credentials, and deployment command would opt an operator into running a small hosted fleet.
 

@@ -2,9 +2,13 @@
 
 Your photography website and galleries, on your own Cloudflare account.
 
-Cadrora is an open-source starting point for an independent photographer: a public website for your work and services, a contact page, and galleries you can share publicly or protect with a password. Visitors can browse and download photos when you allow it. Optional face search helps them find possible photos of themselves **within one gallery**; their selfie stays in their browser. [Explore the live showcase](https://cadrora.com/).
+Cadrora is a starting point for an independent photographer: a public website for your work and services, a contact page, and galleries you can share publicly or protect with a password. Visitors can browse and download photos when you allow it. Optional face search helps them find possible photos of themselves **within one gallery**; their selfie stays in their browser. [Explore the live showcase](https://cadrora.com/).
 
 You own the deployment and the content. The showcase is a demonstration, not a hosted Cadrora service that you must subscribe to. Replace its sample text and photographs with your studio's identity.
+
+## License
+
+Cadrora is available under the [PolyForm Perimeter License 1.0.1](LICENSE.md). You may fork and customize it to run your own photography website and galleries, including for your photography business. The license does not permit providing others with a product or service that competes with Cadrora, such as a hosted gallery platform. The license text governs these permissions and restrictions. Third-party packages and face models retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## What you get
 

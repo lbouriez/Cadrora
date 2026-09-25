@@ -2,7 +2,7 @@
   "name": "cadrora",
   "version": "0.1.0",
   "private": true,
-  "description": "Galerie photo evenementielle open source, concue pour Cloudflare.",
+  "description": "Galerie photo evenementielle a code source disponible, concue pour Cloudflare.",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"
