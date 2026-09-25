@@ -171,6 +171,10 @@
   font-weight: 750;
 }
 
+.admin-login__site-link {
+  justify-self: start;
+}
+
 .admin-login__form {
   display: grid;
   gap: var(--space-4);
@@ -316,6 +320,23 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.admin-event-row__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-event-row__storage {
+  padding: var(--space-1) var(--space-2);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 700;
 }
 
 .admin-event-row__actions {

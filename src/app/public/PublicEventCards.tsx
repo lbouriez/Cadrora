@@ -2,8 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import type { ProtectedGalleryPreview, PublicEvent } from '../../shared/schemas/gallery';
-import { MotionReveal } from '../components';
+import { MotionReveal, ProgressivePhoto } from '../components';
 import { LockIcon } from '../components/Icons';
+import { coverPhotoSources } from './coverPhotoSources';
 import { siteProfile } from './siteProfile';
 
 /** Shared live-gallery cards used by the landing and events pages. */
@@ -21,7 +22,7 @@ export function PublicEventCards({ events, language, protectedGalleries = [] }: 
           <Link aria-label={t('gallery.openNamedGallery', { title: gallery.title })} className="event-card__tap" to={`/e/${card.kind === 'public' ? gallery.slug : gallery.id}`}>
             <div className={`event-card__visual${card.kind === 'protected' ? ' event-card__visual--protected' : ''}`}>
               {card.kind === 'protected' ? <><img alt="" loading="lazy" src={siteProfile.privateGalleryCoverUrl} /><span aria-hidden="true" className="event-card__lock"><LockIcon /></span></>
-                : card.event.coverPhotoUrl ? <img alt="" loading="lazy" src={card.event.coverPhotoUrl} /> : <span aria-hidden="true" className="event-card__placeholder" />}
+                : card.event.coverPhotoUrl ? <ProgressivePhoto alt="" height={3} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" sources={coverPhotoSources(card.event.coverPhotoUrl)} width={4} /> : <span aria-hidden="true" className="event-card__placeholder" />}
             </div>
             <div className="event-card__body">
               <p className="event-card__date">{new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(new Date(gallery.startsAt))}</p>

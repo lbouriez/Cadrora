@@ -125,12 +125,18 @@ export function AdminEventsPage() {
         {events.isError ? <p role="alert">{t('admin.events.listError')}</p> : null}
         {events.data?.length === 0 ? <p>{t('admin.events.empty')}</p> : null}
         <div className="admin-event-list">
-          {events.data?.map((event) => (
-            <article className="admin-event-row" key={event.id}>
+          {events.data?.map((event) => {
+            const storage = formatMediaStorage(event.storageBytes, i18n.language);
+            return <article className="admin-event-row" key={event.id}>
               <div>
-                <span className="admin-event-row__state">{event.deletingAt
-                  ? t('admin.events.deletionPending')
-                  : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
+                <div className="admin-event-row__meta">
+                  <span className="admin-event-row__state">{event.deletingAt
+                    ? t('admin.events.deletionPending')
+                    : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
+                  <span className="admin-event-row__storage">{t('admin.events.storageUsed', {
+                    amount: storage.amount, unit: t(`admin.settings.storageUnits.${storage.unit}`),
+                  })}</span>
+                </div>
                 <h3>{event.title}</h3>
                 <p>{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long', timeZone: event.timezone }).format(new Date(event.startsAt))}</p>
                 {event.access === 'protected' && event.retouchSelectionCount ? <p className="admin-event-row__favorites">{t('admin.favorites.count', { count: event.retouchSelectionCount })}</p> : null}
@@ -143,8 +149,8 @@ export function AdminEventsPage() {
                 {event.access === 'protected' && !event.deletingAt ? <Link className="button button--secondary" to={`/admin/galleries/${event.id}/selections`}>{t('admin.favorites.open')}</Link> : null}
                 {event.visibility !== 'draft' && !event.offlineAt && !event.deletingAt ? <Link className="button button--secondary" to={`/e/${event.slug}`}>{t('admin.events.view')}</Link> : null}
               </div>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>
       </section>
       <section aria-labelledby="event-create-title" className="admin-card">

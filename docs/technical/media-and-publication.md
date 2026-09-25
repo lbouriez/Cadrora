@@ -34,6 +34,8 @@ The maintenance runner also processes targeted `delete_face_vector` compensation
 
 The Site settings media-usage figure sums the recorded `photo_variants.byte_size` values in D1. It includes all gallery variants but not the separate model bucket, stray/unrecorded R2 objects, or other instances in the Cloudflare account. The admin formats this decimal-byte total as B, kB, MB, or GB (French: o, ko, Mo, Go) so small but nonzero galleries do not appear as `0 GB`. It is an instance quota indicator, not a Cloudflare billing-usage report.
 
+The admin gallery list also reports `storageBytes` per gallery. Each value sums every D1-recorded variant for the gallery's photos, including the optional original and variants of unfinished imports. Its badge uses the same decimal formatter. Empty galleries show zero; objects no longer recorded in D1 are outside this count.
+
 - Call `registerMediaRoutes(app)` and `registerPublicationRoutes(app)` after global middleware registration.
 - Invoke `runMaintenance(env)` from the scheduled handler added during release integration.
 - Merge `publicationResources` into both i18next languages and mount `PublishPanel` in the admin event flow.

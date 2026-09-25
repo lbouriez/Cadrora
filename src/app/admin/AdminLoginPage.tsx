@@ -108,6 +108,7 @@ export function AdminLoginPage({ demoMode = false, onAuthenticated, requestTurns
             {t(demoMode ? 'admin.demo.ownerLink' : 'admin.login.demoLink')}
           </Link>
         ) : null}
+        <Link className="button button--secondary admin-login__site-link" to="/">{t('admin.backToSite')}</Link>
       </section>
     </main>
   );

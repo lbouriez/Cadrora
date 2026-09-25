@@ -19,6 +19,7 @@ const demoEvent = {
   retouchSelectionEnabled: true,
   showOnGalleryPage: true,
   keepOriginals: false,
+  storageBytes: 125000000,
   retentionDays: null,
   revision: 1,
   createdAt: '2026-09-20T15:00:00.000Z',
@@ -29,6 +30,7 @@ const protectedEvent = {
   ...demoEvent,
   id: 'private-sample', slug: 'private-sample', title: 'Private family gallery',
   access: 'protected', retouchSelectionCount: 1,
+  storageBytes: 625000000,
 };
 
 test('la demo admin laisse explorer les reglages sans autoriser les ecritures', async ({ page }) => {
@@ -114,11 +116,13 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   });
 
   await page.goto('/admin/login');
+  await expect(page.getByRole('link', { name: /back to website|retour au site/i })).toHaveAttribute('href', '/');
   await page.evaluate(() => {
     history.pushState({}, '', '/admin/settings');
     dispatchEvent(new PopStateEvent('popstate'));
   });
   await expect(page.getByRole('navigation', { name: /site setting sections|sections des réglages du site/i })).toBeVisible();
+  await expect(page.locator('.admin-shell__header').getByRole('link', { name: /back to website|retour au site/i })).toHaveAttribute('href', '/');
   await expect(page.getByRole('group', { name: /website|site web/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
@@ -233,6 +237,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
   await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   const privateRow = page.locator('.admin-event-row').filter({ hasText: 'Private family gallery' });
+  await expect(privateRow.getByText(/stored photos: 625 MB|photos stockées : 625 Mo/i)).toBeVisible();
   await expect(privateRow.getByRole('link', { name: /client photo choices|choix des clients/i })).toBeVisible();
   await page.setViewportSize({ width: 1200, height: 850 });
   const actionLayout = await privateRow.evaluate((row) => {

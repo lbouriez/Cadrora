@@ -76,8 +76,11 @@ export const PublicEventListSchema = z.object({
   protectedGalleries: z.array(ProtectedGalleryPreviewSchema),
 });
 
+export const AdminEventSchema = EventSchema.extend({ storageBytes: z.number().int().nonnegative() });
+export type AdminEvent = z.infer<typeof AdminEventSchema>;
+
 export const AdminEventListSchema = z.object({
-  events: z.array(EventSchema),
+  events: z.array(AdminEventSchema),
 });
 
 export const PhotoSourceSchema = z.object({

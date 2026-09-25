@@ -1,8 +1,8 @@
 import { AdminEventListSchema } from '../../shared/schemas';
 import { AdminCoverPhotosSchema, AdminFavoritePhotosSchema, AdminOriginalsStatusSchema, ReplacePhotoResponseSchema } from '../../shared/schemas/gallery';
-import type { Event } from '../../shared/schemas';
+import type { AdminEvent } from '../../shared/schemas/gallery';
 
-export async function getAdminEvents(): Promise<Event[]> {
+export async function getAdminEvents(): Promise<AdminEvent[]> {
   const response = await fetch('/api/v1/admin/galleries', { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Event list returned ${response.status}`);
   return AdminEventListSchema.parse(await response.json()).events;

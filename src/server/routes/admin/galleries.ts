@@ -91,10 +91,14 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const result = await context.env.DB.prepare(
       `SELECT e.*, (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
-       AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count
+       AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count,
+       (SELECT COALESCE(SUM(v.byte_size), 0) FROM photos p
+        JOIN photo_variants v ON v.photo_id = p.id WHERE p.event_id = e.id) AS storage_bytes
        FROM events e ORDER BY e.starts_at DESC, e.id ASC`,
-    ).all<EventRow & { retouch_selection_count: number }>();
-    const output = AdminEventListSchema.safeParse({ events: result.results.map((row) => ({ ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count })) });
+    ).all<EventRow & { retouch_selection_count: number; storage_bytes: number }>();
+    const output = AdminEventListSchema.safeParse({ events: result.results.map((row) => ({
+      ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count, storageBytes: row.storage_bytes,
+    })) });
     if (!output.success) throw new ApiException('INVALID_RESPONSE', 'errors.internal', 500);
     return context.json(output.data);
   });

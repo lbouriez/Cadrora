@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../components';
@@ -23,6 +23,7 @@ export function AdminLayout({ children, onLogout, readOnly = false, subject }: A
           <NavLink className="admin-shell__brand" to="/admin">Cadrora</NavLink>
           <div className="admin-shell__controls">
             {subject ? <span className="admin-shell__identity">{t('admin.signedInAs', { subject })}</span> : null}
+            <Link className="button button--secondary" to="/">{t('admin.backToSite')}</Link>
             {onLogout ? <Button onClick={onLogout} variant="secondary">{t('admin.logout')}</Button> : null}
           </div>
         </header>

@@ -234,7 +234,10 @@ test.describe('site vitrine statique', () => {
 });
 
 test('presente les galeries publiees avec une couverture plein cadre et les visages visibles', async ({ page }) => {
-  await page.route('**/media/demo-ai-face-search/demo-ai-01/0/medium', async (route) => {
+  let releaseSmall: () => void = () => {};
+  const smallGate = new Promise<void>((resolve) => { releaseSmall = resolve; });
+  await page.route('**/media/demo-ai-face-search/demo-ai-01/0/*', async (route) => {
+    if (route.request().url().endsWith('/small')) await smallGate;
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#ad806a"/></svg>', contentType: 'image/svg+xml' });
   });
   await page.route('**/api/v1/galleries', async (route) => {
@@ -273,12 +276,17 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
     });
   });
 
-  await page.goto('/galleries');
+  await page.goto('/galleries', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Find your photos' })).toBeVisible();
-  const image = page.locator('.event-card:not(.event-card--protected) .event-card__visual img').first();
+  const cover = page.locator('.event-card:not(.event-card--protected) .progressive-photo');
+  const image = cover.locator('.progressive-photo__preview');
   await expect(image).toBeVisible();
+  await expect(image).toHaveJSProperty('naturalWidth', 800);
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
-  await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/medium');
+  await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/thumb');
+  await expect(cover.locator('.progressive-photo__medium')).toHaveCSS('opacity', '0');
+  releaseSmall();
+  await expect(cover).toHaveClass(/progressive-photo--ready/u);
   await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/private-sample');
   await expect(page.locator('.event-card').nth(1).locator('a')).toHaveAttribute('href', '/e/find-your-photos');
   await expect(page.locator('.event-card--protected')).toHaveCount(1);
