@@ -56,6 +56,22 @@ function faceIndexName(target) {
   return target.cloudflareEnv ? 'cadrora-preview-face-index' : 'cadrora-face-index';
 }
 
+// Showcase uploads overwrite the same generated objects on every release.
+// Retry only these idempotent writes; a transient provider error must not
+// strand an otherwise healthy deployment halfway through its demo assets.
+export async function putDemoObject(args, environment, put = runWrangler, pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds))) {
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      put(args, environment);
+      return;
+    } catch (error) {
+      if (attempt === 3) throw error;
+      process.stderr.write(`Demo R2 upload failed (attempt ${attempt}/3); retrying.\n`);
+      await pause(attempt * 1500);
+    }
+  }
+}
+
 export async function seedFaceSearchDemo(target, configPath, environment = process.env) {
   const directory = '.artifacts/demo';
   const vectorFile = join(directory, 'ai-face-search-vectors.ndjson');
@@ -88,14 +104,14 @@ export async function seedFaceSearchDemo(target, configPath, environment = proce
   ], environment);
 }
 
-function syncFaceModels(target, configPath, environment) {
+async function syncFaceModels(target, configPath, environment) {
   const bucketVariable = modelsBucketVariable(target);
   const bucketName = environment[bucketVariable]?.trim();
   if (!bucketName) throw new Error(`Face-search demo seeding requires ${bucketVariable}.`);
   const download = spawnSync(process.execPath, ['scripts/models/download.mjs'], { env: environment, stdio: 'inherit' });
   if (download.error || download.status !== 0) throw download.error ?? new Error('Face-model download failed.');
   for (const filename of ['face_detection_yunet_2023mar.onnx', 'face_recognition_sface_2021dec.onnx']) {
-    runWrangler([
+    await putDemoObject([
       'r2', 'object', 'put', `${bucketName}/models/v1/${filename}`,
       '--file', join('.artifacts/models', filename),
       '--content-type', 'application/octet-stream',
@@ -120,7 +136,7 @@ export async function seedDemoContent(target, configPath, environment = process.
   process.stdout.write(`Uploading ${selected.length} generated demo variants to the private media bucket.\n`);
   for (const file of selected) {
     const objectKey = objectKeyByFile.get(file);
-    runWrangler([
+    await putDemoObject([
       'r2', 'object', 'put', `${bucketName}/${objectKey}`,
       '--file', join(mediaDirectory, file),
       '--content-type', 'image/webp',
@@ -135,7 +151,7 @@ export async function seedDemoContent(target, configPath, environment = process.
   // are separate private R2 objects, backed by the checked-in large WebP bytes.
   for (let number = 1; number <= 5; number += 1) {
     const photo = String(number).padStart(2, '0');
-    runWrangler([
+    await putDemoObject([
       'r2', 'object', 'put', `${bucketName}/demo/ai-face-search/${photo}/1/download.webp`,
       '--file', join(mediaDirectory, `ai-demo-${photo}-large.webp`),
       '--content-type', 'image/webp',
@@ -145,7 +161,7 @@ export async function seedDemoContent(target, configPath, environment = process.
     ], environment);
   }
 
-  syncFaceModels(target, configPath, environment);
+  await syncFaceModels(target, configPath, environment);
 
   process.stdout.write(`Applying idempotent demo records to ${target.label} D1.\n`);
   runWrangler([

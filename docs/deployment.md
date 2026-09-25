@@ -12,6 +12,8 @@ The checked-in configuration deliberately omits the account-specific D1 ID and R
 
 `npm run deploy` builds the production target, runs `wrangler d1 migrations apply DB --remote`, and invokes Wrangler with a temporary three-secret file. Release-script Wrangler processes set `CI=true` after the explicit `--confirm` fence, and showcase R2 uploads pass Wrangler's `--force` flag, so a Workers Build cannot stall on unavailable D1 or R2 terminal prompts. The manual release commands require an explicit target and `--confirm`; neither the local setup script nor diagnostic mode calls Cloudflare. Do not treat a command exit alone as evidence that custom hostnames, secrets, model objects, or Cron delivery work.
 
+When the optional showcase seed is enabled, its idempotent R2 object uploads retry twice after a failed attempt. If Cloudflare still returns a transient R2 error, the build fails safely; rerun the build after checking the provider status. Already uploaded showcase objects may be overwritten without duplicating gallery records or touching a photographer's imports.
+
 The checked-in configuration has one Cron Trigger, every 15 minutes. Its Worker handler enqueues expired face purges and runs up to 25 maintenance jobs. Confirm the trigger is active on the deployed Worker; source presence is not runtime evidence.
 
 ### Cloudflare resource glossary
