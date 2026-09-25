@@ -106,8 +106,9 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
 
   const isRunning = snapshot.state === 'preparing' || snapshot.state === 'processing';
   const canPause = snapshot.state === 'processing';
-  const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableJob);
-  const canCancel = isRunning || snapshot.state === 'paused' || snapshot.state === 'failed' || Boolean(resumableJob);
+  const canUseSavedJob = snapshot.state === 'idle' && Boolean(resumableJob);
+  const canResume = snapshot.state === 'paused' || snapshot.state === 'failed' || canUseSavedJob;
+  const canCancel = isRunning || canResume;
   const progressText = `${snapshot.completedPhotos}/${snapshot.totalPhotos}`;
 
   return (

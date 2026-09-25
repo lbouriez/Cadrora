@@ -135,9 +135,27 @@ adminImportRoutes.post('/imports/:importId/cancel', async (context) => {
   if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
   await assertGalleryWritable(context.env.DB, imported.eventId);
   if (imported.state !== 'completed') {
-    await context.env.DB.prepare(
-      "UPDATE imports SET state = 'cancelled', updated_at = ?2 WHERE id = ?1 AND state != 'completed'",
-    ).bind(importId, new Date().toISOString()).run();
+    const now = new Date().toISOString();
+    // Fence the import and its declared photos in one D1 transaction. The
+    // existing photo-media maintenance job then removes D1-derived R2/vector
+    // objects in retryable steps, without leaving unready photos that block
+    // publication or consume the gallery's photo quota.
+    await context.env.DB.batch([
+      context.env.DB.prepare(
+        "UPDATE imports SET state = 'cancelled', updated_at = ?2 WHERE id = ?1 AND state != 'completed'",
+      ).bind(importId, now),
+      context.env.DB.prepare(
+        "UPDATE photos SET state = 'deleting', face_state = 'deleting', updated_at = ?2 WHERE import_id = ?1 AND state IN ('pending', 'variants_ready')",
+      ).bind(importId, now),
+      context.env.DB.prepare(
+        `INSERT OR IGNORE INTO maintenance_jobs
+           (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
+         SELECT lower(hex(randomblob(16))), 'delete_photo_media', 'pending',
+                json_object('eventId', event_id, 'photoId', id), 'delete-photo:' || id,
+                0, ?2, ?2, ?2
+           FROM photos WHERE import_id = ?1 AND state = 'deleting'`,
+      ).bind(importId, now),
+    ]);
   }
   const updated = await getImport(context.env.DB, importId);
   return context.json(ImportCreateResponseSchema.parse({ import: updated }));
@@ -329,8 +347,14 @@ adminImportRoutes.post('/photos/:photoId/finalize', async (context) => {
   parseInput(FinalizePhotoRequestSchema, await readJson(context));
   const photoId = parseInput(IdSchema, context.req.param('photoId'));
   const photo = await getPhoto(context.env.DB, photoId);
-  if (!photo) throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  if (!photo || photo.state === 'deleting' || photo.state === 'deleted') {
+    throw new ApiException('PHOTO_NOT_FOUND', 'errors.photoNotFound', 404);
+  }
   await assertGalleryWritable(context.env.DB, photo.eventId);
+  const activeImport = await getImport(context.env.DB, photo.importId);
+  if (!activeImport || activeImport.state === 'cancelled') {
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
   const variants = await context.env.DB
     .prepare('SELECT variant FROM photo_variants WHERE photo_id = ?')
     .bind(photoId)
@@ -354,10 +378,13 @@ adminImportRoutes.post('/photos/:photoId/finalize', async (context) => {
   if (!imported) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
   const completedPhotos = Math.min(completed?.value ?? 0, imported.totalPhotos);
   const state = completedPhotos >= imported.totalPhotos ? 'completed' : 'processing';
-  await context.env.DB
-    .prepare('UPDATE imports SET completed_photos = ?, state = ?, updated_at = ? WHERE id = ?')
+  const updatedImport = await context.env.DB
+    .prepare("UPDATE imports SET completed_photos = ?, state = ?, updated_at = ? WHERE id = ? AND state != 'cancelled'")
     .bind(completedPhotos, state, now, imported.id)
     .run();
+  if ((updatedImport.meta.changes ?? 0) === 0) {
+    throw new ApiException('IMPORT_NOT_WRITABLE', 'errors.importNotWritable', 409);
+  }
   const finalized = await getPhoto(context.env.DB, photoId);
   const refreshedImport = await getImport(context.env.DB, photo.importId);
   if (!finalized || !refreshedImport) throw new ApiException('FINALIZE_FAILED', 'errors.finalizeFailed', 500);
@@ -476,7 +503,7 @@ function insertPhoto(
 async function countEventPhotos(database: D1Database, eventId: string): Promise<number> {
   return (
     (await database
-      .prepare("SELECT COUNT(*) AS value FROM photos WHERE event_id = ? AND state != 'deleted'")
+      .prepare("SELECT COUNT(*) AS value FROM photos WHERE event_id = ? AND state NOT IN ('deleting', 'deleted')")
       .bind(eventId)
       .first<CountRow>())?.value ?? 0
   );

@@ -152,10 +152,16 @@ describe('admin import routes', () => {
     const cancelled = await app.request('/api/v1/admin/imports/import-1/cancel', { method: 'POST' }, bindings(database, bucket));
     expect(cancelled.status).toBe(200);
     await expect(cancelled.json()).resolves.toMatchObject({ import: { state: 'cancelled' } });
+    expect(database.photoState).toBe('deleting');
+    expect(database.cleanupQueued).toBe(true);
     const upload = await app.request('/api/v1/admin/photos/photo-1/variants/original', {
       body: jpegBytes(), headers: variantHeaders(jpegBytes().byteLength, 'f'.repeat(64)), method: 'PUT',
     }, bindings(database, bucket));
-    expect(upload.status).toBe(409);
+    expect(upload.status).toBe(404);
+    const finalize = await app.request('/api/v1/admin/photos/photo-1/finalize', {
+      body: '{}', headers: { 'Content-Type': 'application/json' }, method: 'POST',
+    }, bindings(database, bucket));
+    expect(finalize.status).toBe(404);
     expect(put).not.toHaveBeenCalled();
   });
 });
@@ -197,14 +203,25 @@ function variantHeaders(byteSize: number, checksum: string): Record<string, stri
 }
 
 interface VariantDatabase extends D1Database {
+  cleanupQueued: boolean;
   insertedVariant: boolean;
+  photoState: string;
 }
 
 function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', keepOriginals = false): VariantDatabase {
-  const state = { importState: 'processing', insertedVariant: false, values: [] as unknown[], variantValues: [] as unknown[] };
+  const state = { cleanupQueued: false, importState: 'processing', insertedVariant: false, photoState: 'pending', values: [] as unknown[], variantValues: [] as unknown[] };
   const database = {
+    get cleanupQueued() {
+      return state.cleanupQueued;
+    },
     get insertedVariant() {
       return state.insertedVariant;
+    },
+    get photoState() {
+      return state.photoState;
+    },
+    async batch(statements: D1PreparedStatement[]) {
+      return Promise.all(statements.map((statement) => statement.run()));
     },
     prepare(query: string) {
       const statement = {
@@ -228,7 +245,7 @@ function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', 
               moment_id: null,
               revision: 0,
               sort_key: '001',
-              state: 'pending',
+              state: state.photoState,
               updated_at: '2026-09-20T12:00:00.000Z',
               width: 1200,
             };
@@ -271,6 +288,8 @@ function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', 
             state.variantValues = [...state.values];
           }
           if (query.includes("UPDATE imports SET state = 'cancelled'")) state.importState = 'cancelled';
+          if (query.includes("UPDATE photos SET state = 'deleting'")) state.photoState = 'deleting';
+          if (query.includes('INSERT OR IGNORE INTO maintenance_jobs')) state.cleanupQueued = true;
           return { success: true, meta: { changes: 1 } };
         },
       };
