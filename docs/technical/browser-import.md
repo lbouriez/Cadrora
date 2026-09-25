@@ -27,6 +27,8 @@ The Worker rejects import declarations over `MAX_PHOTOS_PER_EVENT` and media upl
 
 The browser retains the request's API error code (not its arbitrary message) so the UI can distinguish an expired admin session, an unavailable gallery, and the per-gallery photo limit in both languages. A failure before the server creates an import leaves a paused local journal: **Resume** retries the same idempotent ID and **Cancel** uses the already-selected durable job instead of rereading it, then may complete locally if the server returns `IMPORT_NOT_FOUND`. Do not turn an unknown request failure into a claim that upload succeeded. When diagnosing a 0-photo failure, check whether an `imports` row exists in the instance's D1 before inspecting R2; never ask an owner to discard the local journal first.
 
+A failed variant can exhaust its HTTP retries and pause the chunk while the browser remains open. **Resume** must then start a new processing run from the durable unfinished chunk; merely changing the visible state to processing leaves the import stuck until a page reload. A deliberate user pause is different: the original run remains alive at a checkpoint and Resume releases it. Both paths retain finalized photos, and repeated failures of one photo count as one failed photo.
+
 An unsuccessful Cancel shows a distinct localized message and retains the journal. Its browser-console diagnostic contains only the operation, error category, and typed API status/code if present; it never logs exception text, filenames, photos, or credentials.
 
 The production `FetchImportApi` uses a wrapper around the browser's global `fetch`. Do not store native `fetch` directly and invoke it as a class method: some browsers reject the foreign receiver with a `TypeError` before a request reaches the Worker. This affects both import creation and cancellation.
@@ -34,6 +36,7 @@ The production `FetchImportApi` uses a wrapper around the browser's global `fetc
 ## Acceptance coverage
 
 `tests/unit/app/importPipeline.test.ts` exercises the real `ImportPipeline` orchestration with deterministic browser/provider fakes. It processes a 200-file journal as exactly four ordered declarations of 50 photos. A second scenario imports the tracked fictional `nearby-amelia-exif.jpg` fixture and verifies its `DateTimeOriginal`/`OffsetTimeOriginal` becomes `2026-08-30T18:02:00.000Z` in the server declaration. A resume scenario interrupts declaration of chunk 2 after 100 finalized photos, constructs a fresh pipeline over the same durable journal, and verifies that only chunks 2 and 3 are encoded and declared during resume.
+It also verifies that a 503 on one variant pauses an in-page import and that Resume restarts that same pipeline without a browser reload.
 
 `tests/e2e/admin-import.spec.ts` seeds the browser's real IndexedDB with 200 file records and four 50-photo chunks, of which the first two are finalized. The visible resume action must report `100/200` and issue the next declaration for chunk 2 with 50 photos. Its network boundary is intentionally mocked to stop before bulk encoding/upload; this validates browser persistence, route integration, and observable resume behavior, not D1, R2, or a real provider-backed 200-photo transfer.
 

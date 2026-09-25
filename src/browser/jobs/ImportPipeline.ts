@@ -61,6 +61,7 @@ export class ImportPipeline {
   private abortController: AbortController | undefined;
   private activeImportId: string | undefined;
   private checkpointResolver: (() => void) | undefined;
+  private processActive = false;
   private currentChunk: number | undefined;
   private readonly createEncoder: () => ImageEncoder;
   private completedPhotos = 0;
@@ -161,7 +162,9 @@ export class ImportPipeline {
   }
 
   async resume(importId: string): Promise<void> {
-    if (this.activeImportId === importId && this.state === 'paused') {
+    // A user pause keeps process() alive at its checkpoint. A failed chunk
+    // leaves the same state but process() has exited and must be restarted.
+    if (this.activeImportId === importId && this.state === 'paused' && this.processActive) {
       this.state = 'processing';
       this.checkpointResolver?.();
       this.checkpointResolver = undefined;
@@ -258,12 +261,13 @@ export class ImportPipeline {
   }
 
   private async process(importId: string): Promise<void> {
+    this.processActive = true;
     const abortController = new AbortController();
     this.abortController = abortController;
     const encoder = this.createEncoder();
     const uploadLimiter = new ConcurrencyLimiter(3);
-    const job = await this.requireJob(importId);
     try {
+      const job = await this.requireJob(importId);
       for (;;) {
         await this.waitForCheckpoint();
         const chunk = await this.options.journal.getNextUnfinishedChunk(importId);
@@ -306,6 +310,7 @@ export class ImportPipeline {
       await this.saveJobState(completedJob, 'completed');
       this.emit();
     } finally {
+      this.processActive = false;
       encoder.dispose();
       this.currentChunk = undefined;
     }
@@ -341,8 +346,8 @@ export class ImportPipeline {
       } catch (error) {
         if (error instanceof ImportCancelledError || this.abortController?.signal.aborted) throw new ImportCancelledError();
         photo.errorCode = error instanceof ImageProcessingError ? error.code : 'UPLOAD_FAILED';
+        if (photo.state !== 'failed') this.failedPhotos += 1;
         photo.state = 'failed';
-        this.failedPhotos += 1;
         this.emit();
         return false;
       }

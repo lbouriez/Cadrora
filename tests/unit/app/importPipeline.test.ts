@@ -341,6 +341,49 @@ describe('ImportPipeline chunk journal and resume', () => {
     expect(journal.job?.state).toBe('completed');
   });
 
+  it('restarts the same pipeline after a failed variant without reloading the page', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const upload = vi.spyOn(api, 'uploadVariant').mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'));
+    const snapshots: ImportPipelineSnapshot[] = [];
+    const pipeline = new ImportPipeline({
+      api, createEncoder: () => createEncoder([]), journal,
+      onChange: (snapshot) => snapshots.push(snapshot),
+    });
+
+    const result = await pipeline.start('event-1', makeFiles(1));
+    expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 0, failedPhotos: 1, state: 'paused' });
+    expect(journal.job?.state).toBe('paused');
+
+    await pipeline.resume(result.importId!);
+
+    expect(api.created).toHaveLength(2);
+    expect(api.declared).toHaveLength(2);
+    expect(upload).toHaveBeenCalledTimes(2);
+    expect(journal.job?.state).toBe('completed');
+    expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 1, failedPhotos: 0, state: 'completed' });
+  });
+
+  it('counts one failed photo only once across repeated resume attempts', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    vi.spyOn(api, 'uploadVariant')
+      .mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'))
+      .mockRejectedValueOnce(new ImportRequestError(503, 'SERVICE_UNAVAILABLE', 'Try again.'));
+    const snapshots: ImportPipelineSnapshot[] = [];
+    const pipeline = new ImportPipeline({
+      api, createEncoder: () => createEncoder([]), journal,
+      onChange: (snapshot) => snapshots.push(snapshot),
+    });
+
+    const result = await pipeline.start('event-1', makeFiles(1));
+    await pipeline.resume(result.importId!);
+    expect(snapshots.at(-1)).toMatchObject({ failedPhotos: 1, state: 'paused' });
+
+    await pipeline.resume(result.importId!);
+    expect(snapshots.at(-1)).toMatchObject({ completedPhotos: 1, failedPhotos: 0, state: 'completed' });
+  });
+
   it('cancels a failed local journal when the server import does not exist', async () => {
     const journal = new MemoryImportJournal();
     const api = new RecordingImportApi();
