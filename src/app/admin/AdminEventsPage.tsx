@@ -6,7 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
-import { BackLink, Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
+import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
 import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, requestOriginalsCleanup } from './adminEventsApi';
 import { formatMediaStorage } from './formatMediaStorage';
@@ -164,7 +164,7 @@ export function AdminEventsPage() {
           <label><input checked={unlimitedRetention} onChange={(event) => setUnlimitedRetention(event.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
-            <label><input defaultChecked name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}<span className="field__hint">{t('admin.events.showOnGalleryPageHint')}</span></label>
+            <div className="admin-event-form__option-with-info"><label><input defaultChecked name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div>
             <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
               setAllowDownloads(changeEvent.target.checked);
               if (!changeEvent.target.checked) setKeepOriginals(false);
@@ -306,7 +306,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <label><input checked={unlimitedRetention} onChange={(changeEvent) => setUnlimitedRetention(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
-          <label><input defaultChecked={event.showOnGalleryPage} name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}<span className="field__hint">{t('admin.events.showOnGalleryPageHint')}</span></label>
+          <div className="admin-event-form__option-with-info"><label><input defaultChecked={event.showOnGalleryPage} name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div>
           <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
             setAllowDownloads(changeEvent.target.checked);
             if (!changeEvent.target.checked) setKeepOriginals(false);

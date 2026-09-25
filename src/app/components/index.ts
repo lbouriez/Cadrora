@@ -8,6 +8,8 @@ export { BackLink } from './BackLink';
 export type { BackLinkProps } from './BackLink';
 export { IconButton } from './IconButton';
 export type { IconButtonProps } from './IconButton';
+export { InfoTooltip } from './InfoTooltip';
+export type { InfoTooltipProps } from './InfoTooltip';
 export { Carousel } from './Carousel';
 export type { CarouselProps } from './Carousel';
 export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, DownloadIcon, HeartIcon, InfoIcon, RetouchIcon } from './Icons';

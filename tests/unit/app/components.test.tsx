@@ -9,6 +9,7 @@ import {
   Drawer,
   EmptyState,
   IconButton,
+  InfoTooltip,
   MultiSelect,
   Pagination,
   Select,
@@ -58,6 +59,22 @@ function MultiSelectHarness() {
 afterEach(cleanup);
 
 describe('shared components', () => {
+  it('shows contextual help on hover or click and closes it with Escape', () => {
+    render(<InfoTooltip text="Direct gallery links remain available" />);
+    const trigger = screen.getByRole('button', { name: 'Direct gallery links remain available' });
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    const wrapper = trigger.parentElement;
+    expect(wrapper).not.toBeNull();
+    fireEvent.mouseEnter(wrapper!);
+    expect(screen.getByRole('tooltip').textContent).toContain('Direct gallery links');
+    fireEvent.mouseLeave(wrapper!);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    fireEvent.click(trigger);
+    expect(screen.getByRole('tooltip')).toBeTruthy();
+    fireEvent.keyDown(trigger, { key: 'Escape' });
+    expect(screen.queryByRole('tooltip')).toBeNull();
+  });
+
   it('connects labelled multiline and select fields to translated hints or errors', () => {
     render(
       <>
