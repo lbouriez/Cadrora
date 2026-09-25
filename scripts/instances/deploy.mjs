@@ -14,6 +14,7 @@ import {
   parseR2BucketNames,
 } from './instanceConfig.mjs';
 import { listSiteProfiles, loadSiteProfile } from '../sites/loadProfile.mjs';
+import { verifyAccountZone } from './accountPreflight.mjs';
 
 const wranglerPath = 'node_modules/wrangler/bin/wrangler.js';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -155,12 +156,12 @@ try {
   const siteId = process.env.CADRORA_SITE?.trim() || 'cadrora';
   const site = loadSiteProfile(siteId, workspace);
   assertSiteTarget(site, target, process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true', listSiteProfiles(workspace));
-  if (process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true') {
-    requiredEnvironment('CLOUDFLARE_ACCOUNT_ID');
-    requiredEnvironment('CLOUDFLARE_API_TOKEN');
-  }
+  const accountId = requiredEnvironment('CLOUDFLARE_ACCOUNT_ID');
+  const apiToken = requiredEnvironment('CLOUDFLARE_API_TOKEN');
   requiredEnvironment('VITE_TURNSTILE_SITE_KEY');
   const turnstileSecret = requiredEnvironment('TURNSTILE_SECRET_KEY');
+  const zone = await verifyAccountZone({ accountId, hostname: target.hostname, token: apiToken });
+  process.stdout.write(`Cloudflare target verified: ${zone.zoneName} is active in the selected account.\n`);
   const names = instanceResourceNames(target.instance);
   const instanceDirectory = resolve(workspace, '.artifacts', 'instances', target.instance);
   await mkdir(instanceDirectory, { recursive: true });

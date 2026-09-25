@@ -32,7 +32,7 @@ The short path is:
 
 The [full deployment guide](docs/deployment.md) covers every manual Cloudflare action, root domains versus subdomains, Turnstile keys, the optional showcase, and upgrades. A one-click [Deploy to Cloudflare clone](docs/deployment.md#deploy-button-setup-page) is also possible if you deliberately want Cloudflare to create a separate repository; it is not the existing-fork path. [Admin guide](docs/admin-guide.md) explains daily use.
 
-This repository also contains an optional [Atelier Giulia site profile and isolated GitHub pipeline](docs/deployment.md#atelier-giulia-from-this-repository). It demonstrates how one shared codebase can publish two separately branded sites into different Cloudflare accounts without a fork. It does not activate or alter the normal Cadrora deployment for other users.
+This repository also contains an optional [Atelier Giulia site profile and isolated GitHub pipeline](docs/deployment.md#atelier-giulia-from-this-repository). It demonstrates how one shared codebase can publish two separately branded sites into different Cloudflare accounts without a fork. It does not activate or alter the normal Cadrora deployment for other users. This pipeline is a **different installation path** from the Workers Builds steps above; see the [fresh-account rehearsal status](docs/technical/deployment-rehearsal-2026-09-25.md) before assuming either path has been tested in a new account.
 
 For a local preview, after cloning your fork:
 

@@ -34,6 +34,8 @@ Package guides: [`browser-import.md`](browser-import.md), [`media-and-publicatio
 
 The point-in-time UX and release-gate review is [`production-readiness-review-2026-09-23.md`](production-readiness-review-2026-09-23.md). It separates locally verified behavior from provider and device checks that remain mandatory before a production claim.
 
+The fresh-account [Atelier Giulia deployment rehearsal](deployment-rehearsal-2026-09-25.md) records exactly which README/Cloudflare steps have been exercised, which remain unverified, and the screenshots still required.
+
 ## Cross-cutting invariants
 
 - The public frontend is static; event photos are never build assets.
