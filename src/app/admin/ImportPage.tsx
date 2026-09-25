@@ -168,9 +168,9 @@ function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImpor
 
 function reportImportFailure(operation: 'cancel', error: unknown): void {
   // Never log the exception message: browser/provider errors can include filenames or request details.
-  console.warn('cadrora_import_operation_failed', {
+  console.warn('cadrora_import_operation_failed', JSON.stringify({
     operation,
     category: error instanceof Error ? error.name : 'unknown',
     ...(error instanceof ImportRequestError ? { code: error.code, status: error.status } : {}),
-  });
+  }));
 }
