@@ -65,7 +65,7 @@ An additional root domain or subdomain is another isolated single-tenant instanc
 
 The static frontend selects a typed site profile at build time (`CADRORA_SITE`, default `cadrora`). `sites/cadrora` owns showcase presentation; `sites/atelier-giulia` owns temporary studio presentation. Core components and behavior are shared, so future common design improvements flow to both profiles. Profile-owned page replacements are an exceptional escape hatch and must be reconciled manually. D1 owner settings still take precedence for editable site/contact/service fields; each Cloudflare instance has separate data and secrets. The Atelier Giulia GitHub workflow targets its own account and exact hostname, never the Cadrora deployment.
 
-Deployment variables define hard application ceilings. The owner can only lower the gallery, stored-media, and total-face limits from Site settings. The Worker enforces the lower effective value before the corresponding write. These are instance safeguards, not billing controls: Cloudflare allowances are pooled across the account, and request/operation/query quotas remain observable only through provider usage data.
+Deployment variables define hard application ceilings for stored media and total faces. The owner can lower those limits from Site settings, and the Worker enforces the lower effective value before the corresponding write. Gallery creation has no count ceiling. These are instance safeguards, not billing controls: Cloudflare allowances are pooled across the account, and request/operation/query quotas remain observable only through provider usage data.
 
 ## Related decisions
 

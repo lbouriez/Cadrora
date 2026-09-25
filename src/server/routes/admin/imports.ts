@@ -111,6 +111,7 @@ adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
       await importReplacementPhotoId(context.env.DB, payload.id) !== (payload.replacementPhotoId ?? null)) {
       throw new ApiException('IMPORT_ID_CONFLICT', 'errors.importIdConflict', 409);
     }
+    if (existing.state !== 'completed') await assertStorageAvailable(context.env);
     return context.json(ImportCreateResponseSchema.parse({ import: existing }));
   }
 
@@ -134,6 +135,7 @@ adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
   if (currentCount + payload.totalPhotos > limit + (payload.replacementPhotoId ? 1 : 0)) {
     throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
   }
+  await assertStorageAvailable(context.env);
 
   const now = new Date().toISOString();
   await context.env.DB.prepare(
@@ -210,6 +212,7 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
   if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit + (replacementPhotoId ? 1 : 0)) {
     throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
   }
+  await assertStorageAvailable(context.env);
 
   const now = new Date().toISOString();
   const statements: D1PreparedStatement[] = [
@@ -555,6 +558,13 @@ async function countImportPhotos(database: D1Database, importId: string): Promis
 
 async function totalStoredBytes(database: D1Database): Promise<number> {
   return (await database.prepare('SELECT COALESCE(SUM(byte_size), 0) AS value FROM photo_variants').first<CountRow>())?.value ?? 0;
+}
+
+async function assertStorageAvailable(bindings: CloudflareBindings): Promise<void> {
+  const limit = (await effectiveQuotaLimits(bindings)).storageLimitBytes;
+  if (await totalStoredBytes(bindings.DB) >= limit) {
+    throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
+  }
 }
 
 function importFromRow(row: ImportRow): Import {

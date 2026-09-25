@@ -66,6 +66,97 @@ describe('admin import routes', () => {
     await expect(response.json()).resolves.toEqual({ existingHashes: [hash] });
   });
 
+  it.each([100, 120])('refuses a new import before creating any D1 row when %i bytes meet or exceed the owner storage limit', async (usedBytes) => {
+    const insert = vi.fn();
+    const database = {
+      prepare(query: string) {
+        const statement = {
+          bind: () => statement,
+          first: () => Promise.resolve(query.includes('FROM site_settings')
+            ? { owner_face_limit: null, owner_storage_limit_bytes: 100 }
+            : query.includes('COALESCE(SUM(byte_size)') ? { value: usedBytes }
+              : query.includes('SELECT id, keep_originals, access FROM events') ? { id: 'event-1', keep_originals: 0, access: 'public' }
+                : query.includes('COUNT(*)') ? { value: 0 } : null),
+          run: insert,
+        };
+        return statement;
+      },
+    } as unknown as D1Database;
+    const put = vi.fn();
+    const bucket = { put } as unknown as R2Bucket;
+    const response = await authorizedApp().request('/api/v1/admin/galleries/event-1/imports', {
+      body: JSON.stringify({ id: 'import-new', totalPhotos: 1 }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    }, bindings(database, bucket));
+
+    expect(response.status).toBe(413);
+    expect(ApiErrorSchema.parse(await response.json()).code).toBe('STORAGE_QUOTA_EXCEEDED');
+    expect(insert).not.toHaveBeenCalled();
+    expect(put).not.toHaveBeenCalled();
+  });
+
+  it('rejects a resumed import and new photo declaration when storage is full without mutating D1', async () => {
+    const batch = vi.fn();
+    const run = vi.fn();
+    const importRow = {
+      id: 'import-existing', event_id: 'event-1', state: 'processing', total_photos: 1,
+      completed_photos: 0, created_at: '2026-09-25T00:00:00.000Z', updated_at: '2026-09-25T00:00:00.000Z',
+    };
+    const database = {
+      batch,
+      prepare(query: string) {
+        const statement = {
+          bind: () => statement,
+          all: () => Promise.resolve({ results: [] }),
+          first: () => Promise.resolve(query.includes('FROM site_settings')
+            ? { owner_face_limit: null, owner_storage_limit_bytes: 100 }
+            : query.includes('COALESCE(SUM(byte_size)') ? { value: 100 }
+              : query.includes('FROM imports WHERE id') && query.includes('completed_photos') ? importRow
+                : query.includes('SELECT keep_originals FROM imports') ? { keep_originals: 0 }
+                  : query.includes('SELECT replacement_photo_id FROM imports') ? { replacement_photo_id: null }
+                    : query.includes('FROM events') ? { id: 'event-1' }
+                      : query.includes('COUNT(*)') ? { value: 0 } : null),
+          run,
+        };
+        return statement;
+      },
+    } as unknown as D1Database;
+    const app = authorizedApp();
+    const env = bindings(database, {} as R2Bucket);
+    const resumed = await app.request('/api/v1/admin/galleries/event-1/imports', {
+      body: JSON.stringify({ id: 'import-existing', totalPhotos: 1 }),
+      headers: { 'Content-Type': 'application/json' }, method: 'POST',
+    }, env);
+    const declared = await app.request('/api/v1/admin/imports/import-existing/photos', {
+      body: JSON.stringify({ chunkNumber: 0, photos: [{
+        contentType: 'image/jpeg', filename: 'photo.jpg', height: 100,
+        id: 'photo-new', sortKey: '0', width: 100,
+      }] }),
+      headers: { 'Content-Type': 'application/json' }, method: 'POST',
+    }, env);
+
+    expect(resumed.status).toBe(413);
+    expect(ApiErrorSchema.parse(await resumed.json()).code).toBe('STORAGE_QUOTA_EXCEEDED');
+    expect(declared.status).toBe(413);
+    expect(ApiErrorSchema.parse(await declared.json()).code).toBe('STORAGE_QUOTA_EXCEEDED');
+    expect(batch).not.toHaveBeenCalled();
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it.each([1_000_000, 1_000_100])('rejects a new variant at %i stored bytes before touching R2', async (usedBytes) => {
+    const database = variantDatabase('image/jpeg', false, usedBytes);
+    const put = vi.fn();
+    const response = await authorizedApp().request('/api/v1/admin/photos/photo-1/variants/thumb', {
+      body: jpegBytes(), headers: variantHeaders(jpegBytes().byteLength, 'a'.repeat(64)), method: 'PUT',
+    }, bindings(database, { put } as unknown as R2Bucket));
+
+    expect(response.status).toBe(413);
+    expect(ApiErrorSchema.parse(await response.json()).code).toBe('STORAGE_QUOTA_EXCEEDED');
+    expect(put).not.toHaveBeenCalled();
+    expect(database.insertedVariant).toBe(false);
+  });
+
   it('streams a MIME-checked upload to its derived R2 key with R2 SHA-256 validation', async () => {
     const media = jpegBytes();
     const checksum = 'a'.repeat(64);
@@ -231,7 +322,7 @@ interface VariantDatabase extends D1Database {
   photoState: string;
 }
 
-function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', keepOriginals = false): VariantDatabase {
+function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', keepOriginals = false, usedBytes = 0): VariantDatabase {
   const state = { cleanupQueued: false, importState: 'processing', insertedVariant: false, photoState: 'pending', values: [] as unknown[], variantValues: [] as unknown[] };
   const database = {
     get cleanupQueued() {
@@ -282,12 +373,11 @@ function variantDatabase(sourceType: 'image/jpeg' | 'image/png' = 'image/jpeg', 
           if (query.includes('FROM site_settings')) {
             return {
               owner_face_limit: null,
-              owner_gallery_limit: null,
               owner_storage_limit_bytes: null,
             };
           }
           if (query.includes('SELECT byte_size FROM photo_variants')) return null;
-          if (query.includes('COALESCE(SUM(byte_size)')) return { value: 0 };
+          if (query.includes('COALESCE(SUM(byte_size)')) return { value: usedBytes };
           if (query.includes('SELECT photo_id, variant, storage_key')) {
             if (!state.insertedVariant) return null;
             return {
@@ -327,7 +417,6 @@ function bindings(database: D1Database, bucket: R2Bucket): CloudflareBindings {
     ADMIN_AUTH_MODE: 'password',
     ASSETS: {} as Fetcher,
     DB: database,
-    MAX_EVENTS: '10',
     MAX_FACES_PER_EVENT: '100',
     MAX_TOTAL_FACES: '1000',
     MAX_PHOTOS_PER_EVENT: '100',

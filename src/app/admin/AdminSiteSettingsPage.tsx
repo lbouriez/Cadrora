@@ -87,7 +87,6 @@ export function AdminSiteSettingsPage() {
     setFormError(false);
     const values = new FormData(event.currentTarget);
     const themeMode = values.get('themeMode');
-    const galleryLimit = Number(values.get('galleryLimit'));
     const storageLimitGb = Number(values.get('storageLimitGb'));
     const faceLimit = Number(values.get('faceLimit'));
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
@@ -107,7 +106,6 @@ export function AdminSiteSettingsPage() {
     }
     if (
       (themeMode === 'light' || themeMode === 'dark' || themeMode === 'both' || themeMode === 'system')
-      && Number.isSafeInteger(galleryLimit)
       && Number.isFinite(storageLimitGb)
       && Number.isSafeInteger(faceLimit)
     ) update.mutate({
@@ -125,7 +123,6 @@ export function AdminSiteSettingsPage() {
       },
       quotas: {
         faceLimit,
-        galleryLimit,
         storageLimitBytes: Math.round(storageLimitGb * BYTES_PER_GB),
       },
       serviceArea,
@@ -192,10 +189,6 @@ export function AdminSiteSettingsPage() {
               used: storageUsage.amount,
               unit: t(`admin.settings.storageUnits.${storageUsage.unit}`),
             })}</dd></div>
-            <div><dt>{t('admin.settings.galleryUsage')}</dt><dd>{t('admin.settings.countUsageValue', {
-              limit: settings.data.quotas.galleryLimit,
-              used: settings.data.usage.galleries,
-            })}</dd></div>
             <div><dt>{t('admin.settings.faceUsage')}</dt><dd>{t('admin.settings.countUsageValue', {
               limit: settings.data.quotas.faceLimit,
               used: settings.data.usage.faces,
@@ -211,17 +204,6 @@ export function AdminSiteSettingsPage() {
               name="storageLimitGb"
               required
               step="0.1"
-              type="number"
-            />
-            <Input
-              defaultValue={settings.data.quotas.galleryLimit}
-              hint={t('admin.settings.galleryLimitHint', { maximum: settings.data.quotaCeilings.galleryLimit })}
-              label={t('admin.settings.galleryLimit')}
-              max={settings.data.quotaCeilings.galleryLimit}
-              min="1"
-              name="galleryLimit"
-              required
-              step="1"
               type="number"
             />
             <Input

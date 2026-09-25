@@ -1,6 +1,6 @@
 # ADR-006: Isolated instances and owner self-quotas
 
-Status: accepted, 2026-09-22.
+Status: accepted, 2026-09-22. The gallery-count part was superseded by [ADR-017](ADR-017-remove-gallery-count-limit.md).
 
 ## Context
 
@@ -14,7 +14,7 @@ Cloudflare Free allowances are account-level pools. A bucket, database, index, o
 - Treat a root domain and a subdomain identically: each instance receives a separate Worker, D1 database, private media bucket, private model bucket, Vectorize index, secrets, and exact Custom Domain.
 - Retain the existing `npm run deploy` path for the primary deployment. Add a separate, explicit `npm run deploy:instance` provisioner whose deterministic names make the same instance command safely repeatable without rebinding the primary deployment.
 - Keep customer presentation in that customer's build. Do not add a page builder or runtime tenant theming. [ADR-013](ADR-013-site-profiles.md) later permits checked-in build-time profiles in one repository as an alternative to forks.
-- Add owner self-limits for gallery count, stored media bytes, and total stored faces. The server enforces the lower of the owner limit and deployment/system ceilings at the write boundary.
+- Add owner self-limits for stored media bytes and total stored faces. The server enforces the lower of the owner limit and deployment/system ceilings at the write boundary.
 - Reserve approximately 100 MB of R2 Free storage for pinned face models and overhead by setting media to 9.9 decimal GB. Cap faces at 39,000, which uses 4,992,000 of the 5,000,000 Free stored vector dimensions at 128 dimensions per face.
 - Do not claim that these controls guarantee zero cost. Other resources and other instances in the same account consume the same pools.
 - Defer the optional admin-of-admins control plane to [`../future-operator-control-plane.md`](../future-operator-control-plane.md).
@@ -23,6 +23,6 @@ Cloudflare Free allowances are account-level pools. A bucket, database, index, o
 
 Isolation preserves the current authorization model and makes a customer's data boundary easy to understand. It also consumes one D1 database per instance, so a Free account reaches Cloudflare's ten-database resource limit quickly. Model files are duplicated by design; this is simpler and independently removable but consumes pooled R2 storage.
 
-Lowering an owner limit never destroys existing data. New writes remain blocked until usage falls below the selected limit. Quota reads add small indexed/count queries and cannot provide an atomic account-wide reservation across concurrent Worker requests.
+Lowering an owner limit never destroys existing data. New media or face writes remain blocked until usage falls below the selected limit. Quota reads add small indexed/count queries and cannot provide an atomic account-wide reservation across concurrent Worker requests.
 
 The manual provisioner is not a fleet manager. It does not delete instances, aggregate usage, schedule upgrades, or reconcile partially removed resources. Those capabilities require the separately authenticated and auditable control plane described in the deferred design.

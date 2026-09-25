@@ -68,9 +68,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
           enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
           analyticsMeasurementId: null,
           themeMode: 'both',
-          quotaCeilings: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
-          quotas: { faceLimit: 10000, galleryLimit: 10, storageLimitBytes: 2000000000 },
-          usage: { faces: 420, galleries: 3, storageBytes: 750000000 },
+          quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
+          quotas: { faceLimit: 10000, storageLimitBytes: 2000000000 },
+          usage: { faces: 420, storageBytes: 750000000 },
           updatedAt: '2026-09-20T15:00:00.000Z',
         }),
         contentType: 'application/json',
@@ -162,17 +162,14 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await theme.selectOption('system');
   await expect(language).toHaveValue('fr');
   await expect(theme).toHaveValue('system');
-  const galleryLimit = page.getByRole('spinbutton', { name: /maximum separate galleries|nombre maximal de galeries distinctes/i });
   const storageLimit = page.getByRole('spinbutton', { name: /maximum space for photos|espace maximal pour les photos/i });
   const faceLimit = page.getByRole('spinbutton', { name: /maximum faces saved|nombre maximal de visages conservés/i });
-  await expect(galleryLimit).toHaveValue('10');
+  await expect(page.getByRole('spinbutton', { name: /maximum separate galleries|nombre maximal de galeries distinctes/i })).toHaveCount(0);
   await expect(storageLimit).toHaveValue('2');
   await expect(faceLimit).toHaveValue('10000');
   await expect(page.getByText(/750 MB of 2 GB|750 Mo sur 2 Go/u)).toBeVisible();
-  await galleryLimit.fill('8');
   await storageLimit.fill('1.5');
   await faceLimit.fill('5000');
-  await expect(galleryLimit).toHaveValue('8');
   await expect(storageLimit).toHaveValue('1.5');
   await expect(faceLimit).toHaveValue('5000');
   await expect(page.getByRole('button', { name: /save public settings|enregistrer les réglages publics/i })).toBeDisabled();

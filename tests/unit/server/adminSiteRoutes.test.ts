@@ -24,7 +24,6 @@ const row = {
 };
 
 const quotaBindings = {
-  MAX_EVENTS: '50',
   MAX_FACES_PER_EVENT: '10000',
   MAX_STORAGE_BYTES: '9900000000',
   MAX_TOTAL_FACES: '39000',
@@ -62,8 +61,8 @@ describe('admin site settings routes', () => {
     const app = appWith();
 
     await expect((await app.request('/api/v1/admin/site', undefined, { DB: database, ...quotaBindings })).json()).resolves.toMatchObject({
-      quotaCeilings: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
-      quotas: { faceLimit: 39000, galleryLimit: 50, storageLimitBytes: 9900000000 },
+      quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
+      quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 },
       themeMode: 'both',
     });
     const response = await app.request('/api/v1/admin/site', {
@@ -76,7 +75,7 @@ describe('admin site settings routes', () => {
         enabledLanguages: ['en'],
         enabledServices: ['wedding', 'corporate'],
         map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
-        quotas: { faceLimit: 2000, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        quotas: { faceLimit: 2000, storageLimitBytes: 1000000000 },
         serviceArea: 'Greater Montréal',
         siteName: 'Studio North',
         themeMode: 'system',
@@ -87,7 +86,7 @@ describe('admin site settings routes', () => {
 
     expect(response.status).toBe(200);
     expect(update.bind).toHaveBeenCalledWith(
-      'en', '["en"]', 'system', 5, 1000000000, 2000, 'G-ABCDEF1234',
+      'en', '["en"]', 'system', 1000000000, 2000, 'G-ABCDEF1234',
       'bonjour@example.test', '+1 514 555-0142', 'Montréal, Québec', 'Greater Montréal',
       45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', expect.any(String),
     );
@@ -113,7 +112,7 @@ describe('admin site settings routes', () => {
         enabledLanguages: ['fr'],
         enabledServices: ['wedding'],
         map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
-        quotas: { faceLimit: 39001, galleryLimit: 5, storageLimitBytes: 1000000000 },
+        quotas: { faceLimit: 39001, storageLimitBytes: 1000000000 },
         serviceArea: null,
         siteName: 'Cadrora',
         themeMode: 'light',

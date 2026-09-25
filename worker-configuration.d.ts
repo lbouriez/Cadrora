@@ -15,7 +15,6 @@ interface CloudflareBindings {
   CF_ACCESS_AUD?: string;
   SESSION_TTL_H: string;
   MAX_PHOTOS_PER_EVENT: string;
-  MAX_EVENTS: string;
   MAX_STORAGE_BYTES: string;
   MAX_FACES_PER_EVENT: string;
   MAX_TOTAL_FACES: string;

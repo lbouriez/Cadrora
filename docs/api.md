@@ -20,8 +20,8 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-22. 
 | `POST /admin/login` | JSON `{ password, turnstileToken }` | A `Session` JSON object and a secure opaque session cookie in password mode. Disabled in Cloudflare Access mode. |
 | `POST /admin/logout` | No body | `204`; revokes a password session and clears the cookie. |
 | `GET /admin/session` | None | Current `Session`; password sessions rotate. |
-| `GET /admin/site` | None | Owner-facing site settings plus effective `quotas`, deployment `quotaCeilings`, and current media/gallery/face `usage`. The showcase demo may read this exact endpoint but cannot update it. |
-| `PATCH /admin/site` | Validated public site name, language/theme, enabled service keys, contact fields, optional complete map centre/radius, nullable GA4 Measurement ID, plus `{ "quotas": { "galleryLimit": 10, "storageLimitBytes": 2000000000, "faceLimit": 5000 } }` | Persists public settings and owner self-limits. Every quota must be positive and no greater than its deployment ceiling. |
+| `GET /admin/site` | None | Owner-facing site settings plus effective `quotas`, deployment `quotaCeilings`, and current media/face `usage`. The showcase demo may read this exact endpoint but cannot update it. |
+| `PATCH /admin/site` | Validated public site name, language/theme, enabled service keys, contact fields, optional complete map centre/radius, nullable GA4 Measurement ID, plus `{ "quotas": { "storageLimitBytes": 2000000000, "faceLimit": 5000 } }` | Persists public settings and owner self-limits. Every quota must be positive and no greater than its deployment ceiling. |
 
 `password` is 1–200 characters at the transport boundary; strength belongs in operator provisioning. `turnstileToken` is required and at most 2,048 characters. Never send credentials from a cross-origin client.
 

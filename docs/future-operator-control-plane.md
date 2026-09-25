@@ -81,7 +81,7 @@ Deletion requires typed confirmation of the exact customer identifier. Failures 
 
 ## Quota precedence
 
-Quota enforcement belongs in the Cadrora core because only the data-plane Worker can reject a gallery creation, media write, or face upsert before it reaches Cloudflare. The future operator supplies an additional ceiling; it does not replace core checks.
+Quota enforcement belongs in the Cadrora core because only the data-plane Worker can reject a media write or face upsert before it reaches Cloudflare. The future operator supplies an additional ceiling; it does not replace core checks.
 
 ```text
 effective numeric limit = minimum(system safety, operator ceiling, owner self-limit)

@@ -1,6 +1,7 @@
 # Frozen technical contracts
 
 Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md); owner-approved public-site configuration changes are recorded in [`ADR-008`](../decisions/ADR-008-runtime-website-settings-and-maps.md).
+The gallery-count cap removal is recorded in [`ADR-017`](../decisions/ADR-017-remove-gallery-count-limit.md).
 
 Original delivery and admin-selected gallery covers are recorded in [`ADR-009`](../decisions/ADR-009-original-delivery-and-gallery-covers.md).
 The shared favorites contract for protected galleries is recorded in [`ADR-010`](../decisions/ADR-010-private-gallery-shared-favorites.md).
@@ -109,7 +110,7 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 
 D1 contains `site_settings`, `events`, `event_credentials`, `photos`, `photo_variants`, `imports`, `import_chunks`, `faces`, `face_partitions`, `sessions`, `maintenance_jobs`, and `usage_counters`.
 
-`site_settings.owner_gallery_limit`, `owner_storage_limit_bytes`, and `owner_face_limit` are nullable positive self-limits. Null means the deployment ceiling. The effective value is always the lower of the owner value, its deployment variable, and any provider allowance encoded as a system ceiling. Lowering a limit never deletes data; it blocks new gallery, media, or face writes until usage is below it. It must never be presented as an account-wide billing guarantee.
+`site_settings.owner_storage_limit_bytes` and `owner_face_limit` are nullable positive self-limits. Null means the deployment ceiling. The effective value is always the lower of the owner value, its deployment variable, and any provider allowance encoded as a system ceiling. Lowering a limit never deletes data; it blocks new media or face writes until usage is below it. Gallery creation has no count quota. These limits must never be presented as an account-wide billing guarantee.
 
 Photo state progresses `pending -> variants_ready -> published -> deleting -> deleted`. Facial state is independent: `disabled | pending | indexing | ready | expired | deleting | failed`. Gallery withdrawal is a reversible `events.offline_at` fence and never rewinds photo state or deletes provider objects. Permanent deletion sets `events.deleting_at`, cancels open imports, freezes photo/face writes, and enqueues one `delete_gallery` job after exact-title confirmation. Provider cleanup uses only D1-derived gallery object/vector identifiers and never touches the shared model bucket. Natural-key upserts make variant and face declarations idempotent. D1 removes access before R2 and Vectorize cleanup, which is retried from `maintenance_jobs`. Original-file delivery requires gallery downloads; disabling either choice fences original media immediately. The owner's explicit `delete_gallery_originals` job then removes only gallery-owned originals from R2 and D1 in retryable batches, leaving derived copies intact.
 

@@ -159,11 +159,12 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
   );
 }
 
-function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.duplicateConflict' | 'adminImport.failed' {
+function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.storageQuota' | 'adminImport.duplicateConflict' | 'adminImport.failed' {
   if (!(error instanceof ImportRequestError)) return 'adminImport.failed';
   if (error.code === 'ADMIN_AUTH_REQUIRED') return 'adminImport.authExpired';
   if (error.code === 'EVENT_NOT_FOUND') return 'adminImport.galleryUnavailable';
   if (error.code === 'PHOTO_QUOTA_EXCEEDED') return 'adminImport.quota';
+  if (error.code === 'STORAGE_QUOTA_EXCEEDED') return 'adminImport.storageQuota';
   if (error.code === 'PHOTO_DUPLICATE_CONFLICT') return 'adminImport.duplicateConflict';
   return 'adminImport.failed';
 }

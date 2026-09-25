@@ -111,7 +111,6 @@ The Worker configuration declares these non-secret variables:
 | `ADMIN_AUTH_MODE` | `password` | `password` or `cloudflare-access`; there is no open mode |
 | `SESSION_TTL_H` | `8` | Password and event-grant lifetime; accepted password-session range is 1–24 hours |
 | `MAX_PHOTOS_PER_EVENT` | `2000` | Maximum photos in one gallery |
-| `MAX_EVENTS` | `50` | Maximum separate galleries; this is a conservative product ceiling, not a Cloudflare resource quota |
 | `MAX_STORAGE_BYTES` | `9900000000` | Deployment ceiling for stored media variants; leaves about 100 MB of the account's 10 GB R2 Free allowance for models and overhead |
 | `MAX_FACES_PER_EVENT` | `10000` | Facial-index declaration cap |
 | `MAX_TOTAL_FACES` | `39000` | Instance-wide face-vector ceiling; 39,000 × 128 dimensions stays below Vectorize's 5-million stored-dimension allowance |

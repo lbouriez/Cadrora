@@ -287,11 +287,12 @@ export class ImportPipeline {
           importId,
           chunk.photos.map((photo) => photo.sourceIndex),
         );
-        const errors = await this.processChunk(chunk, files, encoder, uploadLimiter, abortController.signal, job.keepOriginals === true);
-        if (errors > 0) {
+        const result = await this.processChunk(chunk, files, encoder, uploadLimiter, abortController.signal, job.keepOriginals === true);
+        if (result.errors > 0) {
           chunk.state = 'failed';
           chunk.updatedAt = this.now().toISOString();
           await this.options.journal.saveChunk(chunk);
+          if (result.quotaError) throw result.quotaError;
           this.state = 'paused';
           const job = await this.requireJob(importId);
           await this.saveJobState(job, 'paused');
@@ -323,20 +324,29 @@ export class ImportPipeline {
     uploadLimiter: ConcurrencyLimiter,
     signal: AbortSignal,
     keepOriginals: boolean,
-  ): Promise<number> {
+  ): Promise<{ errors: number; quotaError?: ImportRequestError }> {
     const candidates = chunk.photos.filter((photo) => photo.state !== 'finalized');
+    let quotaError: ImportRequestError | undefined;
     const results = await mapWithConcurrency(candidates, 2, async (photo) => {
+      if (quotaError) return false;
       try {
         await this.waitForCheckpoint();
         const file = files.get(photo.sourceIndex);
         if (!file) throw new ImageProcessingError('CORRUPT_IMAGE', 'The source file is no longer available for resume.');
         const encoded = await encoder.encode(file);
         const originals = keepOriginals ? [await originalVariant(file, photo)] : [];
-        await Promise.all(
+        const uploads = await Promise.allSettled(
           [...encoded.variants, ...originals].map((variant) =>
             uploadLimiter.run(() => this.options.api.uploadVariant(photo.id, variant, signal)),
           ),
         );
+        const failures = uploads.filter((result) => result.status === 'rejected');
+        if (failures.length > 0) {
+          const storageFailure = failures.map((failure) => failure.reason as unknown).find((reason) =>
+            reason instanceof ImportRequestError && reason.code === 'STORAGE_QUOTA_EXCEEDED');
+          const firstFailure: unknown = failures[0]?.reason;
+          throw storageFailure ?? firstFailure;
+        }
         await this.options.api.finalizePhoto(photo.id, signal);
         if (photo.state === 'failed') this.failedPhotos = Math.max(0, this.failedPhotos - 1);
         photo.state = 'finalized';
@@ -345,14 +355,16 @@ export class ImportPipeline {
         return true;
       } catch (error) {
         if (error instanceof ImportCancelledError || this.abortController?.signal.aborted) throw new ImportCancelledError();
-        photo.errorCode = error instanceof ImageProcessingError ? error.code : 'UPLOAD_FAILED';
+        if (error instanceof ImportRequestError && error.code === 'STORAGE_QUOTA_EXCEEDED') quotaError ??= error;
+        photo.errorCode = error instanceof ImportRequestError && error.code === 'STORAGE_QUOTA_EXCEEDED'
+          ? error.code : error instanceof ImageProcessingError ? error.code : 'UPLOAD_FAILED';
         if (photo.state !== 'failed') this.failedPhotos += 1;
         photo.state = 'failed';
         this.emit();
         return false;
       }
     });
-    return results.filter((result) => !result).length;
+    return { errors: results.filter((result) => !result).length, ...(quotaError ? { quotaError } : {}) };
   }
 
   private async waitForCheckpoint(): Promise<void> {

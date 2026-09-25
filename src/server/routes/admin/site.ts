@@ -46,24 +46,23 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
     const ceilings = quotaCeilings(context.env);
     if (
       input.data.quotas.faceLimit > ceilings.faceLimit
-      || input.data.quotas.galleryLimit > ceilings.galleryLimit
       || input.data.quotas.storageLimitBytes > ceilings.storageLimitBytes
     ) throw new ApiException('QUOTA_ABOVE_DEPLOYMENT_LIMIT', 'errors.invalidRequest', 400);
     const updatedAt = new Date().toISOString();
     const result = await context.env.DB.prepare(
       `UPDATE site_settings
           SET default_language = ?1, enabled_languages = ?2, theme_mode = ?3,
-              owner_gallery_limit = ?4, owner_storage_limit_bytes = ?5,
-              owner_face_limit = ?6, analytics_measurement_id = ?7,
-              contact_email = ?8, contact_phone = ?9, contact_address = ?10,
-              service_area = ?11, map_center_latitude = ?12, map_center_longitude = ?13,
-              map_radius_km = ?14, enabled_services = ?15, site_name = ?16, updated_at = ?17
+              owner_storage_limit_bytes = ?4, owner_face_limit = ?5,
+              analytics_measurement_id = ?6, contact_email = ?7,
+              contact_phone = ?8, contact_address = ?9, service_area = ?10,
+              map_center_latitude = ?11, map_center_longitude = ?12,
+              map_radius_km = ?13, enabled_services = ?14,
+              site_name = ?15, updated_at = ?16
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
       JSON.stringify(input.data.enabledLanguages),
       input.data.themeMode,
-      input.data.quotas.galleryLimit,
       input.data.quotas.storageLimitBytes,
       input.data.quotas.faceLimit,
       input.data.analyticsMeasurementId,

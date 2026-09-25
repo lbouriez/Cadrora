@@ -52,7 +52,7 @@ describe('shared schemas', () => {
       enabledLanguages: ['fr', 'en'],
       enabledServices: ['wedding'],
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
-      quotas: { faceLimit: 100, galleryLimit: 5, storageLimitBytes: 1000 },
+      quotas: { faceLimit: 100, storageLimitBytes: 1000 },
       serviceArea: null,
       siteName: 'Cadrora',
       themeMode: 'system',

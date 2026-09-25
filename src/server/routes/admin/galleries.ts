@@ -20,7 +20,6 @@ import { IdSchema } from '../../../shared/schemas';
 import type { AppEnv } from '../../types';
 import { isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
-import { effectiveQuotaLimits } from '../../services/quotas';
 import { downloadName } from '../../services/mediaNames';
 import { hashEventPassword } from '../public/credentials';
 import { eventFromRow, findEvent } from '../public/data';
@@ -365,11 +364,6 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const input = CreateEventRequestSchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    const maximumEvents = (await effectiveQuotaLimits(context.env)).galleryLimit;
-    const eventCount = await context.env.DB.prepare('SELECT COUNT(*) AS total FROM events').first<{ total: number }>();
-    if ((eventCount?.total ?? 0) >= maximumEvents) {
-      throw new ApiException('EVENT_QUOTA_EXCEEDED', 'errors.eventQuotaExceeded', 413);
-    }
     const id = crypto.randomUUID();
     const slug = await availableSlug(context.env.DB, input.data.slug ?? slugify(input.data.title));
     const now = new Date().toISOString();

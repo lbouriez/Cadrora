@@ -21,13 +21,11 @@ export const ContactEmailSchema = z.union([z.email(), z.literal('')]).nullable()
 
 export const QuotaLimitsSchema = z.object({
   faceLimit: z.number().int().positive(),
-  galleryLimit: z.number().int().positive(),
   storageLimitBytes: z.number().int().positive(),
 });
 
 export const QuotaUsageSchema = z.object({
   faces: z.number().int().nonnegative(),
-  galleries: z.number().int().nonnegative(),
   storageBytes: z.number().int().nonnegative(),
 });
 
