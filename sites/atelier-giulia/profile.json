@@ -4,7 +4,7 @@
   "document": {
     "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
     "themeColor": "#181d18",
-    "icon": null
+    "icon": "/brand/atelier-giulia-icon.png"
   },
   "deployment": {
     "instance": "atelier-giulia",

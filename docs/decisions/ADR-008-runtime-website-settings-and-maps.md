@@ -15,6 +15,8 @@ GA4 remains disabled by default. Only a valid `G-…` ID and explicit browser co
 
 The Contact page defaults to a keyless OpenStreetMap iframe, loaded only after a visitor click. It also offers an outbound Google Maps link. An optional public, referrer- and API-restricted Google Maps Embed API key supplied at build time switches the iframe provider to Google, still click-to-load. Google Cloud billing activation is an operator choice, not a Cadrora deployment prerequisite. The admin sets centre latitude, longitude, and a travel radius in kilometres. Radius frames an approximate map view and appears in text; it is **not** a polygon or precise boundary drawn on the map. Community-hosted OpenStreetMap tiles are best-effort and subject to a usage policy, so high-traffic deployments should choose a suitable provider or their own tile infrastructure. A true radius overlay would require a separate mapping and privacy decision.
 
+The admin may optionally search for a city to populate centre coordinates. This lookup uses a bounded, debounced Photon search only while the owner types in the admin; visitors never call it. The owner selects a result and saves the same existing centre/radius tuple. The provider is best-effort, so manual coordinate entry remains available. It does not alter the public map's click-to-load behavior or add a new D1 field.
+
 Shared motion tokens and a reveal component provide restrained entrance animation on site sections and service cards, with an immediate static presentation when reduced motion is requested or IntersectionObserver is unavailable. Local repository-owned demo images avoid remote image dependencies.
 
 ## Consequences

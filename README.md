@@ -28,7 +28,7 @@ The short path is:
 
 1. Fork this repository, enable R2 in your Cloudflare account, and create the D1 database, private R2 buckets, and Vectorize index described in the [deployment checklist](docs/deployment.md#existing-repository-cloudflare-builds).
 2. Generate your admin credentials locally, connect **your existing fork** through Cloudflare Workers Builds, and enter the build variables and encrypted secrets using the [exact field map](docs/deployment.md#cloudflare-setup-form-exact-field-map). This route does **not** create a second GitHub repository.
-3. Deploy, verify the Worker hostname, attach your domain, then fill in your studio's real details under **Admin → Site settings**. The [deployment guide](docs/deployment.md#deployment-and-release-checks) lists the checks to perform before sharing the site.
+3. Deploy, verify the Worker hostname, attach your domain, then follow the [after-deployment checklist](docs/after-deployment.md) to set your studio's identity, contact details, appearance, logo and favicon before sharing the site. The [deployment guide](docs/deployment.md#deployment-and-release-checks) lists the technical checks.
 
 The [full deployment guide](docs/deployment.md) covers every manual Cloudflare action, root domains versus subdomains, Turnstile keys, the optional showcase, and upgrades. A one-click [Deploy to Cloudflare clone](docs/deployment.md#deploy-button-setup-page) is also possible if you deliberately want Cloudflare to create a separate repository; it is not the existing-fork path. [Admin guide](docs/admin-guide.md) explains daily use.
 
@@ -75,7 +75,7 @@ See [Cloudflare free limits, assumptions, calculations, and sensitivity examples
 
 | If you want to… | Read… |
 | --- | --- |
-| Deploy or upgrade your own site | [Deployment guide](docs/deployment.md) and [upgrading](docs/upgrading.md) |
+| Deploy or upgrade your own site | [Deployment guide](docs/deployment.md), [after-deployment checklist](docs/after-deployment.md), and [upgrading](docs/upgrading.md) |
 | Understand costs and safe limits | [Free-tier and cost planning](docs/free-tier.md) |
 | Run galleries and customise settings | [Admin guide](docs/admin-guide.md) |
 | Understand face search and privacy | [Face search](docs/face-search.md) and [privacy](docs/privacy.md) |

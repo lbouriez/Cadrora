@@ -21,6 +21,7 @@ describe('securityHeaders middleware', () => {
     expect(response.headers.get('Content-Security-Policy')).toContain('https://challenges.cloudflare.com');
     expect(response.headers.get('Content-Security-Policy')).toContain("img-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com");
     expect(response.headers.get('Content-Security-Policy')).toContain('connect-src \'self\' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com');
+    expect(response.headers.get('Content-Security-Policy')).toContain('https://photon.komoot.io');
     expect(response.headers.get('Content-Security-Policy')).toContain('frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org');
   });
 
@@ -29,6 +30,7 @@ describe('securityHeaders middleware', () => {
     expect(staticHeaders).toContain('frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org');
     expect(staticHeaders).toContain("img-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com");
     expect(staticHeaders).toContain("connect-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com");
+    expect(staticHeaders).toContain('https://photon.komoot.io');
   });
 
   it('lets Vite inject its local React refresh preamble without weakening deployed hosts', async () => {

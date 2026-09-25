@@ -122,6 +122,17 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /your site limits|limites de votre site/i })).toBeVisible();
+  await page.route('https://photon.komoot.io/api/**', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ features: [{
+      geometry: { coordinates: [-73.34, 45.59] },
+      properties: { name: 'Sainte-Julie', state: 'Québec', country: 'Canada' },
+    }] }),
+  }));
+  await page.getByRole('searchbox', { name: /find a city|rechercher une ville/i }).fill('Sainte-Julie');
+  await page.getByRole('button', { name: 'Sainte-Julie, Québec, Canada' }).click();
+  await expect(page.getByRole('spinbutton', { name: /centre latitude|latitude du centre/i })).toHaveValue('45.59');
+  await expect(page.getByRole('spinbutton', { name: /centre longitude|longitude du centre/i })).toHaveValue('-73.34');
   const analyticsId = page.getByRole('textbox', { name: /google analytics id|identifiant google analytics/i });
   await analyticsId.fill('G-ABCDEF1234');
   await expect(analyticsId).toHaveValue('G-ABCDEF1234');

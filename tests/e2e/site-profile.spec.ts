@@ -11,6 +11,8 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre histoire|your story/i);
   await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
+  await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-icon.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);
   await expect(page.locator('.product-stack')).toHaveCount(0);
   await expect(page.locator('.site-hero__ai-card')).toHaveCount(0);

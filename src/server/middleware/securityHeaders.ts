@@ -12,7 +12,7 @@ const SECURITY_HEADERS = {
     "img-src 'self' blob: data: https://www.googletagmanager.com https://*.google-analytics.com",
     "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline'",
-    "connect-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com",
+    "connect-src 'self' https://challenges.cloudflare.com https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://photon.komoot.io",
     'frame-src https://challenges.cloudflare.com https://www.google.com https://www.openstreetmap.org',
     "worker-src 'self' blob:",
   ].join('; '),

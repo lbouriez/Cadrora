@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,7 @@ import type { Language, QuotaLimits, ServiceKey, ThemeMode } from '../../shared/
 import { Button, Input, MultiSelect, Select, Spinner } from '../components';
 import { siteProfile } from '../public/siteProfile';
 import { useAdminAccess } from './AdminAccessContext';
+import { CitySearch } from './CitySearch';
 import { formatMediaStorage } from './formatMediaStorage';
 
 async function getAdminSiteSettings() {
@@ -61,6 +62,8 @@ export function AdminSiteSettingsPage() {
   const [enabledLanguagesOverride, setEnabledLanguages] = useState<Language[] | null>(null);
   const [enabledServicesOverride, setEnabledServices] = useState<ServiceKey[] | null>(null);
   const [formError, setFormError] = useState(false);
+  const latitudeInput = useRef<HTMLInputElement>(null);
+  const longitudeInput = useRef<HTMLInputElement>(null);
   const update = useMutation({
     mutationFn: updateAdminSiteSettings,
     onSuccess: async (result) => {
@@ -260,13 +263,17 @@ export function AdminSiteSettingsPage() {
             <Input defaultValue={settings.data.contactEmail ?? siteProfile.contact.email ?? ''} label={t('admin.settings.contactEmail')} name="contactEmail" type="email" />
             <Input defaultValue={settings.data.contactPhone ?? siteProfile.contact.phone ?? ''} label={t('admin.settings.contactPhone')} maxLength={60} name="contactPhone" type="tel" />
             <Input defaultValue={settings.data.contactAddress ?? siteProfile.contact.address ?? ''} label={t('admin.settings.contactAddress')} maxLength={240} name="contactAddress" />
-            <Input defaultValue={settings.data.serviceArea ?? siteProfile.contact.serviceArea ?? ''} label={t('admin.settings.serviceArea')} maxLength={240} name="serviceArea" />
+            <Input defaultValue={settings.data.serviceArea ?? siteProfile.contact.serviceArea ?? ''} hint={t('admin.settings.serviceAreaHint')} label={t('admin.settings.serviceArea')} maxLength={240} name="serviceArea" placeholder={t('admin.settings.serviceAreaPlaceholder')} />
           </div>
           <h2 className="admin-settings-section__subheading">{t('admin.settings.mapTitle')}</h2>
           <p className="admin-card__description">{t('admin.settings.mapHint')}</p>
+          <CitySearch onSelect={({ latitude, longitude }) => {
+            if (latitudeInput.current) latitudeInput.current.value = String(latitude);
+            if (longitudeInput.current) longitudeInput.current.value = String(longitude);
+          }} />
           <div className="admin-settings-contact-grid">
-            <Input defaultValue={settings.data.map.centerLatitude ?? ''} label={t('admin.settings.mapLatitude')} max="90" min="-90" name="mapLatitude" step="any" type="number" />
-            <Input defaultValue={settings.data.map.centerLongitude ?? ''} label={t('admin.settings.mapLongitude')} max="180" min="-180" name="mapLongitude" step="any" type="number" />
+            <Input defaultValue={settings.data.map.centerLatitude ?? ''} inputRef={latitudeInput} label={t('admin.settings.mapLatitude')} max="90" min="-90" name="mapLatitude" step="any" type="number" />
+            <Input defaultValue={settings.data.map.centerLongitude ?? ''} inputRef={longitudeInput} label={t('admin.settings.mapLongitude')} max="180" min="-180" name="mapLongitude" step="any" type="number" />
             <Input defaultValue={settings.data.map.radiusKm ?? ''} label={t('admin.settings.mapRadius')} max="2000" min="1" name="mapRadiusKm" step="1" type="number" />
           </div>
         </fieldset>

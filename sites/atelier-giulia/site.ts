@@ -4,7 +4,7 @@ import type { SiteDefinition } from '../../src/app/site/types';
 export const atelierGiuliaSite = {
   id: 'atelier-giulia',
   name: 'Atelier Giulia',
-  logoUrl: null,
+  logoUrl: '/brand/atelier-giulia-logo.png',
   heroImageUrl: '/brand/demo-hero.webp',
   heroAccentImageUrl: null,
   mapPreviewUrl: '/brand/service-area-preview.webp',

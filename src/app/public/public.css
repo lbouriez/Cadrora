@@ -1634,6 +1634,35 @@
 .public-header__language:active { transform: scale(0.94); }
 .public-header__theme span { font-size: 1.05rem; line-height: 1; }
 
+/* Keep the language control easy to tap without making its visible badge dominate navigation. */
+.public-header__language {
+  position: relative;
+  isolation: isolate;
+  width: var(--control-min-size);
+  height: var(--control-min-size);
+  min-width: var(--control-min-size);
+  min-height: var(--control-min-size);
+  border: 0;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.public-header__language::before {
+  position: absolute;
+  z-index: -1;
+  width: calc(var(--control-min-size) - var(--space-3));
+  height: calc(var(--control-min-size) - var(--space-3));
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--color-surface-raised) 76%, transparent);
+  content: '';
+}
+
+.public-header__language:hover { background: transparent; }
+.public-header__language:hover::before { background: var(--color-surface-raised); }
+
 .site-hero {
   min-height: min(39rem, calc(100svh - 6rem));
   gap: clamp(2rem, 6vw, 5rem);

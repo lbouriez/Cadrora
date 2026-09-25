@@ -1,14 +1,15 @@
 import { useId } from 'react';
-import type { InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, Ref } from 'react';
 
 /** Shared labelled input. Example: <Input label={t('form.title')} name="title" />. */
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   hint?: string;
+  inputRef?: Ref<HTMLInputElement>;
   label: string;
 }
 
-export function Input({ error, hint, id: suppliedId, label, ...props }: InputProps) {
+export function Input({ error, hint, id: suppliedId, inputRef, label, ...props }: InputProps) {
   const generatedId = useId();
   const id = suppliedId ?? generatedId;
   const labelId = `${id}-label`;
@@ -24,6 +25,7 @@ export function Input({ error, hint, id: suppliedId, label, ...props }: InputPro
         aria-labelledby={labelId}
         className="field__input"
         id={id}
+        ref={inputRef}
         {...props}
       />
       {description ? (

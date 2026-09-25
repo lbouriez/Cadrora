@@ -2,6 +2,7 @@ export * from './apiError';
 export * from './auth';
 export * from './event';
 export * from './face';
+export * from './geocoding';
 export * from './gallery';
 export * from './import';
 export * from './maintenance';
