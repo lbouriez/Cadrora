@@ -11,6 +11,7 @@ export const resources = {
         close: 'Close',
       },
       errors: {
+        photoDuplicateConflict: 'This photo is already in the gallery.',
         demoReadOnly: 'This demonstration account is read-only.',
         faceIndexBusy: 'This photo is still being prepared or removed. Please try again shortly.',
         internal: 'An unexpected error occurred.',
@@ -35,6 +36,7 @@ export const resources = {
         close: 'Fermer',
       },
       errors: {
+        photoDuplicateConflict: 'Cette photo est déjà dans la galerie.',
         demoReadOnly: 'Ce compte de démonstration est en lecture seule.',
         faceIndexBusy: 'Cette photo est encore en préparation ou en cours de suppression. Réessayez dans un instant.',
         internal: 'Une erreur inattendue est survenue.',

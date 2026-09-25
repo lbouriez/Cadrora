@@ -25,6 +25,7 @@ export interface ImportJournalPhoto {
   orientation?: ExifOrientation;
   sourceIndex: number;
   sortKey: string;
+  sourceSha256?: string;
   state: ImportPhotoJournalState;
   width: number;
 }

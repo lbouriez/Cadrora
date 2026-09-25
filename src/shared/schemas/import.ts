@@ -59,9 +59,18 @@ export const PhotoDeclarationSchema = z
     height: z.number().int().positive().max(100_000),
     id: IdSchema,
     sortKey: z.string().min(1).max(256),
+    sourceSha256: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     width: z.number().int().positive().max(100_000),
   })
   .strict();
+
+export const PhotoDuplicateCheckRequestSchema = z.object({
+  hashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)).min(1).max(50),
+}).strict();
+
+export const PhotoDuplicateCheckResponseSchema = z.object({
+  existingHashes: z.array(z.string().regex(/^[a-f0-9]{64}$/)).max(50),
+}).strict();
 
 /** A server transaction accepts no more than one durable browser work chunk. */
 export const ImportDeclarePhotosRequestSchema = z

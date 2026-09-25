@@ -333,7 +333,8 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       context.env.DB.prepare('UPDATE photo_variants SET photo_id = ?1 WHERE photo_id = ?2').bind(target.id, staged.id),
       context.env.DB.prepare(
         `UPDATE photos SET filename = ?1, content_type = ?2, width = ?3, height = ?4,
-         revision = revision + 1, updated_at = ?5 WHERE id = ?6 AND revision = ?7 AND state = 'published'`,
+         source_sha256 = NULL, revision = revision + 1, updated_at = ?5
+         WHERE id = ?6 AND revision = ?7 AND state = 'published'`,
       ).bind(staged.filename, staged.content_type, staged.width, staged.height, now, target.id, target.revision),
       context.env.DB.prepare('DELETE FROM photos WHERE id = ?1 AND state = ?2').bind(staged.id, 'variants_ready'),
       context.env.DB.prepare('UPDATE imports SET replacement_applied_at = ?2, updated_at = ?2 WHERE id = ?1').bind(input.data.importId, now),

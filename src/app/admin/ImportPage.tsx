@@ -150,7 +150,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
         <ul>
           {rejected.map((item) => (
             <li key={`${item.file.name}-${item.file.lastModified}`}>
-              {item.file.name}: {t(item.code === 'CORRUPT_IMAGE' ? 'adminImport.corruptFile' : item.code === 'ORIGINAL_TOO_LARGE' ? 'adminImport.originalTooLarge' : 'adminImport.unsupportedFile')}
+              {item.file.name}: {t(item.code === 'CORRUPT_IMAGE' ? 'adminImport.corruptFile' : item.code === 'DUPLICATE_IMAGE' ? 'adminImport.duplicateFile' : item.code === 'ORIGINAL_TOO_LARGE' ? 'adminImport.originalTooLarge' : 'adminImport.unsupportedFile')}
             </li>
           ))}
         </ul>
@@ -159,11 +159,12 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
   );
 }
 
-function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.failed' {
+function importErrorKey(error: unknown): 'adminImport.authExpired' | 'adminImport.galleryUnavailable' | 'adminImport.quota' | 'adminImport.duplicateConflict' | 'adminImport.failed' {
   if (!(error instanceof ImportRequestError)) return 'adminImport.failed';
   if (error.code === 'ADMIN_AUTH_REQUIRED') return 'adminImport.authExpired';
   if (error.code === 'EVENT_NOT_FOUND') return 'adminImport.galleryUnavailable';
   if (error.code === 'PHOTO_QUOTA_EXCEEDED') return 'adminImport.quota';
+  if (error.code === 'PHOTO_DUPLICATE_CONFLICT') return 'adminImport.duplicateConflict';
   return 'adminImport.failed';
 }
 

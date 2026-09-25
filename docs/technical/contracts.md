@@ -6,6 +6,7 @@ Original delivery and admin-selected gallery covers are recorded in [`ADR-009`](
 The shared favorites contract for protected galleries is recorded in [`ADR-010`](../decisions/ADR-010-private-gallery-shared-favorites.md).
 The separate retouch-selection, replacement, and locked-gallery index contract is recorded in [`ADR-011`](../decisions/ADR-011-private-retouch-selection-and-public-gallery-index.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
+Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 
 ## Platform boundaries
 
@@ -50,6 +51,7 @@ POST   /api/v1/admin/galleries
 PATCH  /api/v1/admin/galleries/:eventId
 DELETE /api/v1/admin/galleries/:eventId
 POST   /api/v1/admin/galleries/:eventId/imports
+POST   /api/v1/admin/galleries/:eventId/photo-duplicates
 POST   /api/v1/admin/imports/:importId/cancel
 POST   /api/v1/admin/imports/:importId/photos
 PUT    /api/v1/admin/photos/:photoId/variants/:variant

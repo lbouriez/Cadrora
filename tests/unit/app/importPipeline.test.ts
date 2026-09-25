@@ -73,6 +73,12 @@ class RecordingImportApi implements ImportApi {
 
   constructor(private readonly failChunk?: number) {}
 
+  checkDuplicates(eventId: string, hashes: string[]): Promise<string[]> {
+    void eventId;
+    void hashes;
+    return Promise.resolve([]);
+  }
+
   cancelImport(): Promise<void> { return Promise.resolve(); }
 
   createImport(eventId: string, request: ImportCreateRequest): Promise<Import> {
@@ -101,7 +107,7 @@ class RecordingImportApi implements ImportApi {
 
 function makeFiles(count: number): File[] {
   const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
-  return Array.from({ length: count }, (_, index) => new File([jpeg], `photo-${index + 1}.jpg`, { type: 'image/jpeg' }));
+  return Array.from({ length: count }, (_, index) => new File([jpeg, new Uint8Array([index & 255, index >> 8])], `photo-${index + 1}.jpg`, { type: 'image/jpeg' }));
 }
 
 function jpegWithOrientation(orientation: number): Uint8Array {
@@ -146,6 +152,51 @@ describe('ImportPipeline chunk journal and resume', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('skips identical files within one selection and hashes only future imports', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    const files = makeFiles(2);
+    const renamedCopy = new File([await files[0]!.arrayBuffer()], 'renamed.jpg', { type: 'image/jpeg' });
+    const encodedFiles: string[] = [];
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder(encodedFiles), journal });
+
+    const result = await pipeline.start('event-1', [files[0]!, renamedCopy, files[1]!]);
+
+    expect(result.rejected).toMatchObject([{ code: 'DUPLICATE_IMAGE', file: renamedCopy }]);
+    expect(api.created[0]?.totalPhotos).toBe(2);
+    expect(api.declared[0]?.photos).toHaveLength(2);
+    expect(api.declared[0]?.photos[0]?.sourceSha256).toMatch(/^[a-f0-9]{64}$/u);
+    expect(encodedFiles).toEqual([files[0]!.name, files[1]!.name]);
+  });
+
+  it('skips matching hashes already recorded in the same gallery before opening an import', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    vi.spyOn(api, 'checkDuplicates').mockImplementation((_eventId, hashes) => Promise.resolve(hashes.slice(0, 1)));
+    const files = makeFiles(2);
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+
+    const result = await pipeline.start('event-1', files);
+
+    expect(result.rejected).toMatchObject([{ code: 'DUPLICATE_IMAGE', file: files[0] }]);
+    expect(api.created[0]?.totalPhotos).toBe(1);
+    expect(api.declared[0]?.photos).toMatchObject([{ filename: files[1]!.name }]);
+  });
+
+  it('does not create an import when every selected file is already present', async () => {
+    const journal = new MemoryImportJournal();
+    const api = new RecordingImportApi();
+    vi.spyOn(api, 'checkDuplicates').mockImplementation((_eventId, hashes) => Promise.resolve(hashes));
+    const pipeline = new ImportPipeline({ api, createEncoder: () => createEncoder([]), journal });
+
+    const result = await pipeline.start('event-1', makeFiles(2));
+
+    expect(result.rejected).toHaveLength(2);
+    expect(result.rejected.every((item) => item.code === 'DUPLICATE_IMAGE')).toBe(true);
+    expect(api.created).toHaveLength(0);
+    expect(journal.job).toBeUndefined();
   });
 
   it('declares a 200-photo journal as exactly four ordered chunks of 50', async () => {

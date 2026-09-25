@@ -29,7 +29,7 @@ export interface ImportPipelineSnapshot {
 }
 
 export interface RejectedImportFile {
-  code: 'CORRUPT_IMAGE' | 'ORIGINAL_TOO_LARGE' | 'UNSUPPORTED_IMAGE';
+  code: 'CORRUPT_IMAGE' | 'DUPLICATE_IMAGE' | 'ORIGINAL_TOO_LARGE' | 'UNSUPPORTED_IMAGE';
   file: File;
 }
 
@@ -90,7 +90,35 @@ export class ImportPipeline {
     this.state = 'preparing';
     this.emit();
 
-    const prepared = await this.preflight(files, timeZone, keepOriginals);
+    let prepared: Awaited<ReturnType<ImportPipeline['preflight']>>;
+    try {
+      prepared = await this.preflight(files, timeZone, keepOriginals);
+      if (!replacementPhotoId && prepared.accepted.length > 0) {
+        const seen = new Set<string>();
+        const unique: typeof prepared.accepted = [];
+        for (const candidate of prepared.accepted) {
+          if (seen.has(candidate.sourceSha256)) prepared.rejected.push({ code: 'DUPLICATE_IMAGE', file: candidate.file });
+          else {
+            seen.add(candidate.sourceSha256);
+            unique.push(candidate);
+          }
+        }
+        const existing = new Set<string>();
+        for (let index = 0; index < unique.length; index += IMPORT_CHUNK_SIZE) {
+          const hashes = unique.slice(index, index + IMPORT_CHUNK_SIZE).map((candidate) => candidate.sourceSha256);
+          for (const hash of await this.options.api.checkDuplicates(eventId, hashes)) existing.add(hash);
+        }
+        prepared.accepted = unique.filter((candidate) => {
+          if (!existing.has(candidate.sourceSha256)) return true;
+          prepared.rejected.push({ code: 'DUPLICATE_IMAGE', file: candidate.file });
+          return false;
+        });
+      }
+    } catch (error) {
+      this.state = 'idle';
+      this.emit();
+      throw error;
+    }
     if (prepared.accepted.length === 0) {
       this.state = 'idle';
       this.emit();
@@ -195,7 +223,7 @@ export class ImportPipeline {
   }
 
   private async preflight(files: File[], timeZone: string, keepOriginals: boolean): Promise<{
-    accepted: (ValidatedImageFile & { sourceIndex: number })[];
+    accepted: (ValidatedImageFile & { sourceIndex: number; sourceSha256: string })[];
     rejected: RejectedImportFile[];
   }> {
     const results = await mapWithConcurrency(files, 2, async (file, sourceIndex) => {
@@ -203,7 +231,10 @@ export class ImportPipeline {
         if (keepOriginals && file.size > 100 * 1024 * 1024) {
           return { error: { code: 'ORIGINAL_TOO_LARGE' as const }, file, sourceIndex } as const;
         }
-        return { sourceIndex, validated: await validateImageFile(file, timeZone) } as const;
+        const validated = await validateImageFile(file, timeZone);
+        const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
+        const sourceSha256 = [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+        return { sourceIndex, validated, sourceSha256 } as const;
       } catch (error) {
         if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) {
           return { error, file, sourceIndex } as const;
@@ -212,11 +243,11 @@ export class ImportPipeline {
       }
     });
 
-    const accepted: (ValidatedImageFile & { sourceIndex: number })[] = [];
+    const accepted: (ValidatedImageFile & { sourceIndex: number; sourceSha256: string })[] = [];
     const rejected: RejectedImportFile[] = [];
     for (const result of results) {
-      if ('validated' in result) accepted.push({ ...result.validated, sourceIndex: result.sourceIndex });
-      else {
+      if ('validated' in result && result.sourceSha256) accepted.push({ ...result.validated, sourceIndex: result.sourceIndex, sourceSha256: result.sourceSha256 });
+      else if ('error' in result && result.error && result.file) {
         rejected.push({
           code: result.error.code === 'ORIGINAL_TOO_LARGE' ? 'ORIGINAL_TOO_LARGE' : result.error.code === 'CORRUPT_IMAGE' ? 'CORRUPT_IMAGE' : 'UNSUPPORTED_IMAGE',
           file: result.file,
@@ -397,7 +428,7 @@ async function originalVariant(file: File, photo: ImportJournalPhoto) {
 
 function buildChunks(
   importId: string,
-  files: (ValidatedImageFile & { sourceIndex: number })[],
+  files: (ValidatedImageFile & { sourceIndex: number; sourceSha256: string })[],
   now: string,
 ): ImportJournalChunk[] {
   const chunks: ImportJournalChunk[] = [];
@@ -411,6 +442,7 @@ function buildChunks(
       orientation: file.orientation,
       sourceIndex: file.sourceIndex,
       sortKey: String(file.sourceIndex).padStart(8, '0'),
+      sourceSha256: file.sourceSha256,
       state: 'pending',
       width: file.width,
     }));

@@ -43,6 +43,29 @@ describe('admin import routes', () => {
     expect(response.headers.get('Cache-Control')).toBeNull();
   });
 
+  it('returns only future-import hashes already present in the selected gallery', async () => {
+    const hash = 'b'.repeat(64);
+    const prepare = vi.fn((query: string) => ({
+      bind: (...values: unknown[]) => ({
+        first: () => Promise.resolve(query.includes('FROM events') ? { id: 'event-1' } : null),
+        all: () => {
+          expect(query).toContain('source_sha256');
+          expect(values).toEqual(['event-1', hash]);
+          return Promise.resolve({ results: [{ source_sha256: hash }] });
+        },
+      }),
+    }));
+    const database = { prepare } as unknown as D1Database;
+    const response = await authorizedApp().request('/api/v1/admin/galleries/event-1/photo-duplicates', {
+      body: JSON.stringify({ hashes: [hash] }),
+      headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+    }, bindings(database, {} as R2Bucket));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ existingHashes: [hash] });
+  });
+
   it('streams a MIME-checked upload to its derived R2 key with R2 SHA-256 validation', async () => {
     const media = jpegBytes();
     const checksum = 'a'.repeat(64);

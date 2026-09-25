@@ -12,6 +12,8 @@ import {
   ImportSchema,
   IdSchema,
   PhotoSchema,
+  PhotoDuplicateCheckRequestSchema,
+  PhotoDuplicateCheckResponseSchema,
   PhotoVariantNameSchema,
   RequiredPhotoVariantNames,
   VariantUploadHeadersSchema,
@@ -82,6 +84,21 @@ const adminImportRoutes = new Hono<AppEnv>();
 
 // PA owns one fail-closed authorization middleware for every admin feature.
 adminImportRoutes.use('*', requireAdmin);
+
+adminImportRoutes.post('/galleries/:eventId/photo-duplicates', async (context) => {
+  const eventId = parseInput(IdSchema, context.req.param('eventId'));
+  const payload = parseInput(PhotoDuplicateCheckRequestSchema, await readJson(context));
+  await assertGalleryWritable(context.env.DB, eventId);
+  const placeholders = payload.hashes.map(() => '?').join(', ');
+  const rows = await context.env.DB.prepare(
+    `SELECT DISTINCT source_sha256 FROM photos
+     WHERE event_id = ? AND source_sha256 IN (${placeholders})
+       AND state NOT IN ('deleting', 'deleted')`,
+  ).bind(eventId, ...payload.hashes).all<{ source_sha256: string }>();
+  return context.json(PhotoDuplicateCheckResponseSchema.parse({
+    existingHashes: rows.results.map((row) => row.source_sha256),
+  }));
+});
 
 adminImportRoutes.post('/galleries/:eventId/imports', async (context) => {
   const eventId = parseInput(IdSchema, context.req.param('eventId'));
@@ -189,7 +206,8 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
     throw new ApiException('IMPORT_TOTAL_EXCEEDED', 'errors.importTotalExceeded', 409);
   }
   const limit = requiredLimit(context.env.MAX_PHOTOS_PER_EVENT, 'MAX_PHOTOS_PER_EVENT');
-  if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit + ((await importReplacementPhotoId(context.env.DB, importId)) ? 1 : 0)) {
+  const replacementPhotoId = await importReplacementPhotoId(context.env.DB, importId);
+  if ((await countEventPhotos(context.env.DB, imported.eventId)) + newPhotos.length > limit + (replacementPhotoId ? 1 : 0)) {
     throw new ApiException('PHOTO_QUOTA_EXCEEDED', 'errors.photoQuotaExceeded', 413);
   }
 
@@ -208,8 +226,25 @@ adminImportRoutes.post('/imports/:importId/photos', async (context) => {
       .prepare("UPDATE imports SET state = 'processing', updated_at = ? WHERE id = ? AND state IN ('pending', 'paused', 'processing')")
       .bind(now, importId),
   ];
-  for (const photo of newPhotos) statements.push(insertPhoto(context.env.DB, imported.eventId, importId, photo, now));
-  await context.env.DB.batch(statements);
+  for (const photo of newPhotos) statements.push(insertPhoto(context.env.DB, imported.eventId, importId, photo, now, Boolean(replacementPhotoId)));
+  try {
+    await context.env.DB.batch(statements);
+  } catch (error) {
+    // A concurrent import may reserve the same gallery/hash after preflight.
+    // Fail clearly and keep the journal resumable instead of reporting a 500.
+    const hashes = newPhotos.flatMap((photo) => photo.sourceSha256 ? [photo.sourceSha256] : []);
+    if (hashes.length > 0) {
+      const placeholders = hashes.map(() => '?').join(', ');
+      const duplicates = await context.env.DB.prepare(
+        `SELECT source_sha256 FROM photos WHERE event_id = ? AND source_sha256 IN (${placeholders})
+         AND state NOT IN ('deleting', 'deleted')`,
+      ).bind(imported.eventId, ...hashes).all<{ source_sha256: string }>();
+      if (duplicates.results.length > 0) {
+        throw new ApiException('PHOTO_DUPLICATE_CONFLICT', 'errors.photoDuplicateConflict', 409, { cause: error });
+      }
+    }
+    throw error;
+  }
 
   const refreshed = await getImport(context.env.DB, importId);
   if (!refreshed) throw new ApiException('IMPORT_NOT_FOUND', 'errors.importNotFound', 404);
@@ -476,13 +511,14 @@ function insertPhoto(
   importId: string,
   photo: PhotoDeclaration,
   now: string,
+  replacementStaging: boolean,
 ): D1PreparedStatement {
   return database
     .prepare(
       `INSERT INTO photos (
         id, event_id, import_id, filename, content_type, width, height, captured_at, moment_id, sort_key,
-        revision, state, face_state, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'pending', 'disabled', ?, ?)`,
+        revision, state, face_state, source_sha256, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'pending', 'disabled', ?, ?, ?)`,
     )
     .bind(
       photo.id,
@@ -495,6 +531,7 @@ function insertPhoto(
       photo.capturedAt ?? null,
       null,
       photo.sortKey,
+      replacementStaging ? null : (photo.sourceSha256 ?? null),
       now,
       now,
     );
