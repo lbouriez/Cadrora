@@ -16,6 +16,7 @@ import { replaceFavoritePhoto } from './adminEventsApi';
 
 export interface ImportPageProps {
   eventId: string;
+  galleryTitle: string;
   keepOriginals: boolean;
   faceSearchEnabled?: boolean;
   timezone: string;
@@ -30,7 +31,7 @@ const INITIAL_SNAPSHOT: ImportPipelineSnapshot = {
 };
 
 /** Admin import screen; mount from the PA admin route at `/admin/galleries/:eventId/import`. */
-export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, timezone, replacementPhotoId }: ImportPageProps) {
+export function ImportPage({ eventId, galleryTitle, keepOriginals, faceSearchEnabled = false, timezone, replacementPhotoId }: ImportPageProps) {
   const { t } = useTranslation();
   const pipeline = useRef<ImportPipeline | undefined>(undefined);
   const [snapshot, setSnapshot] = useState<ImportPipelineSnapshot>(INITIAL_SNAPSHOT);
@@ -113,7 +114,7 @@ export function ImportPage({ eventId, keepOriginals, faceSearchEnabled = false, 
 
   return (
     <section aria-labelledby="import-title" className="admin-import">
-      <h1 id="import-title">{t(replacementPhotoId ? 'adminImport.replacementTitle' : 'adminImport.start')}</h1>
+      <h1 id="import-title">{replacementPhotoId ? t('adminImport.replacementTitle') : t('adminImport.start', { gallery: galleryTitle })}</h1>
       {replacementPhotoId ? <p>{t('adminImport.replacementDescription')}</p> : null}
       {replacementPhotoId && faceSearchEnabled ? <p className="admin-card__description">{t('adminImport.replacementFaceWarning')}</p> : null}
       <Dropzone

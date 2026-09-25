@@ -104,7 +104,7 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
   if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
-      <ImportPage eventId={eventId} keepOriginals={gallery.keepOriginals} faceSearchEnabled={gallery.faceSearchEnabled} timezone={gallery.timezone} {...(replacementPhotoId ? { replacementPhotoId } : {})} />
+      <ImportPage eventId={eventId} galleryTitle={gallery.title} keepOriginals={gallery.keepOriginals} faceSearchEnabled={gallery.faceSearchEnabled} timezone={gallery.timezone} {...(replacementPhotoId ? { replacementPhotoId } : {})} />
       {summary.data ? (
         <PublishPanel
           eventId={eventId}

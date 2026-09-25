@@ -155,7 +155,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
     dispatchEvent(new PopStateEvent('popstate'));
   }, eventId);
 
-  await expect(page.getByRole('heading', { name: /démarrer l'importation|start import/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /démarrer l'importation pour Resume test|start import for Resume test/i })).toBeVisible();
   const resume = page.getByRole('button', { name: /reprendre l'importation|resume import/i });
   await expect(resume).toBeVisible();
 
