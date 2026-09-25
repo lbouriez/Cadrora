@@ -263,7 +263,10 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
   const storageKey = `events/${photo.eventId}/photos/${photo.id}/${photo.revision}/${variant}.${extension}`;
   let stored: R2Object | null;
   try {
-    stored = await context.env.MEDIA_BUCKET.put(storageKey, inspected.stream, {
+    // Prefix inspection creates an ordinary stream and loses the incoming
+    // request body's known length. R2 requires a known-length stream for put().
+    stored = await context.env.MEDIA_BUCKET.put(storageKey,
+      inspected.stream.pipeThrough(new FixedLengthStream(headers.byteSize)), {
       customMetadata: { checksumSha256: headers.checksumSha256 },
       httpMetadata: { contentType: headers.contentType },
       // R2 validates the digest while consuming the stream, avoiding a second full-body buffer in the Worker.

@@ -1,12 +1,26 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiErrorSchema } from '../../../src/shared/schemas';
 import { errorBoundary } from '../../../src/server/middleware';
 import { registerAdminImportRoutes } from '../../../src/server/routes/admin/imports';
 import type { AppEnv } from '../../../src/server/types';
 
+const fixedLengthBodies = new WeakMap<ReadableStream<Uint8Array>, number>();
+
 describe('admin import routes', () => {
+  beforeEach(() => {
+    // Node's generic streams lack R2's known-length marker. Model the Worker
+    // primitive so the fake bucket can reject a plain ReadableStream.
+    vi.stubGlobal('FixedLengthStream', class extends TransformStream<Uint8Array, Uint8Array> {
+      constructor(length: number) {
+        super();
+        fixedLengthBodies.set(this.readable, length);
+      }
+    });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
   it('fails closed before accessing D1 or R2 when no verified admin is present', async () => {
     const testApp = new Hono<AppEnv>();
     testApp.use('*', async (context, next) => {
@@ -35,6 +49,7 @@ describe('admin import routes', () => {
     const database = variantDatabase();
     const put = vi.fn(async (_key: string, body: ReadableStream<Uint8Array>, options: R2PutOptions) => {
       expect(body).toBeInstanceOf(ReadableStream);
+      expect(fixedLengthBodies.get(body)).toBe(media.byteLength);
       expect(options.sha256).toBe(checksum);
       const received = new Uint8Array(await new Response(body).arrayBuffer());
       expect(received).toEqual(media);
