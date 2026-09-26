@@ -75,6 +75,7 @@ See [Cloudflare free limits, assumptions, calculations, and sensitivity examples
 
 | If you want to… | Read… |
 | --- | --- |
+| Browse the available features and flags | [Feature catalogue](docs/features.md) |
 | Deploy or upgrade your own site | [Deployment guide](docs/deployment.md), [after-deployment checklist](docs/after-deployment.md), and [upgrading](docs/upgrading.md) |
 | Understand costs and safe limits | [Free-tier and cost planning](docs/free-tier.md) |
 | Run galleries and customise settings | [Admin guide](docs/admin-guide.md) |
