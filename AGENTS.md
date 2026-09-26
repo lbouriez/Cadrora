@@ -20,6 +20,7 @@ This file applies to the entire repository. Read it before changing code.
 - Keep secrets in Cloudflare secrets/bindings only. Never log or commit a secret, selfie, raw biometric vector, or credential.
 - Authentication and authorization are enforced by the Worker for API and media routes on every hostname, including previews and `workers.dev`.
 - D1 is the reference state. Cross-service work is idempotent and repaired through `maintenance_jobs`.
+- Every media variant URL the public UI can emit must have a matching D1 row and R2 object at the published photo revision, including seeded demo covers. See `docs/technical/media-and-publication.md`.
 - The browser never uploads a face-search selfie. Facial embeddings are gallery-scoped biometric data with an expiry. Internal `event` identifiers and `/api/v1/events/*` routes are retained for compatibility; user-facing copy says “gallery”.
 - Reversible offline state and permanent deletion are separate operations. Deletion fences access in D1 first, then cleans only D1-derived R2 and Vectorize records through retryable maintenance jobs; never delete shared model objects.
 - A missing secret, binding, auth proof, or access classification fails closed.

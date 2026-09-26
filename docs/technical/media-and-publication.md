@@ -2,6 +2,10 @@
 
 Package PD owns media streaming, publication readiness, D1-first deletion, provider cleanup, and usage reporting.
 
+## Published variant integrity
+
+Every media URL emitted by the public UI must resolve to a variant recorded in D1 **and** an object in the instance's private R2 bucket at the published photo revision. The gallery cover component derives `thumb`, `small`, and `medium` URLs from a public `medium` cover URL, so publishing or seeding that cover requires all three variants. Ordinary browser imports finalize only after all five prepared variants exist. The opt-in fictional showcase seed has its own files and D1 rows: its 960 px `medium` bytes also serve as a distinct `small` object and row, because no upscaling is needed. Upload seed objects before inserting their D1 rows, and verify public GETs for each cover variant after deployment. A D1 row alone does not prove its R2 object exists.
+
 ## Media request
 
 `GET /media/:eventId/:photoId/:revision/:variant` validates the path, looks up a published event/photo/variant join in D1, checks the current event grant when protected, checks download permission, and only then asks R2 for the D1-derived key. The response streams the R2 body and never buffers it as an `ArrayBuffer`.

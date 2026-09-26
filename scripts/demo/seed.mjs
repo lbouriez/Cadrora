@@ -34,6 +34,25 @@ const objectKeyByFile = new Map([
   ['private-newborn-large.webp', 'demo/private/newborn/1/large.webp'],
 ]);
 
+/** Every published demo photo needs the thumb/small/medium URLs used by the public gallery UI. */
+export function demoMediaUploads(files) {
+  const selected = files.filter((file) => objectKeyByFile.has(file)).sort();
+  if (selected.length !== objectKeyByFile.size) {
+    throw new Error('Demo media is incomplete. Restore every tracked file under demo/seed/media.');
+  }
+  return selected.flatMap((file) => {
+    const key = objectKeyByFile.get(file);
+    if (!key) throw new Error(`Missing demo media key for ${file}.`);
+    const uploads = [{ file, key }];
+    if (file.endsWith('-medium.webp')) {
+      // The seeded medium files are already 960 px wide, so they are also the
+      // correct no-upscale small variant. R2 and D1 still need distinct keys.
+      uploads.push({ file, key: key.replace(/\/medium\.webp$/u, '/small.webp') });
+    }
+    return uploads;
+  });
+}
+
 for (let number = 1; number <= 19; number += 1) {
   const photo = String(number).padStart(2, '0');
   for (const variant of ['thumb', 'medium', 'large']) {
@@ -127,17 +146,11 @@ export async function seedDemoContent(target, configPath, environment = process.
   const bucketName = environment[bucketVariable]?.trim();
   if (!bucketName) throw new Error(`Demo seeding requires ${bucketVariable}.`);
 
-  const files = await readdir(mediaDirectory);
-  const selected = files.filter((file) => objectKeyByFile.has(file)).sort();
-  if (selected.length !== objectKeyByFile.size) {
-    throw new Error('Demo media is incomplete. Restore every tracked file under demo/seed/media.');
-  }
-
-  process.stdout.write(`Uploading ${selected.length} generated demo variants to the private media bucket.\n`);
-  for (const file of selected) {
-    const objectKey = objectKeyByFile.get(file);
+  const uploads = demoMediaUploads(await readdir(mediaDirectory));
+  process.stdout.write(`Uploading ${uploads.length} generated demo variants to the private media bucket.\n`);
+  for (const { file, key } of uploads) {
     await putDemoObject([
-      'r2', 'object', 'put', `${bucketName}/${objectKey}`,
+      'r2', 'object', 'put', `${bucketName}/${key}`,
       '--file', join(mediaDirectory, file),
       '--content-type', 'image/webp',
       '--force',

@@ -242,6 +242,30 @@ ON CONFLICT(photo_id, variant) DO UPDATE SET
   checksum_sha256 = excluded.checksum_sha256,
   created_at = excluded.created_at;
 
+-- The showcase files called medium are at most 960 px wide. Store the same
+-- prepared bytes at a distinct small key: public cover srcsets request it.
+-- This repairs existing demo rows idempotently without touching owner photos.
+INSERT INTO photo_variants (
+  photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256, created_at
+)
+SELECT medium.photo_id, 'small', replace(medium.storage_key, '/medium.webp', '/small.webp'),
+       medium.content_type, medium.byte_size, medium.width, medium.height,
+       medium.checksum_sha256, medium.created_at
+FROM photo_variants AS medium
+JOIN photos AS photo ON photo.id = medium.photo_id
+WHERE medium.variant = 'medium'
+  AND photo.event_id IN ('demo-public', 'demo-private', 'demo-ai-face-search')
+  AND medium.storage_key LIKE 'demo/%/1/medium.webp'
+  AND medium.width <= 960
+ON CONFLICT(photo_id, variant) DO UPDATE SET
+  storage_key = excluded.storage_key,
+  content_type = excluded.content_type,
+  byte_size = excluded.byte_size,
+  width = excluded.width,
+  height = excluded.height,
+  checksum_sha256 = excluded.checksum_sha256,
+  created_at = excluded.created_at;
+
 DELETE FROM usage_counters WHERE key = '__demo_seed_assertion__';
 
 INSERT INTO usage_counters (key, value, updated_at)
@@ -261,5 +285,5 @@ WHERE NOT (
     'demo-ai-06', 'demo-ai-07', 'demo-ai-08', 'demo-ai-09', 'demo-ai-10',
     'demo-ai-11', 'demo-ai-12', 'demo-ai-13', 'demo-ai-14', 'demo-ai-15',
     'demo-ai-16', 'demo-ai-17', 'demo-ai-18', 'demo-ai-19'
-  )) = 83
+  )) = 109
 );
