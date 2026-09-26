@@ -57,7 +57,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
               contact_phone = ?8, contact_address = ?9, service_area = ?10,
               map_center_latitude = ?11, map_center_longitude = ?12,
               map_radius_km = ?13, enabled_services = ?14,
-              site_name = ?15, updated_at = ?16
+              site_name = ?15, home_galleries_enabled = ?16,
+              home_galleries_limit = ?17, updated_at = ?18
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
@@ -75,6 +76,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       input.data.map.radiusKm,
       JSON.stringify(input.data.enabledServices),
       input.data.siteName,
+      Number(input.data.homeGalleries.enabled),
+      input.data.homeGalleries.limit,
       updatedAt,
     ).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);

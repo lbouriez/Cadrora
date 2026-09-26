@@ -4,12 +4,14 @@ import { IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';
 
 export const EventVisibilitySchema = z.enum(['draft', 'published', 'unlisted']);
 export const EventAccessSchema = z.enum(['public', 'protected']);
+export const GalleryServiceSchema = z.enum(['wedding', 'family', 'portrait', 'maternity', 'brand', 'work', 'kids', 'events', 'other']);
 
 export const EventSchema = z.object({
   id: IdSchema,
   slug: SlugSchema,
   title: z.string().min(1).max(160),
   description: z.string().max(5_000).nullable(),
+  service: GalleryServiceSchema.nullable(),
   startsAt: IsoDateTimeSchema,
   timezone: z.string().min(1).max(100),
   coverPhotoId: IdSchema.nullable(),

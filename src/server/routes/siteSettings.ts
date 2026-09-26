@@ -8,6 +8,8 @@ export interface SiteSettingsRow {
   default_language: 'fr' | 'en';
   enabled_languages: string;
   enabled_services: string;
+  home_galleries_enabled: number;
+  home_galleries_limit: number;
   map_center_latitude: number | null;
   map_center_longitude: number | null;
   map_radius_km: number | null;
@@ -18,7 +20,8 @@ export interface SiteSettingsRow {
 }
 
 export const SITE_SETTINGS_SELECT = `SELECT site_name, default_language, enabled_languages,
-  enabled_services, contact_email, contact_phone, contact_address, service_area,
+  enabled_services, home_galleries_enabled, home_galleries_limit,
+  contact_email, contact_phone, contact_address, service_area,
   map_center_latitude, map_center_longitude, map_radius_km,
   theme_mode, analytics_measurement_id, updated_at FROM site_settings WHERE id = 1`;
 
@@ -32,6 +35,10 @@ export function siteSettingsFromRow(row: SiteSettingsRow) {
     defaultLanguage: row.default_language,
     enabledLanguages: JSON.parse(row.enabled_languages) as unknown,
     enabledServices: JSON.parse(row.enabled_services) as unknown,
+    homeGalleries: {
+      enabled: row.home_galleries_enabled === 1,
+      limit: row.home_galleries_limit,
+    },
     map: {
       centerLatitude: row.map_center_latitude,
       centerLongitude: row.map_center_longitude,

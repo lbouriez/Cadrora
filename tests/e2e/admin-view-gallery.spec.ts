@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures';
 
 const gallery = {
-  id: 'private-gallery-1', slug: 'private-gallery', title: 'Private gallery', description: null,
+  id: 'private-gallery-1', slug: 'private-gallery', title: 'Private gallery', description: null, service: null,
   startsAt: '2030-01-01T00:00:00.000Z', timezone: 'UTC', coverPhotoId: null,
   visibility: 'published', offlineAt: null, deletingAt: null, access: 'protected',
   allowDownloads: false, faceSearchEnabled: false, nearbySearchEnabled: false,

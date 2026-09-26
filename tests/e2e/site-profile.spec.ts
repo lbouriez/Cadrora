@@ -4,7 +4,7 @@ test.skip(process.env.CADRORA_SITE !== 'atelier-giulia', 'Run with CADRORA_SITE=
 
 test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
-  await page.route('**/api/v1/galleries', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [] }) }));
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }) }));
   await page.goto('/');
 
   await expect(page).toHaveTitle('Atelier Giulia');
@@ -43,11 +43,12 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
       contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       enabledServices: ['wedding'], analyticsMeasurementId: 'G-ABCDEF12', themeMode: 'light',
+      homeGalleries: { enabled: true, limit: 6 },
       updatedAt: '2026-09-25T00:00:00.000Z',
     }) });
   });
-  await page.route('**/api/v1/galleries', (route) => route.fulfill({
-    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [] }),
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
   }));
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
@@ -60,4 +61,76 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
   const afterConsent = await page.locator('.privacy-consent').boundingBox();
   expect(Math.abs((afterConsent?.y ?? 0) - (beforeConsent?.y ?? 0))).toBeLessThan(1);
   expect(Math.abs((afterConsent?.height ?? 0) - (beforeConsent?.height ?? 0))).toBeLessThan(1);
+});
+
+test('home stories obey their visibility and limit while the directory stays complete', async ({ page }) => {
+  let enabled = true;
+  const createdAt = '2026-09-26T12:00:00.000Z';
+  const gallery = (id: string, title: string, startsAt: string) => ({
+    id, slug: id, title, description: null, service: null, startsAt, timezone: 'America/Toronto',
+    coverPhotoId: null, visibility: 'published', access: 'public', allowDownloads: false,
+    faceSearchEnabled: false, nearbySearchEnabled: false, showPhotoMetadata: false,
+    retouchSelectionEnabled: false, retentionDays: null, revision: 1,
+    createdAt, updatedAt: createdAt, coverPhotoUrl: null,
+  });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled, limit: 2 }, updatedAt: createdAt,
+  }) }));
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    events: [
+      gallery('older', 'Older story', '2020-01-01T12:00:00.000Z'),
+      gallery('newer', 'Newer story', '2022-01-01T12:00:00.000Z'),
+      gallery('middle', 'Middle story', '2021-01-01T12:00:00.000Z'),
+    ],
+    protectedGalleries: [], nextCursor: null,
+  }) }));
+
+  await page.goto('/');
+  await expect(page.locator('#galleries .event-card h3')).toHaveText(['Newer story', 'Middle story']);
+  await page.goto('/galleries');
+  await expect(page.locator('.event-card h3')).toHaveText(['Newer story', 'Middle story', 'Older story']);
+
+  enabled = false;
+  await page.goto('/');
+  await expect(page.locator('#galleries')).toHaveCount(0);
+  await page.goto('/galleries');
+  await expect(page.locator('.event-card')).toHaveCount(3);
+});
+
+test('gallery directory fetches one bounded page and loads more on scroll', async ({ page }) => {
+  const createdAt = '2026-09-26T12:00:00.000Z';
+  const gallery = (index: number) => ({
+    id: `gallery-${String(index).padStart(3, '0')}`, slug: `gallery-${String(index).padStart(3, '0')}`,
+    title: `Story ${index}`, description: null, service: index === 0 ? 'wedding' : null,
+    startsAt: new Date(Date.UTC(2026, 8, 26 - index, 12)).toISOString(), timezone: 'America/Toronto',
+    coverPhotoId: null, coverPhotoUrl: null, visibility: 'published', access: 'public',
+    allowDownloads: false, faceSearchEnabled: false, nearbySearchEnabled: false,
+    showPhotoMetadata: false, retouchSelectionEnabled: false, retentionDays: null, revision: 1,
+    createdAt, updatedAt: createdAt,
+  });
+  const requests: string[] = [];
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => {
+    const url = new URL(route.request().url());
+    requests.push(url.search);
+    const next = url.searchParams.get('cursor') === 'page-2';
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      events: next ? [gallery(24)] : Array.from({ length: 24 }, (_, index) => gallery(index)),
+      protectedGalleries: [], nextCursor: next ? null : 'page-2',
+    }) });
+  });
+
+  await page.goto('/galleries');
+  await expect(page.locator('.event-card')).toHaveCount(24);
+  expect(requests).toHaveLength(1);
+  await page.locator('.gallery-load-sentinel').scrollIntoViewIfNeeded();
+  await expect(page.locator('.event-card')).toHaveCount(25);
+  expect(requests).toHaveLength(2);
+  expect(requests[0]).toContain('limit=24');
+  expect(requests[1]).toContain('cursor=page-2');
+  await expect(page.locator('.event-card').first().locator('.event-card__service')).toHaveText('Mariage');
+  await expect(page.getByRole('button', { name: /charger plus de galeries|load more galleries/i })).toHaveCount(0);
 });

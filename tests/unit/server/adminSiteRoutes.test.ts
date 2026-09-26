@@ -14,6 +14,8 @@ const row = {
   default_language: 'fr' as const,
   enabled_languages: '["fr","en"]',
   enabled_services: '["wedding","family","brand","corporate","children"]',
+  home_galleries_enabled: 1,
+  home_galleries_limit: 6,
   map_center_latitude: null,
   map_center_longitude: null,
   map_radius_km: null,
@@ -66,6 +68,7 @@ describe('admin site settings routes', () => {
       quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
       quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 },
       themeMode: 'both',
+      homeGalleries: { enabled: true, limit: 6 },
     });
     const response = await app.request('/api/v1/admin/site', {
       body: JSON.stringify({
@@ -76,6 +79,7 @@ describe('admin site settings routes', () => {
         defaultLanguage: 'en',
         enabledLanguages: ['en'],
         enabledServices: ['wedding', 'corporate'],
+        homeGalleries: { enabled: false, limit: 4 },
         map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
         quotas: { faceLimit: 2000, storageLimitBytes: 1000000000 },
         serviceArea: 'Greater Montréal',
@@ -90,7 +94,7 @@ describe('admin site settings routes', () => {
     expect(update.bind).toHaveBeenCalledWith(
       'en', '["en"]', 'system', 1000000000, 2000, 'G-ABCDEF1234',
       'bonjour@example.test', '+1 514 555-0142', 'Montréal, Québec', 'Greater Montréal',
-      45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', expect.any(String),
+      45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', 0, 4, expect.any(String),
     );
   });
 
@@ -113,6 +117,7 @@ describe('admin site settings routes', () => {
         defaultLanguage: 'fr',
         enabledLanguages: ['fr'],
         enabledServices: ['wedding'],
+        homeGalleries: { enabled: true, limit: 6 },
         map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
         quotas: { faceLimit: 39001, storageLimitBytes: 1000000000 },
         serviceArea: null,

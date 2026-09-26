@@ -31,11 +31,13 @@ async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T
 }
 
 export async function getPublicEvents(): Promise<PublicEvent[]> {
-  return (await validatedFetch('/api/v1/galleries', PublicEventListSchema)).events;
+  return (await validatedFetch('/api/v1/galleries?access=public&limit=12', PublicEventListSchema)).events;
 }
 
-export async function getPublicGalleryIndex() {
-  return validatedFetch('/api/v1/galleries', PublicEventListSchema);
+export async function getPublicGalleryIndex(cursor?: string) {
+  const query = new URLSearchParams({ limit: '24' });
+  if (cursor) query.set('cursor', cursor);
+  return validatedFetch(`/api/v1/galleries?${query}`, PublicEventListSchema);
 }
 
 /** Optional runtime presentation setting; public pages retain a safe local fallback if it is unavailable. */

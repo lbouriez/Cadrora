@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,8 +9,28 @@ import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
 import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
+import { PublicEventCards } from '../../../src/app/public/PublicEventCards';
 import { installFindResources } from '../../../src/app/public/FindI18n';
 import { installPublicResources, publicResources } from '../../../src/app/public/i18n';
+
+const runtimeSettings = {
+  siteName: 'Studio', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+  contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+  map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+  enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
+  homeGalleries: { enabled: true, limit: 6 },
+  updatedAt: '2026-09-26T00:00:00.000Z',
+};
+
+function publicGallery(id: string, title: string, startsAt: string, createdAt: string) {
+  return {
+    id, slug: id, title, description: null, service: null, startsAt, timezone: 'America/Toronto',
+    coverPhotoId: null, visibility: 'published' as const, access: 'public' as const, allowDownloads: false,
+    faceSearchEnabled: false, nearbySearchEnabled: false, showPhotoMetadata: false,
+    retouchSelectionEnabled: false, retentionDays: null, revision: 1,
+    createdAt, updatedAt: createdAt, coverPhotoUrl: null,
+  };
+}
 
 beforeAll(() => {
   installPublicResources(i18n);
@@ -22,7 +42,7 @@ beforeEach(async () => {
   await i18n.changeLanguage('fr');
 });
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 function renderPage(page: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -54,12 +74,61 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
   });
 
+  it('shows only the configured number of newest event dates on the home page', async () => {
+    const galleries = [
+      publicGallery('older', 'Older event', '2020-01-01T12:00:00.000Z', '2026-09-26T03:00:00.000Z'),
+      publicGallery('newer', 'Newer event', '2022-01-01T12:00:00.000Z', '2026-09-26T01:00:00.000Z'),
+      publicGallery('middle', 'Middle event', '2021-01-01T12:00:00.000Z', '2026-09-26T02:00:00.000Z'),
+    ];
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site'
+        ? { ...runtimeSettings, homeGalleries: { enabled: true, limit: 2 } }
+        : { events: galleries, protectedGalleries: [], nextCursor: null },
+    ), { status: 200 }))));
+    renderPage(<HomePage />);
+
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Newer event' })).toBeTruthy());
+    const titles = [...document.querySelectorAll('.event-card h3')].map((title) => title.textContent);
+    expect(titles).toEqual(['Newer event', 'Middle event']);
+  });
+
+  it('interleaves public and protected cards by event date in the full directory', () => {
+    renderPage(<PublicEventCards
+      events={[
+        publicGallery('recent-public', 'Recent public', '2022-01-01T12:00:00.000Z', '2026-09-26T01:00:00.000Z'),
+        publicGallery('old-public', 'Old public', '2020-01-01T12:00:00.000Z', '2026-09-26T03:00:00.000Z'),
+      ]}
+      language="fr"
+      protectedGalleries={[{
+        id: 'middle-private', slug: 'middle-private', title: 'Middle private', description: null,
+        startsAt: '2021-01-01T12:00:00.000Z', createdAt: '2026-09-26T04:00:00.000Z', service: null,
+      }]}
+    />);
+    expect([...document.querySelectorAll('.event-card h3')].map((title) => title.textContent))
+      .toEqual(['Recent public', 'Middle private', 'Old public']);
+  });
+
+  it('hides home stories and keeps the gallery call to action usable', async () => {
+    const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site'
+        ? { ...runtimeSettings, homeGalleries: { enabled: false, limit: 2 } }
+        : { events: [], protectedGalleries: [], nextCursor: null },
+    ), { status: 200 })));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<HomePage />);
+
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('link', { name: 'Explorer les galeries en ligne' }).getAttribute('href')).toBe('/galleries');
+  });
+
   it('renders contact details supplied by D1 without a demo disclaimer', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
       contactEmail: 'studio@runtime.example', contactPhone: '+1 438 555-0199',
       contactAddress: '456 rue du Studio, Québec', serviceArea: 'Québec et Charlevoix',
       enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
+      homeGalleries: { enabled: true, limit: 6 },
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       updatedAt: '2026-09-23T00:00:00.000Z',
     }), { headers: { 'content-type': 'application/json' }, status: 200 })));

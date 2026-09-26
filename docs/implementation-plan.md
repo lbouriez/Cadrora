@@ -10,6 +10,10 @@ Post-plan extension (2026-09-24): ADR-013 adds build-time site profiles across t
 
 Post-plan extension (2026-09-25): ADR-015 adds browser-local public hearts across PB, and a protected-gallery retouch switch across PB/PD admin settings and shared schemas. Acceptance includes migration 020, server rejection after closure, retained admin selections, and public hearts surviving reload without a favorite API request.
 
+Post-plan extension (2026-09-26): ADR-021 changes public directory card ordering to event date and adds owner-controlled home stories visibility and a 1–12 card limit across PB, admin site settings, shared schemas, and D1 migration 024. Acceptance includes mixed public/protected order, a bounded home section, disabled-section behavior, FR/EN admin copy, and unchanged full-directory visibility.
+
+Post-plan extension (2026-09-26): ADR-022 adds bounded keyset pagination to the combined public/protected directory and an optional gallery service across PB, admin gallery forms, shared schemas, and D1 migration 025. Acceptance includes correct event-date order across page boundaries, a bounded home request, scroll-triggered loading with manual fallback, localized category labels, and no private media in protected previews.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

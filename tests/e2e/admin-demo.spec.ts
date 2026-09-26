@@ -5,6 +5,7 @@ const demoEvent = {
   slug: 'find-your-photos',
   title: 'Find your photos',
   description: 'Face search demonstration',
+  service: null,
   startsAt: '2026-09-20T15:00:00.000Z',
   timezone: 'America/Toronto',
   coverPhotoId: null,
@@ -68,6 +69,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
           serviceArea: 'Greater Montréal',
           map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
           enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
+          homeGalleries: { enabled: true, limit: 6 },
           analyticsMeasurementId: null,
           themeMode: 'both',
           quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
@@ -174,6 +176,14 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await faceLimit.fill('5000');
   await expect(storageLimit).toHaveValue('1.5');
   await expect(faceLimit).toHaveValue('5000');
+  const homeStories = page.getByRole('checkbox', { name: /show recent stories|afficher les histoires récentes/i });
+  const homeStoryLimit = page.getByRole('spinbutton', { name: /maximum galleries on the home page|nombre maximal de galeries sur l’accueil/i });
+  await expect(homeStories).toBeChecked();
+  await expect(homeStoryLimit).toHaveValue('6');
+  await homeStories.uncheck();
+  await homeStoryLimit.fill('4');
+  await expect(homeStories).not.toBeChecked();
+  await expect(homeStoryLimit).toHaveValue('4');
   await expect(page.getByRole('button', { name: /save public settings|enregistrer les réglages publics/i })).toBeDisabled();
   await expect(page.locator('.admin-shell__controls').getByRole('button')).toHaveCount(1);
 
@@ -183,6 +193,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   }, demoEvent.id);
   await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   await expect(page.locator('input[name="startsAt"]')).toHaveValue('2026-09-20');
+  const galleryService = page.getByRole('combobox', { name: /gallery service|service de la galerie/i });
+  await galleryService.selectOption('wedding');
+  await expect(galleryService).toHaveValue('wedding');
   const downloads = page.getByRole('checkbox', { name: /allow photo downloads|autoriser le téléchargement des photos/i });
   const originals = page.getByRole('checkbox', { name: /offer original files|proposer les fichiers originaux/i });
   await expect(downloads).not.toBeChecked();

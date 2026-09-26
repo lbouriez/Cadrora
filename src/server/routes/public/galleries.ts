@@ -11,6 +11,8 @@ import {
   PhotoFavoriteParamsSchema,
   PhotoRetouchRequestSchema,
   PhotoRetouchResponseSchema,
+  PublicGalleryCursorSchema,
+  PublicGalleryListQuerySchema,
   ProtectedGalleryPreviewSchema,
   PublicEventListSchema,
   PublicEventSchema,
@@ -39,18 +41,36 @@ const PhotoCursorSchema = z.object({
   revision: z.number().int().nonnegative(),
 });
 
-export function encodePhotoCursor(cursor: PhotoCursor): string {
-  return btoa(JSON.stringify(cursor)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
+type GalleryCursor = z.infer<typeof PublicGalleryCursorSchema>;
+
+function encodeCursor(value: unknown): string {
+  return btoa(JSON.stringify(value)).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
 }
 
-export function decodePhotoCursor(cursor: string): PhotoCursor {
+function decodeCursor<T>(cursor: string, schema: z.ZodType<T>): T {
   try {
     const encoded = cursor.replaceAll('-', '+').replaceAll('_', '/');
     const parsed: unknown = JSON.parse(atob(encoded.padEnd(Math.ceil(encoded.length / 4) * 4, '=')));
-    return PhotoCursorSchema.parse(parsed);
+    return schema.parse(parsed);
   } catch {
     throw new ApiException('INVALID_CURSOR', 'errors.invalidCursor', 400);
   }
+}
+
+export function encodePhotoCursor(cursor: PhotoCursor): string {
+  return encodeCursor(cursor);
+}
+
+export function decodePhotoCursor(cursor: string): PhotoCursor {
+  return decodeCursor(cursor, PhotoCursorSchema);
+}
+
+export function encodeGalleryCursor(cursor: GalleryCursor): string {
+  return encodeCursor(cursor);
+}
+
+export function decodeGalleryCursor(cursor: string): GalleryCursor {
+  return decodeCursor(cursor, PublicGalleryCursorSchema);
 }
 
 function validatedJson<T>(context: Context<AppEnv>, schema: z.ZodType<T>, value: unknown): Response {
@@ -81,28 +101,35 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
   const routes = new Hono<AppEnv>();
 
   routes.get('/galleries', async (context) => {
+    const input = PublicGalleryListQuerySchema.safeParse(context.req.query());
+    if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const { access, limit } = input.data;
+    const cursor = input.data.cursor ? decodeGalleryCursor(input.data.cursor) : null;
+    if (cursor && cursor.access !== access) throw new ApiException('INVALID_CURSOR', 'errors.invalidCursor', 400);
     const result = await context.env.DB.prepare(
       `SELECT e.*, cover.revision AS cover_revision FROM events e
-       LEFT JOIN photos cover ON cover.id = e.cover_photo_id AND cover.event_id = e.id
+       LEFT JOIN photos cover ON e.access = 'public' AND cover.id = e.cover_photo_id AND cover.event_id = e.id
          AND cover.state = 'published' AND EXISTS (
            SELECT 1 FROM photo_variants v WHERE v.photo_id = cover.id AND v.variant = 'medium'
          )
        WHERE e.visibility = 'published' AND e.offline_at IS NULL AND e.deleting_at IS NULL
-         AND e.show_on_gallery_page = 1 AND e.access = 'public'
-       ORDER BY e.created_at DESC, e.id ASC`,
-    ).all<EventRow & { cover_revision: number | null }>();
-    const protectedResult = await context.env.DB.prepare(
-      `SELECT id, slug, title, description, starts_at, created_at FROM events
-       WHERE visibility = 'published' AND access = 'protected' AND show_on_gallery_page = 1
-       AND offline_at IS NULL AND deleting_at IS NULL ORDER BY created_at DESC, id ASC`,
-    ).all<{ id: string; slug: string; title: string; description: string | null; starts_at: string; created_at: string }>();
+         AND e.show_on_gallery_page = 1 AND (?1 = 'all' OR e.access = 'public')
+         AND (?2 IS NULL OR e.starts_at < ?2 OR (e.starts_at = ?2 AND e.id > ?3))
+       ORDER BY e.starts_at DESC, e.id ASC LIMIT ?4`,
+    ).bind(access, cursor?.startsAt ?? null, cursor?.id ?? null, limit + 1)
+      .all<EventRow & { cover_revision: number | null }>();
+    const rows = result.results.slice(0, limit);
+    const last = rows.at(-1);
     applyCachePolicy(context, 'event-public');
     return validatedJson(context, PublicEventListSchema, {
-      events: result.results.map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
-      protectedGalleries: protectedResult.results.map((row) => ({
+      events: rows.filter((row) => row.access === 'public').map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
+      protectedGalleries: rows.filter((row) => row.access === 'protected').map((row) => ({
         id: row.id, slug: row.slug, title: row.title, description: row.description, startsAt: row.starts_at,
-        createdAt: row.created_at,
+        createdAt: row.created_at, service: row.service ?? null,
       })),
+      nextCursor: result.results.length > limit && last
+        ? encodeGalleryCursor({ access, startsAt: last.starts_at, id: last.id })
+        : null,
     });
   });
 
@@ -117,6 +144,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
       slug: event.slug,
       title: event.title,
       description: event.description,
+      service: event.service,
       startsAt: event.startsAt,
       createdAt: event.createdAt,
     });

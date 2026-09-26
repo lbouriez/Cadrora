@@ -402,14 +402,15 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       `INSERT INTO events (
         id, slug, title, description, starts_at, timezone, cover_photo_id,
         visibility, access, allow_downloads, face_search_enabled, nearby_search_enabled,
-        show_photo_metadata, retouch_selection_enabled, show_on_gallery_page, keep_originals, retention_days, revision, created_at, updated_at
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, 0, ?17, ?17)`,
+        show_photo_metadata, retouch_selection_enabled, show_on_gallery_page, keep_originals, retention_days, service,
+        revision, created_at, updated_at
+      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, NULL, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, 0, ?18, ?18)`,
     ).bind(
       id, slug, input.data.title, input.data.description ?? null, input.data.startsAt,
       input.data.timezone, input.data.visibility, input.data.access,
       Number(input.data.allowDownloads), Number(input.data.faceSearchEnabled),
       Number(input.data.nearbySearchEnabled), Number(input.data.showPhotoMetadata), Number(input.data.retouchSelectionEnabled),
-      Number(input.data.showOnGalleryPage), Number(input.data.keepOriginals), input.data.retentionDays, now,
+      Number(input.data.showOnGalleryPage), Number(input.data.keepOriginals), input.data.retentionDays, input.data.service, now,
     );
     const statements: D1PreparedStatement[] = [eventStatement];
     if (input.data.access === 'protected' && input.data.password) {
@@ -462,6 +463,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     };
     if (input.data.title !== undefined) add('title', input.data.title);
     if (input.data.description !== undefined) add('description', input.data.description);
+    if (input.data.service !== undefined) add('service', input.data.service);
     if (input.data.startsAt !== undefined) add('starts_at', input.data.startsAt);
     if (input.data.timezone !== undefined) add('timezone', input.data.timezone);
     if (input.data.access !== undefined) add('access', input.data.access);

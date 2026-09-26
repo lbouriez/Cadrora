@@ -5,12 +5,13 @@ const siteSettingsFixture = {
   contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
+  homeGalleries: { enabled: true, limit: 6 },
   analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-09-23T00:00:00.000Z',
 };
 
 test.describe('site vitrine statique', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route('**/api/v1/galleries', async (route) => {
+    await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, async (route) => {
       await route.fulfill({
         body: JSON.stringify({ code: 'E2E_GALLERY_OFFLINE', message: 'errors.serviceUnavailable', requestId: 'e2e' }),
         contentType: 'application/json',
@@ -24,9 +25,29 @@ test.describe('site vitrine statique', () => {
 
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/vos moments préférés|the moments you came for/i);
     await expect(page.getByRole('heading', { name: /des photos qui vous ressemblent|photos that feel like you/i })).toBeVisible();
-    await expect(page.getByRole('status')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
+    await expect(page.locator('.gallery-notice[role="status"]')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
     await expect(page.getByRole('link', { name: /retrouver des photos avec l’ia|find photos with ai/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
+  });
+
+  test('ouvre les nouvelles pages en haut après une navigation depuis le bas', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+    await page.goto('/');
+    const contactCta = page.locator('.site-contact-callout a[href="/contact"]');
+    await contactCta.scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await contactCta.click();
+    await expect(page).toHaveURL('/contact');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+    await page.locator('.public-footer a[href="/contact"]').click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+    await page.locator('.public-footer a[href="/privacy"]').click();
+    await expect(page).toHaveURL('/privacy');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   });
 
   test('publie les coordonnees sans formulaire ni dependance distante', async ({ page }) => {
@@ -238,12 +259,12 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   await page.route('**/media/demo-ai-face-search/demo-ai-01/0/*', async (route) => {
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#ad806a"/></svg>', contentType: 'image/svg+xml' });
   });
-  await page.route('**/api/v1/galleries', async (route) => {
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, async (route) => {
     await route.fulfill({
       body: JSON.stringify({
         events: [{
           id: 'demo-ai-face-search', slug: 'find-your-photos', title: 'Find your photos',
-          description: 'A portrait gallery', startsAt: '2026-09-20T15:00:00.000Z',
+          description: 'A portrait gallery', service: 'portrait', startsAt: '2026-09-20T15:00:00.000Z',
           timezone: 'America/Toronto', coverPhotoId: 'demo-ai-01', coverPhotoUrl: '/media/demo-ai-face-search/demo-ai-01/0/medium', visibility: 'published',
           access: 'public', allowDownloads: true, faceSearchEnabled: true,
           nearbySearchEnabled: true, showPhotoMetadata: true, retouchSelectionEnabled: true, retentionDays: null,
@@ -251,8 +272,9 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
         }],
         protectedGalleries: [{
           id: 'private-sample', slug: 'family-afternoon', title: 'A family afternoon', description: 'An afternoon worth keeping.',
-          startsAt: '2026-09-21T15:00:00.000Z', createdAt: '2026-09-19T15:00:00.000Z',
+          startsAt: '2026-09-21T15:00:00.000Z', createdAt: '2026-09-19T15:00:00.000Z', service: 'family',
         }],
+        nextCursor: null,
       }),
       contentType: 'application/json',
     });
@@ -268,7 +290,7 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
       contentType: 'application/json',
       body: JSON.stringify({
         id: 'private-sample', slug: 'family-afternoon', title: 'A family afternoon',
-        description: 'An afternoon worth keeping.', startsAt: '2026-09-21T15:00:00.000Z',
+        description: 'An afternoon worth keeping.', service: 'family', startsAt: '2026-09-21T15:00:00.000Z',
         createdAt: '2026-09-19T15:00:00.000Z',
       }),
     });
@@ -289,6 +311,8 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   await expect(page.locator('.event-card--protected')).toHaveCount(1);
   const protectedCard = page.locator('.event-card--protected');
   await expect(protectedCard.getByRole('heading', { name: 'A family afternoon' })).toBeVisible();
+  await expect(protectedCard.locator('.event-card__service')).toHaveText('Famille');
+  await expect(page.locator('.event-card:not(.event-card--protected) .event-card__service')).toHaveText('Portrait');
   await expect(protectedCard.getByText('An afternoon worth keeping.')).toBeVisible();
   await expect(protectedCard.locator('.progressive-photo__preview')).toHaveAttribute('src', '/brand/responsive/private-gallery-cover-320.webp');
   expect(await protectedCard.locator('img').evaluateAll((images) => images.every((image) => !image.getAttribute('src')?.startsWith('/media/')))).toBe(true);

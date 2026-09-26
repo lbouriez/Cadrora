@@ -1,13 +1,14 @@
 import { z } from '../zod';
 
-import { EventAccessSchema, EventSchema, EventVisibilitySchema } from './event';
-import { IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';
+import { EventAccessSchema, EventSchema, EventVisibilitySchema, GalleryServiceSchema } from './event';
+import { CursorSchema, IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';
 
 export const PublicEventSchema = EventSchema.pick({
   id: true,
   slug: true,
   title: true,
   description: true,
+  service: true,
   startsAt: true,
   timezone: true,
   coverPhotoId: true,
@@ -67,6 +68,7 @@ export const ProtectedGalleryPreviewSchema = z.object({
     slug: SlugSchema,
     title: EventSchema.shape.title,
     description: EventSchema.shape.description,
+    service: GalleryServiceSchema.nullable(),
     startsAt: IsoDateTimeSchema,
     createdAt: IsoDateTimeSchema,
 }).strict();
@@ -74,7 +76,20 @@ export const ProtectedGalleryPreviewSchema = z.object({
 export const PublicEventListSchema = z.object({
   events: z.array(PublicEventSchema),
   protectedGalleries: z.array(ProtectedGalleryPreviewSchema),
+  nextCursor: CursorSchema.nullable(),
 });
+
+export const PublicGalleryAccessSchema = z.enum(['all', 'public']);
+export const PublicGalleryCursorSchema = z.object({
+  access: PublicGalleryAccessSchema,
+  startsAt: IsoDateTimeSchema,
+  id: IdSchema,
+}).strict();
+export const PublicGalleryListQuerySchema = z.object({
+  access: PublicGalleryAccessSchema.default('all'),
+  cursor: CursorSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(48).default(24),
+}).strict();
 
 export const AdminEventSchema = EventSchema.extend({
   photoCount: z.number().int().nonnegative(),
@@ -126,6 +141,7 @@ export const CreateEventRequestSchema = z.object({
   title: z.string().trim().min(1).max(160),
   slug: SlugSchema.optional(),
   description: z.string().trim().max(5_000).nullable().optional(),
+  service: GalleryServiceSchema.nullable().default(null),
   startsAt: IsoDateTimeSchema,
   timezone: z.string().trim().min(1).max(100),
   visibility: EventVisibilitySchema.default('draft'),
@@ -155,6 +171,7 @@ export const UpdateEventRequestSchema = z.object({
   coverPhotoId: IdSchema.nullable().optional(),
   title: z.string().trim().min(1).max(160).optional(),
   description: z.string().trim().max(5_000).nullable().optional(),
+  service: GalleryServiceSchema.nullable().optional(),
   startsAt: IsoDateTimeSchema.optional(),
   timezone: z.string().trim().min(1).max(100).optional(),
   access: EventAccessSchema.optional(),
@@ -191,7 +208,6 @@ export const UnlockEventRequestSchema = z.object({
 
 export const UnlockEventResponseSchema = z.object({ unlocked: z.literal(true) });
 
-export const EventListQuerySchema = z.object({});
 export const PhotoListQuerySchema = z.object({
   cursor: z.string().min(1).max(2_048).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(40),

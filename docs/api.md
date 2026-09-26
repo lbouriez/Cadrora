@@ -10,7 +10,7 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-22. 
 | --- | --- |
 | Admin routes | Worker-verified password session or Cloudflare Access assertion. State-changing methods also need a same-origin `Origin` header. |
 | Protected event routes and protected media | Current signed event-grant cookie for the event and its access version. |
-| Public event routes | No grant, but only published public events are listable. |
+| Public event routes | No grant. Published public events and text-only previews of listed protected events are listable. |
 | Face search | Same event-access rule plus server-side facial-search eligibility. |
 
 ### Admin session routes
@@ -31,10 +31,10 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 
 | Method and path | Access | Input/result |
 | --- | --- | --- |
-| `GET /galleries` | Public | Lists published, online galleries enabled for public listing, newest by creation time. Public entries include `createdAt`; protected previews include `id`, `slug`, `title`, `startsAt`, `createdAt`, and `description`, but no cover or photo URL. |
-| `GET /site` | Public | Validated public `SiteSettings` singleton; the static portfolio does not depend on it. |
+| `GET /galleries?access=&cursor=&limit=` | Public | Lists published, online galleries enabled for public listing, newest by event date (`startsAt DESC`, then ID). `access` is `all` (default) or `public`; `limit` defaults to 24 and must be 1–48. Returns `{ events, protectedGalleries, nextCursor }`; pass `nextCursor` to load more. Protected previews contain only ID, slug, title, description, service, event date, and creation date, with no cover or photo URL. The home page uses `access=public&limit=12`. |
+| `GET /site` | Public | Validated public `SiteSettings` singleton, including `homeGalleries: { enabled, limit }`; the static portfolio does not depend on it. |
 | `GET /galleries/:eventId` | Public or grant | Public event metadata, or `401` for a protected event without access. `eventId` may be the stored ID or slug. |
-| `GET /galleries/:eventId/preview` | Public | Title, description, event date, and creation date of a published, online protected gallery, including one hidden from lists. No cover or photo URL. The full gallery still requires its password. |
+| `GET /galleries/:eventId/preview` | Public | Title, description, optional service, event date, and creation date of a published, online protected gallery, including one hidden from lists. No cover or photo URL. The full gallery still requires its password. |
 | `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
 | `GET /galleries/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
 | `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. Each item includes `storageBytes` and `photoCount`; the count excludes photo rows in `deleting` or `deleted` state. |
@@ -50,6 +50,7 @@ Gallery creation accepts:
   "title": "Required title",
   "slug": "optional-stable-slug",
   "description": "optional or null",
+  "service": "wedding",
   "startsAt": "2026-09-20T18:30:00.000Z",
   "timezone": "America/Toronto",
   "visibility": "draft",
@@ -66,6 +67,8 @@ Gallery creation accepts:
 ```
 
 Valid visibility values are `draft`, `published`, and `unlisted`; access values are `public` and `protected`. `showOnGalleryPage` defaults to `true` and controls inclusion in the site's public gallery lists, not direct-link access or photo authorization. `showPhotoMetadata` controls the authorized gallery viewer's filename, capture date/time, and dimensions panel and defaults to `false`. The capture instant comes from JPEG `DateTimeOriginal` plus its offset, or the gallery timezone when the camera omitted one; upload time is never substituted. Changing a protected password invalidates earlier grants by increasing the access version. A stale photo cursor returns `409` rather than silently changing page membership.
+
+`service` is optional and can be `null`, `wedding`, `family`, `portrait`, `maternity`, `brand`, `work`, `kids`, `events`, or `other`. The chosen category appears on the public gallery card.
 
 ## Imports and media ingress
 

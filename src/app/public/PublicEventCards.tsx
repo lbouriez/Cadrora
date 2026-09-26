@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import type { ProtectedGalleryPreview, PublicEvent } from '../../shared/schemas/gallery';
 import { MotionReveal, ProgressivePhoto } from '../components';
@@ -8,14 +9,16 @@ import { coverPhotoSources } from './coverPhotoSources';
 import { siteProfile } from './siteProfile';
 
 /** Shared live-gallery cards used by the landing and events pages. */
-export function PublicEventCards({ events, language, protectedGalleries = [] }: { events: PublicEvent[] | undefined; language: string; protectedGalleries?: ProtectedGalleryPreview[] }) {
+export function PublicEventCards({ events, language, limit, protectedGalleries = [] }: { events: PublicEvent[] | undefined; language: string; limit?: number; protectedGalleries?: ProtectedGalleryPreview[] }) {
+  const { t } = useTranslation();
   const cards = [
-    ...(events ?? []).map((event) => ({ kind: 'public' as const, event, createdAt: event.createdAt, id: event.id })),
-    ...protectedGalleries.map((gallery) => ({ kind: 'protected' as const, gallery, createdAt: gallery.createdAt, id: gallery.id })),
-  ].sort((left, right) => right.createdAt.localeCompare(left.createdAt) || left.id.localeCompare(right.id));
+    ...(events ?? []).map((event) => ({ kind: 'public' as const, event, startsAt: event.startsAt, id: event.id })),
+    ...protectedGalleries.map((gallery) => ({ kind: 'protected' as const, gallery, startsAt: gallery.startsAt, id: gallery.id })),
+  ].sort((left, right) => right.startsAt.localeCompare(left.startsAt) || left.id.localeCompare(right.id));
+  const visibleCards = limit === undefined ? cards : cards.slice(0, limit);
   return (
     <div className="event-list">
-      {cards.map((card, index) => {
+      {visibleCards.map((card, index) => {
         const gallery = card.kind === 'public' ? card.event : card.gallery;
         return <MotionReveal as="article" className={`event-card${card.kind === 'protected' ? ' event-card--protected' : ''}`} delay={(index % 3) as 0 | 1 | 2} key={gallery.id}>
           <Link className="event-card__tap" to={`/e/${card.kind === 'public' ? gallery.slug : gallery.id}`}>
@@ -24,6 +27,7 @@ export function PublicEventCards({ events, language, protectedGalleries = [] }: 
                 : card.event.coverPhotoUrl ? <ProgressivePhoto alt="" height={3} immediate={index < 2} priority={index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" sources={coverPhotoSources(card.event.coverPhotoUrl)} width={4} /> : <span aria-hidden="true" className="event-card__placeholder" />}
             </div>
             <div className="event-card__body">
+              {gallery.service ? <span className="event-card__service">{t(`gallery.category.${gallery.service}`)}</span> : null}
               <p className="event-card__date">{new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(new Date(gallery.startsAt))}</p>
               <h3>{gallery.title}</h3>
               {gallery.description ? <p>{gallery.description}</p> : null}

@@ -18,6 +18,10 @@ export const MapSettingsSchema = z.object({
   message: 'map center and radius must be configured together',
 });
 export const ContactEmailSchema = z.union([z.email(), z.literal('')]).nullable();
+export const HomeGalleriesSchema = z.object({
+  enabled: z.boolean(),
+  limit: z.number().int().min(1).max(12),
+});
 
 export const QuotaLimitsSchema = z.object({
   faceLimit: z.number().int().positive(),
@@ -42,6 +46,7 @@ export const SiteSettingsSchema = z.object({
   serviceArea: z.string().max(240).nullable(),
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
+  homeGalleries: HomeGalleriesSchema,
   analyticsMeasurementId: AnalyticsMeasurementIdSchema,
   themeMode: ThemeModeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -59,6 +64,7 @@ export const UpdateSiteSettingsSchema = z.object({
   serviceArea: z.string().max(240).nullable(),
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
+  homeGalleries: HomeGalleriesSchema,
   defaultLanguage: LanguageSchema,
   enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
     (languages) => new Set(languages).size === languages.length,

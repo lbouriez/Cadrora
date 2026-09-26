@@ -77,7 +77,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
       await route.fulfill({
         body: JSON.stringify({ events: [{
           access: 'public', allowDownloads: false, coverPhotoId: null,
-          createdAt: '2026-09-20T15:00:00.000Z', deletingAt: null, description: null,
+          createdAt: '2026-09-20T15:00:00.000Z', deletingAt: null, description: null, service: null,
           faceSearchEnabled: false, id: eventId, keepOriginals: false, nearbySearchEnabled: false,
           offlineAt: null, retentionDays: null, revision: 0, showPhotoMetadata: false, retouchSelectionEnabled: true, showOnGalleryPage: true,
           storageBytes: 0,

@@ -6,6 +6,7 @@ export interface EventRow {
   slug: string;
   title: string;
   description: string | null;
+  service?: Event['service'];
   starts_at: string;
   timezone: string;
   cover_photo_id: string | null;
@@ -32,6 +33,7 @@ export function eventFromRow(row: EventRow): Event {
     slug: row.slug,
     title: row.title,
     description: row.description,
+    service: row.service ?? null,
     startsAt: row.starts_at,
     timezone: row.timezone,
     coverPhotoId: row.cover_photo_id,
@@ -63,6 +65,7 @@ export function toPublicEvent(event: Event, coverRevision: number | null = null)
     slug: event.slug,
     title: event.title,
     description: event.description,
+    service: event.service,
     startsAt: event.startsAt,
     timezone: event.timezone,
     coverPhotoId: event.coverPhotoId,

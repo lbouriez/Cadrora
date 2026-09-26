@@ -31,7 +31,11 @@ export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents });
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const showHomeGalleries = settings.data?.homeGalleries.enabled ?? true;
   const featuredServices = serviceVisuals.filter(({ key }) => settings.data?.enabledServices.includes(key) ?? true).slice(0, 3);
+  const secondaryAction = !showHomeGalleries && siteProfile.home.secondaryAction.href === '#galleries'
+    ? { ...siteProfile.home.secondaryAction, href: '/galleries' }
+    : siteProfile.home.secondaryAction;
   return (
     <PublicLayout>
       <section className="site-hero">
@@ -41,7 +45,7 @@ export function DefaultHomePage() {
           <p className="site-hero__lead">{t('gallery.heroLead')}</p>
           <div className="site-actions">
             <SiteActionLink action={siteProfile.home.primaryAction} primary />
-            <SiteActionLink action={siteProfile.home.secondaryAction} primary={false} />
+            <SiteActionLink action={secondaryAction} primary={false} />
           </div>
           {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
             <span>{t('gallery.productProof.private')}</span>
@@ -107,7 +111,7 @@ export function DefaultHomePage() {
         <p>{t('gallery.approachBody')}</p>
       </MotionReveal> : null}
 
-      {section === 'galleries' ? <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
+      {section === 'galleries' && showHomeGalleries ? <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
         <div className="site-section__heading site-section__heading--row">
           <div>
             <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>
@@ -118,7 +122,7 @@ export function DefaultHomePage() {
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
         {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
         {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <PublicEventCards events={events.data} language={i18n.language} />
+        <PublicEventCards events={events.data} language={i18n.language} limit={settings.data?.homeGalleries.limit ?? 6} />
       </MotionReveal> : null}
 
       {section === 'contact' ? <MotionReveal as="section" className="site-contact-callout">

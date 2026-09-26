@@ -8,11 +8,12 @@ test('language choice stays visually aligned with navigation at desktop and phon
       contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+      homeGalleries: { enabled: true, limit: 6 },
       updatedAt: '2026-09-25T00:00:00.000Z',
     }),
   }));
-  await page.route('**/api/v1/galleries', (route) => route.fulfill({
-    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [] }),
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
   }));
 
   for (const width of [1280, 390]) {

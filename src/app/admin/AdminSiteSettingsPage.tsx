@@ -25,6 +25,7 @@ async function updateAdminSiteSettings(input: {
   defaultLanguage: Language;
   enabledLanguages: Language[];
   enabledServices: ServiceKey[];
+  homeGalleries: { enabled: boolean; limit: number };
   map: { centerLatitude: number | null; centerLongitude: number | null; radiusKm: number | null };
   quotas: QuotaLimits;
   serviceArea: string | null;
@@ -90,6 +91,7 @@ export function AdminSiteSettingsPage() {
     const storageLimitGb = Number(values.get('storageLimitGb'));
     const faceLimit = Number(values.get('faceLimit'));
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
+    const homeGalleryLimit = Number(values.get('homeGalleryLimit'));
     const siteName = formText(values, 'siteName');
     const contactEmail = formText(values, 'contactEmail');
     const contactPhone = formText(values, 'contactPhone');
@@ -100,7 +102,8 @@ export function AdminSiteSettingsPage() {
     const rawRadius = formText(values, 'mapRadiusKm');
     const mapComplete = Boolean(rawLatitude && rawLongitude && rawRadius);
     const mapEmpty = !rawLatitude && !rawLongitude && !rawRadius;
-    if ((!mapComplete && !mapEmpty) || enabledServices.length === 0) {
+    if ((!mapComplete && !mapEmpty) || enabledServices.length === 0
+      || !Number.isSafeInteger(homeGalleryLimit) || homeGalleryLimit < 1 || homeGalleryLimit > 12) {
       setFormError(true);
       return;
     }
@@ -116,6 +119,7 @@ export function AdminSiteSettingsPage() {
       defaultLanguage,
       enabledLanguages,
       enabledServices,
+      homeGalleries: { enabled: values.get('homeGalleriesEnabled') === 'on', limit: homeGalleryLimit },
       map: {
         centerLatitude: mapComplete ? Number(rawLatitude) : null,
         centerLongitude: mapComplete ? Number(rawLongitude) : null,
@@ -140,6 +144,7 @@ export function AdminSiteSettingsPage() {
         <a href="#admin-settings-website">{t('admin.settings.websiteSection')}</a>
         <a href="#admin-settings-quotas">{t('admin.settings.quotasSection')}</a>
         <a href="#admin-settings-services">{t('admin.settings.servicesSection')}</a>
+        <a href="#admin-settings-home-galleries">{t('admin.settings.homeGalleriesSection')}</a>
         <a href="#admin-settings-contact">{t('admin.settings.contactSection')}</a>
       </nav>
       <form className="admin-event-form" onSubmit={submit}>
@@ -237,6 +242,25 @@ export function AdminSiteSettingsPage() {
               </label>
             ))}
           </div>
+        </fieldset>
+        <fieldset className="admin-settings-section" id="admin-settings-home-galleries">
+          <legend>{t('admin.settings.homeGalleriesSection')}</legend>
+          <p className="admin-card__description">{t('admin.settings.homeGalleriesHint')}</p>
+          <label className="admin-settings-services__option">
+            <input defaultChecked={settings.data.homeGalleries.enabled} name="homeGalleriesEnabled" type="checkbox" />
+            <span>{t('admin.settings.homeGalleriesEnabled')}</span>
+          </label>
+          <Input
+            defaultValue={settings.data.homeGalleries.limit}
+            hint={t('admin.settings.homeGalleriesLimitHint')}
+            label={t('admin.settings.homeGalleriesLimit')}
+            max="12"
+            min="1"
+            name="homeGalleryLimit"
+            required
+            step="1"
+            type="number"
+          />
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-contact">
           <legend>{t('admin.settings.contactSection')}</legend>

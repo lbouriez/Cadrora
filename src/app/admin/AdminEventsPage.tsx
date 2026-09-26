@@ -10,6 +10,7 @@ import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, T
 import { useAdminAccess } from './AdminAccessContext';
 import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
 import { formatMediaStorage } from './formatMediaStorage';
+import { GalleryServiceField } from './GalleryServiceField';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 
@@ -104,6 +105,7 @@ export function AdminEventsPage() {
       description: typeof values.get('description') === 'string' && values.get('description')
         ? values.get('description')
         : null,
+      service: formString(values, 'service') || null,
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
@@ -182,6 +184,7 @@ export function AdminEventsPage() {
           <Input label={t('admin.events.title')} name="title" required />
           <Input label={t('admin.events.date')} name="startsAt" required type="date" />
           <Textarea className="admin-event-form__textarea" label={t('admin.events.description')} maxLength={5000} name="description" />
+          <GalleryServiceField value={null} />
           <Select label={t('admin.events.access')} onChange={(event) => setAccess(event.target.value as 'protected' | 'public')} value={access}>
               <option value="public">{t('admin.events.public')}</option>
               <option value="protected">{t('admin.events.protected')}</option>
@@ -297,6 +300,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       access,
       allowDownloads,
       description: formString(values, 'description').trim() || null,
+      service: formString(values, 'service') || null,
       faceSearchEnabled,
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
@@ -318,6 +322,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <Input defaultValue={event.title} label={t('admin.events.title')} name="title" required />
         <Input defaultValue={galleryDateValue(event.startsAt, event.timezone)} label={t('admin.events.date')} name="startsAt" required type="date" />
         <Textarea className="admin-event-form__textarea" defaultValue={event.description ?? ''} label={t('admin.events.description')} maxLength={5000} name="description" />
+        <GalleryServiceField value={event.service} />
         <Select label={t('admin.events.access')} onChange={(changeEvent) => setAccess(changeEvent.target.value as Event['access'])} value={access}>
             <option value="public">{t('admin.events.public')}</option>
             <option value="protected">{t('admin.events.protected')}</option>

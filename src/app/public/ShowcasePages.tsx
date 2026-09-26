@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { MotionReveal, Spinner } from '../components';
+import { Button, MotionReveal, Spinner } from '../components';
 import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicEventCards } from './PublicEventCards';
@@ -68,7 +69,28 @@ export function GalleriesPage() {
 
 export function DefaultGalleriesPage() {
   const { i18n, t } = useTranslation();
-  const events = useQuery({ queryKey: ['public-gallery-index'], queryFn: getPublicGalleryIndex });
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const events = useInfiniteQuery({
+    queryKey: ['public-gallery-index'],
+    queryFn: ({ pageParam }) => getPublicGalleryIndex(pageParam ?? undefined),
+    initialPageParam: null as string | null,
+    getNextPageParam: (page) => page.nextCursor,
+  });
+  const { fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage } = events;
+  const publicGalleries = events.data?.pages.flatMap((page) => page.events) ?? [];
+  const protectedGalleries = events.data?.pages.flatMap((page) => page.protectedGalleries) ?? [];
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasNextPage || isFetchingNextPage || isFetchNextPageError || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        void fetchNextPage();
+      }
+    }, { rootMargin: '700px 0px' });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
   return (
     <PublicLayout>
       <MotionReveal as="header" className="editorial-heading">
@@ -82,9 +104,14 @@ export function DefaultGalleriesPage() {
           <h2 id="published-events-title">{t('gallery.eventsPage.publishedTitle')}</h2>
         </div>
         {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
-        {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
-        {events.data?.events.length === 0 && events.data.protectedGalleries.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <PublicEventCards events={events.data?.events} language={i18n.language} protectedGalleries={events.data?.protectedGalleries ?? []} />
+        {events.isError && !events.data ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
+        {events.data && publicGalleries.length === 0 && protectedGalleries.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
+        <PublicEventCards events={publicGalleries} language={i18n.language} protectedGalleries={protectedGalleries} />
+        {events.hasNextPage ? <>
+          <div aria-hidden="true" className="gallery-load-sentinel" ref={loadMoreRef} />
+          {events.isFetchNextPageError ? <p className="gallery-notice" role="alert">{t('gallery.moreGalleriesUnavailable')}</p> : null}
+          {events.isFetchingNextPage ? <Spinner label={t('gallery.loading')} /> : <Button onClick={() => void events.fetchNextPage()}>{t('gallery.loadMoreGalleries')}</Button>}
+        </> : null}
       </section>
     </PublicLayout>
   );

@@ -51,6 +51,7 @@ describe('shared schemas', () => {
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'en'],
       enabledServices: ['wedding'],
+      homeGalleries: { enabled: true, limit: 6 },
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       quotas: { faceLimit: 100, storageLimitBytes: 1000 },
       serviceArea: null,
@@ -62,6 +63,8 @@ describe('shared schemas', () => {
     expect(UpdateSiteSettingsSchema.safeParse(settings).success).toBe(true);
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, analyticsMeasurementId: 'bad-id' }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, enabledServices: [] }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, homeGalleries: { enabled: true, limit: 13 } }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, homeGalleries: { enabled: false, limit: 0 } }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, map: { centerLatitude: 45.5, centerLongitude: null, radiusKm: 50 } }).success).toBe(false);
   });
 });

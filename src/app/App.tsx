@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useRoutes } from 'react-router-dom';
 
 import { publicRouteObjects } from './routes/publicRoutes';
+import { RouteScrollReset } from './routes/RouteScrollReset';
 import { Spinner } from './components';
 import { siteProfile } from './public/siteProfile';
 
@@ -40,7 +41,7 @@ function FoundationShell() {
 }
 
 export function App() {
-  return useRoutes([
+  const routes = useRoutes([
     { path: '/admin/login', element: adminElement(<AdminLoginRoute />) },
     { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
@@ -50,4 +51,5 @@ export function App() {
     ...publicRouteObjects,
     { path: '*', element: <FoundationShell /> },
   ]);
+  return <><RouteScrollReset />{routes}</>;
 }

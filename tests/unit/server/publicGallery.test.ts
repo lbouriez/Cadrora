@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { describe, expect, it, vi } from 'vitest';
 
 import { CACHE_CONTROL_BY_POLICY } from '../../../src/server/middleware/cacheHeaders';
+import { errorBoundary } from '../../../src/server/middleware/errorBoundary';
 import {
   hashEventPassword,
   isShowcasePrivateEventPassword,
@@ -10,20 +11,24 @@ import {
 } from '../../../src/server/routes/public/credentials';
 import { verifyPassword } from '../../../src/server/auth';
 import { photosFromRows } from '../../../src/server/routes/public/data';
-import { createPublicEventRoutes, decodePhotoCursor, encodePhotoCursor } from '../../../src/server/routes/public/galleries';
+import { createPublicEventRoutes, decodeGalleryCursor, decodePhotoCursor, encodeGalleryCursor, encodePhotoCursor } from '../../../src/server/routes/public/galleries';
 import { D1MediaRepository } from '../../../src/server/repositories/mediaRepository';
+import { PublicEventListSchema } from '../../../src/shared/schemas/gallery';
 import type { AppEnv } from '../../../src/server/types';
 
 describe('public gallery contracts', () => {
   const authPepper = 'test-auth-pepper-that-is-at-least-thirty-two-bytes';
 
   it('publishes protected event details without exposing a private cover or photo URL', async () => {
-    const prepare = vi.fn((sql: string) => ({
-      all: () => Promise.resolve({ results: sql.includes("e.access = 'public'") ? [] : [{
+    const statement = {
+      bind: vi.fn().mockReturnThis(),
+      all: vi.fn().mockResolvedValue({ results: [{
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
         starts_at: '2026-09-21T15:00:00.000Z', created_at: '2026-09-18T10:00:00.000Z',
+        access: 'protected', service: 'family',
       }] }),
-    }));
+    };
+    const prepare = vi.fn().mockReturnValue(statement);
     const app = new Hono<AppEnv>();
     app.route('/api/v1', createPublicEventRoutes());
     const response = await app.request('/api/v1/galleries', {}, {
@@ -35,19 +40,77 @@ describe('public gallery contracts', () => {
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
         startsAt: '2026-09-21T15:00:00.000Z',
         createdAt: '2026-09-18T10:00:00.000Z',
-      }],
+        service: 'family',
+      }], nextCursor: null,
     });
-    expect(prepare.mock.calls[1]?.[0]).not.toContain('cover_photo_id');
+    expect(prepare.mock.calls[0]?.[0]).toContain("e.access = 'public' AND cover.id");
     expect(prepare.mock.calls[0]?.[0]).toContain('e.show_on_gallery_page = 1');
-    expect(prepare.mock.calls[1]?.[0]).toContain('show_on_gallery_page = 1');
-    expect(prepare.mock.calls[0]?.[0]).toContain('ORDER BY e.created_at DESC');
-    expect(prepare.mock.calls[1]?.[0]).toContain('ORDER BY created_at DESC');
+    expect(prepare.mock.calls[0]?.[0]).toContain('ORDER BY e.starts_at DESC, e.id ASC LIMIT ?4');
+    expect(statement.bind).toHaveBeenCalledWith('all', null, null, 25);
   });
 
   it('round trips a stable sort key, id, and revision cursor', () => {
     const cursor = { sortKey: '2026-09-20T10:00:00.000Z', id: 'photo-2', revision: 7 };
     expect(decodePhotoCursor(encodePhotoCursor(cursor))).toEqual(cursor);
     expect(() => decodePhotoCursor('not-json')).toThrowError('errors.invalidCursor');
+  });
+
+  it('uses a bounded, shared cursor across public and protected gallery pages', async () => {
+    const startsAt = '2026-09-20T10:00:00.000Z';
+    const base = {
+      description: null, service: null, starts_at: startsAt, timezone: 'America/Toronto',
+      cover_photo_id: null, cover_revision: null, visibility: 'published',
+      allow_downloads: 0, face_search_enabled: 0, nearby_search_enabled: 0,
+      show_photo_metadata: 0, retouch_selection_enabled: 0, show_on_gallery_page: 1,
+      keep_originals: 0, retention_days: null, offline_at: null, deleting_at: null,
+      revision: 1, created_at: startsAt, updated_at: startsAt,
+    };
+    const rows = [
+      { ...base, id: 'a', slug: 'first', title: 'First', access: 'public', service: 'wedding' },
+      { ...base, id: 'b', slug: 'second', title: 'Second', access: 'protected', service: 'family' },
+      { ...base, id: 'c', slug: 'third', title: 'Third', access: 'public', service: null },
+    ];
+    const binds: unknown[][] = [];
+    const prepare = vi.fn((sql: string) => ({
+      bind: (...args: unknown[]) => {
+        expect(sql).toContain('ORDER BY e.starts_at DESC, e.id ASC');
+        binds.push(args);
+        return { all: () => Promise.resolve({ results: args[2] === 'b' ? rows.slice(2) : rows }) };
+      },
+    }));
+    const app = new Hono<AppEnv>();
+    app.route('/api/v1', createPublicEventRoutes());
+    const bindings = { DB: { prepare } as unknown as D1Database };
+
+    const first = await app.request('/api/v1/galleries?limit=2', {}, bindings);
+    expect(first.status).toBe(200);
+    const firstPage = PublicEventListSchema.parse(await first.json());
+    expect(firstPage.events).toEqual([expect.objectContaining({ id: 'a', service: 'wedding' })]);
+    expect(firstPage.protectedGalleries).toEqual([expect.objectContaining({ id: 'b', service: 'family' })]);
+    expect(firstPage.nextCursor).not.toBeNull();
+    expect(decodeGalleryCursor(firstPage.nextCursor ?? '')).toEqual({ access: 'all', startsAt, id: 'b' });
+
+    const second = await app.request(`/api/v1/galleries?limit=2&cursor=${firstPage.nextCursor}`, {}, bindings);
+    expect(second.status).toBe(200);
+    const secondPage = PublicEventListSchema.parse(await second.json());
+    expect(secondPage.events.map((event) => event.id)).toEqual(['c']);
+    expect(secondPage.protectedGalleries).toEqual([]);
+    expect(secondPage.nextCursor).toBeNull();
+    expect(binds).toEqual([['all', null, null, 3], ['all', startsAt, 'b', 3]]);
+    expect(prepare.mock.calls[0]?.[0]).toContain('e.id > ?3');
+  });
+
+  it('rejects invalid limits and cursors for another gallery access filter', async () => {
+    const prepare = vi.fn();
+    const app = new Hono<AppEnv>();
+    app.onError(errorBoundary);
+    app.route('/api/v1', createPublicEventRoutes());
+    const bindings = { DB: { prepare } as unknown as D1Database };
+    const cursor = encodeGalleryCursor({ access: 'all', startsAt: '2026-09-20T10:00:00.000Z', id: 'a' });
+    expect((await app.request(`/api/v1/galleries?access=public&cursor=${cursor}`, {}, bindings)).status).toBe(400);
+    expect((await app.request('/api/v1/galleries?limit=49', {}, bindings)).status).toBe(400);
+    expect((await app.request('/api/v1/galleries?cursor=malformed', {}, bindings)).status).toBe(400);
+    expect(prepare).not.toHaveBeenCalled();
   });
 
   it('hashes event passwords with a salt and distinct HMAC domain without storing plaintext', async () => {
