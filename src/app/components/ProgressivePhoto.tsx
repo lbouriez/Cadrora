@@ -54,6 +54,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, height, immed
       aria-hidden="true"
       className="progressive-photo__optimized"
       decoding="async"
+      fetchPriority={priority ? 'high' : undefined}
       loading="eager"
       onError={() => setOptimizedReady(true)}
       onLoad={() => setOptimizedReady(true)}

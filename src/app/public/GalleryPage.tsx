@@ -81,6 +81,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, retouchEnabled, fa
           alt={photo.filename}
           height={photo.height}
           immediate={photoIndex === 0}
+          priority={columnIndex === 0 && photoIndex === 0}
           key={`${photo.id}:${photo.revision}`}
           sizes="(max-width: 45rem) 100vw, (max-width: 82rem) 50vw, 33vw"
           sources={photo.sources}
