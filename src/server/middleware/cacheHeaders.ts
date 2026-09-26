@@ -10,7 +10,7 @@ export const CACHE_CONTROL_BY_POLICY: Record<CachePolicy, string> = {
   'event-protected': 'private, no-store',
   'event-public': 'public, max-age=60',
   'media-protected': 'private, max-age=3600',
-  'media-public': 'public, max-age=31536000, immutable',
+  'media-public': 'public, max-age=60, must-revalidate',
   'media-download': 'private, no-store',
 };
 

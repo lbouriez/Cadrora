@@ -12,7 +12,7 @@ The owner-only selections workspace is separate from visitor downloads. It shows
 
 Original delivery is a subordinate gallery choice, never an archival setting. `GET /api/v1/admin/galleries/:eventId/originals` reports the D1 count and bytes of retained originals, unfinished original imports, and cleanup state. A warning remains in admin settings whenever the gallery no longer offers originals but D1 still records any. An owner-confirmed `POST .../originals/abandon-imports` can cancel unfinished original imports; normal browser cancellation also updates D1. An owner-confirmed `POST .../originals/cleanup` is blocked while an original import is unfinished and queues a durable maintenance job. It fences access through the gallery settings first; after five minutes for in-flight uploads, the runner deletes at most 100 D1-derived original R2 keys per batch, then their matching variant rows, and retries on failure. Re-enabling original delivery is refused during active cleanup. Generated variants are never removed by this job.
 
-Public revisioned media is immutable. Protected media is private for one hour. Missing access classification is never treated as public.
+Public revisioned display media passes through the D1 access check on every Worker request, then uses the named `PublicMediaCache` entrypoint for a five-minute edge cache of successful R2 reads. The default Worker entrypoint is never cached. Downloads bypass the edge cache. The browser cache lifetime for public media is one minute; protected media is private for one hour. Missing access classification is never treated as public. See [ADR-021](../decisions/ADR-021-public-gallery-media-cache.md).
 
 ## Publication
 
@@ -21,6 +21,8 @@ An event publishes only when it contains at least one photo and every visible ph
 The publication summary remains available for an empty draft gallery: its aggregate photo counters are zero, never SQL `NULL`, so the admin can show readiness before the first import.
 
 `events.offline_at` is the reversible withdrawal fence. Public metadata, media resolution, crawler metadata, protected unlock, and face-search routes all treat a non-null value as unavailable. Taking a gallery offline leaves photo states and provider objects intact, increments the event revision, and increments any protected credential access version. Republishing clears the fence after the normal readiness check; deletion remains a separate lifecycle.
+
+Public-to-protected, offline, and delete operations enqueue a `purge_gallery_cache` job transactionally with the D1 fence and attempt an immediate gallery-tag purge. Failed purges remain retryable in maintenance. D1 stops serving cached media as soon as the fence commits, even if edge invalidation fails; a five-minute TTL bounds edge leftovers. Cloudflare cannot enumerate all edge copies to prove physical removal.
 
 ## Deletion
 

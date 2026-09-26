@@ -43,6 +43,26 @@ function repositoryFor(job: MaintenanceJobRecord) {
 }
 
 describe('maintenance runner', () => {
+  it('keeps a failed gallery cache purge retryable and completes it after success', async () => {
+    const job: MaintenanceJobRecord = {
+      attempts: 6, id: 'job-cache', kind: 'purge_gallery_cache', payload: { eventId: 'event-1' },
+    };
+    const first = repositoryFor(job);
+    const purgeGalleryCache = vi.fn().mockRejectedValueOnce(new Error('purge rejected')).mockResolvedValue(undefined);
+    const dependencies = {
+      now: () => new Date('2030-01-01T00:00:00.000Z'),
+      storage: { deleteMany: vi.fn(), get: vi.fn() },
+      vectors: { deleteMany: vi.fn() },
+      purgeGalleryCache,
+    };
+    await new MaintenanceRunner({ ...dependencies, repository: first.repository }).run();
+    expect(first.retryJob).toHaveBeenCalledWith(job, 'purge rejected', expect.any(String), expect.any(String));
+    expect(first.completeJob).not.toHaveBeenCalled();
+
+    const second = repositoryFor(job);
+    await new MaintenanceRunner({ ...dependencies, repository: second.repository }).run();
+    expect(second.completeJob).toHaveBeenCalledWith('job-cache', '2030-01-01T00:00:00.000Z');
+  });
   it('does not acknowledge vector cleanup when the configured index is unavailable', async () => {
     const vectors = new CloudflareVectorDeleteService();
     await expect(vectors.deleteMany([])).resolves.toBeUndefined();

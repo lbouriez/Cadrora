@@ -29,6 +29,7 @@ import { registerMediaRoutes } from './routes/media';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
 import type { AppEnv } from './types';
+export { PublicMediaCache } from './services/publicMediaCache';
 
 export const app = new Hono<AppEnv>();
 
@@ -90,7 +91,7 @@ const worker: ExportedHandler<CloudflareBindings> = {
   scheduled: (_controller, bindings, executionContext) => {
     executionContext.waitUntil((async () => {
       await enqueueExpiredFacePurges(bindings.DB, new Date().toISOString());
-      await runMaintenance(bindings, 25);
+      await runMaintenance(bindings, 25, executionContext);
     })());
   },
 };

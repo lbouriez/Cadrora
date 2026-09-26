@@ -1,4 +1,5 @@
 import type { PublicationState, PublicationSummary, UsageSnapshot } from '../../shared/schemas';
+import { galleryCachePurgeStatement } from '../services/galleryCachePurge';
 
 interface CountRow {
   total: number;
@@ -24,7 +25,7 @@ export interface PublicationRepository {
 }
 
 export type PublicationUpdateResult =
-  | { status: 'updated'; summary: PublicationSummary }
+  | { status: 'updated'; summary: PublicationSummary; cachePurgeJobId?: string | undefined }
   | { status: 'not-found' | 'not-ready' | 'not-published' };
 
 export class D1PublicationRepository implements PublicationRepository {
@@ -82,7 +83,9 @@ export class D1PublicationRepository implements PublicationRepository {
     }
 
     const statements: D1PreparedStatement[] = [];
+    let cachePurgeJobId: string | undefined;
     if (state === 'offline') {
+      const cachePurge = galleryCachePurgeStatement(this.database, eventId, now);
       statements.push(
         this.database
           .prepare('UPDATE events SET offline_at = ?2, revision = revision + 1, updated_at = ?2 WHERE id = ?1')
@@ -90,7 +93,9 @@ export class D1PublicationRepository implements PublicationRepository {
         this.database
           .prepare('UPDATE event_credentials SET access_version = access_version + 1, updated_at = ?2 WHERE event_id = ?1')
           .bind(eventId, now),
+        cachePurge.statement,
       );
+      cachePurgeJobId = cachePurge.jobId;
     } else {
       statements.push(this.database
         .prepare("UPDATE photos SET state = 'published', updated_at = ?2 WHERE event_id = ?1 AND state = 'variants_ready'")
@@ -102,7 +107,7 @@ export class D1PublicationRepository implements PublicationRepository {
     await this.database.batch(statements);
 
     const summary = await this.publicationSummary(eventId, state === 'offline' ? null : now);
-    return summary ? { status: 'updated', summary } : { status: 'not-found' };
+    return summary ? { status: 'updated', summary, cachePurgeJobId } : { status: 'not-found' };
   }
 
   async usage(now: string): Promise<UsageSnapshot> {

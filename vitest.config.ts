@@ -2,7 +2,10 @@ import { configDefaults, defineConfig } from 'vitest/config';
 import { resolve } from 'node:path';
 
 export default defineConfig({
-  resolve: { alias: { '@site-definition': resolve('sites', 'cadrora', 'site.ts') } },
+  resolve: { alias: {
+    '@site-definition': resolve('sites', 'cadrora', 'site.ts'),
+    'cloudflare:workers': resolve('tests', 'stubs', 'cloudflareWorkers.ts'),
+  } },
   define: {
     __CADRORA_SHOWCASE_DEMO__: false,
     __CADRORA_SITE_ID__: JSON.stringify('cadrora'),

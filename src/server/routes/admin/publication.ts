@@ -12,6 +12,7 @@ import type { PublicationState } from '../../../shared/schemas';
 import { D1PublicationRepository } from '../../repositories/publicationRepository';
 import type { PublicationRepository } from '../../repositories/publicationRepository';
 import type { AppEnv } from '../../types';
+import { edgeExecutionContext, tryImmediateGalleryCachePurge } from '../../services/galleryCachePurge';
 
 export interface PublicationRouteDependencies {
   now: () => string;
@@ -40,6 +41,9 @@ export function registerPublicationRoutes(
       if (result.status === 'not-found') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
       if (result.status === 'not-ready') throw new ApiException('EVENT_NOT_READY', 'errors.eventNotReady', 409);
       throw new ApiException('EVENT_NOT_PUBLISHED', 'errors.invalidPublishRequest', 409);
+    }
+    if (result.cachePurgeJobId) {
+      await tryImmediateGalleryCachePurge(context.env.DB, edgeExecutionContext(context), eventId, result.cachePurgeJobId, dependencies.now());
     }
     return context.json(PublicationSummarySchema.parse(result.summary));
   };

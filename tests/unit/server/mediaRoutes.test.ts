@@ -21,7 +21,7 @@ const publicMedia: MediaRecord = {
   storageKey: 'events/e/photos/p/1/thumb.jpg',
 };
 
-function createApp(media: MediaRecord | null, storage: StorageService, grant = false) {
+function createApp(media: MediaRecord | null, storage: StorageService, grant = false, cache?: (media: MediaRecord) => Promise<Response | null>) {
   const repository: MediaRepository = { findPublishedVariant: vi.fn().mockResolvedValue(media) };
   const app = new Hono<AppEnv>();
   app.use('*', requestId);
@@ -34,12 +34,13 @@ function createApp(media: MediaRecord | null, storage: StorageService, grant = f
     });
   }
   app.use('*', cacheHeaders);
-  registerMediaRoutes(app, { repository: () => repository, storage: () => storage });
+  registerMediaRoutes(app, { repository: () => repository, storage: () => storage,
+    ...(cache ? { cache: (_context, _url, _eventId, record) => cache(record) } : {}) });
   return app;
 }
 
 describe('media route', () => {
-  it('streams a D1-resolved public object with immutable caching', async () => {
+  it('streams a D1-resolved public object with bounded browser caching', async () => {
     const get = vi.fn().mockResolvedValue({
       body: new Response('photo').body!,
       contentLength: 5,
@@ -56,8 +57,31 @@ describe('media route', () => {
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('photo');
-    expect(response.headers.get('Cache-Control')).toBe('public, max-age=31536000, immutable');
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=60, must-revalidate');
     expect(get).toHaveBeenCalledWith(publicMedia.storageKey);
+  });
+
+  it('reads public display bytes from cache after the D1 lookup', async () => {
+    const get = vi.fn();
+    const cache = vi.fn().mockResolvedValue(new Response('cached-photo', { status: 200 }));
+    const response = await createApp(publicMedia, { deleteMany: vi.fn(), get }, false, cache)
+      .request('/media/event-1/photo-1/1/thumb');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('cached-photo');
+    expect(cache).toHaveBeenCalledWith(publicMedia);
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('never reads cached bytes after a D1 transition to protected access', async () => {
+    const cache = vi.fn().mockResolvedValue(new Response('stale-public-copy'));
+    const get = vi.fn();
+    const response = await createApp(
+      { ...publicMedia, access: 'protected', accessVersion: 3 },
+      { deleteMany: vi.fn(), get }, false, cache,
+    ).request('/media/event-1/photo-1/1/thumb');
+    expect(response.status).toBe(403);
+    expect(cache).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('rejects protected media before touching R2 when the grant is missing', async () => {

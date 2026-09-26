@@ -7,18 +7,21 @@ import {
   parseDeleteReplacedMediaPayload,
   parsePurgeExpiredFacesPayload,
   parsePurgeFacesPayload,
+  parsePurgeGalleryCachePayload,
 } from '../repositories/maintenanceRepository';
 import type { MaintenanceJobRecord, MaintenanceRepository } from '../repositories/maintenanceRepository';
 import { R2StorageService } from '../services/storage';
 import type { StorageService } from '../services/storage';
 import { CloudflareVectorDeleteService } from '../services/vectorize';
 import type { VectorDeleteService } from '../services/vectorize';
+import { purgePublicMediaCache } from '../services/publicMediaCache';
 
 export interface MaintenanceRunnerDependencies {
   now: () => Date;
   repository: MaintenanceRepository;
   storage: StorageService;
   vectors: VectorDeleteService;
+  purgeGalleryCache?: ((eventId: string) => Promise<void>) | undefined;
 }
 
 export class MaintenanceRunner {
@@ -101,6 +104,14 @@ export class MaintenanceRunner {
       return;
     }
 
+    if (job.kind === 'purge_gallery_cache') {
+      const payload = parsePurgeGalleryCachePayload(job.payload);
+      if (!this.dependencies.purgeGalleryCache) throw new Error('PUBLIC_MEDIA_CACHE_PURGE_UNAVAILABLE');
+      await this.dependencies.purgeGalleryCache(payload.eventId);
+      await this.dependencies.repository.completeJob(job.id, now.toISOString());
+      return;
+    }
+
     if (job.kind === 'purge_expired_faces') {
       const payload = parsePurgeExpiredFacesPayload(job.payload);
       const vectorIds = await this.dependencies.repository.expiredFaceVectorIds(
@@ -122,12 +133,13 @@ export class MaintenanceRunner {
   }
 }
 
-export async function runMaintenance(bindings: CloudflareBindings, limit = 10): Promise<number> {
+export async function runMaintenance(bindings: CloudflareBindings, limit = 10, executionContext?: ExecutionContext): Promise<number> {
   const runner = new MaintenanceRunner({
     now: () => new Date(),
     repository: new D1MaintenanceRepository(bindings.DB),
     storage: new R2StorageService(bindings.MEDIA_BUCKET),
     vectors: new CloudflareVectorDeleteService(bindings.FACE_INDEX),
+    purgeGalleryCache: executionContext ? (eventId) => purgePublicMediaCache(executionContext, eventId) : undefined,
   });
   return runner.run(limit);
 }

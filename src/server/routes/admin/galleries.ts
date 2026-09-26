@@ -22,6 +22,7 @@ import type { AppEnv } from '../../types';
 import { eventGrantCookie, isAuthPepper } from '../../auth';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { downloadName } from '../../services/mediaNames';
+import { edgeExecutionContext, galleryCachePurgeStatement, tryImmediateGalleryCachePurge } from '../../services/galleryCachePurge';
 import { hashEventPassword } from '../public/credentials';
 import { eventFromRow, findEvent, isEventAvailable } from '../public/data';
 import type { EventRow } from '../public/data';
@@ -500,7 +501,13 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
             'INSERT INTO event_credentials (event_id, password_hash, access_version, updated_at) VALUES (?1, ?2, 1, ?3)',
           ).bind(event.id, hash, now));
     }
+    const cachePurge = event.access === 'public' && nextAccess === 'protected'
+      ? galleryCachePurgeStatement(context.env.DB, event.id, now) : null;
+    if (cachePurge) statements.push(cachePurge.statement);
     await context.env.DB.batch(statements);
+    if (cachePurge) {
+      await tryImmediateGalleryCachePurge(context.env.DB, edgeExecutionContext(context), event.id, cachePurge.jobId, now);
+    }
     const updated = await findEvent(context.env.DB, event.id);
     if (!updated) throw new ApiException('EVENT_UPDATE_FAILED', 'errors.internal', 500);
     return context.json(EventSchema.parse(updated));
@@ -518,6 +525,8 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     const now = new Date().toISOString();
     const cleanupAfter = new Date(Date.parse(now) + 5 * 60_000).toISOString();
     const jobId = crypto.randomUUID();
+    const cachePurge = event.access === 'public'
+      ? galleryCachePurgeStatement(context.env.DB, event.id, now) : null;
     await context.env.DB.batch([
       context.env.DB.prepare(
         `UPDATE events
@@ -539,7 +548,11 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
           (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
          VALUES (?1, 'delete_gallery', 'pending', ?2, ?3, 0, ?4, ?5, ?5)`,
       ).bind(jobId, JSON.stringify({ eventId: event.id }), `delete-gallery:${event.id}`, cleanupAfter, now),
+      ...(cachePurge ? [cachePurge.statement] : []),
     ]);
+    if (cachePurge) {
+      await tryImmediateGalleryCachePurge(context.env.DB, edgeExecutionContext(context), event.id, cachePurge.jobId, now);
+    }
     return context.json(DeleteGalleryResponseSchema.parse({ deletionQueued: true }), 202);
   });
 

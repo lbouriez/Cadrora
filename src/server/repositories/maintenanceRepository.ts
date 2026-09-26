@@ -4,6 +4,7 @@ import { IdSchema, IsoDateTimeSchema } from '../../shared/schemas';
 
 const DeletePhotoPayloadSchema = z.object({ eventId: IdSchema, photoId: IdSchema });
 const PurgeFacesPayloadSchema = z.object({ eventId: IdSchema });
+const PurgeGalleryCachePayloadSchema = z.object({ eventId: IdSchema });
 const PurgeExpiredFacesPayloadSchema = z.object({
   eventId: IdSchema,
   expiresBefore: IsoDateTimeSchema,
@@ -21,7 +22,7 @@ const DeleteReplacedMediaPayloadSchema = z.object({
   message: 'Replacement cleanup keys must belong to this gallery.',
 });
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -307,9 +308,9 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
     availableAt: string,
     now: string,
   ): Promise<void> {
-    // Gallery deletion remains hidden and retryable until every provider confirms cleanup.
+    // Deletion and cache invalidation keep retrying until Cloudflare acknowledges cleanup.
     // Other maintenance jobs retain the bounded retry policy and surface as failed for operator review.
-    const state = job.kind === 'delete_gallery' || job.attempts < 5 ? 'pending' : 'failed';
+    const state = job.kind === 'delete_gallery' || job.kind === 'purge_gallery_cache' || job.attempts < 5 ? 'pending' : 'failed';
     await this.database
       .prepare(
         `UPDATE maintenance_jobs
@@ -343,6 +344,10 @@ export function parseDeleteReplacedMediaPayload(payload: unknown) {
 
 export function parsePurgeFacesPayload(payload: unknown) {
   return PurgeFacesPayloadSchema.parse(payload);
+}
+
+export function parsePurgeGalleryCachePayload(payload: unknown) {
+  return PurgeGalleryCachePayloadSchema.parse(payload);
 }
 
 export function parsePurgeExpiredFacesPayload(payload: unknown) {

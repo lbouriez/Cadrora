@@ -2,7 +2,12 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "cadrora",
   "main": "./src/server/app.ts",
-  "compatibility_date": "2026-09-20",
+  "compatibility_date": "2026-09-25",
+  "cache": { "enabled": true },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "PublicMediaCache": { "type": "worker", "cache": { "enabled": true } }
+  },
   "keep_vars": true,
   "assets": {
     "directory": "./dist/client",

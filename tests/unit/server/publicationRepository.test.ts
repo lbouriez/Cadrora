@@ -40,12 +40,17 @@ describe('publication repository deletion fence', () => {
     const offline = { ...online, publishedAt: null, offlineAt: '2030-01-02T00:00:00.000Z' };
     vi.spyOn(publication, 'publicationSummary').mockResolvedValueOnce(online).mockResolvedValueOnce(offline);
 
-    await expect(publication.updatePublication('event-1', 'offline', '2030-01-02T00:00:00.000Z'))
-      .resolves.toEqual({ status: 'updated', summary: offline });
+    const result = await publication.updatePublication('event-1', 'offline', '2030-01-02T00:00:00.000Z');
+    expect(result.status).toBe('updated');
+    if (result.status === 'updated') {
+      expect(result.summary).toEqual(offline);
+      expect(typeof result.cachePurgeJobId).toBe('string');
+    }
 
     expect(statements).toEqual(expect.arrayContaining([
       expect.stringContaining('UPDATE events SET offline_at'),
       expect.stringContaining('access_version = access_version + 1'),
+      expect.stringContaining("'purge_gallery_cache'"),
     ]));
     expect(statements.some((sql) => sql.includes('UPDATE photos'))).toBe(false);
     expect(bindings).toContainEqual(['event-1', '2030-01-02T00:00:00.000Z']);
