@@ -23,6 +23,7 @@ Build-time presentation profiles live under `sites/<id>/site.ts` and are selecte
 Profile branding is built into the static shell: `site.ts` provides `logoUrl` for the shared header and `profile.json` provides `document.icon` for the favicon and apple-touch icon. Both should point to licensed PNG files under `public/brand/`; neither is a D1/admin setting. Atelier Giulia uses a transparent camera mark for the header (`atelier-giulia-logo.png`) and a matching ivory-backed icon (`atelier-giulia-icon.png`) that remains legible in dark browser chrome. See the [owner launch checklist](../after-deployment.md).
 
 `npm run build` rejects any image in `public/brand/` above 350 kB. Export large opaque or photographic brand assets as WebP/AVIF before adding them to a profile; retain PNG where transparency or browser icons require it. This limit applies to all profiles so a future large asset does not silently reach mobile visitors. The shared gallery `ProgressivePhoto` still handles D1/R2 photo variants independently. The first visible gallery cover and first photo in each initial gallery column start eagerly; further photos remain lazy.
+The shared private-gallery cover is a 1200 px WebP suited to directory cards, and the Atelier browser icon is a compact 256 px PNG; originals remain recoverable from Git history.
 
 Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 overrides. These values are public by design and must never contain secrets. D1 absence or API failure never blanks the public site.
 
