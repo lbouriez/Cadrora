@@ -10,6 +10,8 @@ export default defineConfig({
     __CADRORA_SHOWCASE_DEMO__: false,
     __CADRORA_SITE_ID__: JSON.stringify('cadrora'),
     __CADRORA_SITE_DEFAULT_LANG__: JSON.stringify('fr'),
+    __CADRORA_SITE_NAME__: JSON.stringify('Cadrora'),
+    __CADRORA_SITE_DESCRIPTION__: JSON.stringify('Cadrora, photographie d’événements et galeries privées élégantes.'),
   },
   test: {
     exclude: [...configDefaults.exclude, 'tests/e2e/**'],

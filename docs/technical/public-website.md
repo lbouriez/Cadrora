@@ -16,6 +16,8 @@ The website shell must remain useful when the event API is unavailable. A galler
 
 The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap reads D1 and includes only published, online, listed public galleries; protected, unlisted, draft and deleting galleries are omitted. Both paths must stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. Gallery routes use crawler metadata separately.
 
+The Worker also serves `/llms.txt` as Markdown before the SPA fallback. Its title and summary come from the selected build-time site profile, while links use the request hostname and point only to public pages and the existing dynamic sitemap. The guide works even when D1 is unavailable; the sitemap remains the source for changing public-gallery URLs. Keep `/llms.txt` in `assets.run_worker_first` so a missing file can never return the application HTML with HTTP 200.
+
 ## Public profile configuration
 
 Build-time presentation profiles live under `sites/<id>/site.ts` and are selected by `CADRORA_SITE`. The default `cadrora` profile retains the product showcase; `atelier-giulia` reuses the same pages/components with its own brand, section order, bilingual copy and semantic theme tokens. Put shared layout and interaction improvements in `src/app` so both sites inherit them. Use `pages` in a site definition only for a genuinely distinct marketing page; gallery, contact settings, privacy behavior, and admin remain shared. Profiles must not contain credentials or invented real-world contact coordinates. See [ADR-013](../decisions/ADR-013-site-profiles.md) and the [Atelier Giulia deployment runbook](../deployment.md#atelier-giulia-from-this-repository).
