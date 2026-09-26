@@ -34,6 +34,7 @@ export class PublicMediaCache extends WorkerEntrypoint<CloudflareBindings, Publi
         'Content-Length': String(object.size),
         'Content-Type': contentType,
         ETag: object.httpEtag,
+        'X-Cadrora-Cache-Purge': this.ctx.cache ? 'available' : 'unavailable',
         'X-Content-Type-Options': 'nosniff',
       },
     });
@@ -51,7 +52,7 @@ export class PublicMediaCache extends WorkerEntrypoint<CloudflareBindings, Publi
 }
 
 interface PublicMediaCacheExport {
-  fetch(request: Request, options: { props: PublicMediaCacheProps }): Promise<Response>;
+  (options: { props: PublicMediaCacheProps }): { fetch(request: Request): Promise<Response> };
   purgeGallery(eventId: string): Promise<void>;
 }
 
@@ -70,7 +71,7 @@ export async function readPublicMediaCache(
   if (!binding) throw new Error('PUBLIC_MEDIA_CACHE_UNAVAILABLE');
   const url = new URL(requestUrl);
   url.search = '';
-  return binding.fetch(new Request(url), { props });
+  return binding({ props }).fetch(new Request(url));
 }
 
 export async function purgePublicMediaCache(executionContext: unknown, eventId: string): Promise<void> {
