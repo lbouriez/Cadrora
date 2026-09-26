@@ -8,6 +8,15 @@ describe('search index routes', () => {
   const app = new Hono<AppEnv>();
   registerSearchIndexRoutes(app);
 
+  it('serves a site-specific Markdown guide without requiring the gallery database', async () => {
+    const response = await app.request('https://example.test/llms.txt');
+    const body = await response.text();
+    expect(response.headers.get('Content-Type')).toContain('text/markdown');
+    expect(body).toMatch(/^# Cadrora\n/u);
+    expect(body).toContain('[Galeries](https://example.test/galleries)');
+    expect(body).toContain('[Plan du site](https://example.test/sitemap.xml)');
+  });
+
   it('serves a text robots file pointing at this hostname', async () => {
     const response = await app.request('https://example.test/robots.txt');
     expect(response.headers.get('Content-Type')).toContain('text/plain');
