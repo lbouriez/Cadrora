@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import type { ProtectedGalleryPreview, PublicEvent } from '../../shared/schemas/gallery';
@@ -9,7 +8,6 @@ import { siteProfile } from './siteProfile';
 
 /** Shared live-gallery cards used by the landing and events pages. */
 export function PublicEventCards({ events, language, protectedGalleries = [] }: { events: PublicEvent[] | undefined; language: string; protectedGalleries?: ProtectedGalleryPreview[] }) {
-  const { t } = useTranslation();
   const cards = [
     ...(events ?? []).map((event) => ({ kind: 'public' as const, event, createdAt: event.createdAt, id: event.id })),
     ...protectedGalleries.map((gallery) => ({ kind: 'protected' as const, gallery, createdAt: gallery.createdAt, id: gallery.id })),
@@ -19,7 +17,7 @@ export function PublicEventCards({ events, language, protectedGalleries = [] }: 
       {cards.map((card, index) => {
         const gallery = card.kind === 'public' ? card.event : card.gallery;
         return <MotionReveal as="article" className={`event-card${card.kind === 'protected' ? ' event-card--protected' : ''}`} delay={(index % 3) as 0 | 1 | 2} key={gallery.id}>
-          <Link aria-label={t('gallery.openNamedGallery', { title: gallery.title })} className="event-card__tap" to={`/e/${card.kind === 'public' ? gallery.slug : gallery.id}`}>
+          <Link className="event-card__tap" to={`/e/${card.kind === 'public' ? gallery.slug : gallery.id}`}>
             <div className={`event-card__visual${card.kind === 'protected' ? ' event-card__visual--protected' : ''}`}>
               {card.kind === 'protected' ? <><img alt="" loading={index < 2 ? 'eager' : 'lazy'} src={siteProfile.privateGalleryCoverUrl} /><span aria-hidden="true" className="event-card__lock"><LockIcon /></span></>
                 : card.event.coverPhotoUrl ? <ProgressivePhoto alt="" height={3} immediate={index < 2} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" sources={coverPhotoSources(card.event.coverPhotoUrl)} width={4} /> : <span aria-hidden="true" className="event-card__placeholder" />}

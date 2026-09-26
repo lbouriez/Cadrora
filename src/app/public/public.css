@@ -248,9 +248,14 @@
 }
 
 .site-section__heading > p:last-child,
-.site-statement > p:last-child,
 .contact-page__heading > p:last-child {
   color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1.7;
+}
+
+.site-statement > p:last-child {
+  color: inherit;
   font-size: var(--text-lg);
   line-height: 1.7;
 }
@@ -734,6 +739,10 @@
   color: var(--color-background);
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
   gap: var(--space-6);
+}
+
+.contact-page__expectations .site-eyebrow {
+  color: inherit;
 }
 
 .contact-page__expectations ol {
