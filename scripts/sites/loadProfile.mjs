@@ -11,6 +11,9 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
   if (profile.id !== siteId || typeof profile.name !== 'string' || !profile.name) {
     throw new Error(`Invalid site profile: ${siteId}`);
   }
+  if (profile.defaultLanguage !== undefined && profile.defaultLanguage !== 'fr' && profile.defaultLanguage !== 'en') {
+    throw new Error(`Invalid defaultLanguage for site profile: ${siteId}`);
+  }
   return profile;
 }
 
