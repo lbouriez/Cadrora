@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 import { PHOTO_VARIANT_WIDTHS } from '../constants';
 import { IdSchema, IsoDateTimeSchema } from './primitives';

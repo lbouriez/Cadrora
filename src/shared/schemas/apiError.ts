@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 export const ApiErrorSchema = z.object({
   code: z.string().min(1).max(100).regex(/^[A-Z0-9_]+$/),

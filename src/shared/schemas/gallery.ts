@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 import { EventAccessSchema, EventSchema, EventVisibilitySchema } from './event';
 import { IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';

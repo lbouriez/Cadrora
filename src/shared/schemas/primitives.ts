@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 export const IdSchema = z.string().min(1).max(128);
 export const SlugSchema = z

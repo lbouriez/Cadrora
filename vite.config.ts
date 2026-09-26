@@ -10,6 +10,7 @@ const showcaseDemo = process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'tr
 if (showcaseDemo && site.allowShowcase !== true) throw new Error('This site profile does not allow the showcase demo.');
 
 export default defineConfig({
+  build: { sourcemap: true },
   resolve: {
     alias: {
       '@site-definition': resolve('sites', siteId, 'site.ts'),

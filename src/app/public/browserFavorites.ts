@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../../shared/zod';
 
 import { IdSchema } from '../../shared/schemas/primitives';
 

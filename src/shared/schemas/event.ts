@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 import { IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';
 

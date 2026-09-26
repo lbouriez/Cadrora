@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from '../zod';
 
 /** Only the fields used from Photon suggestions cross into the admin UI. */
 export const PlaceSuggestionSchema = z.object({
