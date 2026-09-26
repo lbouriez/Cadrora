@@ -10,6 +10,7 @@ interface CloudflareBindings {
   DEMO_ADMIN_PASSWORD?: string;
   DEMO_ADMIN_USERNAME?: string;
   DEMO_SHOWCASE_ENABLED?: string;
+  FEATURE_PUBLIC_MEDIA_CACHE?: string;
   TURNSTILE_SECRET_KEY?: string;
   CF_ACCESS_TEAM_DOMAIN?: string;
   CF_ACCESS_AUD?: string;

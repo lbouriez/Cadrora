@@ -61,6 +61,7 @@ jobs:
         env:
           CADRORA_SITE: atelier-giulia
           CADRORA_SEED_DEMO: 'false'
+          FEATURE_PUBLIC_MEDIA_CACHE: ${{ vars.FEATURE_PUBLIC_MEDIA_CACHE || 'false' }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           ADMIN_SECRET_HASH: ${{ secrets.ADMIN_SECRET_HASH }}

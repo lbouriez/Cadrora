@@ -58,7 +58,7 @@ describe('media route', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('photo');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=60, must-revalidate');
-    expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('fallback');
+    expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('disabled');
     expect(get).toHaveBeenCalledWith(publicMedia.storageKey);
   });
 
@@ -66,12 +66,26 @@ describe('media route', () => {
     const get = vi.fn();
     const cache = vi.fn().mockResolvedValue(new Response('cached-photo', { status: 200 }));
     const response = await createApp(publicMedia, { deleteMany: vi.fn(), get }, false, cache)
-      .request('/media/event-1/photo-1/1/thumb');
+      .request('/media/event-1/photo-1/1/thumb', undefined, { FEATURE_PUBLIC_MEDIA_CACHE: 'true' });
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('cached-photo');
     expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('unknown');
     expect(cache).toHaveBeenCalledWith(publicMedia);
     expect(get).not.toHaveBeenCalled();
+  });
+
+  it('defaults to direct R2 delivery without invoking the public cache entrypoint', async () => {
+    const get = vi.fn().mockResolvedValue({
+      body: new Response('photo').body!, contentLength: 5, contentType: 'image/jpeg', etag: '"etag"',
+    });
+    const cache = vi.fn().mockResolvedValue(new Response('cached-photo'));
+    const response = await createApp(publicMedia, { deleteMany: vi.fn(), get }, false, cache)
+      .request('/media/event-1/photo-1/1/thumb');
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('photo');
+    expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('disabled');
+    expect(cache).not.toHaveBeenCalled();
+    expect(get).toHaveBeenCalledWith(publicMedia.storageKey);
   });
 
   it('never reads cached bytes after a D1 transition to protected access', async () => {

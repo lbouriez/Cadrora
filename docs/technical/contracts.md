@@ -92,7 +92,7 @@ Hono implements the error boundary through `app.onError`; its module occupies th
 
 | Content | Public event | Protected event |
 | --- | --- | --- |
-| Revisioned `/media/*` display | `public, max-age=60, must-revalidate` (browser); five-minute inner Worker cache after D1 authorization | `private, max-age=3600` |
+| Revisioned `/media/*` display | `public, max-age=60, must-revalidate` (browser); optional five-minute inner Worker cache after D1 authorization when `FEATURE_PUBLIC_MEDIA_CACHE=true` | `private, max-age=3600` |
 | `/media/*/download` and `/media/*/original` | `private, no-store` | `private, no-store` |
 | Public event API | `public, max-age=60` keyed by revision | `private, no-store` |
 | Admin API | `no-store` | `no-store` |

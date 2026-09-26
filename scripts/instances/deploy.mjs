@@ -179,7 +179,7 @@ try {
   const baseConfig = JSON.parse(await readFile(resolve(workspace, 'wrangler.jsonc'), 'utf8'));
   const configPath = join(instanceDirectory, 'wrangler.json');
   const projectRootFromConfig = relative(dirname(configPath), workspace).replaceAll('\\', '/');
-  const config = instanceWranglerConfig(baseConfig, names, resources.databaseId, target.hostname, projectRootFromConfig);
+  const config = instanceWranglerConfig(baseConfig, names, resources.databaseId, target.hostname, projectRootFromConfig, process.env);
   const secretsPath = join(instanceDirectory, 'deploy-secrets.env');
   await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, 'utf8');
   await writeFile(

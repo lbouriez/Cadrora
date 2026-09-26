@@ -1,3 +1,5 @@
+import { featureFlagVars } from '../config/featureFlags.mjs';
+
 const instancePattern = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/u;
 const hostnamePattern = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/u;
 
@@ -55,7 +57,7 @@ export function assertSiteTarget(profile, target, showcaseEnabled = false, profi
   }
 }
 
-export function instanceWranglerConfig(baseConfig, names, databaseId, hostname, projectRootFromConfig) {
+export function instanceWranglerConfig(baseConfig, names, databaseId, hostname, projectRootFromConfig, environment = {}) {
   const config = structuredClone(baseConfig);
   const fromProjectRoot = (path) => `${projectRootFromConfig}/${path.replace(/^\.\//u, '')}`;
   config.name = names.worker;
@@ -66,6 +68,7 @@ export function instanceWranglerConfig(baseConfig, names, databaseId, hostname, 
   config.assets.directory = fromProjectRoot(config.assets.directory);
   config.routes = [{ custom_domain: true, pattern: hostname }];
   config.vars.DEMO_SHOWCASE_ENABLED = 'false';
+  config.vars = featureFlagVars(config.vars, environment);
   config.d1_databases[0] = {
     ...config.d1_databases[0],
     database_id: databaseId,

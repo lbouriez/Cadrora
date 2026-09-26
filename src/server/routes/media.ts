@@ -10,6 +10,7 @@ import { readPublicMediaCache } from '../services/publicMediaCache';
 import { downloadName } from '../services/mediaNames';
 import type { StorageService } from '../services/storage';
 import type { AppEnv } from '../types';
+import { featureEnabled } from '../config/featureFlags';
 
 export interface MediaRouteDependencies {
   cache?: (context: Context<AppEnv>, requestUrl: string, eventId: string, media: MediaRecord) => Promise<Response | null>;
@@ -67,8 +68,9 @@ export function registerMediaRoutes(
       throw new ApiException('DOWNLOAD_NOT_ALLOWED', 'errors.downloadNotAllowed', 403);
     }
     if (isDownload) context.set('cachePolicy', 'media-download');
+    const publicCacheEnabled = featureEnabled(context.env, 'publicMediaCache');
 
-    if (media.access === 'public' && !isDownload && dependencies.cache) {
+    if (media.access === 'public' && !isDownload && publicCacheEnabled && dependencies.cache) {
       const cached = await dependencies.cache(context, context.req.url, parsed.data.eventId, media);
       if (cached?.ok) {
         const headers = new Headers(cached.headers);
@@ -87,7 +89,9 @@ export function registerMediaRoutes(
       ETag: object.etag,
       'X-Content-Type-Options': 'nosniff',
     });
-    if (media.access === 'public' && !isDownload) headers.set('X-Cadrora-Media-Cache', 'fallback');
+    if (media.access === 'public' && !isDownload) {
+      headers.set('X-Cadrora-Media-Cache', publicCacheEnabled ? 'fallback' : 'disabled');
+    }
     if (isDownload) {
       headers.set('Content-Disposition', `attachment; filename="${downloadName(media.filename, media.contentType)}"`);
     }
