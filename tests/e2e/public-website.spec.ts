@@ -205,8 +205,8 @@ test.describe('site vitrine statique', () => {
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/privacy');
-    await expect(page.getByRole('heading', { name: /IA facultative et recherche faciale|optional AI and face search/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /comment nous comptons les visites|how we count visits/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /retrouver vos photos|finding photos of yourself/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /mesure des visites et carte|analytics and the contact map/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /nécessaire seulement|necessary only/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });

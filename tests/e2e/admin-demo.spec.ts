@@ -177,6 +177,13 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(storageLimit).toHaveValue('1.5');
   await expect(faceLimit).toHaveValue('5000');
   const homeStories = page.getByRole('checkbox', { name: /show recent stories|afficher les histoires récentes/i });
+  expect(await page.locator('.admin-settings-nav a').evaluateAll((links) => links.map((link) => link.getAttribute('href')))).toEqual([
+    '#admin-settings-website', '#admin-settings-quotas', '#admin-settings-home', '#admin-settings-services', '#admin-settings-contact',
+  ]);
+  expect(await page.locator('.admin-site-settings fieldset.admin-settings-section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual([
+    'admin-settings-website', 'admin-settings-quotas', 'admin-settings-home', 'admin-settings-services', 'admin-settings-contact',
+  ]);
+  await expect(page.locator('#admin-settings-home')).toContainText(/recent stories|histoires récentes/i);
   const homeStoryLimit = page.getByRole('spinbutton', { name: /maximum galleries on the home page|nombre maximal de galeries sur l’accueil/i });
   await expect(homeStories).toBeChecked();
   await expect(homeStoryLimit).toHaveValue('6');

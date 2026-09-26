@@ -56,12 +56,12 @@ function renderPage(page: ReactNode) {
 describe('public photographer website', () => {
   it('speaks to visitors in the site owner’s voice in both languages', async () => {
     expect(i18n.t('gallery.protectedHelp')).toBe('Entrez le mot de passe qui vous a été transmis.');
-    expect(i18n.t('gallery.privacyPage.operator.body')).toContain('Nous décidons');
+    expect(i18n.t('gallery.privacyPage.operator.body', { siteName: 'Studio Exemple' })).toContain('Studio Exemple');
     expect(JSON.stringify(publicResources)).not.toMatch(/\b(?:photographer|photographe)\b/i);
 
     await i18n.changeLanguage('en');
     expect(i18n.t('gallery.protectedHelp')).toBe('Enter the password you were given.');
-    expect(i18n.t('gallery.privacyPage.operator.body')).toContain('We decide');
+    expect(i18n.t('gallery.privacyPage.operator.body', { siteName: 'Example Studio' })).toContain('Example Studio');
   });
 
   it('keeps the showcase content useful when the gallery API is unavailable', async () => {
@@ -141,13 +141,14 @@ describe('public photographer website', () => {
     expect(screen.queryByText(/coordonnées sont fictives/i)).toBeNull();
   });
 
-  it('explains AI, retention, analytics, and operator responsibility in the privacy notice', () => {
+  it('explains gallery privacy choices in the shared notice', () => {
     renderPage(<PrivacyPage />);
 
-    expect(screen.getByRole('heading', { name: 'IA facultative et recherche faciale' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Conservation et suppression' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Comment nous comptons les visites' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Qui est responsable de ce site?' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Retrouver vos photos' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Durée de conservation' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Mesure des visites et carte' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Qui gère ce site' })).toBeTruthy();
+    expect(screen.getByText(/Cette politique concerne Cadrora/)).toBeTruthy();
   });
 
   it('uses natural singular and plural labels for photo results in both languages', async () => {

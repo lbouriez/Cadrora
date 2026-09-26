@@ -40,4 +40,6 @@ Facial embeddings are gallery-scoped and may expire. With a configured gallery r
 
 The repository does not currently include a privacy-request workflow, consent-record export, account deletion flow, remote backup policy, legal notice template, or automatic retention scheduler. Before collecting gallery or biometric data in production, establish those operator processes outside this source tree and confirm the deployed data locations, subcontractors, and retention practices.
 
+The shared public privacy page uses the configured site name and links to Contact; it does not invent a legal business identity, a named privacy officer, or contact details. Each operator must publish the responsible person's required title and contact information, keep the site's real retention and provider details accurate, and review the notice for the jurisdictions where it operates. See the [Commission d’accès à l’information du Québec's guide for private enterprises](https://www.cai.gouv.qc.ca/uploads/pdfs/CAI_GU_POL_Confidentialite.pdf) for the information expected in a clear privacy policy.
+
 For an incident, avoid copying passwords, raw vectors, cookies, selfies, or private EXIF into tickets. Preserve request IDs and non-sensitive error codes, restrict access to the affected Cloudflare account, and follow [`SECURITY.md`](../SECURITY.md).

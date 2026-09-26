@@ -25,8 +25,13 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await page.goto('/contact');
   await expect(page.locator('.contact-page__unconfigured')).toBeVisible();
   await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
+  await page.goto('/privacy');
+  await expect(page.getByRole('heading', { level: 1, name: /privacy policy|politique de confidentialité/i })).toBeVisible();
+  await expect(page.locator('#privacy-operator')).toContainText('Atelier Giulia');
+  await expect(page.locator('.privacy-page__updated')).not.toContainText(/demo|démonstration/i);
 
   await page.setViewportSize({ width: 390, height: 844 });
+  await assertNoHorizontalOverflow(page);
   await page.goto('/');
   await assertNoHorizontalOverflow(page);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();

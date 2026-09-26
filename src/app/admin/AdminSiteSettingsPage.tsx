@@ -143,8 +143,8 @@ export function AdminSiteSettingsPage() {
       <nav aria-label={t('admin.settings.sectionsLabel')} className="admin-settings-nav">
         <a href="#admin-settings-website">{t('admin.settings.websiteSection')}</a>
         <a href="#admin-settings-quotas">{t('admin.settings.quotasSection')}</a>
+        <a href="#admin-settings-home">{t('admin.settings.homeGalleriesSection')}</a>
         <a href="#admin-settings-services">{t('admin.settings.servicesSection')}</a>
-        <a href="#admin-settings-home-galleries">{t('admin.settings.homeGalleriesSection')}</a>
         <a href="#admin-settings-contact">{t('admin.settings.contactSection')}</a>
       </nav>
       <form className="admin-event-form" onSubmit={submit}>
@@ -225,6 +225,26 @@ export function AdminSiteSettingsPage() {
           </div>
           <p className="field__hint">{t('admin.settings.quotasScope')}</p>
         </fieldset>
+        <fieldset className="admin-settings-section" id="admin-settings-home">
+          <legend>{t('admin.settings.homeGalleriesSection')}</legend>
+          <h2 className="admin-settings-section__subheading">{t('admin.settings.homeGalleriesTitle')}</h2>
+          <p className="admin-card__description">{t('admin.settings.homeGalleriesHint')}</p>
+          <label className="admin-settings-services__option">
+            <input defaultChecked={settings.data.homeGalleries.enabled} name="homeGalleriesEnabled" type="checkbox" />
+            <span>{t('admin.settings.homeGalleriesEnabled')}</span>
+          </label>
+          <Input
+            defaultValue={settings.data.homeGalleries.limit}
+            hint={t('admin.settings.homeGalleriesLimitHint')}
+            label={t('admin.settings.homeGalleriesLimit')}
+            max="12"
+            min="1"
+            name="homeGalleryLimit"
+            required
+            step="1"
+            type="number"
+          />
+        </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-services">
           <legend>{t('admin.settings.servicesSection')}</legend>
           <p className="admin-card__description">{t('admin.settings.servicesHint')}</p>
@@ -242,25 +262,6 @@ export function AdminSiteSettingsPage() {
               </label>
             ))}
           </div>
-        </fieldset>
-        <fieldset className="admin-settings-section" id="admin-settings-home-galleries">
-          <legend>{t('admin.settings.homeGalleriesSection')}</legend>
-          <p className="admin-card__description">{t('admin.settings.homeGalleriesHint')}</p>
-          <label className="admin-settings-services__option">
-            <input defaultChecked={settings.data.homeGalleries.enabled} name="homeGalleriesEnabled" type="checkbox" />
-            <span>{t('admin.settings.homeGalleriesEnabled')}</span>
-          </label>
-          <Input
-            defaultValue={settings.data.homeGalleries.limit}
-            hint={t('admin.settings.homeGalleriesLimitHint')}
-            label={t('admin.settings.homeGalleriesLimit')}
-            max="12"
-            min="1"
-            name="homeGalleryLimit"
-            required
-            step="1"
-            type="number"
-          />
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-contact">
           <legend>{t('admin.settings.contactSection')}</legend>

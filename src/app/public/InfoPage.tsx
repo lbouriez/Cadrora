@@ -15,7 +15,8 @@ export function PrivacyPage() {
 
 export function DefaultPrivacyPage() {
   const { t } = useTranslation();
-  const sections = ['overview', 'gallery', 'security', 'ai', 'retention', 'analytics', 'rights', 'operator'] as const;
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const sections = ['operator', 'overview', 'gallery', 'security', 'ai', 'analytics', 'retention', 'rights'] as const;
   return (
     <PublicLayout>
       <article className="privacy-page">
@@ -40,15 +41,7 @@ export function DefaultPrivacyPage() {
                 <h2>{t(`gallery.privacyPage.${section}.title`)}</h2>
                 <p>{t(section === 'overview' && siteProfile.demo.enabled
                   ? 'gallery.privacyPage.overview.demoBody'
-                  : `gallery.privacyPage.${section}.body`)}</p>
-                {section === 'ai' ? (
-                  <ul>
-                    <li>{t('gallery.privacyPage.ai.point1')}</li>
-                    <li>{t('gallery.privacyPage.ai.point2')}</li>
-                    <li>{t('gallery.privacyPage.ai.point3')}</li>
-                    <li>{t('gallery.privacyPage.ai.point4')}</li>
-                  </ul>
-                ) : null}
+                  : `gallery.privacyPage.${section}.body`, { siteName: settings.data?.siteName ?? siteProfile.siteName })}</p>
               </section>
             ))}
           </div>
