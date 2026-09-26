@@ -185,7 +185,7 @@
   transform: rotate(1.5deg);
 }
 
-.site-hero__art > img {
+.site-hero__art > .progressive-photo {
   display: block;
   width: 100%;
   height: 29rem;
@@ -1541,7 +1541,7 @@
   }
 
   .site-hero__art,
-  .site-hero__art > img {
+  .site-hero__art > .progressive-photo {
     min-height: 20rem;
     height: 20rem;
   }
@@ -1713,7 +1713,7 @@
   transform: none;
 }
 
-.site-hero__art > img { height: 27rem; }
+.site-hero__art > .progressive-photo { height: 27rem; }
 
 .site-hero__art figcaption {
   right: var(--space-4);
@@ -1844,6 +1844,7 @@
 .service-area-map__preview { position: relative; display: flex; min-height: 22rem; align-items: flex-end; overflow: hidden; isolation: isolate; }
 .service-area-map__preview::after { position: absolute; z-index: -1; inset: 0; background: linear-gradient(180deg, transparent 30%, var(--color-overlay) 100%); content: ''; }
 .service-area-map__preview-image { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 32%; }
+.service-area-map__preview-image > img { object-position: center 32%; }
 .service-area-map__preview-content { display: grid; justify-items: start; padding: clamp(1.5rem, 4vw, 3rem); gap: var(--space-3); }
 .service-area-map__preview-content p { max-width: 18ch; margin: 0; color: var(--color-on-photo); font-size: clamp(1.35rem, 2.5vw, 2rem); font-weight: 750; line-height: 1.15; text-shadow: 0 0.125rem 0.75rem rgb(0 0 0 / 45%); }
 
@@ -1905,7 +1906,7 @@
   .site-actions__full { display: none; }
   .site-actions__short { display: inline; }
   .site-hero { min-height: auto; padding-top: var(--space-6); }
-  .site-hero__art, .site-hero__art > img { min-height: 19rem; height: 19rem; }
+  .site-hero__art, .site-hero__art > .progressive-photo { min-height: 19rem; height: 19rem; }
   .site-hero__ai-card { right: var(--space-3); bottom: var(--space-6); width: min(12rem, 68%); }
   .site-hero__ai-card img { width: 3.5rem; height: 3.5rem; }
   .site-hero__art figcaption { top: var(--space-3); right: auto; bottom: auto; left: var(--space-3); }

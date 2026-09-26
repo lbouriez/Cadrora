@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { MotionReveal, Spinner } from '../components';
 import { getPublicEvents, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
+import { BrandPhoto } from './BrandPhoto';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceVisuals } from './serviceCatalog';
@@ -49,13 +50,12 @@ export function DefaultHomePage() {
           </div> : null}
         </MotionReveal>
         <MotionReveal as="figure" className="site-hero__art" delay={1} effect="scale">
-          <img
+          <BrandPhoto
             alt={t('gallery.heroImageAlt')}
-            fetchPriority="high"
-            height="1024"
-            loading="eager"
+            immediate
+            priority
+            sizes="(max-width: 48rem) 100vw, 42vw"
             src={siteProfile.heroImageUrl}
-            width="1536"
           />
           <figcaption>{t('gallery.heroArtCaption')}</figcaption>
           {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
@@ -94,7 +94,7 @@ export function DefaultHomePage() {
         <div className="service-grid">
           {featuredServices.map(({ key, src }, index) => (
             <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
-              <img alt="" className="service-card__image" loading="lazy" src={src} />
+              <BrandPhoto alt="" className="service-card__image" sizes="(max-width: 48rem) 100vw, 33vw" src={src} />
               <div className="service-card__copy"><h3>{t(`gallery.servicesPage.${key}.title`)}</h3><p>{t(`gallery.servicesPage.${key}.body`)}</p></div>
             </MotionReveal>
           ))}

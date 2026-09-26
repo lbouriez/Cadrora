@@ -235,10 +235,7 @@ test.describe('site vitrine statique', () => {
 });
 
 test('presente les galeries publiees avec une couverture plein cadre et les visages visibles', async ({ page }) => {
-  let releaseSmall: () => void = () => {};
-  const smallGate = new Promise<void>((resolve) => { releaseSmall = resolve; });
   await page.route('**/media/demo-ai-face-search/demo-ai-01/0/*', async (route) => {
-    if (route.request().url().endsWith('/small')) await smallGate;
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#ad806a"/></svg>', contentType: 'image/svg+xml' });
   });
   await page.route('**/api/v1/galleries', async (route) => {
@@ -285,8 +282,7 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   await expect(image).toHaveJSProperty('naturalWidth', 800);
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
   await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/thumb');
-  await expect(cover.locator('.progressive-photo__medium')).toHaveCSS('opacity', '0');
-  releaseSmall();
+  await expect(cover.locator('.progressive-photo__optimized')).toHaveAttribute('srcset', /480w.*960w.*1600w/u);
   await expect(cover).toHaveClass(/progressive-photo--ready/u);
   await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/private-sample');
   await expect(page.locator('.event-card').nth(1).locator('a')).toHaveAttribute('href', '/e/find-your-photos');
@@ -294,8 +290,8 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   const protectedCard = page.locator('.event-card--protected');
   await expect(protectedCard.getByRole('heading', { name: 'A family afternoon' })).toBeVisible();
   await expect(protectedCard.getByText('An afternoon worth keeping.')).toBeVisible();
-  await expect(protectedCard.locator('img')).toHaveAttribute('src', '/brand/private-gallery-cover.webp');
-  await expect(protectedCard.locator('img')).not.toHaveAttribute('src', /\/media\//u);
+  await expect(protectedCard.locator('.progressive-photo__preview')).toHaveAttribute('src', '/brand/responsive/private-gallery-cover-320.webp');
+  expect(await protectedCard.locator('img').evaluateAll((images) => images.every((image) => !image.getAttribute('src')?.startsWith('/media/')))).toBe(true);
   await expect(protectedCard.locator('a')).toHaveAttribute('href', '/e/private-sample');
   const arrowBottomGaps = await page.locator('.event-card').evaluateAll((cards) => cards.map((card) => {
     const arrow = card.querySelector('.event-card__arrow');

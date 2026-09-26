@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { MotionReveal, Spinner } from '../components';
 import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
+import { BrandPhoto } from './BrandPhoto';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceVisuals } from './serviceCatalog';
@@ -28,7 +29,7 @@ export function DefaultServicesPage() {
       <div className="service-detail-grid">
         {visibleServices.map(({ key, src }, index) => (
           <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
-            <img alt="" className="service-detail-card__image" loading={index === 0 ? 'eager' : 'lazy'} src={src} />
+            <BrandPhoto alt="" className="service-detail-card__image" immediate={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" src={src} />
             <div className="service-detail-card__copy">
               <h2>{t(`gallery.servicesPage.${key}.title`)}</h2>
               <p>{t(`gallery.servicesPage.${key}.body`)}</p>

@@ -8,13 +8,13 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "node scripts/build/checkBrandAssets.mjs && tsc -b && vite build && node scripts/build/stripLocalSecrets.mjs",
+    "build": "node scripts/build/checkBrandAssets.mjs && node scripts/build/generateBrandPhotoVariants.mjs && tsc -b && vite build && node scripts/build/stripLocalSecrets.mjs",
     "check": "npm run typecheck && npm run lint",
     "cf-typegen": "wrangler types",
     "deploy": "node scripts/release/deploy.mjs --production --confirm",
     "deploy:instance": "node scripts/instances/deploy.mjs",
     "deploy:preview": "node scripts/release/deploy.mjs --env preview --confirm",
-    "dev": "vite",
+    "dev": "node scripts/build/generateBrandPhotoVariants.mjs && vite",
     "lint": "eslint . --max-warnings 0",
     "release:deploy": "node scripts/release/deploy.mjs",
     "release:migrate": "node scripts/release/migrate.mjs",

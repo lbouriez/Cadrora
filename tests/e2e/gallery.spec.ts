@@ -1,11 +1,9 @@
 import { expect, mockGallery, publicEvent, publicPhoto, test } from './fixtures';
 
-test('charge les pages et les grandes photos au défilement sans répéter la couverture', async ({ page }) => {
+test('charge les pages et choisit les variantes selon la largeur sans répéter la couverture', async ({ page }) => {
   await mockGallery(page);
   const photoRequests: string[] = [];
   let pageRequests = 0;
-  let releaseFirstLarge: () => void = () => {};
-  const firstLargeGate = new Promise<void>((resolve) => { releaseFirstLarge = resolve; });
   await page.route('**/api/v1/galleries/mariage-lumiere', async (route) => {
     await route.fulfill({ body: JSON.stringify({ ...publicEvent, coverPhotoUrl: '/media/event-1/photo-1/2/medium' }), contentType: 'application/json' });
   });
@@ -30,7 +28,6 @@ test('charge les pages et les grandes photos au défilement sans répéter la co
   });
   await page.route('**/e2e/progressive/*.svg', async (route) => {
     photoRequests.push(route.request().url());
-    if (route.request().url().includes('photo-1-large.svg')) await firstLargeGate;
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200"><rect width="1600" height="1200" fill="#8b5e45"/></svg>', contentType: 'image/svg+xml' });
   });
 
@@ -38,12 +35,9 @@ test('charge les pages et les grandes photos au défilement sans répéter la co
   await expect(page.locator('.gallery-heading__hero img')).toHaveCount(0);
   await expect(page.locator('.photo-tile-shell')).toHaveCount(40);
   await expect(page.locator('.progressive-photo__preview').first()).toHaveJSProperty('complete', true);
-  await expect(page.locator('.progressive-photo__preview').first()).toHaveCSS('filter', /blur/u);
-  await expect(page.locator('.progressive-photo__medium').first()).toHaveCSS('opacity', '0');
-  releaseFirstLarge();
+  await expect(page.locator('.progressive-photo__optimized').first()).toHaveAttribute('srcset', /480w.*1600w/u);
   await expect(page.locator('.progressive-photo').first()).toHaveClass(/progressive-photo--ready/u);
   expect(photoRequests.some((url) => url.includes('photo-1-small.svg'))).toBe(true);
-  expect(photoRequests.some((url) => url.includes('photo-1-large.svg'))).toBe(true);
   expect(photoRequests.some((url) => url.includes('photo-40-large.svg'))).toBe(false);
   expect(pageRequests).toBe(1);
 
@@ -55,12 +49,10 @@ test('charge les pages et les grandes photos au défilement sans répéter la co
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test('la visionneuse montre la petite photo pendant le chargement des copies moyenne et grande', async ({ page }) => {
+test('la visionneuse montre la petite photo puis charge directement la taille adaptee', async ({ page }) => {
   await mockGallery(page);
   const photoRequests: string[] = [];
-  let releaseMedium: () => void = () => {};
   let releaseFull: () => void = () => {};
-  const mediumGate = new Promise<void>((resolve) => { releaseMedium = resolve; });
   const fullGate = new Promise<void>((resolve) => { releaseFull = resolve; });
   await page.route('**/api/v1/galleries/mariage-lumiere/photos*', async (route) => {
     await route.fulfill({ body: JSON.stringify({
@@ -86,7 +78,6 @@ test('la visionneuse montre la petite photo pendant le chargement des copies moy
   await page.route('**/e2e/viewer/*.svg', async (route) => {
     const url = route.request().url();
     photoRequests.push(url);
-    if (url.includes('photo-40-960.svg')) await mediumGate;
     if (url.includes('photo-40-1600.svg')) await fullGate;
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200"><rect width="1600" height="1200" fill="#8b5e45"/></svg>', contentType: 'image/svg+xml' });
   });
@@ -96,13 +87,9 @@ test('la visionneuse montre la petite photo pendant le chargement des copies moy
   await expect(selected.locator('.progressive-photo__preview')).toHaveJSProperty('naturalWidth', 1600);
   await expect(selected.locator('.progressive-photo__preview')).toHaveCSS('filter', /blur/u);
   await expect(selected.locator('.photo-viewer__ambient')).toHaveAttribute('src', '/e2e/viewer/photo-40-480.svg');
-  await expect.poll(() => photoRequests.some((url) => url.includes('photo-40-960.svg'))).toBe(true);
-  expect(photoRequests.some((url) => url.includes('photo-40-1600.svg'))).toBe(false);
-
-  releaseMedium();
-  await expect(selected.locator('.progressive-photo')).toHaveClass(/progressive-photo--medium-ready/u);
   await expect.poll(() => photoRequests.some((url) => url.includes('photo-40-1600.svg'))).toBe(true);
-  await expect(selected.locator('.progressive-photo__full')).toHaveCSS('opacity', '0');
+  expect(photoRequests.some((url) => url.includes('photo-40-960.svg'))).toBe(false);
+  await expect(selected.locator('.progressive-photo__optimized')).toHaveCSS('opacity', '0');
   releaseFull();
   await expect(selected.locator('.progressive-photo')).toHaveClass(/progressive-photo--ready/u);
   expect(photoRequests.some((url) => url.includes('photo-38-1600.svg'))).toBe(false);

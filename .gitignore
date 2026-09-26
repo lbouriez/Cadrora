@@ -1,5 +1,6 @@
 node_modules/
 dist/
+public/brand/responsive/
 coverage/
 playwright-report/
 test-results/
