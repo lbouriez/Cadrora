@@ -11,7 +11,7 @@ export const atelierGiuliaSite = {
   privateGalleryCoverUrl: '/brand/private-gallery-cover.webp',
   serviceImages: {
     wedding: '/brand/demo-hero.webp',
-    family: '/brand/demo-services-triptych.png',
+    family: '/brand/demo-services-triptych.webp',
     brand: '/brand/service-brand.webp',
     corporate: '/brand/service-corporate.webp',
     children: '/brand/service-children.webp',

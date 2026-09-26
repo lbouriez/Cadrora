@@ -771,6 +771,7 @@
   box-shadow: var(--shadow-lg);
   gap: var(--space-5);
   backdrop-filter: blur(1rem);
+  min-height: 12rem;
 }
 
 .privacy-consent h2 {
@@ -1459,6 +1460,7 @@
   .privacy-consent {
     align-items: flex-start;
     flex-direction: column;
+    min-height: 22rem;
   }
 
   .demo-experience-grid {

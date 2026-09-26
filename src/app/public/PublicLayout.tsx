@@ -47,7 +47,7 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
     <div className="public-shell">
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
-          {siteProfile.logoUrl ? <img alt="" height="1600" src={siteProfile.logoUrl} width="1600" /> : null}
+          {siteProfile.logoUrl ? <img alt="" height="256" src={siteProfile.logoUrl} width="256" /> : null}
           <span>{settings.data?.siteName ?? siteProfile.siteName}</span>
         </Link>
         <div className="public-header__actions">

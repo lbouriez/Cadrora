@@ -27,6 +27,7 @@ import { registerFaceSearchRoutes } from './routes/faceSearch';
 import { enqueueExpiredFacePurges } from './routes/faceSearch';
 import { registerMediaRoutes } from './routes/media';
 import { registerPublicRoutes } from './routes/public';
+import { registerSearchIndexRoutes } from './routes/searchIndex';
 import type { AppEnv } from './types';
 
 export const app = new Hono<AppEnv>();
@@ -51,6 +52,7 @@ app.use('/api/v1/admin/*', demoReadOnly);
 
 // Feature routes are registered centrally so middleware and authorization order stay reviewable.
 app.route('/api/v1/admin', adminAuthRouter);
+registerSearchIndexRoutes(app);
 registerPublicRoutes(app, {
   issueEventGrant: async (context, grant) => {
     const secret = eventGrantSigningSecret(context.env);
@@ -69,11 +71,17 @@ registerPublicationRoutes(app);
 registerFaceSearchRoutes(app);
 registerFaceModelRoutes(app);
 
-app.notFound((context) => {
+app.notFound(async (context) => {
   if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/')) {
     return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
   }
-  if (context.env?.ASSETS) return context.env.ASSETS.fetch(context.req.raw);
+  if (context.env?.ASSETS) {
+    const response = await context.env.ASSETS.fetch(context.req.raw);
+    if (!response.headers.get('Content-Type')?.includes('text/html')) return response;
+    const headers = new Headers(response.headers);
+    headers.set('Cache-Control', 'public, max-age=0, must-revalidate, no-transform');
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  }
   return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
 });
 

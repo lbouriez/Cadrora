@@ -76,10 +76,11 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, retouchEnabled, fa
   return (
     <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
       {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>
-      {column.map((photo) => {
+      {column.map((photo, photoIndex) => {
         const image = <ProgressivePhoto
           alt={photo.filename}
           height={photo.height}
+          immediate={photoIndex === 0}
           key={`${photo.id}:${photo.revision}`}
           sizes="(max-width: 45rem) 100vw, (max-width: 82rem) 50vw, 33vw"
           sources={photo.sources}

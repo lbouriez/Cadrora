@@ -28,7 +28,7 @@ export function DefaultServicesPage() {
       <div className="service-detail-grid">
         {visibleServices.map(({ key, src }, index) => (
           <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
-            <img alt="" className="service-detail-card__image" loading="lazy" src={src} />
+            <img alt="" className="service-detail-card__image" loading={index === 0 ? 'eager' : 'lazy'} src={src} />
             <div className="service-detail-card__copy">
               <h2>{t(`gallery.servicesPage.${key}.title`)}</h2>
               <p>{t(`gallery.servicesPage.${key}.body`)}</p>

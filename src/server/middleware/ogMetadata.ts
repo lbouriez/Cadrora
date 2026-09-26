@@ -49,6 +49,7 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
       ).toString()
     : null;
   applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
+  if (mayIndex) context.header('Cache-Control', 'public, max-age=60, no-transform');
   if (!mayIndex) context.header('X-Robots-Tag', 'noindex, nofollow');
   context.res = context.html(`<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">

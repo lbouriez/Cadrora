@@ -51,7 +51,9 @@ export function DefaultHomePage() {
         <MotionReveal as="figure" className="site-hero__art" delay={1} effect="scale">
           <img
             alt={t('gallery.heroImageAlt')}
+            fetchPriority="high"
             height="1024"
+            loading="eager"
             src={siteProfile.heroImageUrl}
             width="1536"
           />
