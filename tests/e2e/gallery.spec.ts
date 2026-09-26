@@ -1,5 +1,25 @@
 import { expect, mockGallery, publicEvent, publicPhoto, test } from './fixtures';
 
+test('demande les photos sans attendre les details de la galerie', async ({ page }) => {
+  await mockGallery(page);
+  let releaseDetails: () => void = () => {};
+  const detailsGate = new Promise<void>((resolve) => { releaseDetails = resolve; });
+  let photoRequestStarted = false;
+  await page.route('**/api/v1/galleries/mariage-lumiere', async (route) => {
+    await detailsGate;
+    await route.fulfill({ body: JSON.stringify(publicEvent), contentType: 'application/json' });
+  });
+  await page.route('**/api/v1/galleries/mariage-lumiere/photos*', async (route) => {
+    photoRequestStarted = true;
+    await route.fulfill({ body: JSON.stringify({ eventRevision: publicEvent.revision, nextCursor: null, photos: [publicPhoto] }), contentType: 'application/json' });
+  });
+
+  await page.goto('/e/mariage-lumiere', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => photoRequestStarted).toBe(true);
+  releaseDetails();
+  await expect(page.locator('.photo-tile')).toHaveCount(1);
+});
+
 test('charge les pages et choisit les variantes selon la largeur sans répéter la couverture', async ({ page }) => {
   await mockGallery(page);
   const photoRequests: string[] = [];

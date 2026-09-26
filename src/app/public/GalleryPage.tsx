@@ -150,12 +150,18 @@ export function GalleryPage() {
     enabled: event.error instanceof GalleryApiError && event.error.status === 401,
   });
   const photos = useInfiniteQuery({
-    queryKey: ['public-photos', slug, event.data?.revision],
+    queryKey: ['public-photos', slug],
     queryFn: ({ pageParam }) => getPublicPhotos(slug, pageParam ?? undefined),
     initialPageParam: null as string | null,
     getNextPageParam: (page) => page.nextCursor,
-    enabled: Boolean(event.data),
+    enabled: slug.length > 0,
   });
+  useEffect(() => {
+    const loadedRevision = photos.data?.pages[0]?.eventRevision;
+    if (event.data && loadedRevision !== undefined && loadedRevision < event.data.revision && !photos.isFetching) {
+      void queryClient.invalidateQueries({ queryKey: ['public-photos', slug] });
+    }
+  }, [event.data, photos.data, photos.isFetching, queryClient, slug]);
   const favorite = useMutation({
     mutationFn: ({ photo, liked }: { photo: PublicPhoto; liked: boolean }) => setPhotoFavorite(slug, photo.id, liked),
     onSuccess: async () => {
