@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { BackLink } from '../components';
+import { BackLink, Spinner } from '../components';
 import { getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
 import { ServiceAreaMap } from './ServiceAreaMap';
@@ -125,10 +125,11 @@ export function DefaultContactPage() {
         ) : (
           <p className="contact-page__unconfigured">{t('gallery.contactUnconfigured')}</p>
         )}
-        {map && map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
+        {settings.isPending ? <Spinner label={t('gallery.loading')} /> : null}
+        {!settings.isPending && map && map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
           <ServiceAreaMap centerLatitude={map.centerLatitude} centerLongitude={map.centerLongitude} radiusKm={map.radiusKm} />
         ) : null}
-        <section className="contact-page__expectations">
+        {!settings.isPending ? <section className="contact-page__expectations">
           <div>
             <p className="site-eyebrow">{t('gallery.contactExpectationEyebrow')}</p>
             <h2>{t('gallery.contactExpectationTitle')}</h2>
@@ -138,8 +139,8 @@ export function DefaultContactPage() {
             <li><strong>02</strong><span>{t('gallery.contactExpectation2')}</span></li>
             <li><strong>03</strong><span>{t('gallery.contactExpectation3')}</span></li>
           </ol>
-        </section>
-        <BackLink className="contact-page__back" to="/">{t('gallery.backHome')}</BackLink>
+        </section> : null}
+        {!settings.isPending ? <BackLink className="contact-page__back" to="/">{t('gallery.backHome')}</BackLink> : null}
       </article>
     </PublicLayout>
   );
