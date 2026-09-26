@@ -113,6 +113,7 @@ test('gallery directory fetches one bounded page and loads more on scroll', asyn
     createdAt, updatedAt: createdAt,
   });
   const requests: string[] = [];
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => {
     const url = new URL(route.request().url());
     requests.push(url.search);
@@ -124,6 +125,7 @@ test('gallery directory fetches one bounded page and loads more on scroll', asyn
   });
 
   await page.goto('/galleries');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await expect(page.locator('.event-card')).toHaveCount(24);
   expect(requests).toHaveLength(1);
   await page.locator('.gallery-load-sentinel').scrollIntoViewIfNeeded();
@@ -133,4 +135,20 @@ test('gallery directory fetches one bounded page and loads more on scroll', asyn
   expect(requests[1]).toContain('cursor=page-2');
   await expect(page.locator('.event-card').first().locator('.event-card__service')).toHaveText('Mariage');
   await expect(page.getByRole('button', { name: /charger plus de galeries|load more galleries/i })).toHaveCount(0);
+});
+
+test('runtime language wins until a visitor makes and keeps a choice', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'en', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
+  }) }));
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page.locator('.public-header__language').click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
 });

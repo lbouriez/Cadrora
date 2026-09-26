@@ -11,6 +11,7 @@ import { PrivacyConsent } from './PrivacyConsent';
 import { siteProfile } from './siteProfile';
 import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
+import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 
 export function PublicLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { i18n, t } = useTranslation();
@@ -78,7 +79,7 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
           {canChooseLanguage ? <IconButton
             aria-label={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
             className="public-header__language"
-            onClick={() => { void i18n.changeLanguage(nextLanguage); }}
+            onClick={() => { rememberVisitorLanguage(nextLanguage); void i18n.changeLanguage(nextLanguage); }}
             title={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
           >
             {nextLanguage.toUpperCase()}

@@ -37,7 +37,7 @@ Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 ove
 | Variable | Meaning | Required |
 | --- | --- | --- |
 | `VITE_APP_NAME` | Studio or public brand name | Yes; defaults to `Cadrora` locally |
-| `VITE_SITE_DEFAULT_LANG` | Initial language, `fr` or `en`; a visitor choice is then remembered locally | No; defaults to `fr` |
+| `VITE_SITE_DEFAULT_LANG` | Optional compiled initial-language override, `fr` or `en`; a visitor choice is then remembered locally | No; each site profile supplies a typed fallback (`fr` for Cadrora and Atelier Giulia) |
 | `VITE_PHOTOGRAPHER_NAME` | Photographer name used in the introduction; replaces the fictional demo name | No |
 | `VITE_CONTACT_PHONE` | Optional compiled phone fallback if D1/API is unavailable; D1 takes precedence | No |
 | `VITE_CONTACT_EMAIL` | Optional compiled email fallback if D1/API is unavailable; D1 takes precedence | No |
@@ -47,7 +47,7 @@ Public contact content has compiled `VITE_*` fallbacks and owner-editable D1 ove
 
 The client has no hardcoded contact coordinates. The opt-in Cadrora showcase seeds fictional contact values into the singleton D1 row only while that row is untouched; the Contact page does not display a demo disclaimer. A real operator sets the actual values in Admin Site settings before launch and may also provide real compiled fallbacks for outages. Null D1 fields use any configured compiled fallback; an empty string intentionally hides a field. The canonical fallback reader remains `src/app/public/siteProfile.ts`; do not duplicate public profile values in components or translations.
 
-The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations. Site-specific copy overrides are merged into the shared FR/EN resources at initialization, not hardcoded in a page.
+The canonical reader is `src/app/public/siteProfile.ts`. Do not access public build variables throughout components or duplicate the profile in translations. Site-specific copy overrides are merged into the shared FR/EN resources at initialization, not hardcoded in a page. Initial language follows an explicit visitor choice, then an explicit `VITE_SITE_DEFAULT_LANG`, then the selected profile's fallback. When D1 settings arrive, their default language applies unless the visitor made an explicit choice; an automatic default is never saved as a visitor preference.
 
 ## Runtime site settings
 

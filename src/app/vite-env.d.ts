@@ -18,6 +18,7 @@ interface ImportMeta {
 
 declare const __CADRORA_SHOWCASE_DEMO__: boolean;
 declare const __CADRORA_SITE_ID__: string;
+declare const __CADRORA_SITE_DEFAULT_LANG__: 'fr' | 'en';
 declare module '@site-theme';
 declare module '@site-definition' {
   // The ambient alias cannot use a top-level import without changing this file's global declarations.

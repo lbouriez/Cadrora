@@ -20,6 +20,7 @@ export default defineConfig({
   define: {
     __CADRORA_SHOWCASE_DEMO__: JSON.stringify(showcaseDemo),
     __CADRORA_SITE_ID__: JSON.stringify(siteId),
+    __CADRORA_SITE_DEFAULT_LANG__: JSON.stringify(site.defaultLanguage ?? 'fr'),
   },
   plugins: [
     react(),

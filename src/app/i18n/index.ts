@@ -19,8 +19,7 @@ try {
 }
 const initialLanguage = supportedLanguage(savedLanguage)
   ?? supportedLanguage(import.meta.env.VITE_SITE_DEFAULT_LANG)
-  ?? supportedLanguage(navigator.language)
-  ?? 'fr';
+  ?? __CADRORA_SITE_DEFAULT_LANG__;
 
 void i18n.use(initReactI18next).init({
   resources,
@@ -32,11 +31,6 @@ void i18n.use(initReactI18next).init({
 
 i18n.on('languageChanged', (language) => {
   document.documentElement.lang = supportedLanguage(language) ?? 'fr';
-  try {
-    localStorage.setItem('cadrora-language', supportedLanguage(language) ?? 'fr');
-  } catch {
-    // Language changes remain valid for this session even without storage.
-  }
 });
 
 document.documentElement.lang = initialLanguage;

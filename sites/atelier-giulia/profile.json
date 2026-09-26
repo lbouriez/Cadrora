@@ -6,6 +6,7 @@
     "themeColor": "#181d18",
     "icon": "/brand/atelier-giulia-icon.png"
   },
+  "defaultLanguage": "fr",
   "deployment": {
     "instance": "atelier-giulia",
     "hostname": "ateliergiulia.com",
