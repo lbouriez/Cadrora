@@ -21,9 +21,9 @@ function escapeXml(value: string): string {
 export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
   app.get('/llms.txt', (context) => {
     const origin = new URL(context.req.url).origin;
-    const siteName = __CADRORA_SITE_NAME__.replace(/[\r\n]+/gu, ' ');
-    const description = __CADRORA_SITE_DESCRIPTION__.replace(/[\r\n]+/gu, ' ');
-    const english = __CADRORA_SITE_DEFAULT_LANG__ === 'en';
+    const siteName = context.env.SITE_NAME.replace(/[\r\n]+/gu, ' ');
+    const description = context.env.SITE_DESCRIPTION.replace(/[\r\n]+/gu, ' ');
+    const english = context.env.SITE_DEFAULT_LANG === 'en';
     const links = [
       ...publicPages.map((page) => `- [${english ? page.en : page.fr}](${origin}${page.path})`),
       `- [${english ? 'Sitemap' : 'Plan du site'}](${origin}/sitemap.xml)`,

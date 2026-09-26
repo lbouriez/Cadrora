@@ -9,10 +9,14 @@ describe('search index routes', () => {
   registerSearchIndexRoutes(app);
 
   it('serves a site-specific Markdown guide without requiring the gallery database', async () => {
-    const response = await app.request('https://example.test/llms.txt');
+    const response = await app.request('https://example.test/llms.txt', undefined, {
+      SITE_NAME: 'Atelier Giulia',
+      SITE_DESCRIPTION: 'Portraits et célébrations.',
+      SITE_DEFAULT_LANG: 'fr',
+    });
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('text/markdown');
-    expect(body).toMatch(/^# Cadrora\n/u);
+    expect(body).toMatch(/^# Atelier Giulia\n/u);
     expect(body).toContain('[Galeries](https://example.test/galleries)');
     expect(body).toContain('[Plan du site](https://example.test/sitemap.xml)');
   });

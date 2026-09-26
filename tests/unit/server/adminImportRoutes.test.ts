@@ -474,5 +474,7 @@ function bindings(database: D1Database, bucket: R2Bucket): CloudflareBindings {
     MODELS_BUCKET: {} as R2Bucket,
     SESSION_TTL_H: '8',
     SITE_DEFAULT_LANG: 'fr',
+    SITE_NAME: 'Cadrora',
+    SITE_DESCRIPTION: 'Galeries photo.',
   };
 }

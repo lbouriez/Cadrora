@@ -16,7 +16,7 @@ The website shell must remain useful when the event API is unavailable. A galler
 
 The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap reads D1 and includes only published, online, listed public galleries; protected, unlisted, draft and deleting galleries are omitted. Both paths must stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. Gallery routes use crawler metadata separately.
 
-The Worker also serves `/llms.txt` as Markdown before the SPA fallback. Its title and summary come from the selected build-time site profile, while links use the request hostname and point only to public pages and the existing dynamic sitemap. The guide works even when D1 is unavailable; the sitemap remains the source for changing public-gallery URLs. Keep `/llms.txt` in `assets.run_worker_first` so a missing file can never return the application HTML with HTTP 200.
+The Worker also serves `/llms.txt` as Markdown before the SPA fallback. Its title, summary and language come from Worker vars populated from the selected site profile by the deployment scripts; Wrangler bundles the Worker separately from Vite, so Vite's client-side defines must not be used in server routes. Links use the request hostname and point only to public pages and the existing dynamic sitemap. The guide works even when D1 is unavailable; the sitemap remains the source for changing public-gallery URLs. Keep `/llms.txt` in `assets.run_worker_first` so a missing file can never return the application HTML with HTTP 200.
 
 ## Public profile configuration
 

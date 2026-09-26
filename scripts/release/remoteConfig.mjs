@@ -1,5 +1,6 @@
 import { readFile, rm, writeFile } from 'node:fs/promises';
 import { featureFlagVars } from '../config/featureFlags.mjs';
+import { loadSiteProfile, profileWorkerVars } from '../sites/loadProfile.mjs';
 
 const generatedConfigPath = '.cadrora.remote.wrangler.json';
 const generatedSecretsPath = '.cadrora.remote.secrets.env';
@@ -42,6 +43,7 @@ export async function prepareRemoteConfig(target, environment = process.env) {
   selectedConfig.vars.DEMO_SHOWCASE_ENABLED = environment.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true'
     ? 'true'
     : 'false';
+  Object.assign(selectedConfig.vars, profileWorkerVars(loadSiteProfile('cadrora')));
   selectedConfig.vars = featureFlagVars(selectedConfig.vars, environment);
   await writeFile(generatedConfigPath, `${JSON.stringify(config, null, 2)}\n`, 'utf8');
 

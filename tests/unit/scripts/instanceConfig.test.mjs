@@ -35,7 +35,8 @@ describe('isolated instance deployment configuration', () => {
       vars: { DEMO_SHOWCASE_ENABLED: 'true', FEATURE_PUBLIC_MEDIA_CACHE: 'false' },
       vectorize: [{ binding: 'FACE_INDEX', index_name: 'cadrora-face-index' }],
     };
-    const config = instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com', '../../..');
+    const site = { name: 'Alice Photography', document: { description: 'Photographs for families.' }, defaultLanguage: 'en' };
+    const config = instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com', '../../..', site);
 
     expect(names).toEqual({
       database: 'cadrora-alice',
@@ -51,11 +52,11 @@ describe('isolated instance deployment configuration', () => {
       d1_databases: [{ database_id: 'database-uuid', database_name: 'cadrora-alice', migrations_dir: '../../../migrations' }],
       name: 'cadrora-alice',
       routes: [{ custom_domain: true, pattern: 'alice.cadrora.com' }],
-      vars: { DEMO_SHOWCASE_ENABLED: 'false', FEATURE_PUBLIC_MEDIA_CACHE: 'false' },
+      vars: { DEMO_SHOWCASE_ENABLED: 'false', FEATURE_PUBLIC_MEDIA_CACHE: 'false', SITE_NAME: site.name, SITE_DESCRIPTION: site.document.description, SITE_DEFAULT_LANG: 'en' },
     });
     expect(config).not.toHaveProperty('env');
     expect(base).toHaveProperty('env.preview');
-    expect(instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com', '../../..', { FEATURE_PUBLIC_MEDIA_CACHE: 'true' }).vars.FEATURE_PUBLIC_MEDIA_CACHE).toBe('true');
+    expect(instanceWranglerConfig(base, names, 'database-uuid', 'alice.cadrora.com', '../../..', site, { FEATURE_PUBLIC_MEDIA_CACHE: 'true' }).vars.FEATURE_PUBLIC_MEDIA_CACHE).toBe('true');
   });
 
   it('reads Wrangler R2 list output without relying on table borders', () => {

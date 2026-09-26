@@ -57,6 +57,8 @@ function bindings(database: D1Database): CloudflareBindings {
     MAX_STORAGE_BYTES: '9900000000',
     SESSION_TTL_H: '8',
     SITE_DEFAULT_LANG: 'fr',
+    SITE_NAME: 'Cadrora',
+    SITE_DESCRIPTION: 'Galeries photo.',
   };
 }
 

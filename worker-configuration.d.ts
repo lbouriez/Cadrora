@@ -20,4 +20,6 @@ interface CloudflareBindings {
   MAX_FACES_PER_EVENT: string;
   MAX_TOTAL_FACES: string;
   SITE_DEFAULT_LANG: 'fr' | 'en';
+  SITE_NAME: string;
+  SITE_DESCRIPTION: string;
 }
