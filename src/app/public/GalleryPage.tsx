@@ -400,7 +400,7 @@ export function GalleryPage() {
       : 'index,follow';
   }, [accessRequired, event.data?.access, event.data?.visibility]);
 
-  if (event.isPending) return <PublicLayout><Spinner label={t('gallery.loading')} /></PublicLayout>;
+  if (event.isPending) return <PublicLayout wide><Spinner label={t('gallery.loading')} /></PublicLayout>;
   if (accessRequired && !event.data) return <PublicLayout wide>
     {lockedPreview ? <header className="gallery-heading">
       <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>

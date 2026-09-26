@@ -82,6 +82,7 @@
 
 .public-main--gallery {
   width: min(100% - 2 * var(--space-4), 150rem);
+  min-height: 100svh;
 }
 
 .public-footer {
@@ -771,7 +772,9 @@
   box-shadow: var(--shadow-lg);
   gap: var(--space-5);
   backdrop-filter: blur(1rem);
-  min-height: 12rem;
+  height: 14rem;
+  max-height: calc(100dvh - 2 * var(--space-4));
+  overflow-y: auto;
 }
 
 .privacy-consent h2 {
@@ -1460,7 +1463,10 @@
   .privacy-consent {
     align-items: flex-start;
     flex-direction: column;
-    min-height: 22rem;
+  }
+
+  .privacy-consent {
+    height: 29rem;
   }
 
   .demo-experience-grid {

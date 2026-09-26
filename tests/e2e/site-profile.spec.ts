@@ -42,7 +42,7 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
       siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
       contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
-      enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+      enabledServices: ['wedding'], analyticsMeasurementId: 'G-ABCDEF12', themeMode: 'light',
       updatedAt: '2026-09-25T00:00:00.000Z',
     }) });
   });
@@ -52,7 +52,12 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.locator('.public-header__theme')).toHaveCount(0);
+  const beforeConsent = await page.locator('.privacy-consent').boundingBox();
   releaseSettings?.();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await expect(page.locator('.public-header__theme')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /autoriser l'analyse|allow analytics/i })).toBeVisible();
+  const afterConsent = await page.locator('.privacy-consent').boundingBox();
+  expect(Math.abs((afterConsent?.y ?? 0) - (beforeConsent?.y ?? 0))).toBeLessThan(1);
+  expect(Math.abs((afterConsent?.height ?? 0) - (beforeConsent?.height ?? 0))).toBeLessThan(1);
 });
