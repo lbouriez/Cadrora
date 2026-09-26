@@ -128,6 +128,7 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   await expect(page).toHaveURL(/\/e\/mariage-lumiere\/photo\/photo-1$/);
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
+  await expect(page.locator('.photo-grid .progressive-photo img')).toHaveCount(0);
   await expect(dialog.getByRole('link', { name: /télécharger|download/i })).toHaveAttribute('href', '/media/event-1/photo-1/2/download');
   await dialog.evaluate(async (element) => Promise.all(element.getAnimations().map(async (animation) => animation.finished)));
   const desktopDialogBox = await dialog.boundingBox();
@@ -175,6 +176,7 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   await expect(dialog).toHaveCSS('border-radius', '0px');
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/e\/mariage-lumiere$/);
+  await expect(page.locator('.photo-grid .progressive-photo__preview').first()).toBeVisible();
 });
 
 test('selectionne des photos et cree le ZIP de secours avec un bouton retour entier', async ({ page }, testInfo) => {

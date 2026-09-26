@@ -29,6 +29,7 @@ import type { PublicPhoto } from '../../shared/schemas/gallery';
 interface GalleryPhotoGridProps {
   downloadHelpId: string;
   favoritesEnabled: boolean;
+  imagesEnabled: boolean;
   retouchEnabled: boolean;
   favoritePendingId: string | null;
   onToggleFavorite: (photo: PublicPhoto) => void;
@@ -47,7 +48,7 @@ function photoColumnCount(width: number): number {
   return width >= 1320 ? 3 : width >= 720 ? 2 : 1;
 }
 
-function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, retouchEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
+function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, imagesEnabled, retouchEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(() => typeof window === 'undefined' ? 1 : photoColumnCount(window.innerWidth - 32));
@@ -79,6 +80,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, retouchEnabled, fa
       {column.map((photo, photoIndex) => {
         const image = <ProgressivePhoto
           alt={photo.filename}
+          enabled={imagesEnabled}
           height={photo.height}
           immediate={photoIndex === 0}
           priority={columnIndex === 0 && photoIndex === 0}
@@ -261,7 +263,7 @@ export function GalleryPage() {
   const selectedPhotos = useMemo(() => allPhotos.filter((photo) => selectedIds.has(photo.id) && photo.downloadUrl), [allPhotos, selectedIds]);
   const downloadablePhotos = useMemo(() => visiblePhotos.filter((photo) => photo.downloadUrl), [visiblePhotos]);
   const supportsFolder = supportsSeparatePhotoDownloads();
-  const gridFavorites = { favoritesEnabled: Boolean(event.data), retouchEnabled: event.data?.access === 'protected' && event.data.retouchSelectionEnabled, favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite,
+  const gridFavorites = { favoritesEnabled: Boolean(event.data), imagesEnabled: !selected, retouchEnabled: event.data?.access === 'protected' && event.data.retouchSelectionEnabled, favoritePendingId: favorite.isPending ? favorite.variables.photo.id : null, onToggleFavorite,
     retouchPendingId: retouch.isPending ? retouch.variables.photo.id : null, onToggleRetouch };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
