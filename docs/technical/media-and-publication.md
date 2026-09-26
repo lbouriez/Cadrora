@@ -14,6 +14,8 @@ Original delivery is a subordinate gallery choice, never an archival setting. `G
 
 Public revisioned display media passes through the D1 access check on every Worker request, then uses the named `PublicMediaCache` entrypoint for a five-minute edge cache of successful R2 reads. The default Worker entrypoint is never cached. Downloads bypass the edge cache. The browser cache lifetime for public media is one minute; protected media is private for one hour. Missing access classification is never treated as public. See [ADR-021](../decisions/ADR-021-public-gallery-media-cache.md).
 
+Public display responses include `X-Cadrora-Media-Cache` for operations: the inner entrypoint's Cloudflare cache status, `unknown` if unavailable, or `fallback` when the Worker reads R2 directly. This distinguishes an edge cache HIT from a safe fallback without exposing credentials.
+
 ## Publication
 
 An event publishes only when it contains at least one photo and every visible photo is `variants_ready` or already `published`. Facial indexing can remain pending; it is optional and must not block a gallery. The publish operation promotes ready photos and increments the event revision.

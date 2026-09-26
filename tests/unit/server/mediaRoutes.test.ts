@@ -58,6 +58,7 @@ describe('media route', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('photo');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=60, must-revalidate');
+    expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('fallback');
     expect(get).toHaveBeenCalledWith(publicMedia.storageKey);
   });
 
@@ -68,6 +69,7 @@ describe('media route', () => {
       .request('/media/event-1/photo-1/1/thumb');
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('cached-photo');
+    expect(response.headers.get('X-Cadrora-Media-Cache')).toBe('unknown');
     expect(cache).toHaveBeenCalledWith(publicMedia);
     expect(get).not.toHaveBeenCalled();
   });

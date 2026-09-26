@@ -70,7 +70,11 @@ export function registerMediaRoutes(
 
     if (media.access === 'public' && !isDownload && dependencies.cache) {
       const cached = await dependencies.cache(context, context.req.url, parsed.data.eventId, media);
-      if (cached?.ok) return cached;
+      if (cached?.ok) {
+        const headers = new Headers(cached.headers);
+        headers.set('X-Cadrora-Media-Cache', cached.headers.get('Cf-Cache-Status') ?? 'unknown');
+        return new Response(cached.body, { status: cached.status, headers });
+      }
       if (cached?.status === 404) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
     }
 
@@ -83,6 +87,7 @@ export function registerMediaRoutes(
       ETag: object.etag,
       'X-Content-Type-Options': 'nosniff',
     });
+    if (media.access === 'public' && !isDownload) headers.set('X-Cadrora-Media-Cache', 'fallback');
     if (isDownload) {
       headers.set('Content-Disposition', `attachment; filename="${downloadName(media.filename, media.contentType)}"`);
     }
