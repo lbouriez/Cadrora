@@ -13,17 +13,18 @@ export function edgeExecutionContext(context: Context<AppEnv>): unknown {
 /** The D1 update and this outbox insert must be committed in the same batch. */
 export function galleryCachePurgeStatement(database: D1Database, eventId: string, now: string) {
   const jobId = crypto.randomUUID();
+  const afterInFlightRequests = new Date(Date.parse(now) + 5 * 60_000).toISOString();
   return {
     jobId,
     statement: database.prepare(
       `INSERT INTO maintenance_jobs
          (id, kind, state, payload_json, idempotency_key, attempts, available_at, created_at, updated_at)
-       VALUES (?1, 'purge_gallery_cache', 'pending', ?2, ?3, 0, ?4, ?4, ?4)`,
-    ).bind(jobId, JSON.stringify({ eventId }), `purge-gallery-cache:${jobId}`, now),
+       VALUES (?1, 'purge_gallery_cache', 'pending', ?2, ?3, 0, ?4, ?5, ?5)`,
+    ).bind(jobId, JSON.stringify({ eventId }), `purge-gallery-cache:${jobId}`, afterInFlightRequests, now),
   };
 }
 
-/** Fast path; the scheduled maintenance runner retries any unsuccessful purge. */
+/** Fast path; a second purge remains queued after in-flight public reads have quiesced. */
 export async function tryImmediateGalleryCachePurge(
   database: D1Database,
   executionContext: unknown,
@@ -34,7 +35,7 @@ export async function tryImmediateGalleryCachePurge(
   try {
     await purgePublicMediaCache(executionContext, eventId);
     await database.prepare(
-      "UPDATE maintenance_jobs SET state = 'completed', last_error = NULL, updated_at = ?2 WHERE id = ?1 AND state = 'pending'",
+      "UPDATE maintenance_jobs SET last_error = NULL, updated_at = ?2 WHERE id = ?1 AND state = 'pending'",
     ).bind(jobId, now).run();
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown cache purge failure';

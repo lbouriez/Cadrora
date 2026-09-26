@@ -24,7 +24,7 @@ The publication summary remains available for an empty draft gallery: its aggreg
 
 `events.offline_at` is the reversible withdrawal fence. Public metadata, media resolution, crawler metadata, protected unlock, and face-search routes all treat a non-null value as unavailable. Taking a gallery offline leaves photo states and provider objects intact, increments the event revision, and increments any protected credential access version. Republishing clears the fence after the normal readiness check; deletion remains a separate lifecycle.
 
-Public-to-protected, offline, and delete operations enqueue a `purge_gallery_cache` job transactionally with the D1 fence and attempt an immediate gallery-tag purge. Failed purges remain retryable in maintenance. D1 stops serving cached media as soon as the fence commits, even if edge invalidation fails; a five-minute TTL bounds edge leftovers. Cloudflare cannot enumerate all edge copies to prove physical removal.
+Public-to-protected, offline, and delete operations enqueue a `purge_gallery_cache` job transactionally with the D1 fence and attempt an immediate purge by gallery tag and media path prefix. The job remains queued for a second purge after five minutes, covering public reads that finished after the first purge; failures keep retrying in maintenance. D1 stops serving cached media as soon as the fence commits, even if edge invalidation fails; a five-minute TTL bounds edge leftovers. Cloudflare cannot enumerate all edge copies to prove physical removal.
 
 ## Deletion
 

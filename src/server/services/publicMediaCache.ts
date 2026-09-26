@@ -43,7 +43,10 @@ export class PublicMediaCache extends WorkerEntrypoint<CloudflareBindings, Publi
   async purgeGallery(eventId: string): Promise<void> {
     const parsed = IdSchema.safeParse(eventId);
     if (!parsed.success || !this.ctx.cache) throw new Error('PUBLIC_MEDIA_CACHE_PURGE_UNAVAILABLE');
-    const result = await this.ctx.cache.purge({ tags: [galleryTag(parsed.data)] });
+    const result = await this.ctx.cache.purge({
+      tags: [galleryTag(parsed.data)],
+      pathPrefixes: [`/media/${parsed.data}/`],
+    });
     if (!result.success) {
       const code = result.errors.map((error) => error.code).join(',') || 'unknown';
       throw new Error(`PUBLIC_MEDIA_CACHE_PURGE_FAILED:${code}`);
