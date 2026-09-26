@@ -11,6 +11,7 @@ export interface ProgressivePhotoProps {
   enabled?: boolean;
   height: number;
   immediate?: boolean;
+  lazyPreview?: boolean;
   maxQuality?: 'preview' | 'medium' | 'full';
   priority?: boolean;
   sizes: string;
@@ -19,7 +20,7 @@ export interface ProgressivePhotoProps {
 }
 
 /** Show a small blurred preview, then let the browser select one display-sized source. */
-export function ProgressivePhoto({ alt, className, enabled = true, height, immediate = false, maxQuality = 'full', priority = false, sizes, sources, width }: ProgressivePhotoProps) {
+export function ProgressivePhoto({ alt, className, enabled = true, height, immediate = false, lazyPreview = false, maxQuality = 'full', priority = false, sizes, sources, width }: ProgressivePhotoProps) {
   const frame = useRef<HTMLSpanElement>(null);
   const [nearby, setNearby] = useState(() => typeof window !== 'undefined' && !('IntersectionObserver' in window));
   const [previewReady, setPreviewReady] = useState(false);
@@ -48,7 +49,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, height, immed
   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
 
   return <span className={`progressive-photo${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={{ aspectRatio: `${width} / ${height}` }}>
-    {enabled && preview ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} loading={immediate ? 'eager' : 'lazy'} onError={() => setPreviewReady(true)} onLoad={() => setPreviewReady(true)} src={preview.url} /> : null}
+    {enabled && preview && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} loading={immediate ? 'eager' : 'lazy'} onError={() => setPreviewReady(true)} onLoad={() => setPreviewReady(true)} src={preview.url} /> : null}
     {revealOptimized ? <img
       alt=""
       aria-hidden="true"

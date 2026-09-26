@@ -113,6 +113,9 @@ test('la visionneuse montre la petite photo puis charge directement la taille ad
   releaseFull();
   await expect(selected.locator('.progressive-photo')).toHaveClass(/progressive-photo--ready/u);
   expect(photoRequests.some((url) => url.includes('photo-38-1600.svg'))).toBe(false);
+  expect(photoRequests.filter((url) => url.includes('-480.svg')).length).toBeLessThan(25);
+  await page.locator('.photo-viewer__rail button').last().scrollIntoViewIfNeeded();
+  await expect(page.locator('.photo-viewer__rail button').last().locator('.progressive-photo__preview')).toHaveJSProperty('naturalWidth', 1600);
 });
 
 test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) => {

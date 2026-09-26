@@ -126,7 +126,7 @@ export function PhotoViewer({ favoriteEnabled, retouchEnabled, favoritePending, 
             {photos.map((candidate) => {
               return (
                 <button aria-current={candidate.id === photo.id ? 'true' : undefined} aria-label={candidate.filename} key={candidate.id} onClick={() => onSelect(candidate)} type="button">
-                  <ProgressivePhoto alt="" height={candidate.height} maxQuality="preview" sizes="44px" sources={candidate.sources} width={candidate.width} />
+                  <ProgressivePhoto alt="" height={candidate.height} lazyPreview maxQuality="preview" sizes="44px" sources={candidate.sources} width={candidate.width} />
                 </button>
               );
             })}
