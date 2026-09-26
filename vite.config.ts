@@ -7,6 +7,8 @@ import { loadSiteProfile } from './scripts/sites/loadProfile.mjs';
 const siteId = process.env.CADRORA_SITE?.trim() || 'cadrora';
 const site = loadSiteProfile(siteId);
 const showcaseDemo = process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true';
+const siteDefaultLanguage = site.defaultLanguage === 'en' ? 'en' : 'fr';
+process.env.VITE_SITE_DEFAULT_LANG ||= siteDefaultLanguage;
 if (showcaseDemo && site.allowShowcase !== true) throw new Error('This site profile does not allow the showcase demo.');
 
 export default defineConfig({

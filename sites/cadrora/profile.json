@@ -6,5 +6,6 @@
     "themeColor": "#17111f",
     "icon": "/brand/cadrora-logo.png"
   },
+  "defaultLanguage": "fr",
   "allowShowcase": true
 }

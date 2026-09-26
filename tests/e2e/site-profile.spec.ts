@@ -113,6 +113,7 @@ test('gallery directory fetches one bounded page and loads more on scroll', asyn
     createdAt, updatedAt: createdAt,
   });
   const requests: string[] = [];
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => {
     const url = new URL(route.request().url());
     requests.push(url.search);
