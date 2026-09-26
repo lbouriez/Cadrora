@@ -4,10 +4,11 @@ import { useLocation } from 'react-router-dom';
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
 const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/privacy', '/services']);
+let pendingDisable: ReturnType<typeof setTimeout> | null = null;
 
 type Gtag = (...values: unknown[]) => void;
 type AnalyticsWindow = Window & {
-  dataLayer?: unknown[][];
+  dataLayer?: IArguments[];
   gtag?: Gtag;
   [key: `ga-disable-${string}`]: boolean | undefined;
 };
@@ -44,20 +45,24 @@ function loadAnalytics(measurementId: string): void {
   const target = analyticsWindow();
   const existing = document.querySelector<HTMLScriptElement>('script[data-cadrora-analytics]');
   if (existing && existing.dataset.measurementId !== measurementId) {
+    if (existing.dataset.measurementId) disableAnalytics(existing.dataset.measurementId);
     existing.remove();
     target.dataLayer = [];
     delete target.gtag;
   }
+  const loaded = Boolean(document.querySelector('script[data-cadrora-analytics]'));
   target[`ga-disable-${measurementId}`] = false;
   target.dataLayer ??= [];
-  target.gtag ??= (...values: unknown[]) => { target.dataLayer?.push(values); };
-  target.gtag('consent', 'default', {
+  // Google's gtag.js command queue expects the Arguments object, not a rest-parameter array.
+  // eslint-disable-next-line prefer-rest-params -- gtag.js requires the Arguments object.
+  target.gtag ??= function gtag() { target.dataLayer?.push(arguments); };
+  target.gtag('consent', loaded ? 'update' : 'default', {
     ad_storage: 'denied',
     analytics_storage: 'granted',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
   });
-  if (!document.querySelector('script[data-cadrora-analytics]')) {
+  if (!loaded) {
     const script = document.createElement('script');
     script.async = true;
     script.dataset.cadroraAnalytics = 'true';
@@ -81,6 +86,10 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string | nul
     if (!validMeasurementId(measurementId)) return;
     const applyConsent = () => {
       if (readPrivacyConsent() === 'analytics' && ANALYTICS_ROUTES.has(location.pathname)) {
+        if (pendingDisable !== null) {
+          clearTimeout(pendingDisable);
+          pendingDisable = null;
+        }
         loadAnalytics(measurementId);
         analyticsWindow().gtag?.('event', 'page_view', {
           page_location: `${window.location.origin}${location.pathname}`,
@@ -93,7 +102,15 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string | nul
     window.addEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
     return () => {
       window.removeEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
-      disableAnalytics(measurementId);
+      if (!ANALYTICS_ROUTES.has(window.location.pathname)) {
+        disableAnalytics(measurementId);
+      } else {
+        if (pendingDisable !== null) clearTimeout(pendingDisable);
+        pendingDisable = setTimeout(() => {
+          pendingDisable = null;
+          disableAnalytics(measurementId);
+        }, 0);
+      }
     };
   }, [location.pathname, measurementId]);
 

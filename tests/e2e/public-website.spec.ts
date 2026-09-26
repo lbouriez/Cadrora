@@ -101,11 +101,12 @@ test.describe('site vitrine statique', () => {
     await page.getByRole('button', { name: /autoriser l'analyse|allow analytics/i }).click();
     await expect(page.locator('script[data-cadrora-analytics]')).toHaveAttribute('src', `https://www.googletagmanager.com/gtag/js?id=${measurementId}`);
     await expect.poll(() => tagRequests.length).toBe(1);
-    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/contact'))).toBe(true);
+    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/contact' && Object.prototype.toString.call(entry) === '[object Arguments]'))).toBe(true);
 
     await page.getByRole('link', { name: /accueil|home/i }).first().click();
     await expect(page).toHaveURL('/');
     await expect.poll(() => page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/'))).toBe(true);
+    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'consent' && entry[1] === 'update' && (entry[2] as { analytics_storage?: string }).analytics_storage === 'denied'))).toBe(false);
     expect(tagRequests).toHaveLength(1);
   });
 

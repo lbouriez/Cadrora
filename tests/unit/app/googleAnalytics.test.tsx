@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -49,9 +49,12 @@ describe('consented Google Analytics loader', () => {
     act(() => savePrivacyConsent('analytics'));
 
     expect(document.querySelector('script[data-cadrora-analytics]')).not.toBeNull();
-    expect((window as unknown as { dataLayer?: unknown[][] }).dataLayer).toContainEqual([
-      'event', 'page_view', expect.objectContaining({ page_path: '/contact' }),
-    ]);
+    expect((window as unknown as { dataLayer?: IArguments[] }).dataLayer?.some((entry) =>
+      Object.prototype.toString.call(entry) === '[object Arguments]'
+      && entry[0] === 'event'
+      && entry[1] === 'page_view'
+      && (entry[2] as { page_path?: string }).page_path === '/contact',
+    )).toBe(true);
   });
 
   it('disables collection and clears GA cookies when consent is withdrawn', () => {
@@ -66,14 +69,14 @@ describe('consented Google Analytics loader', () => {
     expect(document.cookie).not.toContain('_ga=');
   });
 
-  it('fails closed when the marketing layout unmounts before an admin navigation', () => {
+  it('fails closed when the marketing layout unmounts before an admin navigation', async () => {
     localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
     const rendered = renderAnalytics('/');
     expect((window as unknown as Record<string, unknown>)[`ga-disable-${measurementId}`]).toBe(false);
 
     rendered.unmount();
 
-    expect((window as unknown as Record<string, unknown>)[`ga-disable-${measurementId}`]).toBe(true);
+    await waitFor(() => expect((window as unknown as Record<string, unknown>)[`ga-disable-${measurementId}`]).toBe(true));
   });
 
   it('replaces the Google tag when the owner changes the runtime ID', () => {
