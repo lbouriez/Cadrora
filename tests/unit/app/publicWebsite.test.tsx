@@ -141,6 +141,26 @@ describe('public photographer website', () => {
     expect(screen.getByText('Résumé 0')).toBeTruthy();
   });
 
+  it('uses the Home introduction from the existing site response and keeps the photo URL available immediately', async () => {
+    const homeHeroCopy = {
+      fr: { label: 'Moments choisis', title: 'Votre lumière', description: 'Des images pour votre histoire.', caption: '', imageAlt: 'Portrait au soleil', primaryButtonLabel: 'Parlons-en', secondaryButtonLabel: 'Services' },
+      en: { label: 'Chosen moments', title: 'Your light', description: 'Images for your story.', caption: '', imageAlt: 'Sunlit portrait', primaryButtonLabel: 'Get in touch', secondaryButtonLabel: 'Services' },
+      primaryHref: '/contact', secondaryHref: '/services', showSecondary: false,
+    };
+    const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site' ? { ...runtimeSettings, homeHeroCopy, homeHeroImageRevision: 2, homeGalleries: { enabled: false, limit: 6 } } : [],
+    ), { status: 200 })));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<HomePage />);
+
+    expect(document.querySelector('.site-hero__art img')?.getAttribute('srcset')).toContain('/home-hero-image/medium 960w');
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
+    expect(screen.getByRole('img', { name: 'Portrait au soleil' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/contact');
+    expect(document.querySelector('.site-hero__art figcaption')).toBeNull();
+    expect(fetchMock.mock.calls.filter(([url]) => url === '/api/v1/site')).toHaveLength(1);
+  });
+
   it('interleaves public and protected cards by event date in the full directory', () => {
     renderPage(<PublicEventCards
       events={[

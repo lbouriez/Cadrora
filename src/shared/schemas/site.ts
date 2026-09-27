@@ -24,6 +24,26 @@ export const HomeGalleriesSchema = z.object({
 });
 export const HomeServicesLimitSchema = z.number().int().min(1).max(12);
 
+export const HomeHeroDestinationSchema = z.enum([
+  '/contact', '/services', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
+]);
+export const HomeHeroLanguageSchema = z.object({
+  label: z.string().min(1).max(120),
+  title: z.string().min(1).max(120),
+  description: z.string().min(1).max(500),
+  caption: z.string().max(120),
+  imageAlt: z.string().min(1).max(180),
+  primaryButtonLabel: z.string().min(1).max(60),
+  secondaryButtonLabel: z.string().min(1).max(60),
+}).strict();
+export const HomeHeroCopySchema = z.object({
+  fr: HomeHeroLanguageSchema,
+  en: HomeHeroLanguageSchema,
+  primaryHref: HomeHeroDestinationSchema,
+  secondaryHref: HomeHeroDestinationSchema,
+  showSecondary: z.boolean(),
+}).strict();
+
 export const SiteCopyLanguageSchema = z.object({
   description: z.string().min(1).max(300).optional(),
   footerTagline: z.string().max(160).optional(),
@@ -59,6 +79,8 @@ export const SiteSettingsSchema = z.object({
   enabledServices: EnabledServicesSchema,
   homeGalleries: HomeGalleriesSchema,
   homeServicesLimit: HomeServicesLimitSchema,
+  homeHeroCopy: HomeHeroCopySchema.nullable().default(null),
+  homeHeroImageRevision: z.number().int().positive().nullable().default(null),
   analyticsMeasurementId: AnalyticsMeasurementIdSchema,
   themeMode: ThemeModeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -120,6 +142,7 @@ export const ModelManifestSchema = z.object({
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 export type SiteCopy = z.infer<typeof SiteCopySchema>;
+export type HomeHeroCopy = z.infer<typeof HomeHeroCopySchema>;
 export type AdminSiteSettings = z.infer<typeof AdminSiteSettingsSchema>;
 export type Language = z.infer<typeof LanguageSchema>;
 export type QuotaLimits = z.infer<typeof QuotaLimitsSchema>;

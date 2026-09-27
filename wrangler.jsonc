@@ -14,7 +14,7 @@
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt"]
+    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/home-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt"]
   },
   "vars": {
     "ADMIN_AUTH_MODE": "password",
@@ -29,7 +29,8 @@
     "MAX_TOTAL_FACES": "39000",
     "SITE_DEFAULT_LANG": "fr",
     "SITE_NAME": "Cadrora",
-    "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes."
+    "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
+    "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp"
   },
   "secrets": {
     "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
@@ -73,7 +74,8 @@
         "MAX_TOTAL_FACES": "39000",
         "SITE_DEFAULT_LANG": "fr",
         "SITE_NAME": "Cadrora",
-        "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes."
+        "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
+        "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp"
       },
       "secrets": {
         "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]

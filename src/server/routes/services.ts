@@ -12,6 +12,7 @@ import { applyCachePolicy } from '../middleware/cacheHeaders';
 import { contentTypeWithoutParameters, putVerifiedImage } from '../services/imageUpload';
 import { effectiveQuotaLimits, storedMediaBytes } from '../services/quotas';
 import { readServiceMediaCache } from '../services/publicMediaCache';
+import dimensions from '../../shared/brand-photo-dimensions.json';
 import type { AppEnv } from '../types';
 
 interface ServiceRow {
@@ -40,7 +41,7 @@ interface VariantRow {
 const MAX_SERVICES = 30;
 const requiredVariants = ['preview', 'small', 'medium', 'large'] as const;
 
-async function oldImageCleanup(db: D1Database, id: string, revision: number, now: string): Promise<D1PreparedStatement[]> {
+export async function oldImageCleanup(db: D1Database, id: string, revision: number, now: string): Promise<D1PreparedStatement[]> {
   if (revision < 1) return [];
   const rows = await db.prepare('SELECT storage_key FROM site_service_variants WHERE service_id = ? AND revision = ?')
     .bind(id, revision).all<{ storage_key: string }>();
@@ -62,7 +63,7 @@ async function serviceRow(db: D1Database, id: string): Promise<ServiceRow | null
 
 async function listServices(db: D1Database): Promise<ServiceCard[]> {
   const [cards, variants] = await Promise.all([
-    db.prepare('SELECT * FROM site_services ORDER BY sort_order, id LIMIT 30').all<ServiceRow>(),
+    db.prepare("SELECT * FROM site_services WHERE id <> 'home-hero' ORDER BY sort_order, id LIMIT 30").all<ServiceRow>(),
     db.prepare('SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width').all<VariantRow>(),
   ]);
   return ServiceCardsSchema.parse(cards.results.map((row) => ({
@@ -101,6 +102,50 @@ async function syncLegacyServices(db: D1Database): Promise<void> {
 }
 
 export function registerServiceRoutes(app: Hono<AppEnv>): void {
+  app.get('/home-hero-image/:variant', async (context) => {
+    const variant = ServiceVariantSchema.safeParse(context.req.param('variant'));
+    if (!variant.success) throw new ApiException('INVALID_MEDIA_PATH', 'errors.invalidMediaPath', 400);
+    applyCachePolicy(context, 'media-public');
+    const row = await context.env.DB.prepare(
+      `SELECT v.storage_key, v.content_type, v.byte_size, v.checksum_sha256, v.revision
+       FROM site_service_variants v JOIN site_services s ON s.id = v.service_id
+       JOIN site_settings settings ON settings.id = 1
+       WHERE v.service_id = 'home-hero' AND v.variant = ? AND v.revision = s.image_revision
+         AND settings.home_hero_image_enabled = 1`,
+    ).bind(variant.data).first<VariantRow>().catch(() => null);
+    if (row) {
+      let response: Response | null = null;
+      try {
+        const versionedUrl = new URL(`/service-media/home-hero/${row.revision}/${variant.data}`, context.req.url).toString();
+        response = await readServiceMediaCache(context.executionCtx, versionedUrl, {
+          contentType: row.content_type, serviceId: 'home-hero', revision: row.revision, storageKey: row.storage_key,
+        });
+      } catch { /* R2 remains the source if the edge cache is unavailable. */ }
+      if (!response?.ok) {
+        const object = await context.env.MEDIA_BUCKET.get(row.storage_key);
+        if (!object) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
+        response = new Response(object.body, { headers: {
+          'Content-Length': String(object.size), 'Content-Type': row.content_type,
+          ETag: object.httpEtag, 'X-Content-Type-Options': 'nosniff',
+        } });
+      }
+      const headers = new Headers(response.headers);
+      headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
+      return new Response(response.body, { status: response.status, headers });
+    }
+    const fallback = context.env.SITE_HERO_IMAGE_URL || '/brand/demo-hero.webp';
+    const photo = dimensions[fallback as keyof typeof dimensions];
+    const width = SERVICE_VARIANT_WIDTHS[variant.data];
+    const basename = fallback.startsWith('/brand/') && fallback.endsWith('.webp')
+      ? fallback.slice('/brand/'.length, -'.webp'.length) : null;
+    const path = photo && basename && width < photo.width
+      ? `/brand/responsive/${basename}-${width}.webp` : fallback;
+    const asset = await context.env.ASSETS.fetch(new Request(new URL(path, context.req.url)));
+    const headers = new Headers(asset.headers);
+    headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
+    return new Response(asset.body, { status: asset.status, headers });
+  });
+
   app.get('/service-media/:id/:revision/:variant', async (context) => {
     const id = ServiceIdSchema.safeParse(context.req.param('id'));
     const variant = ServiceVariantSchema.safeParse(context.req.param('variant'));
@@ -150,9 +195,9 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     applyCachePolicy(context, 'admin');
     const input = ServiceCopySchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    const count = await context.env.DB.prepare('SELECT COUNT(*) AS value FROM site_services').first<{ value: number }>();
+    const count = await context.env.DB.prepare("SELECT COUNT(*) AS value FROM site_services WHERE id <> 'home-hero'").first<{ value: number }>();
     if ((count?.value ?? 0) >= MAX_SERVICES) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
-    const order = await context.env.DB.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS value FROM site_services').first<{ value: number }>();
+    const order = await context.env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) + 1 AS value FROM site_services WHERE id <> 'home-hero'").first<{ value: number }>();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     await context.env.DB.prepare(
@@ -171,6 +216,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     if (!id.success || !input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const previous = await serviceRow(context.env.DB, id.data);
     if (!previous) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 404);
+    if (id.data === 'home-hero') throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     if (input.data.enabled && !previous.is_builtin && (!input.data.copy || previous.image_revision === 0)) {
       throw new ApiException('SERVICE_INCOMPLETE', 'errors.invalidRequest', 409);
     }
@@ -219,6 +265,9 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     }
     if (headers.data.width > SERVICE_VARIANT_WIDTHS[variant.data]) {
+      throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
+    }
+    if (id.data === 'home-hero' && headers.data.width !== SERVICE_VARIANT_WIDTHS[variant.data]) {
       throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
     }
     const row = await serviceRow(context.env.DB, id.data);
@@ -280,7 +329,11 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       ...await oldImageCleanup(context.env.DB, id.data, row.image_revision, now),
       context.env.DB.prepare('UPDATE site_services SET image_revision = ?, pending_image_revision = NULL, updated_at = ? WHERE id = ? AND pending_image_revision = ?')
         .bind(revision, now, id.data, revision),
+      ...(id.data === 'home-hero' ? [context.env.DB.prepare(`UPDATE site_settings SET home_hero_image_enabled = 1, updated_at = ?
+        WHERE id = 1 AND EXISTS (SELECT 1 FROM site_services WHERE id = 'home-hero' AND image_revision = ?)`)
+        .bind(now, revision)] : []),
     ]);
+    if (id.data === 'home-hero') return context.json(ServiceImageRevisionSchema.parse({ revision }));
     const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
     if (!card) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 500);
     return context.json(ServiceCardSchema.parse(card));

@@ -22,4 +22,5 @@ interface CloudflareBindings {
   SITE_DEFAULT_LANG: 'fr' | 'en';
   SITE_NAME: string;
   SITE_DESCRIPTION: string;
+  SITE_HERO_IMAGE_URL: string;
 }

@@ -11,6 +11,8 @@ export interface SiteSettingsRow {
   home_galleries_enabled: number;
   home_galleries_limit: number;
   home_services_limit: number;
+  home_hero_copy: string | null;
+  home_hero_image_revision: number | null;
   map_center_latitude: number | null;
   map_center_longitude: number | null;
   map_radius_km: number | null;
@@ -23,6 +25,7 @@ export interface SiteSettingsRow {
 
 export const SITE_SETTINGS_SELECT = `SELECT site_name, site_copy, default_language, enabled_languages,
   enabled_services, home_galleries_enabled, home_galleries_limit, home_services_limit,
+  home_hero_copy, (SELECT NULLIF(image_revision, 0) FROM site_services WHERE id = 'home-hero' AND site_settings.home_hero_image_enabled = 1) AS home_hero_image_revision,
   contact_email, contact_phone, contact_address, service_area,
   map_center_latitude, map_center_longitude, map_radius_km,
   theme_mode, analytics_measurement_id, updated_at FROM site_settings WHERE id = 1`;
@@ -42,6 +45,8 @@ export function siteSettingsFromRow(row: SiteSettingsRow) {
       limit: row.home_galleries_limit,
     },
     homeServicesLimit: row.home_services_limit,
+    homeHeroCopy: row.home_hero_copy ? JSON.parse(row.home_hero_copy) as unknown : null,
+    homeHeroImageRevision: row.home_hero_image_revision,
     map: {
       centerLatitude: row.map_center_latitude,
       centerLongitude: row.map_center_longitude,

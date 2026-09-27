@@ -17,6 +17,32 @@ function testApp(withAnonymousAuth = false) {
 }
 
 describe('service catalog routes', () => {
+  it('serves the compiled Home photo when D1 is unavailable', async () => {
+    const assetFetch = vi.fn().mockResolvedValue(new Response('default-photo', { headers: { 'Content-Type': 'image/webp' } }));
+    const database = { prepare: vi.fn(() => ({ bind: () => ({ first: () => Promise.reject(new Error('D1 unavailable')) }) })) } as unknown as D1Database;
+    const response = await testApp().request('/home-hero-image/small', undefined, {
+      ASSETS: { fetch: assetFetch }, DB: database, SITE_HERO_IMAGE_URL: '/brand/demo-hero.webp',
+    });
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('default-photo');
+    expect(assetFetch).toHaveBeenCalledWith(expect.objectContaining({ url: 'http://localhost/brand/responsive/demo-hero-640.webp' }));
+  });
+
+  it('streams only the currently published Home photo variant from private R2', async () => {
+    const object = { body: new Response('owner-photo').body, size: 11, httpEtag: '"hero"' };
+    const get = vi.fn().mockResolvedValue(object);
+    const database = { prepare: vi.fn(() => ({ bind: () => ({ first: () => Promise.resolve({
+      storage_key: 'site/services/home-hero/3/medium.webp', content_type: 'image/webp',
+      byte_size: 11, checksum_sha256: 'a'.repeat(64), revision: 3,
+    }) }) })) } as unknown as D1Database;
+    const response = await testApp().request('/home-hero-image/medium', undefined, {
+      DB: database, MEDIA_BUCKET: { get }, SITE_HERO_IMAGE_URL: '/brand/demo-hero.webp',
+    });
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('owner-photo');
+    expect(get).toHaveBeenCalledWith('site/services/home-hero/3/medium.webp');
+  });
+
   it('publishes only enabled complete cards and emits versioned D1-derived image URLs', async () => {
     const rows = [
       { id: 'wedding', is_builtin: 1, sort_order: 0, enabled: 1, show_on_home: 1, copy_json: null, image_revision: 0 },

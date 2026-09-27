@@ -1,6 +1,7 @@
 {
   "id": "atelier-giulia",
   "name": "Atelier Giulia",
+  "heroImageUrl": "/brand/demo-hero.webp",
   "document": {
     "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
     "themeColor": "#181d18",

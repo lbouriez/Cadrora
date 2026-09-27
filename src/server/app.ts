@@ -76,7 +76,7 @@ registerFaceSearchRoutes(app);
 registerFaceModelRoutes(app);
 
 app.notFound(async (context) => {
-  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/')) {
+  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/') || context.req.path.startsWith('/home-hero-image/')) {
     return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
   }
   if (context.env?.ASSETS) {

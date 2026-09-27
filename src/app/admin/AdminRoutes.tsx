@@ -23,12 +23,14 @@ import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 import { adminResourceFragment } from './resources';
 import { serviceEditorResources } from './serviceEditorResources';
+import { homeHeroResources } from './homeHeroResources';
 import './admin.css';
 
 for (const language of ['en', 'fr'] as const) {
   i18n.addResourceBundle(language, 'translation', adminResourceFragment[language], true, true);
   i18n.addResourceBundle(language, 'translation', adminImportResources[language].translation, true, true);
   i18n.addResourceBundle(language, 'translation', serviceEditorResources[language], true, true);
+  i18n.addResourceBundle(language, 'translation', homeHeroResources[language], true, true);
 }
 
 async function getSession(): Promise<Session | null> {

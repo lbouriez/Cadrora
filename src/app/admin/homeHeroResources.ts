@@ -1,0 +1,36 @@
+export const homeHeroResources = {
+  en: { admin: { homeHero: {
+    sectionTitle: 'Home introduction',
+    hint: 'Edit the opening text, buttons and photo. Save text separately from the other site settings. The photo is resized in your browser before upload.',
+    label: 'Small heading', title: 'Title', description: 'Introductory text',
+    imageAlt: 'Photo description for accessibility', caption: 'Tag on photo (optional)',
+    primaryButtonLabel: 'First button text', secondaryButtonLabel: 'Second button text',
+    primaryDestination: 'First button destination', secondaryDestination: 'Second button destination',
+    showSecondary: 'Show second button', photo: 'Home introduction photo',
+    photoHint: 'Choose a photo at least 1280 px wide. The current or example photo is shown above. Reset restores the example text, buttons and photo.',
+    save: 'Save introduction', reset: 'Restore example', saved: 'Introduction saved.',
+    error: 'The introduction could not be saved. Check both translations and try again.',
+    destinations: {
+      _contact: 'Contact page', _services: 'Services page', _galleries: 'Galleries page',
+      section_services: 'Services below on Home', section_galleries: 'Galleries below on Home',
+      '_e_find-your-photos_find': 'Find your photos',
+    },
+  } } },
+  fr: { admin: { homeHero: {
+    sectionTitle: 'Introduction de l’accueil',
+    hint: 'Modifiez le texte d’ouverture, les boutons et la photo. Enregistrez le texte séparément des autres réglages du site. La photo est redimensionnée dans votre navigateur avant l’envoi.',
+    label: 'Petit titre', title: 'Titre', description: 'Texte d’introduction',
+    imageAlt: 'Description de la photo pour l’accessibilité', caption: 'Mention sur la photo (facultative)',
+    primaryButtonLabel: 'Texte du premier bouton', secondaryButtonLabel: 'Texte du second bouton',
+    primaryDestination: 'Destination du premier bouton', secondaryDestination: 'Destination du second bouton',
+    showSecondary: 'Afficher le second bouton', photo: 'Photo de l’introduction',
+    photoHint: 'Choisissez une photo d’au moins 1 280 px de large. La photo actuelle ou d’exemple apparaît ci-dessus. Rétablir remet le texte, les boutons et la photo d’exemple.',
+    save: 'Enregistrer l’introduction', reset: 'Rétablir l’exemple', saved: 'Introduction enregistrée.',
+    error: 'L’introduction n’a pas pu être enregistrée. Vérifiez les deux traductions et réessayez.',
+    destinations: {
+      _contact: 'Page Contact', _services: 'Page Services', _galleries: 'Page Galeries',
+      section_services: 'Services plus bas sur l’accueil', section_galleries: 'Galeries plus bas sur l’accueil',
+      '_e_find-your-photos_find': 'Retrouver ses photos',
+    },
+  } } },
+} as const;

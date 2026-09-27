@@ -51,6 +51,8 @@ describe('public site settings route', () => {
       enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
       homeGalleries: { enabled: true, limit: 6 },
       homeServicesLimit: 3,
+      homeHeroCopy: null,
+      homeHeroImageRevision: null,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       serviceArea: null,
       siteName: 'Cadrora',

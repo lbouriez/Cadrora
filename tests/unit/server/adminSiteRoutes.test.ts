@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { errorBoundary } from '../../../src/server/middleware/errorBoundary';
 import { requestId } from '../../../src/server/middleware/requestId';
 import { createAdminSiteRoutes } from '../../../src/server/routes/admin/site';
+import { AdminSiteSettingsSchema } from '../../../src/shared/schemas';
 import type { AppEnv } from '../../../src/server/types';
 
 const row = {
@@ -56,6 +57,51 @@ function appWith() {
 }
 
 describe('admin site settings routes', () => {
+  it('saves bilingual Home introduction and resets its copy and photo selection', async () => {
+    let current = { ...row, home_hero_copy: null as string | null, home_hero_image_revision: 3 as number | null };
+    const writes: string[] = [];
+    const database = {
+      prepare: vi.fn((query: string) => ({
+        bind: (...values: unknown[]) => ({
+          first: () => Promise.resolve(query.includes('FROM site_services WHERE id = ?')
+            ? { image_revision: 3, pending_image_revision: null }
+            : query.includes('FROM site_service_variants') ? null
+              : null),
+          all: () => Promise.resolve({ results: [] }),
+          run: () => {
+            writes.push(query);
+            if (query.includes('SET home_hero_copy = ?')) current = { ...current, home_hero_copy: String(values[0]) };
+            return Promise.resolve({ meta: { changes: 1 } });
+          },
+          query,
+        }),
+        first: () => Promise.resolve(query.includes('SELECT site_name') ? current
+          : query.includes('owner_storage_limit_bytes') ? { owner_storage_limit_bytes: null, owner_face_limit: null }
+            : { value: 0 }),
+      })),
+      batch: vi.fn((statements: { query: string }[]) => {
+        writes.push(...statements.map((statement) => statement.query));
+        current = { ...current, home_hero_copy: null, home_hero_image_revision: null };
+        return Promise.resolve([]);
+      }),
+    } as unknown as D1Database;
+    const copy = {
+      fr: { label: 'Images précieuses', title: 'Votre histoire', description: 'Des photos attentives.', caption: '', imageAlt: 'Un couple souriant', primaryButtonLabel: 'Écrivez-nous', secondaryButtonLabel: 'Services' },
+      en: { label: 'Precious images', title: 'Your story', description: 'Thoughtful photography.', caption: '', imageAlt: 'A smiling couple', primaryButtonLabel: 'Contact us', secondaryButtonLabel: 'Services' },
+      primaryHref: '/contact', secondaryHref: '#services', showSecondary: true,
+    };
+    const app = appWith();
+    const saved = await app.request('/api/v1/admin/site/home-hero', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(copy),
+    }, { DB: database, ...quotaBindings });
+    expect(saved.status).toBe(200);
+    expect(AdminSiteSettingsSchema.parse(await saved.json()).homeHeroCopy).toEqual(copy);
+    const reset = await app.request('/api/v1/admin/site/home-hero/reset', { method: 'POST' }, { DB: database, ...quotaBindings });
+    expect(reset.status).toBe(200);
+    expect(AdminSiteSettingsSchema.parse(await reset.json()).homeHeroCopy).toBeNull();
+    expect(writes.some((query) => query.includes('home_hero_image_enabled = 0'))).toBe(true);
+  });
+
   it('returns and persists the public theme mode for an owner', async () => {
     const siteSelect = { first: vi.fn().mockResolvedValue(row) };
     const countSelect = { first: vi.fn().mockResolvedValue({ value: 0 }) };

@@ -185,7 +185,8 @@
   transform: rotate(1.5deg);
 }
 
-.site-hero__art > .progressive-photo {
+.site-hero__art > .progressive-photo,
+.site-hero__art > img {
   display: block;
   width: 100%;
   height: 29rem;

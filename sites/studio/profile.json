@@ -1,6 +1,7 @@
 {
   "id": "studio",
   "name": "Studio photo",
+  "heroImageUrl": "/brand/demo-hero.webp",
   "document": {
     "description": "Studio photo, portraits et galeries privées.",
     "themeColor": "#17111f",

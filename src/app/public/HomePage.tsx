@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom';
 import { MotionReveal, Spinner } from '../components';
 import { getPublicEvents, getPublicServices, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
-import { BrandPhoto } from './BrandPhoto';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { fallbackServices, serviceText } from './serviceCatalog';
@@ -19,13 +18,14 @@ export function HomePage() {
   return Override ? <Override /> : <DefaultHomePage />;
 }
 
-function SiteActionLink({ action, primary }: { action: SiteAction; primary: boolean }) {
+function SiteActionLink({ action, primary, label, href }: { action: SiteAction; primary: boolean; label: string | undefined; href: string }) {
   const { t } = useTranslation();
-  const content = <><span className="site-actions__full">{t(action.labelKey)}</span><span aria-hidden="true" className="site-actions__short">{t(action.shortLabelKey)}</span></>;
+  const content = <><span className="site-actions__full">{label ?? t(action.labelKey)}</span><span aria-hidden="true" className="site-actions__short">{label ?? t(action.shortLabelKey)}</span></>;
   const className = `button ${primary ? 'button--primary' : 'button--secondary'}`;
-  return action.href.startsWith('#')
-    ? <a aria-label={t(action.labelKey)} className={className} href={action.href}>{content}</a>
-    : <Link aria-label={t(action.labelKey)} className={className} to={action.href}>{content}</Link>;
+  const destination = href;
+  return destination.startsWith('#')
+    ? <a aria-label={label ?? t(action.labelKey)} className={className} href={destination}>{content}</a>
+    : <Link aria-label={label ?? t(action.labelKey)} className={className} to={destination}>{content}</Link>;
 }
 
 export function DefaultHomePage() {
@@ -37,19 +37,21 @@ export function DefaultHomePage() {
   const featuredServices = (services.data ?? fallbackServices(settings.data?.enabledServices))
     .filter((card) => card.enabled && card.showOnHome).slice(0, settings.data?.homeServicesLimit ?? 3);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  const secondaryAction = !showHomeGalleries && siteProfile.home.secondaryAction.href === '#galleries'
-    ? { ...siteProfile.home.secondaryAction, href: '/galleries' }
-    : siteProfile.home.secondaryAction;
+  const hero = settings.data?.homeHeroCopy;
+  const heroText = hero?.[language];
+  const resolveAction = (href: string) => !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
+  const primaryHref = hero?.primaryHref ?? siteProfile.home.primaryAction.href;
+  const secondaryHref = resolveAction(hero?.secondaryHref ?? siteProfile.home.secondaryAction.href);
   return (
     <PublicLayout>
       <section className="site-hero">
         <MotionReveal className="site-hero__copy">
-          <p className="site-eyebrow">{t('gallery.heroEyebrow')}</p>
-          <h1>{t('gallery.heroTitle')}</h1>
-          <p className="site-hero__lead">{t('gallery.heroLead')}</p>
+          <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
+          <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
+          <p className="site-hero__lead">{heroText?.description ?? t('gallery.heroLead')}</p>
           <div className="site-actions">
-            <SiteActionLink action={siteProfile.home.primaryAction} primary />
-            <SiteActionLink action={secondaryAction} primary={false} />
+            <SiteActionLink action={siteProfile.home.primaryAction} href={primaryHref} label={heroText?.primaryButtonLabel} primary />
+            {hero?.showSecondary ?? true ? <SiteActionLink action={siteProfile.home.secondaryAction} href={secondaryHref} label={heroText?.secondaryButtonLabel} primary={false} /> : null}
           </div>
           {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
             <span>{t('gallery.productProof.private')}</span>
@@ -57,20 +59,16 @@ export function DefaultHomePage() {
             <span>{t('gallery.productProof.open')}</span>
           </div> : null}
         </MotionReveal>
-        <MotionReveal as="figure" className="site-hero__art" delay={1} effect="scale">
-          <BrandPhoto
-            alt={t('gallery.heroImageAlt')}
-            immediate
-            priority
-            sizes="(max-width: 48rem) 100vw, 42vw"
-            src={siteProfile.heroImageUrl}
-          />
-          <figcaption>{t('gallery.heroArtCaption')}</figcaption>
+        <figure className="site-hero__art">
+          <img alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} fetchPriority="high" height="853" loading="eager"
+            sizes="(max-width: 48rem) 100vw, 42vw" src="/home-hero-image/medium"
+            srcSet="/home-hero-image/small 640w, /home-hero-image/medium 960w, /home-hero-image/large 1280w" width="1280" />
+          {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
           {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
             <img alt="" src={siteProfile.heroAccentImageUrl} />
             <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
           </div> : null}
-        </MotionReveal>
+        </figure>
       </section>
 
       {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">

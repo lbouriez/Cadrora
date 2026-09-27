@@ -1,4 +1,5 @@
 import type { SiteDefinition } from '../../src/app/site/types';
+import profile from './profile.json';
 
 export const cadroraSite = {
   id: 'cadrora',
@@ -8,7 +9,7 @@ export const cadroraSite = {
     en: 'Cadrora, event photography and elegant private galleries.',
   },
   logoUrl: '/brand/cadrora-logo.png',
-  heroImageUrl: '/brand/demo-hero.webp',
+  heroImageUrl: profile.heroImageUrl,
   heroAccentImageUrl: '/demo/face-search/test-portrait-amelia.webp',
   mapPreviewUrl: '/brand/service-area-preview.webp',
   privateGalleryCoverUrl: '/brand/private-gallery-cover.webp',

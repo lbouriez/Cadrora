@@ -1,4 +1,5 @@
 import type { SiteDefinition } from '../../src/app/site/types';
+import profile from './profile.json';
 
 /** Temporary, repository-owned showcase imagery; replace it with licensed Atelier Giulia work. */
 export const atelierGiuliaSite = {
@@ -9,7 +10,7 @@ export const atelierGiuliaSite = {
     en: 'Portrait and celebration photography by Atelier Giulia. Explore our photo galleries.',
   },
   logoUrl: '/brand/atelier-giulia-logo.png',
-  heroImageUrl: '/brand/demo-hero.webp',
+  heroImageUrl: profile.heroImageUrl,
   heroAccentImageUrl: null,
   mapPreviewUrl: '/brand/service-area-preview.webp',
   privateGalleryCoverUrl: '/brand/private-gallery-cover.webp',

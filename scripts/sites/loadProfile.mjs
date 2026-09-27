@@ -12,6 +12,9 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
       typeof profile.document?.description !== 'string' || !profile.document.description) {
     throw new Error(`Invalid site profile: ${siteId}`);
   }
+  if (typeof profile.heroImageUrl !== 'string' || !/^\/brand\/[a-z0-9-]+\.webp$/u.test(profile.heroImageUrl)) {
+    throw new Error(`Invalid heroImageUrl for site profile: ${siteId}`);
+  }
   if (profile.defaultLanguage !== undefined && profile.defaultLanguage !== 'fr' && profile.defaultLanguage !== 'en') {
     throw new Error(`Invalid defaultLanguage for site profile: ${siteId}`);
   }
@@ -22,6 +25,7 @@ export function profileWorkerVars(profile) {
   return {
     SITE_NAME: profile.name,
     SITE_DESCRIPTION: profile.document.description,
+    SITE_HERO_IMAGE_URL: profile.heroImageUrl,
     SITE_DEFAULT_LANG: profile.defaultLanguage ?? 'fr',
   };
 }

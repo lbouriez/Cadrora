@@ -12,6 +12,7 @@ import { CitySearch } from './CitySearch';
 import { formatMediaStorage } from './formatMediaStorage';
 import { LocalizedTextField } from './LocalizedTextField';
 import { ServiceCatalogEditor } from './ServiceCatalogEditor';
+import { HomeHeroEditor } from './HomeHeroEditor';
 
 type SiteCopyDraft = Record<Language, { description: string; footerTagline: string }>;
 
@@ -278,6 +279,7 @@ export function AdminSiteSettingsPage() {
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-home">
           <legend>{t('admin.settings.homeGalleriesSection')}</legend>
+          <HomeHeroEditor enabledLanguages={enabledLanguages} primaryLanguage={primaryLanguage} readOnly={readOnly} settings={settings.data} />
           <h2 className="admin-settings-section__subheading">{t('admin.settings.homeGalleriesTitle')}</h2>
           <p className="admin-card__description">{t('admin.settings.homeGalleriesHint')}</p>
           <label className="admin-settings-services__option">

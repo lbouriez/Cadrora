@@ -11,6 +11,7 @@ Per-gallery D1-recorded storage in the admin list is recorded in [`ADR-016`](../
 The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-admin-gallery-photo-count.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
+Owner-managed Home introduction copy and photo are recorded in [`ADR-029`](../decisions/ADR-029-owner-managed-home-introduction.md).
 Event-date directory ordering and bounded, owner-controlled home stories are recorded in [`ADR-021`](../decisions/ADR-021-gallery-event-date-and-home-stories.md), superseding ADR-012's creation-order rule.
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).
@@ -49,6 +50,8 @@ POST   /api/v1/admin/logout
 GET    /api/v1/admin/session
 GET    /api/v1/admin/site
 PATCH  /api/v1/admin/site
+PATCH  /api/v1/admin/site/home-hero
+POST   /api/v1/admin/site/home-hero/reset
 GET    /api/v1/admin/services
 POST   /api/v1/admin/services
 PATCH  /api/v1/admin/services/:id
@@ -78,6 +81,7 @@ DELETE /api/v1/admin/photos/:photoId
 POST   /api/v1/admin/galleries/:eventId/purge-faces
 GET    /api/v1/admin/usage
 GET    /service-media/:id/:revision/:variant
+GET    /home-hero-image/:variant
 ```
 
 Each event in the authenticated `GET /api/v1/admin/galleries` response includes `storageBytes`, the nonnegative sum of all recorded `photo_variants.byte_size` values for that gallery's photos. It includes prepared formats and retained originals, including rows from unfinished imports. Public gallery responses do not include this field.

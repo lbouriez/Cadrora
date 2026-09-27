@@ -1,4 +1,5 @@
 import type { SiteDefinition } from '../../src/app/site/types';
+import profile from './profile.json';
 
 /** Neutral starting profile for a new independent photographer deployment. */
 export const studioSite = {
@@ -9,7 +10,7 @@ export const studioSite = {
     en: 'Photo studio, portraits and private galleries.',
   },
   logoUrl: null,
-  heroImageUrl: '/brand/demo-hero.webp',
+  heroImageUrl: profile.heroImageUrl,
   heroAccentImageUrl: null,
   mapPreviewUrl: '/brand/service-area-preview.webp',
   privateGalleryCoverUrl: '/brand/private-gallery-cover.webp',

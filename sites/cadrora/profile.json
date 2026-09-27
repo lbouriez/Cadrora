@@ -1,6 +1,7 @@
 {
   "id": "cadrora",
   "name": "Cadrora",
+  "heroImageUrl": "/brand/demo-hero.webp",
   "document": {
     "description": "Cadrora, photographie d’événements et galeries privées élégantes.",
     "themeColor": "#17111f",

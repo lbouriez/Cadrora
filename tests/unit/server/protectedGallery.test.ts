@@ -59,6 +59,7 @@ function bindings(database: D1Database): CloudflareBindings {
     SITE_DEFAULT_LANG: 'fr',
     SITE_NAME: 'Cadrora',
     SITE_DESCRIPTION: 'Galeries photo.',
+    SITE_HERO_IMAGE_URL: '/brand/demo-hero.webp',
   };
 }
 
