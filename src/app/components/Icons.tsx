@@ -33,6 +33,15 @@ export function InfoIcon(props: IconProps) {
   );
 }
 
+export function LanguageIcon(props: IconProps) {
+  return (
+    <svg {...iconProps(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c-2.4 2.4-3.5 5.4-3.5 9s1.1 6.6 3.5 9m0-18c2.4 2.4 3.5 5.4 3.5 9s-1.1 6.6-3.5 9" />
+    </svg>
+  );
+}
+
 export function DownloadIcon(props: IconProps) {
   return <svg {...iconProps(props)}><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3h16v-3" /></svg>;
 }
