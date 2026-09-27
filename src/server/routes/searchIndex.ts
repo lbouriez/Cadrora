@@ -2,6 +2,8 @@ import type { Hono } from 'hono';
 import { z } from 'zod';
 
 import type { AppEnv } from '../types';
+import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from './siteSettings';
+import type { SiteSettingsRow } from './siteSettings';
 
 const SitemapGalleryRow = z.object({ slug: z.string().min(1) });
 
@@ -19,11 +21,20 @@ function escapeXml(value: string): string {
 
 /** Only public, listed, online galleries are discoverable. */
 export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
-  app.get('/llms.txt', (context) => {
+  app.get('/llms.txt', async (context) => {
     const origin = new URL(context.req.url).origin;
-    const siteName = context.env.SITE_NAME.replace(/[\r\n]+/gu, ' ');
-    const description = context.env.SITE_DESCRIPTION.replace(/[\r\n]+/gu, ' ');
-    const english = context.env.SITE_DEFAULT_LANG === 'en';
+    // Keep the compiled profile usable when D1 is unavailable.
+    let settings = null;
+    try {
+      const row = await context.env.DB.prepare(SITE_SETTINGS_SELECT).first<SiteSettingsRow>();
+      settings = row ? siteSettingsFromRow(row) : null;
+    } catch {
+      // Compiled profile remains valid when D1 is unavailable.
+    }
+    const english = (settings?.defaultLanguage ?? context.env.SITE_DEFAULT_LANG) === 'en';
+    const language = english ? 'en' : 'fr';
+    const siteName = (settings?.siteName ?? context.env.SITE_NAME).replace(/[\r\n]+/gu, ' ');
+    const description = (settings?.siteCopy?.[language].description ?? context.env.SITE_DESCRIPTION).replace(/[\r\n]+/gu, ' ');
     const links = [
       ...publicPages.map((page) => `- [${english ? page.en : page.fr}](${origin}${page.path})`),
       `- [${english ? 'Sitemap' : 'Plan du site'}](${origin}/sitemap.xml)`,

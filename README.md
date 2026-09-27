@@ -92,7 +92,7 @@ Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### How do I change the home page?
 
-Edit your site's `sites/<site-id>/site.ts` to change its home sections, text, image choices, and links; use the matching `theme.css` for its colours. The default showcase is in [`sites/cadrora/`](sites/cadrora/) and the Atelier Giulia profile is in [`sites/atelier-giulia/`](sites/atelier-giulia/). Commit and deploy those changes. Shared layouts and components live in `src/app`, so improve them there when every site should benefit. The admin can change the site name, enabled services, language, and appearance, but it is not a home-page editor. See [public profile configuration](docs/technical/public-website.md#public-profile-configuration).
+Edit your site's `sites/<site-id>/site.ts` to change its home sections, text, image choices, and links; use the matching `theme.css` for its colours. The showcase is in [`sites/cadrora/`](sites/cadrora/), the neutral standalone starting point in [`sites/studio/`](sites/studio/), and Atelier Giulia in [`sites/atelier-giulia/`](sites/atelier-giulia/). Commit and deploy those changes. Shared layouts and components live in `src/app`, so improve them there when every site should benefit. Admin → Site settings can change the site name, French/English description, recent-gallery visibility, and bilingual footer line without changing code; it does not edit the Home page's text or layout. See the [admin guide](docs/admin-guide.md#admin-ui) and [public profile configuration](docs/technical/public-website.md#public-profile-configuration).
 
 ### How do I change contact information?
 

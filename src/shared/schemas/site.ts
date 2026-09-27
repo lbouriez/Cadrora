@@ -23,6 +23,15 @@ export const HomeGalleriesSchema = z.object({
   limit: z.number().int().min(1).max(12),
 });
 
+export const SiteCopyLanguageSchema = z.object({
+  description: z.string().min(1).max(300).optional(),
+  footerTagline: z.string().max(160).optional(),
+}).strict();
+export const SiteCopySchema = z.object({
+  fr: SiteCopyLanguageSchema,
+  en: SiteCopyLanguageSchema,
+}).strict();
+
 export const QuotaLimitsSchema = z.object({
   faceLimit: z.number().int().positive(),
   storageLimitBytes: z.number().int().positive(),
@@ -35,6 +44,7 @@ export const QuotaUsageSchema = z.object({
 
 export const SiteSettingsSchema = z.object({
   siteName: z.string().min(1).max(120),
+  siteCopy: SiteCopySchema.nullable().default(null),
   defaultLanguage: LanguageSchema,
   enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
     (languages) => new Set(languages).size === languages.length,
@@ -58,6 +68,7 @@ export const SiteSettingsSchema = z.object({
 export const UpdateSiteSettingsSchema = z.object({
   analyticsMeasurementId: AnalyticsMeasurementIdSchema,
   siteName: z.string().min(1).max(120),
+  siteCopy: SiteCopySchema.optional(),
   contactEmail: ContactEmailSchema,
   contactPhone: z.string().max(60).nullable(),
   contactAddress: z.string().max(240).nullable(),
@@ -105,6 +116,7 @@ export const ModelManifestSchema = z.object({
 });
 
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
+export type SiteCopy = z.infer<typeof SiteCopySchema>;
 export type AdminSiteSettings = z.infer<typeof AdminSiteSettingsSchema>;
 export type Language = z.infer<typeof LanguageSchema>;
 export type QuotaLimits = z.infer<typeof QuotaLimitsSchema>;

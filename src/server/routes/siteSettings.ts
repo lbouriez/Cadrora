@@ -15,11 +15,12 @@ export interface SiteSettingsRow {
   map_radius_km: number | null;
   service_area: string | null;
   site_name: string;
+  site_copy: string | null;
   theme_mode: 'dark' | 'light' | 'both' | 'system';
   updated_at: string;
 }
 
-export const SITE_SETTINGS_SELECT = `SELECT site_name, default_language, enabled_languages,
+export const SITE_SETTINGS_SELECT = `SELECT site_name, site_copy, default_language, enabled_languages,
   enabled_services, home_galleries_enabled, home_galleries_limit,
   contact_email, contact_phone, contact_address, service_area,
   map_center_latitude, map_center_longitude, map_radius_km,
@@ -46,6 +47,7 @@ export function siteSettingsFromRow(row: SiteSettingsRow) {
     },
     serviceArea: row.service_area,
     siteName: row.site_name,
+    siteCopy: row.site_copy ? JSON.parse(row.site_copy) as unknown : null,
     themeMode: row.theme_mode,
     updatedAt: row.updated_at,
   });

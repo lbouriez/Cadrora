@@ -1,5 +1,13 @@
 PRAGMA foreign_keys = ON;
 
+-- Initial showcase copy; owner changes (if demo writes are later enabled) remain authoritative.
+UPDATE site_settings
+SET site_copy = json_object(
+  'fr', json_object('description', 'Cadrora, photographie d’événements et galeries privées élégantes.', 'footerTagline', 'Des photographies faites pour durer.'),
+  'en', json_object('description', 'Cadrora, event photography and elegant private galleries.', 'footerTagline', 'Photographs made to be remembered.')
+)
+WHERE id = 1 AND site_copy IS NULL;
+
 -- Populate fictional showcase coordinates in D1 only for a never-edited site.
 -- Keep the initial timestamp so the map seed directly below can run as well.
 UPDATE site_settings

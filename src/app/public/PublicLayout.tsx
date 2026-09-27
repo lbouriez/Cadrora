@@ -28,6 +28,10 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
   const { canChooseTheme, theme, toggleTheme } = useTheme(themePolicy);
   const enabledLanguages = settings.data?.enabledLanguages ?? ['fr', 'en'];
   const canChooseLanguage = enabledLanguages.length > 1;
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const siteName = settings.data?.siteName ?? siteProfile.siteName;
+  const description = settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
+  const footerTagline = settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
 
   useEffect(() => {
     if (!settings.data?.defaultLanguage) return;
@@ -44,12 +48,17 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
     void i18n.changeLanguage(settings.data.defaultLanguage);
   }, [i18n, settings.data]);
 
+  useEffect(() => {
+    document.title = siteName;
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description);
+  }, [description, siteName]);
+
   return (
     <div className="public-shell">
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
           {siteProfile.logoUrl ? <img alt="" height="256" src={siteProfile.logoUrl} width="256" /> : null}
-          <span>{settings.data?.siteName ?? siteProfile.siteName}</span>
+          <span>{siteName}</span>
         </Link>
         <div className="public-header__actions">
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
@@ -90,7 +99,7 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
       <main className={`public-main${wide ? ' public-main--gallery' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div>
-          <p>{t('gallery.footer', { siteName: settings.data?.siteName ?? siteProfile.siteName })}</p>
+          <p>© {siteName}{footerTagline ? ` · ${footerTagline}` : ''}</p>
           {siteProfile.demo.enabled ? <p className="public-footer__note">{t('gallery.footerDemo')}</p> : null}
         </div>
         <nav aria-label={t('gallery.footerNavigation')}>

@@ -52,6 +52,7 @@ describe('public site settings route', () => {
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       serviceArea: null,
       siteName: 'Cadrora',
+      siteCopy: null,
       themeMode: 'both',
       updatedAt: '2026-09-20T00:00:00.000Z',
     });

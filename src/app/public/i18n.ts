@@ -182,7 +182,7 @@ export const publicResources = {
       contactEyebrow: 'Your story starts here',
       contactCalloutTitle: 'Have a date or an idea in mind?',
       contactCalloutAction: 'Contact us',
-      footer: '© {{siteName}} · Photographs made to be remembered.',
+      footerTagline: 'Photographs made to be remembered.',
       footerDemo: 'Product demonstration · No real client information',
       adminDemo: 'Admin demo',
       consent: {
@@ -496,7 +496,7 @@ export const publicResources = {
       contactEyebrow: 'Votre histoire commence ici',
       contactCalloutTitle: 'Vous avez une date ou une idée en tête ?',
       contactCalloutAction: 'Nous contacter',
-      footer: '© {{siteName}} · Des photographies faites pour durer.',
+      footerTagline: 'Des photographies faites pour durer.',
       footerDemo: 'Démonstration du produit · Aucune donnée de vrai client',
       adminDemo: 'Démo admin',
       consent: {

@@ -15,6 +15,7 @@ export interface SiteAction {
 export interface SiteDefinition {
   id: string;
   name: string;
+  description: Readonly<Record<'fr' | 'en', string>>;
   logoUrl: string | null;
   heroImageUrl: string;
   heroAccentImageUrl: string | null;

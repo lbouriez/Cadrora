@@ -4,6 +4,10 @@ import type { SiteDefinition } from '../../src/app/site/types';
 export const atelierGiuliaSite = {
   id: 'atelier-giulia',
   name: 'Atelier Giulia',
+  description: {
+    fr: 'Atelier Giulia, portraits, célébrations et galeries photo.',
+    en: 'Atelier Giulia, portraits, celebrations, and photo galleries.',
+  },
   logoUrl: '/brand/atelier-giulia-logo.png',
   heroImageUrl: '/brand/demo-hero.webp',
   heroAccentImageUrl: null,
@@ -36,7 +40,7 @@ export const atelierGiuliaSite = {
       galleryEyebrow: 'Recent stories',
       galleryLead: 'Explore the galleries we have chosen to share. Private galleries open only through their own link.',
       contactCalloutTitle: 'Let’s talk about your plans.',
-      footer: '© {{siteName}} · Photography with feeling.',
+      footerTagline: 'Photography with feeling.',
     } },
     fr: { gallery: {
       heroEyebrow: 'Des images pour les moments qui comptent',
@@ -50,7 +54,7 @@ export const atelierGiuliaSite = {
       galleryEyebrow: 'Histoires récentes',
       galleryLead: 'Découvrez les galeries que nous avons choisi de partager. Les galeries privées sont accessibles uniquement par leur lien.',
       contactCalloutTitle: 'Parlons de votre projet.',
-      footer: '© {{siteName}} · Des images pleines de vie.',
+      footerTagline: 'Des images pleines de vie.',
     } },
   },
 } as const satisfies SiteDefinition;
