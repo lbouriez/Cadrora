@@ -6,7 +6,7 @@ export const atelierGiuliaSite = {
   name: 'Atelier Giulia',
   description: {
     fr: 'Atelier Giulia, portraits, célébrations et galeries photo.',
-    en: 'Atelier Giulia, portraits, celebrations, and photo galleries.',
+    en: 'Portrait and celebration photography by Atelier Giulia. Explore our photo galleries.',
   },
   logoUrl: '/brand/atelier-giulia-logo.png',
   heroImageUrl: '/brand/demo-hero.webp',
