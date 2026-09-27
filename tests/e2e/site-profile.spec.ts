@@ -12,6 +12,10 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre histoire|your story/i);
   await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
   await expect(page.locator('.public-footer')).toContainText('Des images pleines de vie.');
+  const credit = page.locator('.public-footer__credit');
+  await expect(credit).toHaveAttribute('href', 'https://cadrora.com/');
+  await expect(credit).toHaveText('par Cadrora');
+  await expect(credit.locator('img')).toHaveAttribute('src', '/brand/cadrora-logo.png');
   await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-icon.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);
@@ -57,11 +61,13 @@ test('owner-edited brand copy updates both languages without changing the design
   await expect(page).toHaveTitle('Studio Boréal');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits du Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Des histoires à garder.');
+  await expect(page.locator('.public-footer__credit')).toHaveText('par Cadrora');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Votre histoire');
 
   await page.locator('.public-header__language').click();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits from Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Stories to keep.');
+  await expect(page.locator('.public-footer__credit')).toHaveText('by Cadrora');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Your story');
 });
 

@@ -4,6 +4,9 @@ import { useLocation } from 'react-router-dom';
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
 const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
+function isAnalyticsRoute(pathname: string): boolean {
+  return ANALYTICS_ROUTES.has(pathname) || /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(pathname);
+}
 let pendingDisable: ReturnType<typeof setTimeout> | null = null;
 
 type Gtag = (...values: unknown[]) => void;
@@ -85,7 +88,7 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string | nul
   useEffect(() => {
     if (!validMeasurementId(measurementId)) return;
     const applyConsent = () => {
-      if (readPrivacyConsent() === 'analytics' && ANALYTICS_ROUTES.has(location.pathname)) {
+      if (readPrivacyConsent() === 'analytics' && isAnalyticsRoute(location.pathname)) {
         if (pendingDisable !== null) {
           clearTimeout(pendingDisable);
           pendingDisable = null;
@@ -102,7 +105,7 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string | nul
     window.addEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
     return () => {
       window.removeEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
-      if (!ANALYTICS_ROUTES.has(window.location.pathname)) {
+      if (!isAnalyticsRoute(window.location.pathname)) {
         disableAnalytics(measurementId);
       } else {
         if (pendingDisable !== null) clearTimeout(pendingDisable);

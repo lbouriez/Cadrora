@@ -13,7 +13,9 @@ import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
 import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 
-export function PublicLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
+export function PublicLayout({ children, pageDescription, pageTitle, wide = false }: {
+  children: ReactNode; pageDescription?: string; pageTitle?: string; wide?: boolean;
+}) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
@@ -51,9 +53,9 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
   }, [i18n, settings.data]);
 
   useEffect(() => {
-    document.title = siteName;
-    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description);
-  }, [description, siteName]);
+    document.title = pageTitle ? `${pageTitle} | ${siteName}` : siteName;
+    document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', pageDescription || description);
+  }, [description, pageDescription, pageTitle, siteName]);
 
   useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
@@ -110,9 +112,16 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
       </header>
       <main className={`public-main${wide ? ' public-main--gallery' : ''}`}>{children}</main>
       <footer className="public-footer">
-        <div>
+        <div className="public-footer__identity">
           <p>© {siteName}{footerTagline ? ` · ${footerTagline}` : ''}</p>
           {siteProfile.demo.enabled ? <p className="public-footer__note">{t('gallery.footerDemo')}</p> : null}
+          {!siteProfile.demo.enabled ? (
+            <a className="public-footer__credit" href="https://cadrora.com/">
+              <span>{t('gallery.footerCredit')} </span>
+              <img alt="" height="256" src="/brand/cadrora-logo.png" width="256" />
+              <span>Cadrora</span>
+            </a>
+          ) : null}
         </div>
         <nav aria-label={t('gallery.footerNavigation')}>
           <Link to="/privacy">{t('gallery.privacy')}</Link>

@@ -2,20 +2,32 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { PublicPhoto } from '../../shared/schemas/gallery';
 import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, FavoriteButton, IconButton, InfoIcon, Modal, ProgressivePhoto, RetouchButton } from '../components';
 
-interface PhotoViewerProps {
+export interface ViewerPhoto {
+  id: string;
+  filename: string;
+  width: number;
+  height: number;
+  revision: number;
+  sources: { url: string; width: number; height: number }[];
+  capturedAt?: string | null;
+  downloadUrl?: string | null;
+  liked?: boolean;
+  selectedForRetouch?: boolean;
+}
+
+interface PhotoViewerProps<Photo extends ViewerPhoto> {
   favoriteEnabled: boolean;
   retouchEnabled: boolean;
   favoritePending: boolean;
   retouchPending: boolean;
   onClose: () => void;
-  onSelect: (photo: PublicPhoto) => void;
-  onToggleFavorite: (photo: PublicPhoto) => void;
-  onToggleRetouch: (photo: PublicPhoto) => void;
-  photo: PublicPhoto;
-  photos: PublicPhoto[];
+  onSelect: (photo: Photo) => void;
+  onToggleFavorite: (photo: Photo) => void;
+  onToggleRetouch: (photo: Photo) => void;
+  photo: Photo;
+  photos: Photo[];
   showMetadata: boolean;
   timezone: string;
 }
@@ -29,7 +41,7 @@ function formatCapturedAt(value: string | null, language: string, timezone: stri
   }
 }
 
-export function PhotoViewer({ favoriteEnabled, retouchEnabled, favoritePending, retouchPending, onClose, onSelect, onToggleFavorite, onToggleRetouch, photo, photos, showMetadata, timezone }: PhotoViewerProps) {
+export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouchEnabled, favoritePending, retouchPending, onClose, onSelect, onToggleFavorite, onToggleRetouch, photo, photos, showMetadata, timezone }: PhotoViewerProps<Photo>) {
   const { i18n, t } = useTranslation();
   const metadataId = useId();
   const [metadataState, setMetadataState] = useState({ open: false, photoId: photo.id });
@@ -38,7 +50,7 @@ export function PhotoViewer({ favoriteEnabled, retouchEnabled, favoritePending, 
   const previous = index > 0 ? photos[index - 1] : undefined;
   const next = index >= 0 ? photos[index + 1] : undefined;
   const [carouselRef, carousel] = useEmblaCarousel({ align: 'center', loop: false });
-  const capturedAt = formatCapturedAt(photo.capturedAt, i18n.language, timezone);
+  const capturedAt = formatCapturedAt(photo.capturedAt ?? null, i18n.language, timezone);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -115,12 +127,12 @@ export function PhotoViewer({ favoriteEnabled, retouchEnabled, favoritePending, 
             className="photo-viewer__favorite"
             disabled={favoritePending}
             label={t(photo.liked ? 'gallery.favorite.remove' : 'gallery.favorite.add', { filename: photo.filename })}
-            liked={photo.liked}
+            liked={Boolean(photo.liked)}
             onToggle={() => onToggleFavorite(photo)}
           /> : null}
           {retouchEnabled ? <RetouchButton className="photo-viewer__retouch" disabled={retouchPending}
             label={t(photo.selectedForRetouch ? 'gallery.retouch.remove' : 'gallery.retouch.add', { filename: photo.filename })}
-            onToggle={() => onToggleRetouch(photo)} selected={photo.selectedForRetouch} /> : null}
+            onToggle={() => onToggleRetouch(photo)} selected={Boolean(photo.selectedForRetouch)} /> : null}
           {photo.downloadUrl ? <a aria-label={t('gallery.download')} className="icon-button icon-button--secondary photo-viewer__download" download href={photo.downloadUrl} title={t('gallery.download')}><DownloadIcon /></a> : null}
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {

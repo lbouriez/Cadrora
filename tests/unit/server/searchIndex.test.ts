@@ -48,16 +48,17 @@ describe('search index routes', () => {
     expect(await response.text()).toContain('Sitemap: https://example.test/sitemap.xml');
   });
 
-  it('lists marketing pages without querying or exposing any gallery', async () => {
-    const prepare = vi.fn();
+  it('lists portfolio collections without exposing any customer gallery', async () => {
+    const prepare = vi.fn(() => ({ all: () => Promise.resolve({ results: [{ slug: 'familles' }] }) }));
     const response = await app.request('https://example.test/sitemap.xml', undefined,
       { DB: { prepare } as unknown as D1Database });
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('application/xml');
     expect(body).toContain('<loc>https://example.test/portfolio</loc>');
+    expect(body).toContain('<loc>https://example.test/portfolio/familles</loc>');
     expect(body).toContain('<loc>https://example.test/contact</loc>');
     expect(body).not.toContain('/e/');
     expect(body).not.toContain('/galleries');
-    expect(prepare).not.toHaveBeenCalled();
+    expect(prepare).toHaveBeenCalledWith(expect.stringContaining('FROM portfolio_collections'));
   });
 });

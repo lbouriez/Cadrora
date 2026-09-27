@@ -28,6 +28,7 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { name: /des photos qui vous ressemblent|photos that feel like you/i })).toBeVisible();
     await expect(page.locator('.gallery-notice[role="status"]')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
     await expect(page.getByRole('link', { name: /retrouver des photos avec l’ia|find photos with ai/i })).toBeVisible();
+    await expect(page.locator('.public-footer__credit')).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
   });
 
@@ -45,15 +46,24 @@ test.describe('site vitrine statique', () => {
             duration: '8 hours', priceRange: '$2,000 to $3,000', details: 'Consultation and private gallery included.' },
         } }]), contentType: 'application/json', status: 200,
     }));
-    await page.route('**/api/v1/portfolio', (route) => route.fulfill({ body: JSON.stringify([{
-      id: 'portfolio-1', serviceId: 'wedding', alt: { fr: 'Un couple souriant', en: 'A smiling couple' },
-      sortOrder: 0, state: 'published', imageSources: [
+    const imageSources = [
         { url: '/portfolio-media/portfolio-1/preview', width: 320, height: 213 },
         { url: '/portfolio-media/portfolio-1/small', width: 640, height: 427 },
         { url: '/portfolio-media/portfolio-1/medium', width: 960, height: 640 },
         { url: '/portfolio-media/portfolio-1/large', width: 1280, height: 853 },
-      ],
-    }]), contentType: 'application/json', status: 200 }));
+    ];
+    const portfolioCollection = {
+      id: 'collection-1', slug: 'mariages', serviceId: 'wedding', sortOrder: 0, published: true,
+      copy: { fr: { title: 'Mariages', description: 'Une histoire en images.' },
+        en: { title: 'Weddings', description: 'A story in images.' } },
+      coverPhotoId: 'portfolio-1', coverSources: imageSources, photoCount: 1,
+    };
+    await page.route('**/api/v1/portfolio', (route) => route.fulfill({ body: JSON.stringify([portfolioCollection]),
+      contentType: 'application/json', status: 200 }));
+    await page.route('**/api/v1/portfolio/mariages', (route) => route.fulfill({ body: JSON.stringify({
+      ...portfolioCollection, photos: [{ id: 'portfolio-1', collectionId: 'collection-1', serviceId: 'wedding',
+        alt: { fr: 'Un couple souriant', en: 'A smiling couple' }, sortOrder: 0, state: 'published', imageSources }],
+    }), contentType: 'application/json', status: 200 }));
     await page.route('**/portfolio-media/**', (route) => route.fulfill({
       body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="213"><rect width="320" height="213" fill="#a86"/></svg>',
       contentType: 'image/svg+xml', status: 200,
@@ -67,16 +77,25 @@ test.describe('site vitrine statique', () => {
     await expect(dialog).toContainText('2 000 $ à 3 000 $');
     await expect(dialog).toContainText('8 heures');
     await expect(dialog).toContainText('Rencontre et galerie privée incluses.');
-    await expect(dialog.getByRole('link', { name: 'Découvrir le portfolio' })).toHaveAttribute('href', '/portfolio#portfolio-wedding');
+    await expect(dialog.getByRole('link', { name: 'Découvrir le portfolio' })).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
     await page.goto('/portfolio');
-    await expect(page.getByRole('heading', { level: 2, name: 'Mariages' })).toBeVisible();
-    const portfolioPhoto = page.locator('.portfolio-photo .progressive-photo');
+    await expect(page.locator('.event-card__tap')).toContainText('Mariages');
+    await page.locator('.event-card__tap').click();
+    await expect(page).toHaveURL(/\/portfolio\/mariages$/u);
+    await expect(page.getByRole('heading', { level: 1, name: 'Mariages' })).toBeVisible();
+    await expect(page).toHaveTitle(/Mariages/u);
+    await page.reload();
+    await expect(page.getByRole('heading', { level: 1, name: 'Mariages' })).toBeVisible();
+    const portfolioPhoto = page.locator('.photo-grid .progressive-photo');
     await expect(portfolioPhoto).toHaveCount(1);
     await portfolioPhoto.scrollIntoViewIfNeeded();
     await expect(portfolioPhoto.locator('.progressive-photo__preview')).toHaveAttribute('src', '/portfolio-media/portfolio-1/preview');
     await expect(portfolioPhoto.locator('.progressive-photo__optimized')).toHaveAttribute('srcset', /\/portfolio-media\/portfolio-1\/small 640w/u);
+    await page.locator('.photo-tile').click();
+    await expect(page.locator('.modal--photo-viewer')).toBeVisible();
+    await expect(page.locator('.photo-viewer__favorite, .photo-viewer__retouch, .photo-viewer__download')).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
   });
 

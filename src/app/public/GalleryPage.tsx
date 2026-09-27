@@ -24,6 +24,7 @@ import { PhotoViewer } from './PhotoViewer';
 import { browserFavoritesKey, readBrowserFavorites, writeBrowserFavorites } from './browserFavorites';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
+import { usePhotoColumns } from './usePhotoColumns';
 import type { PublicPhoto } from '../../shared/schemas/gallery';
 
 interface GalleryPhotoGridProps {
@@ -44,36 +45,9 @@ interface GalleryPhotoGridProps {
   viewerQuery: string;
 }
 
-function photoColumnCount(width: number): number {
-  return width >= 1320 ? 3 : width >= 720 ? 2 : 1;
-}
-
 function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, imagesEnabled, retouchEnabled, favoritePendingId, onToggleFavorite, onToggleRetouch, retouchPendingId, onToggleSelection, onUnavailablePhoto, photos, selectedIds, selectionMode, slug, viewerQuery }: GalleryPhotoGridProps) {
   const { t } = useTranslation();
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [columnCount, setColumnCount] = useState(() => typeof window === 'undefined' ? 1 : photoColumnCount(window.innerWidth - 32));
-  useEffect(() => {
-    const grid = gridRef.current;
-    if (!grid) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const width = entry?.contentRect.width ?? 0;
-      setColumnCount(photoColumnCount(width));
-    });
-    observer.observe(grid);
-    return () => observer.disconnect();
-  }, []);
-  const activeColumnCount = Math.min(columnCount, Math.max(photos.length, 1));
-  const columnWidths = useMemo(() => activeColumnCount === 3 ? [1.18, 1, 1] : activeColumnCount === 2 ? [1.1, 1] : [1], [activeColumnCount]);
-  const columns = useMemo(() => {
-    const result = Array.from({ length: activeColumnCount }, () => [] as PublicPhoto[]);
-    const heights = Array.from({ length: activeColumnCount }, () => 0);
-    for (const photo of photos) {
-      const shortest = heights.indexOf(Math.min(...heights));
-      result[shortest]?.push(photo);
-      heights[shortest] = (heights[shortest] ?? 0) + (photo.height / photo.width) * (columnWidths[shortest] ?? 1);
-    }
-    return result;
-  }, [activeColumnCount, columnWidths, photos]);
+  const { columns, columnWidths, gridRef } = usePhotoColumns(photos);
   return (
     <div className="photo-grid" ref={gridRef} style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
       {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>

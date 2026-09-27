@@ -18,6 +18,8 @@ Post-plan extension (2026-09-27): ADR-028 adds owner-managed service cards acros
 
 Post-plan extension (2026-09-27): ADR-032 adds a permanent, service-categorized portfolio across PB/PC/PD, bilingual service duration and pricing details in PA/PB, and a global gallery directory switch across PA/PB/PD. Acceptance includes password-protected gallery creation by default, copyable unlisted links, complete-variant portfolio publication, D1-fenced media deletion, gallery links and sitemap omitted when hidden, public-gallery creation blocked, and direct protected customer links retained.
 
+Post-plan extension (2026-09-27): ADR-033 makes each portfolio an owner-managed collection across PB/PC/PD, with a gallery-style card and detail page, shared progressive mosaic and viewer, multi-photo admin upload, bilingual copy, cover and publication controls. Acceptance includes migration 032/backfill, public media fencing when a collection is hidden, Cadrora-only seed assets with D1/R2 parity, sample pricing marked as illustrative, and FR/EN desktop/mobile review.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

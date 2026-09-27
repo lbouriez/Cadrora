@@ -47,6 +47,7 @@ export function App() {
     { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
     { path: '/admin/portfolio', element: adminElement(<AdminPortfolioRoute />) },
+    { path: '/admin/portfolio/:id', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
     { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },
     { path: '/admin/galleries/:eventId/selections', element: adminElement(<AdminFavoritesRoute />) },

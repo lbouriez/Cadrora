@@ -34,9 +34,15 @@ describe('demo read-only API boundary', () => {
     app.get('/api/v1/admin/galleries', (context) => context.json({ ok: true }));
     app.get('/api/v1/admin/galleries/:eventId/publication', (context) => context.json({ ok: true }));
     app.get('/api/v1/admin/site', (context) => context.json({ ok: true }));
+    app.get('/api/v1/admin/portfolio/collections', (context) => context.json({ ok: true }));
+    app.get('/api/v1/admin/portfolio/collections/:id', (context) => context.json({ ok: true }));
+    app.get('/api/v1/admin/portfolio/:id/image/:variant', (context) => context.json({ ok: true }));
     expect((await app.request('/api/v1/admin/galleries')).status).toBe(200);
     expect((await app.request('/api/v1/admin/galleries/event-1/publication')).status).toBe(200);
     expect((await app.request('/api/v1/admin/site')).status).toBe(200);
+    expect((await app.request('/api/v1/admin/portfolio/collections')).status).toBe(200);
+    expect((await app.request('/api/v1/admin/portfolio/collections/collection-1')).status).toBe(200);
+    expect((await app.request('/api/v1/admin/portfolio/photo-1/image/small')).status).toBe(200);
   });
 
   it('rejects mutations before a repository handler can run', async () => {

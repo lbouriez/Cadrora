@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { runWrangler } from '../release/target.mjs';
 import { buildDemoFaceIndex } from './faceVectors.mjs';
+import { seedPortfolioDemo } from './portfolioSeed.mjs';
 
 const mediaDirectory = 'demo/seed/media';
 const legacyCalibrationVectorIds = Array.from(
@@ -181,5 +182,6 @@ export async function seedDemoContent(target, configPath, environment = process.
     'd1', 'execute', 'DB', '--remote', '--file', 'demo/seed/demo.sql',
     '--config', configPath, ...target.migrationArgs,
   ], environment);
+  await seedPortfolioDemo({ bucketName, configPath, environment, target, upload: putDemoObject });
   await seedFaceSearchDemo(target, configPath, environment);
 }

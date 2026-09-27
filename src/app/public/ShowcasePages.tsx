@@ -68,14 +68,12 @@ export function DefaultServicesPage() {
         onClose={() => setSelectedId(null)} open={Boolean(selectedCopy)} title={selectedCopy?.title ?? ''}>
         {selectedCopy ? <div className="service-details-modal__body">
           <p>{selectedCopy.description}</p>
-          {selectedCopy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {selectedCopy.priceRange}</p> : null}
           {selectedCopy.duration ? <p><strong>{t('gallery.servicesPage.durationLabel')}</strong> {selectedCopy.duration}</p> : null}
+          {selectedCopy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {selectedCopy.priceRange}</p> : null}
+          {selectedCopy.illustrativeExample ? <p className="service-details-modal__example-note">{t('gallery.servicesPage.exampleNotice')}</p> : null}
           {selectedCopy.details ? <p className="service-details-modal__details">{selectedCopy.details}</p> : null}
           {selectedCopy.points.length ? <><h3>{t('gallery.servicesPage.includedLabel')}</h3>
             <ul>{selectedCopy.points.map((point, index) => <li key={index}>{point}</li>)}</ul></> : null}
-          <Link className="button button--secondary" onClick={() => setSelectedId(null)} to={`/portfolio#portfolio-${selectedCard?.id}`}>
-            {t('gallery.portfolioPage.homeAction')}
-          </Link>
           <Link className="button button--primary" onClick={() => setSelectedId(null)} to="/contact">{t('gallery.contactCalloutAction')}</Link>
         </div> : null}
       </Modal>

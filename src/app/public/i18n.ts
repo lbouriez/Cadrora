@@ -30,8 +30,9 @@ export const publicResources = {
       backGalleries: 'Back to galleries',
       backPortfolio: 'Back to portfolio',
       portfolioPage: {
-        title: 'Selected work, by service.',
-        lead: 'Explore the photography we choose to share, organized around what we offer.',
+        title: 'Stories in photographs.',
+        lead: 'Explore selected collections from the work we love to share.',
+        emptyCollections: 'Portfolio collections are coming soon.',
         categories: 'Portfolio categories', example: 'Service image — more portfolio photos will be added here.',
         empty: 'Portfolio photos for this service are coming soon.',
         serviceAction: 'See this service', unavailable: 'Portfolio photos are unavailable right now.',
@@ -199,6 +200,7 @@ export const publicResources = {
       contactCalloutTitle: 'Have a date or an idea in mind?',
       contactCalloutAction: 'Contact us',
       footerTagline: 'Photographs made to be remembered.',
+      footerCredit: 'by',
       footerDemo: 'Product demonstration · No real client information',
       adminDemo: 'Admin demo',
       consent: {
@@ -244,7 +246,9 @@ export const publicResources = {
       servicesPage: {
         moreInfo: 'More information', closeDetails: 'Close service details',
         priceLabel: 'Price:', durationLabel: 'Duration:', includedLabel: 'What is included',
+        exampleNotice: 'These are examples. We confirm the duration and price for your project before booking.',
         brand: {
+          durationExample: 'Example: 1–2 hours', priceExample: 'Example: $450–$900',
           body: 'Photos of your people, products, and work that feel true to your business.',
           point1: 'A look we plan together before the session',
           point2: 'The people and details behind your work',
@@ -253,6 +257,7 @@ export const publicResources = {
         },
         cta: 'Let’s make the experience feel unmistakably yours.',
         children: {
+          durationExample: 'Example: 45–60 minutes', priceExample: 'Example: $220–$380',
           body: 'Playful, unhurried sessions that leave room for children to be entirely themselves.',
           point1: 'At home or outdoors, at their pace',
           point2: 'Movement, laughter, and small details',
@@ -260,6 +265,7 @@ export const publicResources = {
           title: 'Children’s portraits',
         },
         corporate: {
+          durationExample: 'Example: 2–4 hours', priceExample: 'Example: $500–$1,200',
           body: 'Natural portraits of your team and clear photos of the work you do together.',
           point1: 'Portraits at your workplace',
           point2: 'Your team, space, and work in action',
@@ -268,6 +274,7 @@ export const publicResources = {
         },
         eyebrow: 'Services',
         family: {
+          durationExample: 'Example: 45–75 minutes', priceExample: 'Example: $240–$420',
           body: 'Relaxed sessions built around movement, closeness, and the small gestures that make a family recognizable.',
           point1: 'Family, couple, maternity, and newborn sessions',
           point2: 'Simple guidance to help you feel at ease',
@@ -282,6 +289,7 @@ export const publicResources = {
         processTitle: 'What to expect, from start to finish.',
         title: 'Photography for the moments that matter.',
         wedding: {
+          durationExample: 'Example: 6–10 hours', priceExample: 'Example: $1,800–$3,200',
           body: 'Photos of your wedding or celebration, from getting ready to the last moments of the evening, without taking you out of it.',
           point1: 'Plan the day together',
           point2: 'Natural moments and gently guided portraits',
@@ -362,8 +370,9 @@ export const publicResources = {
       backGalleries: 'Retour aux galeries',
       backPortfolio: 'Retour au portfolio',
       portfolioPage: {
-        title: 'Notre travail, par service.',
-        lead: 'Découvrez les photos que nous choisissons de présenter, regroupées selon nos services.',
+        title: 'Des histoires en images.',
+        lead: 'Découvrez les collections choisies parmi les images que nous aimons partager.',
+        emptyCollections: 'Des collections seront bientôt ajoutées au portfolio.',
         categories: 'Catégories du portfolio', example: 'Image du service — d’autres photos du portfolio seront ajoutées ici.',
         empty: 'Des photos de ce service seront bientôt ajoutées au portfolio.',
         serviceAction: 'Voir ce service', unavailable: 'Les photos du portfolio sont indisponibles pour le moment.',
@@ -531,6 +540,7 @@ export const publicResources = {
       contactCalloutTitle: 'Vous avez une date ou une idée en tête ?',
       contactCalloutAction: 'Nous contacter',
       footerTagline: 'Des photographies faites pour durer.',
+      footerCredit: 'par',
       footerDemo: 'Démonstration du produit · Aucune donnée de vrai client',
       adminDemo: 'Démo admin',
       consent: {
@@ -576,7 +586,9 @@ export const publicResources = {
       servicesPage: {
         moreInfo: 'Plus d’infos', closeDetails: 'Fermer les détails du service',
         priceLabel: 'Tarif :', durationLabel: 'Durée :', includedLabel: 'Ce qui est inclus',
+        exampleNotice: 'Ces données sont des exemples. Nous confirmons la durée et le tarif de votre projet avant la réservation.',
         brand: {
+          durationExample: 'Exemple : 1 à 2 heures', priceExample: 'Exemple : 450 $ à 900 $',
           body: 'Des photos de votre équipe, de vos produits et de votre travail qui ressemblent vraiment à votre entreprise.',
           point1: 'Un style défini ensemble avant la séance',
           point2: 'Les personnes et les détails derrière votre travail',
@@ -585,6 +597,7 @@ export const publicResources = {
         },
         cta: "Créons une expérience qui ne ressemble qu'à vous.",
         children: {
+          durationExample: 'Exemple : 45 à 60 minutes', priceExample: 'Exemple : 220 $ à 380 $',
           body: 'Des séances ludiques, sans précipitation, qui laissent les enfants être pleinement eux-mêmes.',
           point1: 'À la maison ou dehors, à leur rythme',
           point2: 'Mouvement, rires et petits détails',
@@ -592,6 +605,7 @@ export const publicResources = {
           title: 'Portraits d’enfants',
         },
         corporate: {
+          durationExample: 'Exemple : 2 à 4 heures', priceExample: 'Exemple : 500 $ à 1 200 $',
           body: 'Des portraits naturels de votre équipe et des photos claires du travail que vous faites ensemble.',
           point1: 'Portraits sur votre lieu de travail',
           point2: 'Votre équipe, vos espaces et votre travail en action',
@@ -600,6 +614,7 @@ export const publicResources = {
         },
         eyebrow: 'Services',
         family: {
+          durationExample: 'Exemple : 45 à 75 minutes', priceExample: 'Exemple : 240 $ à 420 $',
           body: "Des séances détendues construites autour du mouvement, de la proximité et des petits gestes qui rendent une famille unique.",
           point1: 'Famille, couple, maternité et nouveau-né',
           point2: 'Des conseils simples pour rester naturels',
@@ -614,6 +629,7 @@ export const publicResources = {
         processTitle: 'Comment se déroule votre projet.',
         title: 'Des photos pour les moments qui comptent.',
         wedding: {
+          durationExample: 'Exemple : 6 à 10 heures', priceExample: 'Exemple : 1 800 $ à 3 200 $',
           body: 'Des photos de votre mariage ou célébration, des préparatifs aux derniers instants de la soirée, sans vous sortir du moment.',
           point1: 'Le déroulement de votre journée préparé ensemble',
           point2: 'Des moments pris sur le vif et des portraits guidés simplement',

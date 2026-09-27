@@ -25,13 +25,15 @@ export function defaultServiceImage(id: string): string | null {
 
 export function serviceText(card: ServiceCard, language: 'fr' | 'en', translate: (key: string) => string) {
   const copy = card.copy?.[language];
+  const illustrativeExample = card.isBuiltin && !card.copy;
   return {
     title: copy?.title ?? translate(`gallery.servicesPage.${card.id}.title`),
     shortDescription: copy?.shortDescription ?? translate(`gallery.servicesPage.${card.id}.body`),
     description: copy?.description ?? translate(`gallery.servicesPage.${card.id}.body`),
     points: copy?.points ?? [1, 2, 3].map((number) => translate(`gallery.servicesPage.${card.id}.point${number}`)),
-    duration: copy?.duration ?? '',
-    priceRange: copy?.priceRange ?? '',
+    duration: copy?.duration ?? (illustrativeExample ? translate(`gallery.servicesPage.${card.id}.durationExample`) : ''),
+    priceRange: copy?.priceRange ?? (illustrativeExample ? translate(`gallery.servicesPage.${card.id}.priceExample`) : ''),
     details: copy?.details ?? '',
+    illustrativeExample,
   };
 }

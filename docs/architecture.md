@@ -30,6 +30,7 @@ The React SPA is static. It contains a public photographer website at `/` and `/
 - React renders public and admin flows with shared components and FR/EN resources.
 - Build-time `VITE_*` values provide intentionally public fallback photographer/contact content and the optional restricted Google Maps Embed API key; they never contain secrets. The contact map uses keyless, click-to-load OpenStreetMap by default. Owner-managed D1 site settings override the public presentation at runtime.
 - Compiled service cards remain a public-site fallback. Owner-managed service order, bilingual copy, visibility, and published image revisions live in D1; service images are browser-prepared and stored as private R2 objects served publicly only through a D1-checked, versioned media route.
+- Portfolio collections are separate D1 publications with bilingual copy, a cover, and browser-prepared photos in private R2. The public card and photo pages reuse gallery presentation components without customer gallery access or download controls.
 - The Home introduction uses compiled profile copy as fallback. Its optional D1 copy arrives in the existing site-settings response; its stable image URL resolves through the Worker to a published, browser-prepared R2 variant or to the compiled static photo.
 - TanStack Query owns remote state.
 - Import workers decode images, normalize orientation, remove private metadata, encode variants, and upload bounded concurrent streams.

@@ -579,6 +579,20 @@
   gap: var(--space-4);
 }
 
+.admin-portfolio-collection__cover {
+  width: min(100%, 18rem);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.admin-portfolio-visibility {
+  display: flex;
+  min-height: var(--control-min-size);
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .admin-portfolio-item {
   display: grid;
   grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);

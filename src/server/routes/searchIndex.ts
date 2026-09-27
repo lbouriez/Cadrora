@@ -1,4 +1,5 @@
 import type { Hono } from 'hono';
+import { PortfolioSitemapRowsSchema } from '../../shared/schemas/portfolio';
 
 import type { AppEnv } from '../types';
 import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from './siteSettings';
@@ -11,6 +12,7 @@ const publicPages = [
   { path: '/contact', fr: 'Contact', en: 'Contact' },
   { path: '/privacy', fr: 'Confidentialité', en: 'Privacy' },
 ] as const;
+
 
 function escapeXml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
@@ -48,9 +50,16 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
   });
 
-  app.get('/sitemap.xml', (context) => {
+  app.get('/sitemap.xml', async (context) => {
     const origin = new URL(context.req.url).origin;
-    const paths = publicPages.map((page) => page.path);
+    let portfolioPaths: string[] = [];
+    try {
+      const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
+        JOIN site_services s ON s.id = c.service_id WHERE c.published = 1 AND s.enabled = 1
+        ORDER BY c.sort_order, c.id LIMIT 100`).all<unknown>();
+      portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
+    } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
+    const paths = [...publicPages.map((page) => page.path), ...portfolioPaths];
     context.header('Cache-Control', 'public, max-age=300');
     return context.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((path) => `  <url><loc>${escapeXml(origin + path)}</loc></url>`).join('\n')}\n</urlset>\n`, 200, { 'Content-Type': 'application/xml; charset=utf-8' });
   });

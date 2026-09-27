@@ -6,6 +6,7 @@ import { requestId } from '../../../src/server/middleware/requestId';
 import { registerPortfolioRoutes } from '../../../src/server/routes/portfolio';
 import type { AppEnv } from '../../../src/server/types';
 import { ApiErrorSchema } from '../../../src/shared/schemas';
+import { PortfolioCollectionDetailSchema, PortfolioCollectionsSchema } from '../../../src/shared/schemas/portfolio';
 
 function portfolioApp() {
   const app = new Hono<AppEnv>();
@@ -23,6 +24,36 @@ function portfolioApp() {
 }
 
 describe('portfolio publication and media', () => {
+  it('serves a collection card and its photos through separate public routes', async () => {
+    const collection = {
+      id: 'collection-1', slug: 'mariages', service_id: 'wedding',
+      copy_json: JSON.stringify({ fr: { title: 'Mariages', description: 'Une histoire.' },
+        en: { title: 'Weddings', description: 'A story.' } }),
+      sort_order: 0, published: 1, cover_photo_id: 'photo-1',
+    };
+    const resultsFor = (query: string) => Promise.resolve({ results: query.includes('FROM portfolio_collections c') ? [collection]
+        : query.includes('FROM portfolio_photos p') ? [{ id: 'photo-1', collection_id: 'collection-1',
+          service_id: 'wedding', alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 0, state: 'published' }]
+          : [{ photo_id: 'photo-1', variant: 'small', storage_key: 'site/portfolio/photo-1/small.webp',
+            content_type: 'image/webp', byte_size: 100, width: 640, height: 427, checksum_sha256: 'sha' }] });
+    const queries: string[] = [];
+    const database = { prepare: vi.fn((query: string) => {
+      queries.push(query);
+      return { all: () => resultsFor(query), bind: () => ({ all: () => resultsFor(query) }) };
+    }) } as unknown as D1Database;
+    const app = portfolioApp();
+    const cards = await app.request('/api/v1/portfolio', undefined, { DB: database });
+    expect(cards.status).toBe(200);
+    const listed = PortfolioCollectionsSchema.parse(await cards.json());
+    expect(listed).toHaveLength(1);
+    expect(listed[0]).toMatchObject({ slug: 'mariages', photoCount: 1 });
+    expect(listed[0]?.coverSources).toHaveLength(1);
+    const detail = await app.request('/api/v1/portfolio/mariages', undefined, { DB: database });
+    expect(detail.status).toBe(200);
+    expect(PortfolioCollectionDetailSchema.parse(await detail.json()).photos).toHaveLength(1);
+    expect(queries.some((query) => query.includes('c.published = 1'))).toBe(true);
+  });
+
   it('does not publish a photo missing a required image variant', async () => {
     const publish = vi.fn();
     const database = { prepare: vi.fn((query: string) => ({
@@ -54,6 +85,7 @@ describe('portfolio publication and media', () => {
       bind: () => ({ first: () => {
         expect(query).toContain("p.state = 'published'");
         expect(query).toContain('s.enabled = 1');
+        expect(query).toContain('c.published = 1');
         return Promise.resolve(visible ? { storage_key: 'site/portfolio/photo-1/small.webp', content_type: 'image/webp', byte_size: 4 } : null);
       } }),
     })) } as unknown as D1Database;

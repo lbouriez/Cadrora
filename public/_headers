@@ -17,6 +17,9 @@
 /portfolio
   Cache-Control: public, max-age=0, must-revalidate, no-transform
 
+/portfolio/*
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+
 /galleries
   Cache-Control: public, max-age=0, must-revalidate, no-transform
   X-Robots-Tag: noindex, nofollow
