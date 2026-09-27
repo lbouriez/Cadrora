@@ -28,13 +28,14 @@ WHERE id = 1
   AND updated_at = '2026-09-20T00:00:00.000Z';
 
 INSERT INTO events (
-  id, slug, title, description, starts_at, timezone, cover_photo_id,
+  id, slug, title, description, service, starts_at, timezone, cover_photo_id,
   visibility, access, allow_downloads, face_search_enabled, nearby_search_enabled, show_photo_metadata, keep_originals,
   retention_days, revision, created_at, updated_at
 ) VALUES
   (
     'demo-public', 'lumiere-et-promesses', 'Lumière et promesses',
     'Une célébration d''été racontée avec naturel, de la cérémonie jusqu''aux éclats de rire sur la piste de danse. Contenu entièrement généré pour la démonstration Cadrora.',
+    'wedding',
     '2026-06-14T20:00:00.000Z', 'America/Toronto', 'demo-public-ceremony',
     'published', 'public', 0, 0, 0, 1, 0, NULL, 1,
     '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'
@@ -42,6 +43,7 @@ INSERT INTO events (
   (
     'demo-private', 'instants-en-famille', 'Instants en famille',
     'Galerie privée de démonstration — mot de passe : cadrora-demo. Les personnes présentées sont générées et ne sont pas de vrais clients.',
+    'family',
     '2026-10-04T15:00:00.000Z', 'America/Toronto', 'demo-private-family',
     'published', 'protected', 0, 0, 0, 1, 0, NULL, 1,
     '2026-09-20T00:00:00.000Z', '2026-09-20T00:00:00.000Z'
@@ -49,6 +51,7 @@ INSERT INTO events (
   (
     'demo-ai-face-search', 'find-your-photos', 'Retrouvez vos photos',
     'Démonstration IA : dix-neuf images fictives, créées pour présenter la recherche de photos par selfie. Amelia apparaît aussi dans des portraits verticaux, et d''autres invités distincts permettent de vérifier que la recherche ne confond pas les visages — essayez le parcours « Trouver mes photos ».',
+    'events',
     '2026-08-30T18:00:00.000Z', 'America/Toronto', 'demo-ai-01',
     'published', 'public', 1, 1, 1, 1, 0, NULL, 1,
     '2026-09-21T00:00:00.000Z', '2026-09-21T00:00:00.000Z'
@@ -57,6 +60,7 @@ ON CONFLICT(id) DO UPDATE SET
   slug = excluded.slug,
   title = excluded.title,
   description = excluded.description,
+  service = COALESCE(events.service, excluded.service),
   starts_at = excluded.starts_at,
   timezone = excluded.timezone,
   cover_photo_id = excluded.cover_photo_id,
