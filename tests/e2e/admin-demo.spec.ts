@@ -131,6 +131,21 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /your site limits|limites de votre site/i })).toBeVisible();
+  const descriptionField = page.locator('#admin-settings-website .admin-localized-field');
+  await expect(descriptionField.getByRole('textbox')).toHaveCount(1);
+  const translations = descriptionField.getByRole('button', { name: /translations: website description|traductions : description du site/i });
+  await translations.click();
+  const translationDialog = page.getByRole('dialog', { name: /translations: website description|traductions : description du site/i });
+  await expect(translationDialog.getByRole('textbox')).toHaveCount(2);
+  await page.keyboard.press('Escape');
+  await expect(translationDialog).toHaveCount(0);
+  await expect(translations).toBeFocused();
+  await page.setViewportSize({ width: 320, height: 812 });
+  await expect(translations).toBeVisible();
+  const translationButtonBounds = await translations.boundingBox();
+  expect(translationButtonBounds).not.toBeNull();
+  expect((translationButtonBounds?.x ?? 0) + (translationButtonBounds?.width ?? 0)).toBeLessThanOrEqual(320);
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.route('https://photon.komoot.io/api/**', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({ features: [{
@@ -178,10 +193,10 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(faceLimit).toHaveValue('5000');
   const homeStories = page.getByRole('checkbox', { name: /show recent stories|afficher les histoires récentes/i });
   expect(await page.locator('.admin-settings-nav a').evaluateAll((links) => links.map((link) => link.getAttribute('href')))).toEqual([
-    '#admin-settings-website', '#admin-settings-quotas', '#admin-settings-home', '#admin-settings-services', '#admin-settings-contact',
+    '#admin-settings-website', '#admin-settings-quotas', '#admin-settings-home', '#admin-settings-services', '#admin-settings-contact', '#admin-settings-footer',
   ]);
   expect(await page.locator('.admin-site-settings fieldset.admin-settings-section').evaluateAll((sections) => sections.map((section) => section.id))).toEqual([
-    'admin-settings-website', 'admin-settings-quotas', 'admin-settings-home', 'admin-settings-services', 'admin-settings-contact',
+    'admin-settings-website', 'admin-settings-quotas', 'admin-settings-home', 'admin-settings-services', 'admin-settings-contact', 'admin-settings-footer',
   ]);
   await expect(page.locator('#admin-settings-home')).toContainText(/recent stories|histoires récentes/i);
   const homeStoryLimit = page.getByRole('spinbutton', { name: /maximum galleries on the home page|nombre maximal de galeries sur l’accueil/i });

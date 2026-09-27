@@ -12,7 +12,7 @@ export { InfoTooltip } from './InfoTooltip';
 export type { InfoTooltipProps } from './InfoTooltip';
 export { Carousel } from './Carousel';
 export type { CarouselProps } from './Carousel';
-export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, DownloadIcon, HeartIcon, InfoIcon, RetouchIcon } from './Icons';
+export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, DownloadIcon, HeartIcon, InfoIcon, LanguageIcon, RetouchIcon } from './Icons';
 export { FavoriteButton } from './FavoriteButton';
 export { RetouchButton } from './RetouchButton';
 export type { FavoriteButtonProps } from './FavoriteButton';

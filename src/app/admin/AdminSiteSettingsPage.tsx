@@ -3,13 +3,16 @@ import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AdminSiteSettingsSchema } from '../../shared/schemas';
+import { AdminSiteSettingsSchema, LanguageSchema, SiteCopySchema } from '../../shared/schemas';
 import type { Language, QuotaLimits, ServiceKey, SiteCopy, ThemeMode } from '../../shared/schemas';
-import { Button, Input, MultiSelect, Select, Spinner, Textarea } from '../components';
+import { Button, Input, MultiSelect, Select, Spinner } from '../components';
 import { siteProfile } from '../public/siteProfile';
 import { useAdminAccess } from './AdminAccessContext';
 import { CitySearch } from './CitySearch';
 import { formatMediaStorage } from './formatMediaStorage';
+import { LocalizedTextField } from './LocalizedTextField';
+
+type SiteCopyDraft = Record<Language, { description: string; footerTagline: string }>;
 
 async function getAdminSiteSettings() {
   const response = await fetch('/api/v1/admin/site', { credentials: 'same-origin' });
@@ -63,6 +66,7 @@ export function AdminSiteSettingsPage() {
   const [defaultLanguageOverride, setDefaultLanguage] = useState<Language | null>(null);
   const [enabledLanguagesOverride, setEnabledLanguages] = useState<Language[] | null>(null);
   const [enabledServicesOverride, setEnabledServices] = useState<ServiceKey[] | null>(null);
+  const [siteCopyDraftOverride, setSiteCopyDraft] = useState<SiteCopyDraft | null>(null);
   const [formError, setFormError] = useState(false);
   const latitudeInput = useRef<HTMLInputElement>(null);
   const longitudeInput = useRef<HTMLInputElement>(null);
@@ -85,7 +89,19 @@ export function AdminSiteSettingsPage() {
   const copyFallback = (language: Language, field: keyof SiteCopy['fr']) => field === 'description'
     ? siteProfile.siteDescription[language]
     : i18n.getFixedT(language)(`gallery.${field}`);
-  const copyValue = (language: Language, field: keyof SiteCopy['fr']) => siteCopy?.[language][field] ?? copyFallback(language, field);
+  const siteCopyDraft = siteCopyDraftOverride ?? Object.fromEntries(LanguageSchema.options.map((language) => [language, {
+    description: siteCopy ? siteCopy[language].description ?? '' : copyFallback(language, 'description'),
+    footerTagline: siteCopy ? siteCopy[language].footerTagline ?? '' : copyFallback(language, 'footerTagline'),
+  }])) as SiteCopyDraft;
+  const adminLanguage = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const primaryLanguage = enabledLanguages.includes(adminLanguage) ? adminLanguage : defaultLanguage;
+  const changeCopy = (field: keyof SiteCopyDraft[Language], language: Language, value: string) => {
+    setSaved(false);
+    setSiteCopyDraft({
+      ...siteCopyDraft,
+      [language]: { ...siteCopyDraft[language], [field]: value },
+    });
+  };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,16 +115,17 @@ export function AdminSiteSettingsPage() {
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
     const homeGalleryLimit = Number(values.get('homeGalleryLimit'));
     const siteName = formText(values, 'siteName');
-    const nextSiteCopy: SiteCopy = {
-      fr: {
-        description: formText(values, 'description-fr'),
-        footerTagline: formText(values, 'footerTagline-fr'),
-      },
-      en: {
-        description: formText(values, 'description-en'),
-        footerTagline: formText(values, 'footerTagline-en'),
-      },
-    };
+    const parsedCopy = SiteCopySchema.safeParse(Object.fromEntries(LanguageSchema.options.map((language) => {
+      const description = siteCopyDraft[language].description.trim();
+      return [language, {
+        ...(description ? { description } : {}),
+        footerTagline: siteCopyDraft[language].footerTagline.trim(),
+      }];
+    })));
+    if (!parsedCopy.success) {
+      setFormError(true);
+      return;
+    }
     const contactEmail = formText(values, 'contactEmail');
     const contactPhone = formText(values, 'contactPhone');
     const contactAddress = formText(values, 'contactAddress');
@@ -147,7 +164,7 @@ export function AdminSiteSettingsPage() {
       },
       serviceArea,
       siteName,
-      siteCopy: nextSiteCopy,
+      siteCopy: parsedCopy.data,
       themeMode,
     });
   };
@@ -170,17 +187,17 @@ export function AdminSiteSettingsPage() {
           <legend>{t('admin.settings.websiteSection')}</legend>
           <Input defaultValue={settings.data.siteName} label={t('admin.settings.siteName')} maxLength={120} name="siteName" required />
           <p className="admin-card__description">{t('admin.settings.siteDescriptionHint')}</p>
-          <div className="admin-settings-contact-grid">
-            {(['fr', 'en'] as const).map((language) => <Textarea
-              defaultValue={copyValue(language, 'description')}
-              key={language}
-              label={`${t('admin.settings.siteDescription')} · ${t(`admin.settings.language${language === 'fr' ? 'Fr' : 'En'}`)}`}
-              maxLength={300}
-              name={`description-${language}`}
-              required
-              rows={3}
-            />)}
-          </div>
+          <LocalizedTextField
+            enabledLanguages={enabledLanguages}
+            label={t('admin.settings.siteDescription')}
+            languages={LanguageSchema.options}
+            maxLength={300}
+            multiline
+            onChange={(language, value) => changeCopy('description', language, value)}
+            primaryLanguage={primaryLanguage}
+            required
+            values={Object.fromEntries(LanguageSchema.options.map((language) => [language, siteCopyDraft[language].description]))}
+          />
         <MultiSelect
           hint={t('admin.settings.languagesHint')}
           label={t('admin.settings.languages')}
@@ -317,15 +334,15 @@ export function AdminSiteSettingsPage() {
         <fieldset className="admin-settings-section" id="admin-settings-footer">
           <legend>{t('admin.settings.footerSection')}</legend>
           <p className="admin-card__description">{t('admin.settings.footerHint')}</p>
-          <div className="admin-settings-contact-grid">
-            {(['fr', 'en'] as const).map((language) => <Input
-              defaultValue={copyValue(language, 'footerTagline')}
-              key={language}
-              label={`${t('admin.settings.footerTagline')} · ${t(`admin.settings.language${language === 'fr' ? 'Fr' : 'En'}`)}`}
-              maxLength={160}
-              name={`footerTagline-${language}`}
-            />)}
-          </div>
+          <LocalizedTextField
+            enabledLanguages={enabledLanguages}
+            label={t('admin.settings.footerTagline')}
+            languages={LanguageSchema.options}
+            maxLength={160}
+            onChange={(language, value) => changeCopy('footerTagline', language, value)}
+            primaryLanguage={primaryLanguage}
+            values={Object.fromEntries(LanguageSchema.options.map((language) => [language, siteCopyDraft[language].footerTagline]))}
+          />
         </fieldset>
         {readOnly ? <p className="admin-card__description">{t('admin.settings.readOnly')}</p> : null}
         {formError ? <p role="alert">{t('admin.settings.formError')}</p> : null}
