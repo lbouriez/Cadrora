@@ -55,7 +55,7 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     let portfolioPaths: string[] = [];
     try {
       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
-        JOIN site_services s ON s.id = c.service_id WHERE c.published = 1 AND s.enabled = 1
+        WHERE c.published = 1
         ORDER BY c.sort_order, c.id LIMIT 100`).all<unknown>();
       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }

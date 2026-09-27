@@ -7,11 +7,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createImageEncoder } from '../../browser/images';
 import {
   DeletePortfolioItemResponseSchema, PortfolioCollectionDetailSchema, PortfolioCollectionsSchema,
-  PortfolioItemSchema, ServiceCardsSchema, ServiceImageUploadResponseSchema,
+  PortfolioCategoriesSchema, PortfolioCategorySchema, PortfolioItemSchema, ServiceImageUploadResponseSchema,
 } from '../../shared/schemas';
-import type { PortfolioCollectionDetail, PortfolioItem, ServiceCard } from '../../shared/schemas';
+import type { PortfolioCategory, PortfolioCollectionDetail, PortfolioItem } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, Dropzone, Input, Select, Spinner, Textarea } from '../components';
-import { serviceText } from '../public/serviceCatalog';
 import { useAdminAccess } from './AdminAccessContext';
 import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
 
@@ -24,6 +23,48 @@ async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, ini
 function slugify(value: string): string {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/gu, '').toLowerCase()
     .replace(/[^a-z0-9]+/gu, '-').replace(/^-|-$/gu, '').slice(0, 80);
+}
+
+function PortfolioCategoryField({ categories, value, onChange, language, disabled }: {
+  categories: PortfolioCategory[]; value: string; onChange: (id: string) => void;
+  language: 'fr' | 'en'; disabled: boolean;
+}) {
+  const { t } = useTranslation();
+  const client = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const [nameFr, setNameFr] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  const add = async () => {
+    if (busy || disabled || !nameFr.trim() || !nameEn.trim()) return;
+    setBusy(true); setError(false);
+    try {
+      const category = await apiJson('/api/v1/admin/portfolio/categories', PortfolioCategorySchema, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ copy: { fr: nameFr.trim(), en: nameEn.trim() } }),
+      });
+      await client.invalidateQueries({ queryKey: ['admin-portfolio-categories'] });
+      onChange(category.id); setAdding(false); setNameFr(''); setNameEn('');
+    } catch { setError(true); } finally { setBusy(false); }
+  };
+  return <div className="admin-portfolio-category-field">
+    <Select disabled={disabled || busy} label={t('admin.portfolio.category')} onChange={(event) => {
+      if (event.target.value === '__new__') { onChange(''); setAdding(true); }
+      else { setAdding(false); onChange(event.target.value); }
+    }} value={adding ? '__new__' : value}>
+      {!value && !adding ? <option value="">{t('admin.portfolio.chooseCategory')}</option> : null}
+      {[...categories].sort((left, right) => left.copy[language].localeCompare(right.copy[language], language))
+        .map((category) => <option key={category.id} value={category.id}>{category.copy[language]}</option>)}
+      {!disabled ? <option value="__new__">{t('admin.portfolio.addCategory')}</option> : null}
+    </Select>
+    {adding ? <div className="admin-portfolio-category-field__new">
+      <Input label={t('admin.portfolio.categoryFr')} maxLength={120} onChange={(event) => setNameFr(event.target.value)} value={nameFr} />
+      <Input label={t('admin.portfolio.categoryEn')} maxLength={120} onChange={(event) => setNameEn(event.target.value)} value={nameEn} />
+      <Button disabled={busy || !nameFr.trim() || !nameEn.trim()} onClick={() => { void add(); }} type="button" variant="secondary">{t('admin.portfolio.createCategory')}</Button>
+      {error ? <p role="alert">{t('admin.portfolio.categoryError')}</p> : null}
+    </div> : null}
+  </div>;
 }
 
 async function uploadPhoto(id: string, file: File): Promise<void> {
@@ -109,7 +150,7 @@ function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () =
   </article>;
 }
 
-function CollectionList({ services }: { services: ServiceCard[] }) {
+function CollectionList({ categories }: { categories: PortfolioCategory[] }) {
   const { i18n, t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const navigate = useNavigate();
@@ -120,7 +161,7 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
   const [titleFr, setTitleFr] = useState(''); const [titleEn, setTitleEn] = useState('');
   const [descriptionFr, setDescriptionFr] = useState(''); const [descriptionEn, setDescriptionEn] = useState('');
   const [slug, setSlug] = useState(''); const [slugEdited, setSlugEdited] = useState(false);
-  const [serviceId, setServiceId] = useState(services[0]?.id ?? '');
+  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
   const [busy, setBusy] = useState(false); const [error, setError] = useState(false);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); if (busy || readOnly) return;
@@ -128,7 +169,7 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
     try {
       const created = await apiJson('/api/v1/admin/portfolio/collections', PortfolioCollectionDetailSchema, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, serviceId, copy: {
+        body: JSON.stringify({ slug, categoryId, copy: {
           fr: { title: titleFr.trim(), description: descriptionFr.trim() },
           en: { title: titleEn.trim(), description: descriptionEn.trim() },
         } }),
@@ -148,9 +189,11 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
       <div className="admin-event-list">{collections.data?.map((collection) => <article className="admin-event-row" key={collection.id}>
         {collection.coverSources[0] ? <img alt="" className="admin-portfolio-collection__cover"
           src={collection.coverSources[0].url.replace(/^\/portfolio-media\/([^/]+)\//u, '/api/v1/admin/portfolio/$1/image/')} /> : null}
-        <div><h3>{collection.copy[language].title}</h3><p>{collection.copy[language].description}</p>
-          <p>{t(`gallery.category.${collection.serviceId}`)} · {t('admin.portfolio.photoCount', { count: collection.photoCount })}</p>
+        <div><div className="admin-event-row__meta">
           <span className="admin-event-row__state">{t(collection.published ? 'admin.portfolio.published' : 'admin.portfolio.draft')}</span>
+          <span className="admin-event-row__badge">{categories.find((category) => category.id === collection.categoryId)?.copy[language] ?? collection.copy[language].title}</span>
+          <span className="admin-event-row__badge">{t('admin.portfolio.photoCount', { count: collection.photoCount })}</span>
+        </div><h3>{collection.copy[language].title}</h3><p>{collection.copy[language].description}</p>
         </div>
         <div className="admin-event-row__actions"><Link className="button button--secondary" to={`/admin/portfolio/${collection.id}`}>
           {t('admin.portfolio.manage')}</Link></div>
@@ -168,17 +211,15 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
         }} required value={slug} />
         <Textarea label={t('admin.portfolio.descriptionFr')} maxLength={2000} onChange={(event) => setDescriptionFr(event.target.value)} value={descriptionFr} />
         <Textarea label={t('admin.portfolio.descriptionEn')} maxLength={2000} onChange={(event) => setDescriptionEn(event.target.value)} value={descriptionEn} />
-        <Select label={t('admin.portfolio.service')} onChange={(event) => setServiceId(event.target.value)} value={serviceId}>
-          {services.map((service) => <option key={service.id} value={service.id}>{serviceText(service, language, (key) => t(key)).title}</option>)}
-        </Select>
-        <Button disabled={busy || readOnly || !services.length} type="submit">{t('admin.portfolio.addCollection')}</Button>
+        <PortfolioCategoryField categories={categories} disabled={readOnly} language={language} onChange={setCategoryId} value={categoryId} />
+        <Button disabled={busy || readOnly || !categoryId} type="submit">{t('admin.portfolio.addCollection')}</Button>
         {error ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
       </form>
     </section>
   </div>;
 }
 
-function CollectionEditor({ id, services }: { id: string; services: ServiceCard[] }) {
+function CollectionEditor({ id, categories }: { id: string; categories: PortfolioCategory[] }) {
   const { i18n, t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const navigate = useNavigate(); const client = useQueryClient();
@@ -197,7 +238,7 @@ function CollectionEditor({ id, services }: { id: string; services: ServiceCard[
   if (detail.isError || !detail.data) return <p role="alert">{t('admin.portfolio.error')}</p>;
   return <CollectionFields collection={detail.data} error={error} busy={busy} progress={progress}
     key={`${id}:${detail.data.photos.map((photo) => photo.id).join(',')}`}
-    services={services} language={language} readOnly={readOnly} confirmDelete={confirmDelete}
+    categories={categories} language={language} readOnly={readOnly} confirmDelete={confirmDelete}
     onConfirmDelete={setConfirmDelete} onSave={async (updated) => {
       setBusy(true); setError(false);
       try {
@@ -229,12 +270,12 @@ function CollectionEditor({ id, services }: { id: string; services: ServiceCard[
     }} refresh={refresh} />;
 }
 
-function CollectionFields({ collection, services, language, readOnly, busy, error, progress, confirmDelete,
+function CollectionFields({ collection, categories, language, readOnly, busy, error, progress, confirmDelete,
   onConfirmDelete, onSave, onUpload, onDelete, refresh }: {
-  collection: PortfolioCollectionDetail; services: ServiceCard[]; language: 'fr' | 'en'; readOnly: boolean;
+  collection: PortfolioCollectionDetail; categories: PortfolioCategory[]; language: 'fr' | 'en'; readOnly: boolean;
   busy: boolean; error: boolean; progress: { done: number; total: number } | null; confirmDelete: boolean;
   onConfirmDelete: (open: boolean) => void;
-  onSave: (value: { slug: string; serviceId: string; copy: PortfolioCollectionDetail['copy']; sortOrder: number;
+  onSave: (value: { slug: string; categoryId: string; copy: PortfolioCollectionDetail['copy']; sortOrder: number;
     published: boolean; coverPhotoId: string | null }) => Promise<void>;
   onUpload: (files: File[]) => Promise<void>; onDelete: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -245,13 +286,13 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
   const [descriptionFr, setDescriptionFr] = useState(collection.copy.fr.description);
   const [descriptionEn, setDescriptionEn] = useState(collection.copy.en.description);
   const [slug, setSlug] = useState(collection.slug);
-  const [serviceId, setServiceId] = useState(collection.serviceId);
+  const [categoryId, setCategoryId] = useState(collection.categoryId);
   const [sortOrder, setSortOrder] = useState(collection.sortOrder);
   const [published, setPublished] = useState(collection.published);
   const [coverPhotoId, setCoverPhotoId] = useState(collection.coverPhotoId ?? '');
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    void onSave({ slug, serviceId, sortOrder, published, coverPhotoId: coverPhotoId || null,
+    void onSave({ slug, categoryId, sortOrder, published, coverPhotoId: coverPhotoId || null,
       copy: { fr: { title: titleFr.trim(), description: descriptionFr.trim() },
         en: { title: titleEn.trim(), description: descriptionEn.trim() } } });
   };
@@ -265,9 +306,7 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
         <Input label={t('admin.portfolio.slug')} maxLength={80} onChange={(event) => setSlug(slugify(event.target.value))} required value={slug} />
         <Textarea label={t('admin.portfolio.descriptionFr')} maxLength={2000} onChange={(event) => setDescriptionFr(event.target.value)} value={descriptionFr} />
         <Textarea label={t('admin.portfolio.descriptionEn')} maxLength={2000} onChange={(event) => setDescriptionEn(event.target.value)} value={descriptionEn} />
-        <Select label={t('admin.portfolio.service')} onChange={(event) => setServiceId(event.target.value)} value={serviceId}>
-          {services.map((service) => <option key={service.id} value={service.id}>{serviceText(service, language, (key) => t(key)).title}</option>)}
-        </Select>
+        <PortfolioCategoryField categories={categories} disabled={busy || readOnly} language={language} onChange={setCategoryId} value={categoryId} />
         <Input label={t('admin.portfolio.collectionOrder')} min="0" onChange={(event) => setSortOrder(Number(event.target.value))} required type="number" value={sortOrder} />
         <div className="admin-cover">
           <h2 className="admin-card__title">{t('admin.portfolio.cover')}</h2>
@@ -287,7 +326,7 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
           onChange={(event) => setPublished(event.target.checked)} type="checkbox" /> {t('admin.portfolio.visible')}</label>
         {!collection.photos.some((photo) => photo.state === 'published') ? <p className="field__hint">{t('admin.portfolio.publishHint')}</p> : null}
         <div className="admin-portfolio-item__actions">
-          <Button disabled={busy || readOnly} type="submit">{t('admin.portfolio.save')}</Button>
+          <Button disabled={busy || readOnly || !categoryId} type="submit">{t('admin.portfolio.save')}</Button>
           <Button disabled={busy || readOnly} onClick={() => onConfirmDelete(true)} type="button" variant="danger">{t('admin.portfolio.deleteCollection')}</Button>
         </div>
         {error ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
@@ -313,8 +352,8 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
 export function AdminPortfolioPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
-  const services = useQuery({ queryFn: () => apiJson('/api/v1/admin/services', ServiceCardsSchema), queryKey: ['admin-services'] });
-  if (services.isPending) return <Spinner label={t('admin.portfolio.loading')} />;
-  if (services.isError || !services.data) return <p role="alert">{t('admin.portfolio.error')}</p>;
-  return id ? <CollectionEditor id={id} key={id} services={services.data} /> : <CollectionList services={services.data} />;
+  const categories = useQuery({ queryFn: () => apiJson('/api/v1/admin/portfolio/categories', PortfolioCategoriesSchema), queryKey: ['admin-portfolio-categories'] });
+  if (categories.isPending) return <Spinner label={t('admin.portfolio.loading')} />;
+  if (categories.isError || !categories.data) return <p role="alert">{t('admin.portfolio.error')}</p>;
+  return id ? <CollectionEditor categories={categories.data} id={id} key={id} /> : <CollectionList categories={categories.data} />;
 }

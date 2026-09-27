@@ -4,7 +4,8 @@ import { ApiException } from '../../shared/errors/ApiError';
 import { SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
 import { IdSchema, SlugSchema } from '../../shared/schemas';
 import {
-  CreatePortfolioCollectionSchema, CreatePortfolioItemSchema, DeletePortfolioItemResponseSchema, PortfolioAltSchema,
+  CreatePortfolioCategorySchema, CreatePortfolioCollectionSchema, CreatePortfolioItemSchema, DeletePortfolioItemResponseSchema, PortfolioAltSchema,
+  PortfolioCategoriesSchema, PortfolioCategorySchema,
   PortfolioCollectionDetailSchema, PortfolioCollectionTextSchema, PortfolioCollectionsSchema,
   PortfolioItemSchema, PortfolioItemsSchema, PortfolioVariantSchema, UpdatePortfolioCollectionSchema, UpdatePortfolioItemSchema,
 } from '../../shared/schemas/portfolio';
@@ -17,7 +18,6 @@ import type { AppEnv } from '../types';
 interface PhotoRow {
   id: string;
   collection_id: string;
-  service_id: string;
   alt_json: string;
   sort_order: number;
   state: 'pending' | 'published';
@@ -26,7 +26,7 @@ interface PhotoRow {
 interface CollectionRow {
   id: string;
   slug: string;
-  service_id: string;
+  category_id: string;
   copy_json: string;
   sort_order: number;
   published: number;
@@ -46,6 +46,8 @@ interface VariantRow {
 
 const requiredVariants = ['preview', 'small', 'medium', 'large'] as const;
 
+interface CategoryRow { id: string; copy_json: string }
+
 function requireOwner(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
   if (context.get('auth').admin?.access !== 'manage') throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 403);
 }
@@ -55,22 +57,21 @@ function requireAdmin(context: { get(name: 'auth'): AppEnv['Variables']['auth'] 
 }
 
 async function photoRow(db: D1Database, id: string): Promise<PhotoRow | null> {
-  return db.prepare('SELECT id, collection_id, service_id, alt_json, sort_order, state FROM portfolio_photos WHERE id = ?')
+  return db.prepare('SELECT id, collection_id, alt_json, sort_order, state FROM portfolio_photos WHERE id = ?')
     .bind(id).first<PhotoRow>();
 }
 
 async function listPortfolio(db: D1Database, admin: boolean) {
   const [photos, variants] = await Promise.all([
-    db.prepare(`SELECT p.id, p.collection_id, p.service_id, p.alt_json, p.sort_order, p.state FROM portfolio_photos p
-      JOIN site_services s ON s.id = p.service_id
+    db.prepare(`SELECT p.id, p.collection_id, p.alt_json, p.sort_order, p.state FROM portfolio_photos p
       JOIN portfolio_collections c ON c.id = p.collection_id
-      WHERE ? = 1 OR (p.state = 'published' AND c.published = 1 AND s.enabled = 1)
-      ORDER BY s.sort_order, p.sort_order, p.id LIMIT 200`).bind(Number(admin)).all<PhotoRow>(),
+      WHERE ? = 1 OR (p.state = 'published' AND c.published = 1)
+      ORDER BY c.sort_order, p.sort_order, p.id LIMIT 200`).bind(Number(admin)).all<PhotoRow>(),
     db.prepare('SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM portfolio_variants')
       .all<VariantRow>(),
   ]);
   return PortfolioItemsSchema.parse(photos.results.map((photo) => ({
-    id: photo.id, collectionId: photo.collection_id, serviceId: photo.service_id, alt: PortfolioAltSchema.parse(JSON.parse(photo.alt_json) as unknown),
+    id: photo.id, collectionId: photo.collection_id, alt: PortfolioAltSchema.parse(JSON.parse(photo.alt_json) as unknown),
     sortOrder: photo.sort_order, state: photo.state,
     imageSources: variants.results.filter((variant) => variant.photo_id === photo.id)
       .sort((left, right) => left.width - right.width).map((variant) => ({
@@ -84,9 +85,9 @@ async function item(db: D1Database, id: string) {
 }
 
 async function listCollections(db: D1Database, admin: boolean) {
-  const rows = await db.prepare(`SELECT c.id, c.slug, c.service_id, c.copy_json, c.sort_order, c.published, c.cover_photo_id
-    FROM portfolio_collections c JOIN site_services s ON s.id = c.service_id
-    WHERE ? = 1 OR (c.published = 1 AND s.enabled = 1)
+  const rows = await db.prepare(`SELECT c.id, c.slug, c.category_id, c.copy_json, c.sort_order, c.published, c.cover_photo_id
+    FROM portfolio_collections c
+    WHERE ? = 1 OR (c.published = 1)
     ORDER BY c.sort_order, c.id LIMIT 100`).bind(Number(admin)).all<CollectionRow>();
   const photos = await listPortfolio(db, admin);
   return PortfolioCollectionsSchema.parse(rows.results.map((row) => {
@@ -94,7 +95,7 @@ async function listCollections(db: D1Database, admin: boolean) {
     const cover = members.find((photo) => photo.id === row.cover_photo_id && photo.state === 'published')
       ?? members.find((photo) => photo.state === 'published');
     return {
-      id: row.id, slug: row.slug, serviceId: row.service_id,
+      id: row.id, slug: row.slug, categoryId: row.category_id,
       copy: PortfolioCollectionTextSchema.parse(JSON.parse(row.copy_json) as unknown),
       sortOrder: row.sort_order, published: row.published === 1, coverPhotoId: row.cover_photo_id,
       coverSources: cover?.imageSources ?? [], photoCount: members.length,
@@ -110,10 +111,15 @@ async function collectionDetail(db: D1Database, identifier: string, admin: boole
   return PortfolioCollectionDetailSchema.parse({ ...collection, photos });
 }
 
-async function requireService(db: D1Database, id: string): Promise<void> {
-  const service = await db.prepare("SELECT id FROM site_services WHERE id = ? AND id <> 'home-hero'")
+async function requireCategory(db: D1Database, id: string): Promise<void> {
+  const category = await db.prepare('SELECT id FROM portfolio_categories WHERE id = ?')
     .bind(id).first<{ id: string }>();
-  if (!service) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 404);
+  if (!category) throw new ApiException('PORTFOLIO_CATEGORY_NOT_FOUND', 'errors.routeNotFound', 404);
+}
+
+async function listCategories(db: D1Database) {
+  const rows = await db.prepare('SELECT id, copy_json FROM portfolio_categories ORDER BY id LIMIT 100').all<CategoryRow>();
+  return PortfolioCategoriesSchema.parse(rows.results.map((row) => ({ id: row.id, copy: JSON.parse(row.copy_json) as unknown })));
 }
 
 function deletionJob(db: D1Database, photoId: string, keys: string[], now: string): D1PreparedStatement {
@@ -125,6 +131,11 @@ function deletionJob(db: D1Database, photoId: string, keys: string[], now: strin
 }
 
 export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
+  app.get('/api/v1/portfolio/categories', async (context) => {
+    applyCachePolicy(context, 'event-public');
+    return context.json(PortfolioCategoriesSchema.parse(await listCategories(context.env.DB)));
+  });
+
   app.get('/api/v1/portfolio', async (context) => {
     applyCachePolicy(context, 'event-public');
     return context.json(PortfolioCollectionsSchema.parse(await listCollections(context.env.DB, false)));
@@ -144,11 +155,29 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
     return context.json(PortfolioCollectionsSchema.parse(await listCollections(context.env.DB, true)));
   });
 
+  app.get('/api/v1/admin/portfolio/categories', async (context) => {
+    requireAdmin(context); applyCachePolicy(context, 'admin');
+    return context.json(PortfolioCategoriesSchema.parse(await listCategories(context.env.DB)));
+  });
+
+  app.post('/api/v1/admin/portfolio/categories', async (context) => {
+    requireOwner(context); applyCachePolicy(context, 'admin');
+    const input = CreatePortfolioCategorySchema.safeParse(await context.req.json().catch(() => null));
+    if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const count = await context.env.DB.prepare('SELECT COUNT(*) AS value FROM portfolio_categories').first<{ value: number }>();
+    if ((count?.value ?? 0) >= 100) throw new ApiException('PORTFOLIO_CATEGORIES_FULL', 'errors.invalidRequest', 409);
+    const category = PortfolioCategorySchema.parse({ id: crypto.randomUUID(), copy: input.data.copy });
+    const now = new Date().toISOString();
+    await context.env.DB.prepare('INSERT INTO portfolio_categories (id, copy_json, created_at, updated_at) VALUES (?, ?, ?, ?)')
+      .bind(category.id, JSON.stringify(category.copy), now, now).run();
+    return context.json(category, 201);
+  });
+
   app.post('/api/v1/admin/portfolio/collections', async (context) => {
     requireOwner(context); applyCachePolicy(context, 'admin');
     const input = CreatePortfolioCollectionSchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    await requireService(context.env.DB, input.data.serviceId);
+    await requireCategory(context.env.DB, input.data.categoryId);
     const duplicate = await context.env.DB.prepare('SELECT id FROM portfolio_collections WHERE slug = ?')
       .bind(input.data.slug).first<{ id: string }>();
     if (duplicate) throw new ApiException('PORTFOLIO_SLUG_CONFLICT', 'errors.invalidRequest', 409);
@@ -158,8 +187,8 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
       .first<{ value: number }>();
     const id = crypto.randomUUID(); const now = new Date().toISOString();
     await context.env.DB.prepare(`INSERT INTO portfolio_collections
-      (id, slug, service_id, copy_json, sort_order, published, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, 0, ?, ?)`).bind(id, input.data.slug, input.data.serviceId,
+      (id, slug, category_id, copy_json, sort_order, published, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, 0, ?, ?)`).bind(id, input.data.slug, input.data.categoryId,
       JSON.stringify(input.data.copy), order?.value ?? 0, now, now).run();
     const created = await collectionDetail(context.env.DB, id, true);
     if (!created) throw new ApiException('PORTFOLIO_NOT_FOUND', 'errors.routeNotFound', 500);
@@ -182,7 +211,7 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
     if (!id.success || !input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const current = await collectionDetail(context.env.DB, id.data, true);
     if (!current) throw new ApiException('PORTFOLIO_NOT_FOUND', 'errors.routeNotFound', 404);
-    await requireService(context.env.DB, input.data.serviceId);
+    await requireCategory(context.env.DB, input.data.categoryId);
     const duplicate = await context.env.DB.prepare('SELECT id FROM portfolio_collections WHERE slug = ? AND id <> ?')
       .bind(input.data.slug, id.data).first<{ id: string }>();
     if (duplicate) throw new ApiException('PORTFOLIO_SLUG_CONFLICT', 'errors.invalidRequest', 409);
@@ -193,12 +222,10 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
       throw new ApiException('VARIANTS_INCOMPLETE', 'errors.variantsIncomplete', 409);
     }
     await context.env.DB.batch([
-      context.env.DB.prepare(`UPDATE portfolio_collections SET slug = ?, service_id = ?, copy_json = ?, sort_order = ?,
+      context.env.DB.prepare(`UPDATE portfolio_collections SET slug = ?, category_id = ?, copy_json = ?, sort_order = ?,
         published = ?, cover_photo_id = ?, updated_at = ? WHERE id = ?`)
-        .bind(input.data.slug, input.data.serviceId, JSON.stringify(input.data.copy), input.data.sortOrder,
+        .bind(input.data.slug, input.data.categoryId, JSON.stringify(input.data.copy), input.data.sortOrder,
           Number(input.data.published), input.data.coverPhotoId, new Date().toISOString(), id.data),
-      context.env.DB.prepare('UPDATE portfolio_photos SET service_id = ? WHERE collection_id = ?')
-        .bind(input.data.serviceId, id.data),
     ]);
     const updated = await collectionDetail(context.env.DB, id.data, true);
     if (!updated) throw new ApiException('PORTFOLIO_NOT_FOUND', 'errors.routeNotFound', 500);
@@ -244,8 +271,8 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
       .bind(collection.id).first<{ value: number }>();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
-    await context.env.DB.prepare(`INSERT INTO portfolio_photos (id, collection_id, service_id, alt_json, sort_order, state, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)`).bind(id, collection.id, collection.serviceId,
+    await context.env.DB.prepare(`INSERT INTO portfolio_photos (id, collection_id, alt_json, sort_order, state, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'pending', ?, ?)`).bind(id, collection.id,
       JSON.stringify(input.data.alt), order?.value ?? 0, now, now).run();
     const created = await item(context.env.DB, id);
     if (!created) throw new ApiException('PORTFOLIO_ITEM_NOT_FOUND', 'errors.routeNotFound', 500);
@@ -374,8 +401,7 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
     if (!id.success || !variant.success) throw new ApiException('INVALID_MEDIA_PATH', 'errors.invalidMediaPath', 400);
     const media = await context.env.DB.prepare(`SELECT v.storage_key, v.content_type, v.byte_size FROM portfolio_variants v
       JOIN portfolio_photos p ON p.id = v.photo_id JOIN portfolio_collections c ON c.id = p.collection_id
-      JOIN site_services s ON s.id = c.service_id
-      WHERE v.photo_id = ? AND v.variant = ? AND p.state = 'published' AND c.published = 1 AND s.enabled = 1`)
+      WHERE v.photo_id = ? AND v.variant = ? AND p.state = 'published' AND c.published = 1`)
       .bind(id.data, variant.data).first<Pick<VariantRow, 'storage_key' | 'content_type' | 'byte_size'>>();
     if (!media) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
     const object = await context.env.MEDIA_BUCKET.get(media.storage_key);

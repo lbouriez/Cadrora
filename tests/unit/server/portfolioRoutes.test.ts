@@ -26,14 +26,14 @@ function portfolioApp() {
 describe('portfolio publication and media', () => {
   it('serves a collection card and its photos through separate public routes', async () => {
     const collection = {
-      id: 'collection-1', slug: 'mariages', service_id: 'wedding',
+      id: 'collection-1', slug: 'mariages', category_id: 'wedding',
       copy_json: JSON.stringify({ fr: { title: 'Mariages', description: 'Une histoire.' },
         en: { title: 'Weddings', description: 'A story.' } }),
       sort_order: 0, published: 1, cover_photo_id: 'photo-1',
     };
     const resultsFor = (query: string) => Promise.resolve({ results: query.includes('FROM portfolio_collections c') ? [collection]
         : query.includes('FROM portfolio_photos p') ? [{ id: 'photo-1', collection_id: 'collection-1',
-          service_id: 'wedding', alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 0, state: 'published' }]
+          alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 0, state: 'published' }]
           : [{ photo_id: 'photo-1', variant: 'small', storage_key: 'site/portfolio/photo-1/small.webp',
             content_type: 'image/webp', byte_size: 100, width: 640, height: 427, checksum_sha256: 'sha' }] });
     const queries: string[] = [];
@@ -52,6 +52,7 @@ describe('portfolio publication and media', () => {
     expect(detail.status).toBe(200);
     expect(PortfolioCollectionDetailSchema.parse(await detail.json()).photos).toHaveLength(1);
     expect(queries.some((query) => query.includes('c.published = 1'))).toBe(true);
+    expect(queries.some((query) => query.includes('site_services'))).toBe(false);
   });
 
   it('does not publish a photo missing a required image variant', async () => {
@@ -59,7 +60,7 @@ describe('portfolio publication and media', () => {
     const database = { prepare: vi.fn((query: string) => ({
       bind: () => ({
         first: () => Promise.resolve(query.includes('FROM portfolio_photos WHERE id')
-          ? { id: 'photo-1', service_id: 'wedding', alt_json: '{"fr":"Couple","en":"Couple"}', sort_order: 0, state: 'pending' }
+          ? { id: 'photo-1', alt_json: '{"fr":"Couple","en":"Couple"}', sort_order: 0, state: 'pending' }
           : null),
         all: () => Promise.resolve({ results: [
           { photo_id: 'photo-1', variant: 'preview', storage_key: 'site/portfolio/photo-1/preview.webp', width: 64, height: 64, byte_size: 100, checksum_sha256: 'a' },
@@ -79,12 +80,11 @@ describe('portfolio publication and media', () => {
     expect(publish).not.toHaveBeenCalled();
   });
 
-  it('serves media only after the D1 published-photo and enabled-service check', async () => {
+  it('serves media only after the D1 published-photo and collection checks', async () => {
     let visible = false;
     const database = { prepare: vi.fn((query: string) => ({
       bind: () => ({ first: () => {
         expect(query).toContain("p.state = 'published'");
-        expect(query).toContain('s.enabled = 1');
         expect(query).toContain('c.published = 1');
         return Promise.resolve(visible ? { storage_key: 'site/portfolio/photo-1/small.webp', content_type: 'image/webp', byte_size: 4 } : null);
       } }),

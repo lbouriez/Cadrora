@@ -43,14 +43,14 @@ export async function buildPortfolioSeed() {
     const collectionId = `demo-portfolio-${collection.service}`;
     const copy = { fr: { title: collection.fr[0], description: collection.fr[1] },
       en: { title: collection.en[0], description: collection.en[1] } };
-    sql.push(`INSERT INTO portfolio_collections (id, slug, service_id, copy_json, sort_order, published, cover_photo_id, created_at, updated_at)
+    sql.push(`INSERT INTO portfolio_collections (id, slug, category_id, copy_json, sort_order, published, cover_photo_id, created_at, updated_at)
       VALUES (${literal(collectionId)}, ${literal(collection.slug)}, ${literal(collection.service)}, ${literal(JSON.stringify(copy))},
         ${index}, 1, ${literal(`${collectionId}-01`)}, ${literal(now)}, ${literal(now)}) ON CONFLICT(id) DO NOTHING;`);
     for (const [photoIndex, alt] of collection.photos.entries()) {
       const photoId = `${collectionId}-${String(photoIndex + 1).padStart(2, '0')}`;
       const photoName = `${collection.service}-${String(photoIndex + 1).padStart(2, '0')}`;
-      sql.push(`INSERT INTO portfolio_photos (id, collection_id, service_id, alt_json, sort_order, state, created_at, updated_at)
-        VALUES (${literal(photoId)}, ${literal(collectionId)}, ${literal(collection.service)},
+      sql.push(`INSERT INTO portfolio_photos (id, collection_id, alt_json, sort_order, state, created_at, updated_at)
+        VALUES (${literal(photoId)}, ${literal(collectionId)},
           ${literal(JSON.stringify({ fr: alt[0], en: alt[1] }))}, ${photoIndex}, 'published', ${literal(now)}, ${literal(now)})
         ON CONFLICT(id) DO NOTHING;`);
       for (const variant of variants) {

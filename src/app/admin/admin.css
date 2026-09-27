@@ -581,6 +581,24 @@
   gap: var(--space-4);
 }
 
+.admin-event-row__sharing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.admin-event-row__access-lock {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-muted);
+}
+
+.admin-event-row__access-lock svg {
+  width: 100%;
+  height: 100%;
+}
+
 .admin-portfolio-collection__cover {
   width: min(100%, 18rem);
   aspect-ratio: 4 / 3;

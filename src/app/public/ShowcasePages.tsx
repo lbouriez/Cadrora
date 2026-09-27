@@ -40,7 +40,6 @@ export function DefaultServicesPage() {
             <div className="service-detail-card__copy">
               <h2>{copy.title}</h2>
               <p>{copy.description}</p>
-              {copy.priceRange ? <p className="service-detail-card__price">{copy.priceRange}</p> : null}
               <ul>
                 {copy.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
               </ul>

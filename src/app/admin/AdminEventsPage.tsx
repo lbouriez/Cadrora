@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
+import { LockIcon } from '../components/Icons';
 import { useAdminAccess } from './AdminAccessContext';
 import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
 import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
@@ -41,6 +42,11 @@ async function updateEvent(eventId: string, payload: unknown): Promise<Event> {
 function ProtectedListingHint({ access }: { access: Event['access'] }) {
   const { t } = useTranslation();
   return access === 'protected' ? <p className="field__hint">{t('admin.events.protectedListingHint')}</p> : null;
+}
+
+function gallerySharing(event: Event, directoryEnabled: boolean | undefined): 'unlisted' | 'private' | 'public' {
+  if (event.visibility === 'unlisted' || !event.showOnGalleryPage || directoryEnabled === false) return 'unlisted';
+  return event.access === 'protected' ? 'private' : 'public';
 }
 
 function ViewGalleryButton({ event, readOnly }: { event: Event; readOnly: boolean }) {
@@ -161,6 +167,10 @@ export function AdminEventsPage() {
                     ? t('admin.events.deletionPending')
                     : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
                   {event.service ? <span className="admin-event-row__badge">{t(`gallery.category.${event.service}`)}</span> : null}
+                  <span className="admin-event-row__sharing">
+                    <span className="admin-event-row__badge">{t(`admin.events.sharing.${gallerySharing(event, siteSettings.data?.galleryDirectoryEnabled)}`)}</span>
+                    {event.access === 'protected' ? <span aria-label={t('admin.events.passwordProtected')} className="admin-event-row__access-lock" role="img"><LockIcon /></span> : null}
+                  </span>
                   <span className="admin-event-row__badge">{t('admin.events.storageUsed', {
                     amount: storage.amount, unit: t(`admin.settings.storageUnits.${storage.unit}`),
                   })}</span>

@@ -53,15 +53,19 @@ test.describe('site vitrine statique', () => {
         { url: '/portfolio-media/portfolio-1/large', width: 1280, height: 853 },
     ];
     const portfolioCollection = {
-      id: 'collection-1', slug: 'mariages', serviceId: 'wedding', sortOrder: 0, published: true,
+      id: 'collection-1', slug: 'mariages', categoryId: 'wedding', sortOrder: 0, published: true,
       copy: { fr: { title: 'Mariages', description: 'Une histoire en images.' },
         en: { title: 'Weddings', description: 'A story in images.' } },
       coverPhotoId: 'portfolio-1', coverSources: imageSources, photoCount: 1,
     };
+    await page.route('**/api/v1/portfolio/categories', (route) => route.fulfill({
+      body: JSON.stringify([{ id: 'wedding', copy: { fr: 'Mariage', en: 'Wedding' } }]),
+      contentType: 'application/json', status: 200,
+    }));
     await page.route('**/api/v1/portfolio', (route) => route.fulfill({ body: JSON.stringify([portfolioCollection]),
       contentType: 'application/json', status: 200 }));
     await page.route('**/api/v1/portfolio/mariages', (route) => route.fulfill({ body: JSON.stringify({
-      ...portfolioCollection, photos: [{ id: 'portfolio-1', collectionId: 'collection-1', serviceId: 'wedding',
+      ...portfolioCollection, photos: [{ id: 'portfolio-1', collectionId: 'collection-1',
         alt: { fr: 'Un couple souriant', en: 'A smiling couple' }, sortOrder: 0, state: 'published', imageSources }],
     }), contentType: 'application/json', status: 200 }));
     await page.route('**/portfolio-media/**', (route) => route.fulfill({
@@ -72,6 +76,7 @@ test.describe('site vitrine statique', () => {
 
     await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i })
       .getByRole('link', { name: /galeries|galleries/i })).toHaveCount(0);
+    await expect(page.locator('.service-detail-card')).not.toContainText('2 000 $ à 3 000 $');
     await page.getByRole('button', { name: 'Plus d’infos' }).click();
     const dialog = page.getByRole('dialog', { name: 'Mariages' });
     await expect(dialog).toContainText('2 000 $ à 3 000 $');

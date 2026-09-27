@@ -656,11 +656,6 @@
   content: '—';
 }
 
-.service-detail-card__price {
-  font-weight: 700;
-  color: var(--color-text);
-}
-
 .service-details-modal {
   width: min(42rem, calc(100vw - 2rem));
   max-height: min(85vh, 52rem);

@@ -36,6 +36,12 @@ const protectedEvent = {
   photoCount: 21,
 };
 
+const unlistedEvent = {
+  ...protectedEvent,
+  id: 'unlisted-sample', slug: 'unlisted-sample', title: 'Unlisted portrait gallery',
+  visibility: 'unlisted', showOnGalleryPage: false, service: 'portrait',
+};
+
 test('la demo admin laisse explorer les reglages sans autoriser les ecritures', async ({ page }) => {
   const writes: string[] = [];
   await page.route('**/api/v1/admin/**', async (route) => {
@@ -93,6 +99,10 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       await route.fulfill({ body: '[]', contentType: 'application/json' });
       return;
     }
+    if (path.endsWith('/portfolio/categories')) {
+      await route.fulfill({ body: JSON.stringify([{ id: 'wedding', copy: { fr: 'Mariage', en: 'Wedding' } }]), contentType: 'application/json' });
+      return;
+    }
     if (path.endsWith('/cover-photos')) {
       await route.fulfill({ body: JSON.stringify({ photos: [{
         id: 'demo-ai-01', filename: 'portrait.webp',
@@ -125,7 +135,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       return;
     }
     if (path.endsWith('/galleries')) {
-      await route.fulfill({ body: JSON.stringify({ events: [demoEvent, protectedEvent] }), contentType: 'application/json' });
+      await route.fulfill({ body: JSON.stringify({ events: [demoEvent, protectedEvent, unlistedEvent] }), contentType: 'application/json' });
       return;
     }
     await route.fulfill({ body: '{}', contentType: 'application/json', status: 404 });
@@ -283,10 +293,17 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   const privateRow = page.locator('.admin-event-row').filter({ hasText: 'Private family gallery' });
   await expect(privateRow.locator('.admin-event-row__badge').first()).toHaveText(/Family|Famille/);
+  await expect(privateRow.locator('.admin-event-row__sharing')).toContainText(/Private|Privée/);
+  await expect(privateRow.getByRole('img', { name: /password protected|protégée par mot de passe/i })).toBeVisible();
   await expect(privateRow.getByText(/stored photos: 625 MB|photos stockées : 625 Mo/i)).toBeVisible();
   await expect(privateRow.locator('.admin-event-row__badge').last()).toHaveText('21 photos');
   const uncategorizedRow = page.locator('.admin-event-row').filter({ hasText: 'Find your photos' });
-  await expect(uncategorizedRow.locator('.admin-event-row__badge')).toHaveCount(2);
+  await expect(uncategorizedRow.locator('.admin-event-row__badge')).toHaveCount(3);
+  await expect(uncategorizedRow.locator('.admin-event-row__sharing')).toContainText(/Public|Publique/);
+  await expect(uncategorizedRow.locator('.admin-event-row__access-lock')).toHaveCount(0);
+  const unlistedRow = page.locator('.admin-event-row').filter({ hasText: 'Unlisted portrait gallery' });
+  await expect(unlistedRow.locator('.admin-event-row__sharing')).toContainText(/Unlisted|Non répertoriée/);
+  await expect(unlistedRow.getByRole('img', { name: /password protected|protégée par mot de passe/i })).toBeVisible();
   await expect(privateRow.getByRole('link', { name: /client photo choices|choix des clients/i })).toBeVisible();
   await page.setViewportSize({ width: 1200, height: 850 });
   const actionLayout = await privateRow.evaluate((row) => {

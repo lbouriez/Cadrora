@@ -2,7 +2,10 @@ export const portfolioResources = {
   en: { admin: { portfolio: {
     title: 'Portfolio', description: 'Create collections for your work. Each collection has its own page, cover and photos.',
     loading: 'Loading portfolio…', error: 'This change could not be saved. Check the details and try again.',
-    service: 'Service category', titleFr: 'Collection title in French', titleEn: 'Collection title in English',
+    category: 'Portfolio category', chooseCategory: 'Choose a category', addCategory: 'Add a category…',
+    categoryFr: 'Category name in French', categoryEn: 'Category name in English',
+    createCategory: 'Create category', categoryError: 'The category could not be created. Try again.',
+    titleFr: 'Collection title in French', titleEn: 'Collection title in English',
     descriptionFr: 'Collection description in French', descriptionEn: 'Collection description in English', slug: 'Link name',
     collectionOrder: 'Collection display order', cover: 'Cover photo', firstPhoto: 'Use first published photo',
     coverDescription: 'Choose the photo shown on this collection’s card.',
@@ -24,7 +27,10 @@ export const portfolioResources = {
   fr: { admin: { portfolio: {
     title: 'Portfolio', description: 'Créez des collections pour présenter votre travail. Chacune a sa page, sa couverture et ses photos.',
     loading: 'Chargement du portfolio…', error: 'Impossible d’enregistrer ce changement. Vérifiez les détails et réessayez.',
-    service: 'Catégorie de service', titleFr: 'Titre de la collection en français', titleEn: 'Titre de la collection en anglais',
+    category: 'Catégorie du portfolio', chooseCategory: 'Choisir une catégorie', addCategory: 'Ajouter une catégorie…',
+    categoryFr: 'Nom de la catégorie en français', categoryEn: 'Nom de la catégorie en anglais',
+    createCategory: 'Créer la catégorie', categoryError: 'Impossible de créer la catégorie. Réessayez.',
+    titleFr: 'Titre de la collection en français', titleEn: 'Titre de la collection en anglais',
     descriptionFr: 'Description de la collection en français', descriptionEn: 'Description de la collection en anglais', slug: 'Nom du lien',
     collectionOrder: 'Ordre des collections', cover: 'Photo de couverture', firstPhoto: 'Utiliser la première photo publiée',
     coverDescription: 'Choisissez la photo affichée sur la carte de cette collection.',
