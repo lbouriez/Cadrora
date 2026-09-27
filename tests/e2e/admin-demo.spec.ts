@@ -31,7 +31,7 @@ const demoEvent = {
 const protectedEvent = {
   ...demoEvent,
   id: 'private-sample', slug: 'private-sample', title: 'Private family gallery',
-  access: 'protected', retouchSelectionCount: 1,
+  access: 'protected', retouchSelectionCount: 1, service: 'family',
   storageBytes: 625000000,
   photoCount: 21,
 };
@@ -256,8 +256,11 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
   await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   const privateRow = page.locator('.admin-event-row').filter({ hasText: 'Private family gallery' });
+  await expect(privateRow.locator('.admin-event-row__badge').first()).toHaveText(/Family|Famille/);
   await expect(privateRow.getByText(/stored photos: 625 MB|photos stockées : 625 Mo/i)).toBeVisible();
   await expect(privateRow.locator('.admin-event-row__badge').last()).toHaveText('21 photos');
+  const uncategorizedRow = page.locator('.admin-event-row').filter({ hasText: 'Find your photos' });
+  await expect(uncategorizedRow.locator('.admin-event-row__badge')).toHaveCount(2);
   await expect(privateRow.getByRole('link', { name: /client photo choices|choix des clients/i })).toBeVisible();
   await page.setViewportSize({ width: 1200, height: 850 });
   const actionLayout = await privateRow.evaluate((row) => {

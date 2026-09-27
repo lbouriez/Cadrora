@@ -156,6 +156,7 @@ export function AdminEventsPage() {
                   <span className="admin-event-row__state">{event.deletingAt
                     ? t('admin.events.deletionPending')
                     : t(`admin.events.visibility.${event.offlineAt ? 'offline' : event.visibility}`)}</span>
+                  {event.service ? <span className="admin-event-row__badge">{t(`gallery.category.${event.service}`)}</span> : null}
                   <span className="admin-event-row__badge">{t('admin.events.storageUsed', {
                     amount: storage.amount, unit: t(`admin.settings.storageUnits.${storage.unit}`),
                   })}</span>
