@@ -50,7 +50,12 @@ export function assertManifestTarget(manifest, target) {
 
 export function assertSiteTarget(profile, target, showcaseEnabled = false, profiles = [profile]) {
   if (showcaseEnabled) throw new Error('The public showcase must never be seeded by an isolated instance deployment.');
-  if (profile.deployment && (target.instance !== profile.deployment.instance || target.hostname !== profile.deployment.hostname)) {
+  const pinnedInstance = profile.deployment?.instance;
+  const pinnedHostname = profile.deployment?.hostname;
+  if (Boolean(pinnedInstance) !== Boolean(pinnedHostname)) {
+    throw new Error(`Site profile ${profile.id} must specify both deployment instance and hostname when pinned.`);
+  }
+  if (pinnedInstance && (target.instance !== pinnedInstance || target.hostname !== pinnedHostname)) {
     throw new Error(`Site profile ${profile.id} may deploy only as ${profile.deployment.instance} on ${profile.deployment.hostname}.`);
   }
   if (profiles.some((candidate) => candidate.id !== profile.id && candidate.deployment?.instance === target.instance)) {

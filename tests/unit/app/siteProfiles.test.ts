@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { atelierGiuliaSite } from '../../../sites/atelier-giulia/site';
+import atelierProfile from '../../../sites/atelier-giulia/profile.json';
 import { cadroraSite } from '../../../sites/cadrora/site';
+import cadroraProfile from '../../../sites/cadrora/profile.json';
 import { studioSite } from '../../../sites/studio/site';
+import studioProfile from '../../../sites/studio/profile.json';
 
 function leafKeys(value: Record<string, unknown>, prefix = ''): string[] {
   return Object.entries(value).flatMap(([key, entry]) => {
@@ -34,5 +37,16 @@ describe('site profiles', () => {
     expect(studioSite.description.fr).toContain('Studio photo');
     expect(studioSite.demo).toBeNull();
     expect(studioSite.home.sections).toEqual(['services', 'approach', 'galleries', 'contact']);
+  });
+
+  it('keeps each compiled name and French description aligned with its static metadata', () => {
+    for (const [site, profile] of [
+      [cadroraSite, cadroraProfile],
+      [studioSite, studioProfile],
+      [atelierGiuliaSite, atelierProfile],
+    ] as const) {
+      expect(site.name).toBe(profile.name);
+      expect(site.description.fr).toBe(profile.document.description);
+    }
   });
 });
