@@ -12,6 +12,11 @@ SET site_copy = json_object(
 )
 WHERE id = 1 AND site_copy IS NULL;
 
+-- Show the temporary notice once, while leaving later owner choices intact.
+UPDATE site_settings
+SET construction_notice_enabled = 1
+WHERE id = 1 AND construction_notice_enabled IS NULL;
+
 -- Correct only the original English seed. Never replace an owner's edited text.
 UPDATE site_settings
 SET site_copy = json_set(site_copy, '$.en.description', 'Portrait and celebration photography by Atelier Giulia. Explore our photo galleries.'),

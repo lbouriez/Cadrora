@@ -15,6 +15,7 @@ const row = {
   default_language: 'fr' as const,
   enabled_languages: '["fr","en"]',
   enabled_services: '["wedding","family","brand","corporate","children"]',
+  construction_notice_enabled: 0,
   home_galleries_enabled: 1,
   home_galleries_limit: 6,
   home_services_limit: 3,
@@ -60,16 +61,18 @@ describe('admin site settings routes', () => {
   it('allows hiding Galleries once public galleries are unlisted, draft, or offline', async () => {
     let blockingPublicGallery = true;
     let directoryEnabled = 1;
+    let noticeEnabled = 0;
     const prepare = vi.fn((query: string) => ({
       bind: (...values: unknown[]) => ({
         run: () => {
-          directoryEnabled = Number(values.at(-1));
+          directoryEnabled = Number(values.at(-2));
+          noticeEnabled = Number(values.at(-1));
           return Promise.resolve({ meta: { changes: 1 } });
         },
       }),
       first: () => Promise.resolve(query.includes('FROM events')
         ? blockingPublicGallery ? { id: 'public-online' } : null
-        : query.startsWith('SELECT site_name') ? { ...row, gallery_directory_enabled: directoryEnabled }
+        : query.startsWith('SELECT site_name') ? { ...row, gallery_directory_enabled: directoryEnabled, construction_notice_enabled: noticeEnabled }
           : query.includes('owner_storage_limit_bytes') ? { owner_storage_limit_bytes: null, owner_face_limit: null }
             : { value: 0 }),
     }));
@@ -77,7 +80,7 @@ describe('admin site settings routes', () => {
     const input = {
       analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
       defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
-      galleryDirectoryEnabled: false, homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3,
+      constructionNoticeEnabled: true, galleryDirectoryEnabled: false, homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 }, serviceArea: null,
       siteName: 'Atelier Giulia', themeMode: 'both',
@@ -93,6 +96,9 @@ describe('admin site settings routes', () => {
     const saved = await save();
     expect(saved.status).toBe(200);
     expect(AdminSiteSettingsSchema.parse(await saved.json()).galleryDirectoryEnabled).toBe(false);
+    expect(noticeEnabled).toBe(1);
+    const reread = await appWith().request('/api/v1/admin/site', undefined, { DB: database, ...quotaBindings });
+    expect(AdminSiteSettingsSchema.parse(await reread.json()).constructionNoticeEnabled).toBe(true);
     expect(prepare).toHaveBeenCalledWith(expect.stringContaining("visibility = 'published' AND offline_at IS NULL"));
   });
 
@@ -196,6 +202,7 @@ describe('admin site settings routes', () => {
       4, JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
       expect.any(String),
       1,
+      null,
     );
   });
 

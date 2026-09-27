@@ -168,6 +168,8 @@ Photo state progresses `pending -> variants_ready -> published -> deleting -> de
 
 ## UI and localization
 
+The public and admin site-settings responses include `constructionNoticeEnabled`, a D1-backed boolean. A nullable, unconfigured D1 value resolves to false; Atelier Giulia seeds it to true once. The owner PATCH accepts this field and preserves its current value when older clients omit it. The shared public shell reads the existing settings response and shows a translated, nonblocking notice above the header only while enabled. See [ADR-037](../decisions/ADR-037-public-site-progress-notice.md).
+
 Semantic values live in `src/app/styles/tokens.css`. Reusable typed components live in `src/app/components/` and carry a short contract/example comment. Interactive targets are at least 44 px. Modals trap focus, close on Escape, and restore focus. Every user-visible string ships in FR and EN.
 
 The optional GA4 integration is disabled without a valid D1-backed `site_settings.analytics_measurement_id`, starts only after explicit analytics consent, and is allowlisted to `/`, `/services`, `/portfolio`, `/portfolio/:slug`, `/galleries`, `/contact`, and `/privacy`. Customer gallery viewer, admin, media, API, and facial-search routes never emit analytics events. The ID is public configuration, not a secret. No arbitrary script URL or code may be stored in Site settings.

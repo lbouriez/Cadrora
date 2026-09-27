@@ -114,6 +114,19 @@
   text-decoration: none;
 }
 
+.public-construction-notice {
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.public-construction-notice p {
+  margin: 0;
+}
+
 .public-footer__signature {
   display: flex;
   align-items: center;

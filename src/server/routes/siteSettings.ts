@@ -8,6 +8,7 @@ export interface SiteSettingsRow {
   default_language: 'fr' | 'en';
   enabled_languages: string;
   enabled_services: string;
+  construction_notice_enabled: number | null;
   gallery_directory_enabled: number;
   home_galleries_enabled: number;
   home_galleries_limit: number;
@@ -25,7 +26,7 @@ export interface SiteSettingsRow {
 }
 
 export const SITE_SETTINGS_SELECT = `SELECT site_name, site_copy, default_language, enabled_languages,
-  enabled_services, gallery_directory_enabled, home_galleries_enabled, home_galleries_limit, home_services_limit,
+  enabled_services, construction_notice_enabled, gallery_directory_enabled, home_galleries_enabled, home_galleries_limit, home_services_limit,
   home_hero_copy, (SELECT NULLIF(image_revision, 0) FROM site_services WHERE id = 'home-hero' AND site_settings.home_hero_image_enabled = 1) AS home_hero_image_revision,
   contact_email, contact_phone, contact_address, service_area,
   map_center_latitude, map_center_longitude, map_radius_km,
@@ -41,6 +42,7 @@ export function siteSettingsFromRow(row: SiteSettingsRow) {
     defaultLanguage: row.default_language,
     enabledLanguages: JSON.parse(row.enabled_languages) as unknown,
     enabledServices: JSON.parse(row.enabled_services) as unknown,
+    constructionNoticeEnabled: row.construction_notice_enabled === 1,
     galleryDirectoryEnabled: row.gallery_directory_enabled !== 0,
     homeGalleries: {
       enabled: row.home_galleries_enabled === 1,

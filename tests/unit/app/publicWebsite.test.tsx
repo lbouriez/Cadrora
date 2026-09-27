@@ -85,6 +85,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
       url === '/api/v1/site' ? {
         ...runtimeSettings,
+        constructionNoticeEnabled: true,
         siteName: 'Studio Boréal',
         siteCopy: {
           fr: { description: 'Portraits du Québec.', footerTagline: 'Des histoires à garder.' },
@@ -95,12 +96,14 @@ describe('public photographer website', () => {
     renderPage(<HomePage />);
 
     await waitFor(() => expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy());
+    expect(document.querySelector('.public-construction-notice')?.textContent).toBe('Notre site est en préparation. Merci de votre patience.');
     expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy();
     expect(document.title).toBe('Studio Boréal');
     expect(meta.content).toBe('Portraits du Québec.');
 
     fireEvent.click(screen.getByRole('button', { name: 'Afficher en EN' }));
     await waitFor(() => expect(screen.getByText('© Studio Boréal · Stories to keep.')).toBeTruthy());
+    expect(document.querySelector('.public-construction-notice')?.textContent).toBe('Our site is in progress. Thank you for your patience.');
     await waitFor(() => expect(meta.content).toBe('Portraits from Québec.'));
     meta.remove();
   });

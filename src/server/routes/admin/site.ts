@@ -104,7 +104,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
               home_galleries_limit = ?17,
               home_services_limit = ?18,
               site_copy = COALESCE(?19, site_copy), updated_at = ?20,
-              gallery_directory_enabled = ?21
+              gallery_directory_enabled = ?21,
+              construction_notice_enabled = COALESCE(?22, construction_notice_enabled)
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
@@ -128,6 +129,7 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       input.data.siteCopy === undefined ? null : JSON.stringify(input.data.siteCopy),
       updatedAt,
       Number(galleryDirectoryEnabled),
+      input.data.constructionNoticeEnabled === undefined ? null : Number(input.data.constructionNoticeEnabled),
     ).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     const settings = await findSettings(context.env.DB);

@@ -22,6 +22,8 @@ Post-plan extension (2026-09-27): ADR-033 makes each portfolio an owner-managed 
 
 Post-plan extension (2026-09-27): ADR-034 separates portfolio categories from services across PB/PD and migration 033. Acceptance includes retaining existing collection photos and covers, creating bilingual categories in the admin selector, showing category tags, preserving portfolio visibility when a service is disabled, gallery sharing and password badges, and service prices only inside their detail modal.
 
+Post-plan extension (2026-09-27): ADR-037 adds an owner-controlled public site progress notice across PB, admin site settings, shared schemas, the Atelier Giulia seed, and D1 migration 038. Acceptance includes FR/EN public copy, Atelier-only initial enablement, owner toggling through the existing settings request, and no new public API or R2 dependency.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

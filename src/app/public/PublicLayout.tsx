@@ -8,6 +8,7 @@ import { IconButton } from '../components';
 import { openPrivacyPreferences } from './consent';
 import { GoogleAnalytics } from './GoogleAnalytics';
 import { PrivacyConsent } from './PrivacyConsent';
+import { PublicConstructionNotice } from './PublicConstructionNotice';
 import { siteProfile } from './siteProfile';
 import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
@@ -68,6 +69,7 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
 
   return (
     <div className="public-shell">
+      {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
           {siteProfile.logoUrl ? <img alt="" height="256" src={siteProfile.logoUrl} width="256" /> : null}

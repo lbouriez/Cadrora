@@ -62,6 +62,7 @@ test('owner-edited brand copy updates both languages without changing the design
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    constructionNoticeEnabled: true,
     homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
@@ -72,13 +73,17 @@ test('owner-edited brand copy updates both languages without changing the design
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits du Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Des histoires à garder.');
   await expect(page.locator('.public-footer__credit')).toHaveText('par Cadrora');
+  await expect(page.locator('.public-construction-notice')).toHaveText('Notre site est en préparation. Merci de votre patience.');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Votre histoire');
 
   await page.locator('.public-header__language').click();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits from Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Stories to keep.');
   await expect(page.locator('.public-footer__credit')).toHaveText('by Cadrora');
+  await expect(page.locator('.public-construction-notice')).toHaveText('Our site is in progress. Thank you for your patience.');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Your story');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await assertNoHorizontalOverflow(page);
 });
 
 test('three owner buttons keep their theme styles and fit a phone screen', async ({ page }) => {

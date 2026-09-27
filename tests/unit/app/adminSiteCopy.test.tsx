@@ -11,6 +11,7 @@ import { installPublicResources } from '../../../src/app/public/i18n';
 const settings = {
   analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
   defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
+  constructionNoticeEnabled: false,
   homeGalleries: { enabled: true, limit: 6 },
   homeServicesLimit: 3,
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
@@ -79,6 +80,7 @@ describe('admin site copy', () => {
     expect(screen.queryByRole('textbox', { name: 'Titre principal · Français' })).toBeNull();
 
     fireEvent.change(name, { target: { value: 'Studio Boréal' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Afficher un avis « site en préparation »' }));
     fireEvent.click(screen.getByRole('button', { name: 'Traductions : Description du site' }));
     let dialog = screen.getByRole('dialog', { name: 'Traductions : Description du site' });
     expect(within(dialog).getByRole('textbox', { name: 'Français' })).toHaveProperty('value', 'Portraits et célébrations.');
@@ -98,6 +100,7 @@ describe('admin site copy', () => {
     expect(patchCount).toBe(1);
     expect(saved).toMatchObject({
       siteName: 'Studio Boréal',
+      constructionNoticeEnabled: true,
       siteCopy: { fr: { description: 'Portraits et célébrations.', footerTagline: 'Nos souvenirs.' }, en: { description: 'Portraits and memories.', footerTagline: 'Stories to remember.' } },
     });
   });

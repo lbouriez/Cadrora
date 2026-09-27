@@ -30,6 +30,7 @@ async function updateAdminSiteSettings(input: {
   defaultLanguage: Language;
   enabledLanguages: Language[];
   enabledServices: ServiceKey[];
+  constructionNoticeEnabled: boolean;
   galleryDirectoryEnabled: boolean;
   homeGalleries: { enabled: boolean; limit: number };
   homeServicesLimit: number;
@@ -160,6 +161,7 @@ export function AdminSiteSettingsPage() {
       defaultLanguage,
       enabledLanguages,
       enabledServices,
+      constructionNoticeEnabled: values.get('constructionNoticeEnabled') === 'on',
       galleryDirectoryEnabled: values.get('galleryDirectoryEnabled') === 'on',
       homeGalleries: { enabled: values.get('homeGalleriesEnabled') === 'on', limit: homeGalleryLimit },
       homeServicesLimit,
@@ -208,6 +210,11 @@ export function AdminSiteSettingsPage() {
             required
             values={Object.fromEntries(LanguageSchema.options.map((language) => [language, siteCopyDraft[language].description]))}
           />
+        <label className="admin-settings-services__option">
+          <input defaultChecked={settings.data.constructionNoticeEnabled} name="constructionNoticeEnabled" type="checkbox" />
+          <span>{t('admin.settings.constructionNoticeEnabled')}</span>
+        </label>
+        <p className="field__hint">{t('admin.settings.constructionNoticeHint')}</p>
         <MultiSelect
           hint={t('admin.settings.languagesHint')}
           label={t('admin.settings.languages')}
