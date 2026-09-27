@@ -10,6 +10,7 @@ import {
 import type { Language, ServiceCard, ServiceCopy } from '../../shared/schemas';
 import { createImageEncoder } from '../../browser/images';
 import { Button, Spinner } from '../components';
+import { ServicePhoto } from '../public/ServicePhoto';
 import { LocalizedTextField } from './LocalizedTextField';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
@@ -137,7 +138,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         <label className="field"><span className="field__label">{t('admin.serviceEditor.photo')}</span>
           <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
         </label>
-        {card.imageSources.length ? <img alt="" className="admin-service-editor__preview" src={card.imageSources[0]?.url} /> : null}
+        <ServicePhoto card={card} className="admin-service-editor__preview" sizes="320px" />
         {!card.isBuiltin && !card.imageRevision ? <p className="field__hint">{t('admin.serviceEditor.photoRequired')}</p> : null}
       </> : null}
       <div className="admin-service-editor__actions">
