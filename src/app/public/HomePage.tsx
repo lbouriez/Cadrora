@@ -33,22 +33,29 @@ export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
-  const showHomeGalleries = settings.data?.homeGalleries.enabled ?? true;
+  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
+  const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
   const featuredServices = (services.data ?? fallbackServices(settings.data?.enabledServices))
     .filter((card) => card.enabled && card.showOnHome).slice(0, settings.data?.homeServicesLimit ?? 3);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const hero = settings.data?.homeHeroCopy;
   const heroText = hero?.[language];
-  const resolveAction = (href: string) => !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
-  const heroActions: { action?: SiteAction; href: string; label: string; variant: 'primary' | 'secondary' }[] = hero
-    ? hero.buttons.map((button) => ({ href: resolveAction(button.href), label: button.labels[language], variant: button.variant }))
-    : [
-      { action: siteProfile.home.primaryAction, href: resolveAction(siteProfile.home.primaryAction.href),
-        label: t(siteProfile.home.primaryAction.labelKey), variant: 'primary' },
-      { action: siteProfile.home.secondaryAction, href: resolveAction(siteProfile.home.secondaryAction.href),
-        label: t(siteProfile.home.secondaryAction.labelKey), variant: 'secondary' },
-    ];
+  const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
+    && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
+  const resolveAction = (href: string) => galleryActionHidden(href)
+    ? '/portfolio' : !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
+  const portfolioLabel = t('gallery.portfolioPage.homeAction');
+  const heroActions: { action?: SiteAction; href: string; label: string; variant: 'primary' | 'secondary' }[] = (hero
+    ? hero.buttons.map((button) => ({ href: resolveAction(button.href),
+      label: galleryActionHidden(button.href) ? portfolioLabel : button.labels[language], variant: button.variant }))
+    : [siteProfile.home.primaryAction, siteProfile.home.secondaryAction].map((action, index) => ({
+      action: galleryActionHidden(action.href) ? undefined : action,
+      href: resolveAction(action.href),
+      label: galleryActionHidden(action.href) ? portfolioLabel : t(action.labelKey),
+      variant: index === 0 ? 'primary' as const : 'secondary' as const,
+    }))).filter((action, index, actions) => action.href !== '/portfolio'
+      || actions.findIndex((candidate) => candidate.href === '/portfolio') === index);
   return (
     <PublicLayout>
       <section className="site-hero">
@@ -77,7 +84,7 @@ export function DefaultHomePage() {
         </figure>
       </section>
 
-      {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
+      {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled && galleryDirectoryEnabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
         <div className="site-section__heading site-section__heading--row">
           <div>
             <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
@@ -112,6 +119,7 @@ export function DefaultHomePage() {
             </MotionReveal>;
           })}
         </div>
+        <Link className="button button--secondary" to="/portfolio">{t('gallery.portfolioPage.homeAction')}</Link>
       </MotionReveal> : null}
 
       {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">

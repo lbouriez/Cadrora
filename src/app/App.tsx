@@ -14,6 +14,7 @@ const AdminImportRoute = lazy(async () => ({ default: (await import('./admin/Adm
 const AdminFavoritesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminFavoritesRoute }));
 const AdminLoginRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminLoginRoute }));
 const AdminSiteSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminSiteSettingsRoute }));
+const AdminPortfolioRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminPortfolioRoute }));
 
 function adminElement(element: ReactNode) {
   return <Suspense fallback={<main className="admin-login"><Spinner label={siteProfile.siteName} /></main>}>{element}</Suspense>;
@@ -45,6 +46,7 @@ export function App() {
     { path: '/admin/login', element: adminElement(<AdminLoginRoute />) },
     { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
+    { path: '/admin/portfolio', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
     { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },
     { path: '/admin/galleries/:eventId/selections', element: adminElement(<AdminFavoritesRoute />) },

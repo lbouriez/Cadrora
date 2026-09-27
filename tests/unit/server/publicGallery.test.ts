@@ -28,7 +28,8 @@ describe('public gallery contracts', () => {
         access: 'protected', service: 'family',
       }] }),
     };
-    const prepare = vi.fn().mockReturnValue(statement);
+    const prepare = vi.fn((sql: string) => sql.startsWith('SELECT gallery_directory_enabled')
+      ? { first: () => Promise.resolve({ gallery_directory_enabled: 1 }) } : statement);
     const app = new Hono<AppEnv>();
     app.route('/api/v1', createPublicEventRoutes());
     const response = await app.request('/api/v1/galleries', {}, {
@@ -43,9 +44,9 @@ describe('public gallery contracts', () => {
         service: 'family',
       }], nextCursor: null,
     });
-    expect(prepare.mock.calls[0]?.[0]).toContain("e.access = 'public' AND cover.id");
-    expect(prepare.mock.calls[0]?.[0]).toContain('e.show_on_gallery_page = 1');
-    expect(prepare.mock.calls[0]?.[0]).toContain('ORDER BY e.starts_at DESC, e.id ASC LIMIT ?4');
+    expect(prepare.mock.calls[1]?.[0]).toContain("e.access = 'public' AND cover.id");
+    expect(prepare.mock.calls[1]?.[0]).toContain('e.show_on_gallery_page = 1');
+    expect(prepare.mock.calls[1]?.[0]).toContain('ORDER BY e.starts_at DESC, e.id ASC LIMIT ?4');
     expect(statement.bind).toHaveBeenCalledWith('all', null, null, 25);
   });
 
@@ -71,7 +72,8 @@ describe('public gallery contracts', () => {
       { ...base, id: 'c', slug: 'third', title: 'Third', access: 'public', service: null },
     ];
     const binds: unknown[][] = [];
-    const prepare = vi.fn((sql: string) => ({
+    const prepare = vi.fn((sql: string) => sql.startsWith('SELECT gallery_directory_enabled')
+      ? { first: () => Promise.resolve({ gallery_directory_enabled: 1 }) } : ({
       bind: (...args: unknown[]) => {
         expect(sql).toContain('ORDER BY e.starts_at DESC, e.id ASC');
         binds.push(args);
@@ -97,7 +99,7 @@ describe('public gallery contracts', () => {
     expect(secondPage.protectedGalleries).toEqual([]);
     expect(secondPage.nextCursor).toBeNull();
     expect(binds).toEqual([['all', null, null, 3], ['all', startsAt, 'b', 3]]);
-    expect(prepare.mock.calls[0]?.[0]).toContain('e.id > ?3');
+    expect(prepare.mock.calls[1]?.[0]).toContain('e.id > ?3');
   });
 
   it('rejects invalid limits and cursors for another gallery access filter', async () => {

@@ -200,6 +200,22 @@ describe('public photographer website', () => {
     expect(screen.getByRole('link', { name: 'Explorer les galeries en ligne' }).getAttribute('href')).toBe('/galleries');
   });
 
+  it('uses the portfolio as the public destination when the gallery directory is hidden', async () => {
+    const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site'
+        ? { ...runtimeSettings, galleryDirectoryEnabled: false }
+        : { events: [], protectedGalleries: [], nextCursor: null },
+    ), { status: 200 })));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(<HomePage />);
+
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'Galeries' })).toBeNull());
+    expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull();
+    expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Découvrir le portfolio' }).some((link) => link.getAttribute('href') === '/portfolio')).toBe(true);
+    expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
+  });
+
   it('renders contact details supplied by D1 without a demo disclaimer', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],

@@ -1,9 +1,9 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 
-import { Button, MotionReveal, Spinner } from '../components';
+import { Button, Modal, MotionReveal, Spinner } from '../components';
 import { getPublicGalleryIndex, getPublicServices, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
@@ -18,10 +18,13 @@ export function ServicesPage() {
 
 export function DefaultServicesPage() {
   const { i18n, t } = useTranslation();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const visibleServices = (services.data ?? fallbackServices(settings.data?.enabledServices)).filter((card) => card.enabled);
+  const selectedCard = visibleServices.find((card) => card.id === selectedId);
+  const selectedCopy = selectedCard ? serviceText(selectedCard, language, (key) => t(key)) : null;
   return (
     <PublicLayout>
       <MotionReveal as="header" className="editorial-heading editorial-heading--services">
@@ -37,9 +40,11 @@ export function DefaultServicesPage() {
             <div className="service-detail-card__copy">
               <h2>{copy.title}</h2>
               <p>{copy.description}</p>
+              {copy.priceRange ? <p className="service-detail-card__price">{copy.priceRange}</p> : null}
               <ul>
                 {copy.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
               </ul>
+              <Button onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
             </div>
           </MotionReveal>;
         })}
@@ -59,11 +64,28 @@ export function DefaultServicesPage() {
         <div><p className="site-eyebrow">{t('gallery.contactEyebrow')}</p><h2>{t('gallery.servicesPage.cta')}</h2></div>
         <Link className="button button--primary" to="/contact">{t('gallery.contactCalloutAction')}</Link>
       </MotionReveal>
+      <Modal className="service-details-modal" closeLabel={t('gallery.servicesPage.closeDetails')}
+        onClose={() => setSelectedId(null)} open={Boolean(selectedCopy)} title={selectedCopy?.title ?? ''}>
+        {selectedCopy ? <div className="service-details-modal__body">
+          <p>{selectedCopy.description}</p>
+          {selectedCopy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {selectedCopy.priceRange}</p> : null}
+          {selectedCopy.duration ? <p><strong>{t('gallery.servicesPage.durationLabel')}</strong> {selectedCopy.duration}</p> : null}
+          {selectedCopy.details ? <p className="service-details-modal__details">{selectedCopy.details}</p> : null}
+          {selectedCopy.points.length ? <><h3>{t('gallery.servicesPage.includedLabel')}</h3>
+            <ul>{selectedCopy.points.map((point, index) => <li key={index}>{point}</li>)}</ul></> : null}
+          <Link className="button button--secondary" onClick={() => setSelectedId(null)} to={`/portfolio#portfolio-${selectedCard?.id}`}>
+            {t('gallery.portfolioPage.homeAction')}
+          </Link>
+          <Link className="button button--primary" onClick={() => setSelectedId(null)} to="/contact">{t('gallery.contactCalloutAction')}</Link>
+        </div> : null}
+      </Modal>
     </PublicLayout>
   );
 }
 
 export function GalleriesPage() {
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  if (settings.data?.galleryDirectoryEnabled === false) return <Navigate replace to="/portfolio" />;
   const Override = siteProfile.pages?.galleries;
   return Override ? <Override /> : <DefaultGalleriesPage />;
 }

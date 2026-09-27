@@ -80,6 +80,17 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       input.data.quotas.faceLimit > ceilings.faceLimit
       || input.data.quotas.storageLimitBytes > ceilings.storageLimitBytes
     ) throw new ApiException('QUOTA_ABOVE_DEPLOYMENT_LIMIT', 'errors.invalidRequest', 400);
+    const currentDirectory = input.data.galleryDirectoryEnabled === undefined
+      ? await context.env.DB.prepare('SELECT gallery_directory_enabled FROM site_settings WHERE id = 1')
+        .first<{ gallery_directory_enabled: number }>() : null;
+    const galleryDirectoryEnabled = input.data.galleryDirectoryEnabled === undefined
+      ? currentDirectory?.gallery_directory_enabled !== 0 : input.data.galleryDirectoryEnabled;
+    if (!galleryDirectoryEnabled) {
+      const publicGallery = await context.env.DB.prepare(
+        "SELECT id FROM events WHERE access = 'public' AND deleting_at IS NULL LIMIT 1",
+      ).first<{ id: string }>();
+      if (publicGallery) throw new ApiException('PUBLIC_GALLERIES_REMAIN', 'errors.publicGalleriesRemain', 409);
+    }
     const updatedAt = new Date().toISOString();
     const result = await context.env.DB.prepare(
       `UPDATE site_settings
@@ -92,7 +103,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
               site_name = ?15, home_galleries_enabled = ?16,
               home_galleries_limit = ?17,
               home_services_limit = ?18,
-              site_copy = COALESCE(?19, site_copy), updated_at = ?20
+              site_copy = COALESCE(?19, site_copy), updated_at = ?20,
+              gallery_directory_enabled = ?21
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
@@ -115,6 +127,7 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       input.data.homeServicesLimit,
       input.data.siteCopy === undefined ? null : JSON.stringify(input.data.siteCopy),
       updatedAt,
+      Number(galleryDirectoryEnabled),
     ).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     const settings = await findSettings(context.env.DB);

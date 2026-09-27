@@ -60,6 +60,31 @@
   font-weight: 700;
 }
 
+.publish-panel__share {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.publish-panel__share-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.publish-panel__share-controls input {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: var(--space-2);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.publish-panel__share p {
+  margin: 0;
+}
+
 @media (max-width: 40rem) {
   .publish-panel__heading {
     align-items: flex-start;

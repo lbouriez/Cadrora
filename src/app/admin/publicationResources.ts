@@ -19,6 +19,14 @@ export const publicationResources = {
       unlisted: 'The gallery stays off public lists but works for anyone with its direct link and required password.',
     },
     title: 'Gallery availability', variantsReady: 'Photos ready',
+    shareLink: 'Direct gallery link', copyLink: 'Copy link', copied: 'Link copied.',
+    failed: 'Copy failed. Select and copy the link above.',
+    shareHint: {
+      draft: 'The link is ready to share after publication.',
+      offline: 'The link will work again when this gallery is back online.',
+      published: 'The gallery’s access rules still apply, including its password if configured.',
+      unlisted: 'The gallery’s access rules still apply, including its password if configured.',
+    },
   } },
   fr: { publication: {
     availability: 'Disponibilité pour les visiteurs', cancel: 'Annuler', close: 'Fermer la confirmation',
@@ -38,6 +46,14 @@ export const publicationResources = {
       unlisted: 'La galerie reste absente des listes publiques mais fonctionne par lien direct, avec mot de passe si nécessaire.',
     },
     title: 'Disponibilité de la galerie', variantsReady: 'Photos prêtes',
+    shareLink: 'Lien direct de la galerie', copyLink: 'Copier le lien', copied: 'Lien copié.',
+    failed: 'La copie a échoué. Sélectionnez et copiez le lien ci-dessus.',
+    shareHint: {
+      draft: 'Le lien sera utilisable après la publication.',
+      offline: 'Le lien fonctionnera de nouveau lorsque cette galerie sera remise en ligne.',
+      published: 'Les règles d’accès de la galerie s’appliquent toujours, dont le mot de passe s’il y en a un.',
+      unlisted: 'Les règles d’accès de la galerie s’appliquent toujours, dont le mot de passe s’il y en a un.',
+    },
   } },
 } as const;
 

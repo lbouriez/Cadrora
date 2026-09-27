@@ -49,6 +49,7 @@ describe('public site settings route', () => {
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'en'],
       enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
+      galleryDirectoryEnabled: true,
       homeGalleries: { enabled: true, limit: 6 },
       homeServicesLimit: 3,
       homeHeroCopy: null,

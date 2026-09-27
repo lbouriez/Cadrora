@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
-const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/privacy', '/services']);
+const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
 let pendingDisable: ReturnType<typeof setTimeout> | null = null;
 
 type Gtag = (...values: unknown[]) => void;

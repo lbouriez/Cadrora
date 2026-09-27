@@ -145,7 +145,7 @@ export const CreateEventRequestSchema = z.object({
   startsAt: IsoDateTimeSchema,
   timezone: z.string().trim().min(1).max(100),
   visibility: EventVisibilitySchema.default('draft'),
-  access: EventAccessSchema.default('public'),
+  access: EventAccessSchema.default('protected'),
   password: z.string().min(8).max(200).optional(),
   allowDownloads: z.boolean().default(false),
   faceSearchEnabled: z.boolean().default(false),

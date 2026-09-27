@@ -31,6 +31,69 @@ test.describe('site vitrine statique', () => {
     await assertNoHorizontalOverflow(page);
   });
 
+  test('présente les tarifs du service et le portfolio sans annuaire de galeries', async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({
+      body: JSON.stringify({ ...siteSettingsFixture, galleryDirectoryEnabled: false }),
+      contentType: 'application/json', status: 200,
+    }));
+    await page.route('**/api/v1/services', (route) => route.fulfill({
+      body: JSON.stringify([{ id: 'wedding', isBuiltin: true, sortOrder: 0, enabled: true, showOnHome: true,
+        imageRevision: null, imageSources: [], copy: {
+          fr: { title: 'Mariages', shortDescription: 'Vos moments', description: 'Une journée à raconter.', points: ['Préparation'],
+            duration: '8 heures', priceRange: '2 000 $ à 3 000 $', details: 'Rencontre et galerie privée incluses.' },
+          en: { title: 'Weddings', shortDescription: 'Your moments', description: 'A day to tell.', points: ['Planning'],
+            duration: '8 hours', priceRange: '$2,000 to $3,000', details: 'Consultation and private gallery included.' },
+        } }]), contentType: 'application/json', status: 200,
+    }));
+    await page.route('**/api/v1/portfolio', (route) => route.fulfill({ body: JSON.stringify([{
+      id: 'portfolio-1', serviceId: 'wedding', alt: { fr: 'Un couple souriant', en: 'A smiling couple' },
+      sortOrder: 0, state: 'published', imageSources: [
+        { url: '/portfolio-media/portfolio-1/preview', width: 320, height: 213 },
+        { url: '/portfolio-media/portfolio-1/small', width: 640, height: 427 },
+        { url: '/portfolio-media/portfolio-1/medium', width: 960, height: 640 },
+        { url: '/portfolio-media/portfolio-1/large', width: 1280, height: 853 },
+      ],
+    }]), contentType: 'application/json', status: 200 }));
+    await page.route('**/portfolio-media/**', (route) => route.fulfill({
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="213"><rect width="320" height="213" fill="#a86"/></svg>',
+      contentType: 'image/svg+xml', status: 200,
+    }));
+    await page.goto('/services');
+
+    await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i })
+      .getByRole('link', { name: /galeries|galleries/i })).toHaveCount(0);
+    await page.getByRole('button', { name: 'Plus d’infos' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Mariages' });
+    await expect(dialog).toContainText('2 000 $ à 3 000 $');
+    await expect(dialog).toContainText('8 heures');
+    await expect(dialog).toContainText('Rencontre et galerie privée incluses.');
+    await expect(dialog.getByRole('link', { name: 'Découvrir le portfolio' })).toHaveAttribute('href', '/portfolio#portfolio-wedding');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await page.goto('/portfolio');
+    await expect(page.getByRole('heading', { level: 2, name: 'Mariages' })).toBeVisible();
+    const portfolioPhoto = page.locator('.portfolio-photo .progressive-photo');
+    await expect(portfolioPhoto).toHaveCount(1);
+    await portfolioPhoto.scrollIntoViewIfNeeded();
+    await expect(portfolioPhoto.locator('.progressive-photo__preview')).toHaveAttribute('src', '/portfolio-media/portfolio-1/preview');
+    await expect(portfolioPhoto.locator('.progressive-photo__optimized')).toHaveAttribute('srcset', /\/portfolio-media\/portfolio-1\/small 640w/u);
+    await assertNoHorizontalOverflow(page);
+  });
+
+  test('ne référence pas la page Galeries et rétablit le référencement du Portfolio', async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({
+      body: JSON.stringify({ ...siteSettingsFixture, galleryDirectoryEnabled: true }),
+      contentType: 'application/json', status: 200,
+    }));
+    await page.goto('/galleries');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,nofollow');
+    const menuButton = page.getByRole('button', { name: /ouvrir le menu|open menu/i });
+    if (await menuButton.isVisible()) await menuButton.click();
+    await page.getByRole('navigation', { name: /navigation principale|primary navigation/i })
+      .getByRole('link', { name: 'Portfolio' }).click();
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'index,follow');
+  });
+
   test('présente les sites créés avec Cadrora dans les deux langues', async ({ page }) => {
     await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
     await page.goto('/');

@@ -51,6 +51,7 @@ describe('shared schemas', () => {
       timezone: 'UTC',
       faceSearchEnabled: false,
       nearbySearchEnabled: true,
+      access: 'public',
     };
 
     expect(CreateEventRequestSchema.safeParse(event).success).toBe(false);
@@ -66,6 +67,7 @@ describe('shared schemas', () => {
       defaultLanguage: 'fr',
       enabledLanguages: ['fr', 'en'],
       enabledServices: ['wedding'],
+      galleryDirectoryEnabled: true,
       homeGalleries: { enabled: true, limit: 6 },
       homeServicesLimit: 3,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 
 import { IconButton } from '../components';
 import { openPrivacyPreferences } from './consent';
@@ -16,6 +16,7 @@ import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 export function PublicLayout({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname } = useLocation();
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
     queryFn: getPublicSiteSettings,
@@ -32,6 +33,7 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
   const siteName = settings.data?.siteName ?? siteProfile.siteName;
   const description = settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
   const footerTagline = settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
+  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
 
   useEffect(() => {
     if (!settings.data?.defaultLanguage) return;
@@ -53,6 +55,15 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
     document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute('content', description);
   }, [description, siteName]);
 
+  useEffect(() => {
+    const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
+    if (!robots.parentNode) {
+      robots.name = 'robots';
+      document.head.append(robots);
+    }
+    robots.content = pathname === '/galleries' || pathname.startsWith('/e/') ? 'noindex,nofollow' : 'index,follow';
+  }, [pathname]);
+
   return (
     <div className="public-shell">
       <header className="public-header">
@@ -64,7 +75,8 @@ export function PublicLayout({ children, wide = false }: { children: ReactNode; 
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
             <NavLink end onClick={() => setMenuOpen(false)} to="/">{t('gallery.home')}</NavLink>
             <NavLink onClick={() => setMenuOpen(false)} to="/services">{t('gallery.services')}</NavLink>
-            <NavLink onClick={() => setMenuOpen(false)} to="/galleries">{t('gallery.events')}</NavLink>
+            <NavLink onClick={() => setMenuOpen(false)} to="/portfolio">{t('gallery.portfolio')}</NavLink>
+            {galleryDirectoryEnabled ? <NavLink onClick={() => setMenuOpen(false)} to="/galleries">{t('gallery.events')}</NavLink> : null}
             <NavLink onClick={() => setMenuOpen(false)} to="/contact">{t('gallery.contact')}</NavLink>
           </nav>
           <div className="public-header__controls">

@@ -6,6 +6,31 @@ import { registerAdminEventRoutes } from '../../../src/server/routes/admin/galle
 import type { AppEnv } from '../../../src/server/types';
 
 describe('gallery creation without a gallery-count quota', () => {
+  it('rejects a public gallery before writing when the directory is hidden', async () => {
+    const prepare = vi.fn(() => ({ first: () => Promise.resolve({ gallery_directory_enabled: 0 }) }));
+    const batch = vi.fn();
+    const app = new Hono<AppEnv>();
+    app.use('*', async (context, next) => {
+      context.set('requestId', 'gallery-creation-test');
+      context.set('auth', { admin: {
+        access: 'manage', authMode: 'password', createdAt: '2030-01-01T00:00:00.000Z',
+        expiresAt: '2030-01-02T00:00:00.000Z', id: 'session-1', revokedAt: null, subject: 'owner',
+      } });
+      await next();
+    });
+    app.onError(errorBoundary);
+    registerAdminEventRoutes(app);
+    const response = await app.request('/api/v1/admin/galleries', {
+      body: JSON.stringify({ title: 'Public event', startsAt: '2030-01-01T00:00:00.000Z', timezone: 'UTC', access: 'public' }),
+      headers: { 'Content-Type': 'application/json' }, method: 'POST',
+    }, { DB: { prepare, batch } as unknown as D1Database });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: 'PUBLIC_GALLERIES_DISABLED' });
+    expect(prepare).toHaveBeenCalledOnce();
+    expect(batch).not.toHaveBeenCalled();
+  });
+
   it('creates a gallery without a count query or quota bindings', async () => {
     const queries: string[] = [];
     const prepare = vi.fn((query: string) => {
@@ -39,7 +64,7 @@ describe('gallery creation without a gallery-count quota', () => {
     registerAdminEventRoutes(app);
 
     const response = await app.request('/api/v1/admin/galleries', {
-      body: JSON.stringify({ title: 'New gallery', startsAt: '2030-01-01T00:00:00.000Z', timezone: 'UTC' }),
+      body: JSON.stringify({ title: 'New gallery', startsAt: '2030-01-01T00:00:00.000Z', timezone: 'UTC', access: 'public' }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
     }, { DB: { prepare, batch } as unknown as D1Database });

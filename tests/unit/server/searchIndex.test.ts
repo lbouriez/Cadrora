@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { registerSearchIndexRoutes } from '../../../src/server/routes/searchIndex';
 import type { AppEnv } from '../../../src/server/types';
@@ -17,7 +17,8 @@ describe('search index routes', () => {
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('text/markdown');
     expect(body).toMatch(/^# Atelier Giulia\n/u);
-    expect(body).toContain('[Galeries](https://example.test/galleries)');
+    expect(body).toContain('[Portfolio](https://example.test/portfolio)');
+    expect(body).not.toContain('/galleries');
     expect(body).toContain('[Plan du site](https://example.test/sitemap.xml)');
   });
 
@@ -47,23 +48,16 @@ describe('search index routes', () => {
     expect(await response.text()).toContain('Sitemap: https://example.test/sitemap.xml');
   });
 
-  it('includes only query-approved public galleries and escapes their slug', async () => {
-    const queries: string[] = [];
-    const bindings = {
-      DB: {
-        prepare(query: string) {
-          queries.push(query);
-          return { all: () => Promise.resolve({ results: [{ slug: 'public & ready' }] }) };
-        },
-      },
-    } as unknown as CloudflareBindings;
-    const response = await app.request('https://example.test/sitemap.xml', undefined, bindings);
+  it('lists marketing pages without querying or exposing any gallery', async () => {
+    const prepare = vi.fn();
+    const response = await app.request('https://example.test/sitemap.xml', undefined,
+      { DB: { prepare } as unknown as D1Database });
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('application/xml');
-    expect(body).toContain('https://example.test/e/public%20%26%20ready');
+    expect(body).toContain('<loc>https://example.test/portfolio</loc>');
     expect(body).toContain('<loc>https://example.test/contact</loc>');
-    expect(queries[0]).toContain("access = 'public'");
-    expect(queries[0]).toContain('show_on_gallery_page = 1');
-    expect(queries[0]).toContain('offline_at IS NULL');
+    expect(body).not.toContain('/e/');
+    expect(body).not.toContain('/galleries');
+    expect(prepare).not.toHaveBeenCalled();
   });
 });

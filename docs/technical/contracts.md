@@ -9,6 +9,7 @@ The separate retouch-selection, replacement, and locked-gallery index contract i
 Browser-local public hearts and the gallery retouch-closure switch are recorded in [`ADR-015`](../decisions/ADR-015-public-browser-hearts-and-retouch-closure.md).
 Per-gallery D1-recorded storage in the admin list is recorded in [`ADR-016`](../decisions/ADR-016-admin-gallery-storage-usage.md).
 The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-admin-gallery-photo-count.md).
+Permanent portfolio, service pricing details, and global gallery directory control are recorded in [`ADR-032`](../decisions/ADR-032-portfolio-and-gallery-directory.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
 Complete built-in service example reset is recorded in [`ADR-031`](../decisions/ADR-031-service-example-reset.md).
@@ -33,6 +34,7 @@ Public routes:
 ```text
 GET    /api/v1/site
 GET    /api/v1/services
+GET    /api/v1/portfolio
 GET    /api/v1/galleries
 GET    /api/v1/galleries/:eventId
 GET    /api/v1/galleries/:eventId/preview
@@ -55,6 +57,13 @@ PATCH  /api/v1/admin/site
 PATCH  /api/v1/admin/site/home-hero
 POST   /api/v1/admin/site/home-hero/reset
 GET    /api/v1/admin/services
+GET    /api/v1/admin/portfolio
+POST   /api/v1/admin/portfolio
+PATCH  /api/v1/admin/portfolio/:id
+PUT    /api/v1/admin/portfolio/:id/image/:variant
+POST   /api/v1/admin/portfolio/:id/publish
+DELETE /api/v1/admin/portfolio/:id
+GET    /api/v1/admin/portfolio/:id/image/:variant
 POST   /api/v1/admin/services
 PATCH  /api/v1/admin/services/:id
 POST   /api/v1/admin/services/:id/reset
@@ -84,6 +93,7 @@ DELETE /api/v1/admin/photos/:photoId
 POST   /api/v1/admin/galleries/:eventId/purge-faces
 GET    /api/v1/admin/usage
 GET    /service-media/:id/:revision/:variant
+GET    /portfolio-media/:id/:variant
 GET    /home-hero-image/:variant
 ```
 
@@ -148,6 +158,8 @@ The optional GA4 integration is disabled without a valid D1-backed `site_setting
 Gallery links never acquire browser-default underlines or layout-changing hover movement. The wide gallery mosaic preserves photo aspect ratios. Viewer and result carousels use the shared SVG icon controls and retain a 44 px minimum target. The viewer is a rounded, backdrop-blurred lightbox on laptop/desktop viewports and becomes edge-to-edge only below the desktop breakpoint. Photo metadata is exposed only when the event's `showPhotoMetadata` flag is true. Face-search match IDs may persist only in event-keyed `sessionStorage` for the current browser session; selfies, embeddings, vector IDs, and scores may not be written there. A heart is shown in the mosaic and viewer for both public and protected galleries. Protected hearts represent one shared D1 boolean per photo; a favorite write requires same-origin CSRF proof, a current gallery grant, and a published photo in that protected gallery. Public hearts live only in gallery-keyed browser `localStorage`, with in-memory fallback. The public photo API masks D1 hearts and public favorite API writes remain forbidden.
 
 [`ADR-012`](../decisions/ADR-012-gallery-directory-and-progressive-photos.md) adds owner-controlled directory inclusion, default on. The public listing includes only published, online galleries with `showOnGalleryPage=true`, ordered across public and protected cards by event date descending, then ID ascending as updated by ADR-021. The setting is not access control; direct links retain their normal authorization. The gallery header is compact and text-only. Its photo API remains cursor-paginated while the client requests the next page near the viewport and progressively upgrades lazy tile images from the smallest prepared variant to a responsive larger one. A manual load-more button remains available. Site settings also control whether public gallery cards appear on the home page and cap that section at 1 to 12 cards, default 6; `/galleries` remains uncapped.
+
+ADR-032 removes `/galleries` and all `/e/*` URLs from the sitemap and `/llms.txt` for every gallery state. The directory and direct gallery pages are marked `noindex,nofollow`; their direct links and existing access checks remain usable. The admin always exposes the copyable direct URL, including before publication and while offline. Portfolio media uses the shared browser-prepared four-variant pipeline and public `ProgressivePhoto` loader.
 
 A separate check-mark control selects private-gallery photos for retouching; it is not inferred from the heart. Its shared D1 boolean has the same grant, origin, availability, and photo-scope checks. `events.retouch_selection_enabled` controls whether visitors can change it; disabling hides the control and rejects writes without clearing existing selections. The authenticated admin selections route has distinct retouch and favorites views, limited to protected-gallery photos; only the retouch view offers replacement. Its download route is manage-only and prefers retained originals, then prepared copies. Replacement requires a completed one-photo import scoped to the selected photo and atomically preserves its ID, favorites, selection, order, capture time, and facial references. Old media is deleted only through a D1-recorded maintenance job. Public gallery listing may expose a protected gallery's ID, slug, title, date, and description when it is published and online, but never its cover or photo media before unlock. Its locked card uses a shared static asset unrelated to private photos; the locked page may show the same public event details while its photo API stays grant-protected.
 

@@ -27,8 +27,13 @@ const DeleteServiceMediaPayloadSchema = z.object({
   storageKeys: z.array(z.string().min(1).max(1_024)).min(1).max(4),
 }).refine((value) => value.storageKeys.every((key) => key.startsWith(`site/services/${value.serviceId}/${value.revision}/`) &&
   /^site\/services\/[^/]+\/\d+\/(preview|small|medium|large)\.(jpg|webp)$/u.test(key)));
+const DeletePortfolioMediaPayloadSchema = z.object({
+  photoId: IdSchema,
+  storageKeys: z.array(z.string().min(1).max(1_024)).min(1).max(4),
+}).refine((value) => value.storageKeys.every((key) => key.startsWith(`site/portfolio/${value.photoId}/`) &&
+  /^site\/portfolio\/[^/]+\/(preview|small|medium|large)\.(jpg|webp)$/u.test(key)));
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'delete_service_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'delete_service_media' | 'delete_portfolio_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -352,6 +357,10 @@ export function parseDeleteReplacedMediaPayload(payload: unknown) {
 
 export function parseDeleteServiceMediaPayload(payload: unknown) {
   return DeleteServiceMediaPayloadSchema.parse(payload);
+}
+
+export function parseDeletePortfolioMediaPayload(payload: unknown) {
+  return DeletePortfolioMediaPayloadSchema.parse(payload);
 }
 
 export function parsePurgeFacesPayload(payload: unknown) {

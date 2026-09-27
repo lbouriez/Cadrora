@@ -19,11 +19,13 @@ import { getAdminEvents } from './adminEventsApi';
 import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
 import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
+import { AdminPortfolioPage } from './AdminPortfolioPage';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 import { adminResourceFragment } from './resources';
 import { serviceEditorResources } from './serviceEditorResources';
 import { homeHeroResources } from './homeHeroResources';
+import { portfolioResources } from './portfolioResources';
 import './admin.css';
 
 for (const language of ['en', 'fr'] as const) {
@@ -31,6 +33,7 @@ for (const language of ['en', 'fr'] as const) {
   i18n.addResourceBundle(language, 'translation', adminImportResources[language].translation, true, true);
   i18n.addResourceBundle(language, 'translation', serviceEditorResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', homeHeroResources[language], true, true);
+  i18n.addResourceBundle(language, 'translation', portfolioResources[language], true, true);
 }
 
 async function getSession(): Promise<Session | null> {
@@ -94,24 +97,25 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
     refetchInterval: readOnly ? false : 3_000,
   });
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
+  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
+  const gallery = events.data?.find((candidate) => candidate.id === eventId);
+  if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   if (readOnly) {
     return <div className="admin-workspace">
       <section className="admin-card">
         <h1 className="admin-card__title">{i18n.t('admin.demo.importTitle')}</h1>
         <p className="admin-card__description">{i18n.t('admin.demo.importBody')}</p>
       </section>
-      {summary.data ? <PublishPanel eventId={eventId} readOnly showSettingsLink summary={summary.data} /> : null}
+      {summary.data ? <PublishPanel eventId={eventId} readOnly showSettingsLink slug={gallery.slug} summary={summary.data} /> : null}
     </div>;
   }
-  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
-  const gallery = events.data?.find((candidate) => candidate.id === eventId);
-  if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
       <ImportPage eventId={eventId} galleryTitle={gallery.title} keepOriginals={gallery.keepOriginals} faceSearchEnabled={gallery.faceSearchEnabled} timezone={gallery.timezone} {...(replacementPhotoId ? { replacementPhotoId } : {})} />
       {summary.data ? (
         <PublishPanel
           eventId={eventId}
+          slug={gallery.slug}
           onChanged={(published) => queryClient.setQueryData(['publication-summary', eventId], published)}
           showSettingsLink
           summary={summary.data}
@@ -156,4 +160,8 @@ export function AdminEventSettingsRoute() {
 
 export function AdminSiteSettingsRoute() {
   return <AdminFrame><AdminSiteSettingsPage /></AdminFrame>;
+}
+
+export function AdminPortfolioRoute() {
+  return <AdminFrame><AdminPortfolioPage /></AdminFrame>;
 }

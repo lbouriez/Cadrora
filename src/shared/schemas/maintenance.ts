@@ -4,7 +4,7 @@ import { IdSchema, IsoDateTimeSchema } from './primitives';
 
 export const MaintenanceJobSchema = z.object({
   id: IdSchema,
-  kind: z.enum(['delete_face_vector', 'delete_photo_media', 'purge_event_faces', 'purge_expired_faces', 'reconcile_usage']),
+  kind: z.enum(['delete_face_vector', 'delete_photo_media', 'delete_gallery', 'delete_gallery_originals', 'delete_replaced_media', 'delete_service_media', 'delete_portfolio_media', 'purge_event_faces', 'purge_expired_faces', 'reconcile_usage', 'purge_gallery_cache']),
   state: z.enum(['pending', 'running', 'completed', 'failed']),
   payload: z.record(z.string(), z.unknown()),
   attempts: z.number().int().nonnegative(),

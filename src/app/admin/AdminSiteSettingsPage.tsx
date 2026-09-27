@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { AdminSiteSettingsSchema, LanguageSchema, SiteCopySchema } from '../../shared/schemas';
+import { AdminSiteSettingsSchema, ApiErrorSchema, LanguageSchema, SiteCopySchema } from '../../shared/schemas';
 import type { Language, QuotaLimits, ServiceKey, SiteCopy, ThemeMode } from '../../shared/schemas';
 import { Button, Input, MultiSelect, Select, Spinner } from '../components';
 import { siteProfile } from '../public/siteProfile';
@@ -30,6 +30,7 @@ async function updateAdminSiteSettings(input: {
   defaultLanguage: Language;
   enabledLanguages: Language[];
   enabledServices: ServiceKey[];
+  galleryDirectoryEnabled: boolean;
   homeGalleries: { enabled: boolean; limit: number };
   homeServicesLimit: number;
   map: { centerLatitude: number | null; centerLongitude: number | null; radiusKm: number | null };
@@ -45,7 +46,10 @@ async function updateAdminSiteSettings(input: {
     headers: { 'Content-Type': 'application/json' },
     method: 'PATCH',
   });
-  if (!response.ok) throw new Error(`Site settings update returned ${response.status}`);
+  if (!response.ok) {
+    const error = ApiErrorSchema.safeParse(await response.json().catch(() => null));
+    throw new Error(error.success ? error.data.code : `Site settings update returned ${response.status}`);
+  }
   return AdminSiteSettingsSchema.parse(await response.json());
 }
 
@@ -156,6 +160,7 @@ export function AdminSiteSettingsPage() {
       defaultLanguage,
       enabledLanguages,
       enabledServices,
+      galleryDirectoryEnabled: values.get('galleryDirectoryEnabled') === 'on',
       homeGalleries: { enabled: values.get('homeGalleriesEnabled') === 'on', limit: homeGalleryLimit },
       homeServicesLimit,
       map: {
@@ -226,6 +231,11 @@ export function AdminSiteSettingsPage() {
           <option value="dark">{t('admin.settings.themeDark')}</option>
           <option value="system">{t('admin.settings.themeSystem')}</option>
         </Select>
+        <label className="admin-settings-services__option">
+          <input defaultChecked={settings.data.galleryDirectoryEnabled} name="galleryDirectoryEnabled" type="checkbox" />
+          <span>{t('admin.settings.galleryDirectoryEnabled')}</span>
+        </label>
+        <p className="field__hint">{t('admin.settings.galleryDirectoryHint')}</p>
         <Input
           autoComplete="off"
           defaultValue={settings.data.analyticsMeasurementId ?? ''}
@@ -342,7 +352,7 @@ export function AdminSiteSettingsPage() {
         </fieldset>
         {readOnly ? <p className="admin-card__description">{t('admin.settings.readOnly')}</p> : null}
         {formError ? <p role="alert">{t('admin.settings.formError')}</p> : null}
-        {update.isError ? <p role="alert">{t('admin.settings.error')}</p> : null}
+        {update.isError ? <p role="alert">{t(update.error.message === 'PUBLIC_GALLERIES_REMAIN' ? 'admin.settings.publicGalleriesRemain' : 'admin.settings.error')}</p> : null}
         {saved ? <p role="status">{t('admin.settings.saved')}</p> : null}
         <Button disabled={readOnly || update.isPending} type="submit">{t('admin.settings.save')}</Button>
       </form>

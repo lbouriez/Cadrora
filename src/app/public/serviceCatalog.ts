@@ -30,5 +30,8 @@ export function serviceText(card: ServiceCard, language: 'fr' | 'en', translate:
     shortDescription: copy?.shortDescription ?? translate(`gallery.servicesPage.${card.id}.body`),
     description: copy?.description ?? translate(`gallery.servicesPage.${card.id}.body`),
     points: copy?.points ?? [1, 2, 3].map((number) => translate(`gallery.servicesPage.${card.id}.point${number}`)),
+    duration: copy?.duration ?? '',
+    priceRange: copy?.priceRange ?? '',
+    details: copy?.details ?? '',
   };
 }

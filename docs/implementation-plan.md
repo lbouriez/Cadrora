@@ -16,6 +16,8 @@ Post-plan extension (2026-09-26): ADR-022 adds bounded keyset pagination to the 
 
 Post-plan extension (2026-09-27): ADR-028 adds owner-managed service cards across PB, PC image encoding, PD media delivery, admin site settings, and D1 migration 028. Acceptance includes FR/EN overrides and new cards, independent Home eligibility and count, a complete variant set before publication, D1-derived versioned image delivery, retryable cleanup, static HTML routing, and mobile/desktop Lighthouse comparison on both site profiles.
 
+Post-plan extension (2026-09-27): ADR-032 adds a permanent, service-categorized portfolio across PB/PC/PD, bilingual service duration and pricing details in PA/PB, and a global gallery directory switch across PA/PB/PD. Acceptance includes password-protected gallery creation by default, copyable unlisted links, complete-variant portfolio publication, D1-fenced media deletion, gallery links and sitemap omitted when hidden, public-gallery creation blocked, and direct protected customer links retained.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

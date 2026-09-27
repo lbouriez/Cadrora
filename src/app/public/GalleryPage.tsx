@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, ProgressivePhoto, RetouchButton, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
-import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
+import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, getPublicSiteSettings, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -146,6 +146,9 @@ export function GalleryPage() {
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const backDestination = siteSettings.data?.galleryDirectoryEnabled === false ? '/portfolio' : '/galleries';
+  const backLabel = t(siteSettings.data?.galleryDirectoryEnabled === false ? 'gallery.backPortfolio' : 'gallery.backGalleries');
   const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
   const lockedGalleryPreview = useQuery({
     queryKey: ['protected-gallery-preview', slug], queryFn: () => getProtectedGalleryPreview(slug),
@@ -398,21 +401,10 @@ export function GalleryPage() {
     void fetchNextPage();
   }, [fetchNextPage, foundPhotoIds.length, hasNextPage, isFetchingNextPage, matchesView, visiblePhotos.length]);
 
-  useEffect(() => {
-    const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
-    if (!robots.parentNode) {
-      robots.name = 'robots';
-      document.head.append(robots);
-    }
-    robots.content = event.data?.visibility === 'unlisted' || event.data?.access === 'protected' || accessRequired
-      ? 'noindex,nofollow'
-      : 'index,follow';
-  }, [accessRequired, event.data?.access, event.data?.visibility]);
-
   if (event.isPending) return <PublicLayout wide><Spinner label={t('gallery.loading')} /></PublicLayout>;
   if (accessRequired && !event.data) return <PublicLayout wide>
     {lockedPreview ? <header className="gallery-heading">
-      <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
+      <BackLink to={backDestination}>{backLabel}</BackLink>
       <div className="gallery-heading__hero gallery-heading__hero--compact">
         <div className="gallery-heading__copy">
           <p className="gallery-heading__eyebrow">{t('gallery.headingPrivate')}</p>
@@ -429,7 +421,7 @@ export function GalleryPage() {
   return (
     <PublicLayout wide>
       <header className="gallery-heading">
-        <BackLink to="/galleries">{t('gallery.backGalleries')}</BackLink>
+        <BackLink to={backDestination}>{backLabel}</BackLink>
         <div className="gallery-heading__hero gallery-heading__hero--compact">
           <div className="gallery-heading__copy">
             <p className="gallery-heading__eyebrow">{t(event.data.access === 'protected' ? 'gallery.headingPrivate' : 'gallery.headingEyebrow')}</p>

@@ -627,6 +627,94 @@
   content: '—';
 }
 
+.service-detail-card__price {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.service-details-modal {
+  width: min(42rem, calc(100vw - 2rem));
+  max-height: min(85vh, 52rem);
+  overflow-y: auto;
+}
+
+.service-details-modal__body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.service-details-modal__body p,
+.service-details-modal__body ul {
+  margin: 0;
+  line-height: 1.65;
+}
+
+.service-details-modal__details {
+  white-space: pre-line;
+}
+
+.portfolio-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.portfolio-categories a {
+  padding: var(--space-2) var(--space-3);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.portfolio-section {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-5);
+  scroll-margin-top: 6rem;
+}
+
+.portfolio-section__heading h2 {
+  margin-bottom: var(--space-2);
+}
+
+.portfolio-section__heading p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.portfolio-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.portfolio-photo {
+  margin: 0;
+}
+
+.portfolio-photo__image,
+.portfolio-section__example-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+}
+
+.portfolio-section__example {
+  max-width: 42rem;
+}
+
+.portfolio-section__example p {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 48rem) {
+  .portfolio-photo-grid { grid-template-columns: 1fr; }
+}
+
 .process-section {
   display: grid;
   padding: clamp(4rem, 9vw, 7rem) 0;

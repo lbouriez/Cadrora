@@ -25,7 +25,7 @@ export const HomeGalleriesSchema = z.object({
 export const HomeServicesLimitSchema = z.number().int().min(1).max(12);
 
 export const HomeHeroDestinationSchema = z.enum([
-  '/contact', '/services', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
+  '/contact', '/services', '/portfolio', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
 ]);
 export const HomeHeroLanguageSchema = z.object({
   label: z.string().min(1).max(120),
@@ -101,6 +101,7 @@ export const SiteSettingsSchema = z.object({
   serviceArea: z.string().max(240).nullable(),
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
+  galleryDirectoryEnabled: z.boolean().default(true),
   homeGalleries: HomeGalleriesSchema,
   homeServicesLimit: HomeServicesLimitSchema,
   homeHeroCopy: HomeHeroCopySchema.nullable().default(null),
@@ -123,6 +124,7 @@ export const UpdateSiteSettingsSchema = z.object({
   serviceArea: z.string().max(240).nullable(),
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
+  galleryDirectoryEnabled: z.boolean().optional(),
   homeGalleries: HomeGalleriesSchema,
   homeServicesLimit: HomeServicesLimitSchema,
   defaultLanguage: LanguageSchema,

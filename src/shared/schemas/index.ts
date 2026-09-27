@@ -8,6 +8,7 @@ export * from './import';
 export * from './maintenance';
 export * from './media';
 export * from './photo';
+export * from './portfolio';
 export * from './primitives';
 export * from './site';
 export * from './services';

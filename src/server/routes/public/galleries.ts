@@ -106,6 +106,12 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     const { access, limit } = input.data;
     const cursor = input.data.cursor ? decodeGalleryCursor(input.data.cursor) : null;
     if (cursor && cursor.access !== access) throw new ApiException('INVALID_CURSOR', 'errors.invalidCursor', 400);
+    const site = await context.env.DB.prepare('SELECT gallery_directory_enabled FROM site_settings WHERE id = 1')
+      .first<{ gallery_directory_enabled: number }>();
+    if (site?.gallery_directory_enabled === 0) {
+      applyCachePolicy(context, 'event-public');
+      return validatedJson(context, PublicEventListSchema, { events: [], protectedGalleries: [], nextCursor: null });
+    }
     const result = await context.env.DB.prepare(
       `SELECT e.*, cover.revision AS cover_revision FROM events e
        LEFT JOIN photos cover ON e.access = 'public' AND cover.id = e.cover_photo_id AND cover.event_id = e.id

@@ -7,6 +7,9 @@ export const ServiceCopyLanguageSchema = z.object({
   shortDescription: z.string().min(1).max(180),
   description: z.string().min(1).max(600),
   points: z.array(z.string().min(1).max(200)).max(5),
+  duration: z.string().max(120).optional(),
+  priceRange: z.string().max(160).optional(),
+  details: z.string().max(2000).optional(),
 }).strict();
 export const ServiceCopySchema = z.object({ fr: ServiceCopyLanguageSchema, en: ServiceCopyLanguageSchema }).strict();
 export const ServiceImageSourceSchema = z.object({ url: z.string().startsWith('/service-media/'), width: z.number().int().positive(), height: z.number().int().positive() }).strict();

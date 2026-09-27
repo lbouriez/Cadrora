@@ -31,6 +31,14 @@ function requireAdmin(context: { get(name: 'auth'): AppEnv['Variables']['auth'] 
   if (!context.get('auth').admin) throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 401);
 }
 
+async function requirePublicGalleryOption(database: D1Database): Promise<void> {
+  const site = await database.prepare('SELECT gallery_directory_enabled FROM site_settings WHERE id = 1')
+    .first<{ gallery_directory_enabled: number }>();
+  if (site?.gallery_directory_enabled === 0) {
+    throw new ApiException('PUBLIC_GALLERIES_DISABLED', 'errors.invalidRequest', 409);
+  }
+}
+
 function requiredAuthPepper(value: string | undefined): string {
   if (!isAuthPepper(value)) {
     throw new ApiException('CONFIGURATION_INVALID', 'errors.configurationInvalid', 503, {
@@ -395,6 +403,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const input = CreateEventRequestSchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    if (input.data.access === 'public') await requirePublicGalleryOption(context.env.DB);
     const id = crypto.randomUUID();
     const slug = await availableSlug(context.env.DB, input.data.slug ?? slugify(input.data.title));
     const now = new Date().toISOString();
@@ -449,6 +458,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       }
     }
     const nextAccess = input.data.access ?? event.access;
+    if (nextAccess === 'public') await requirePublicGalleryOption(context.env.DB);
     const existingVersion = await context.env.DB.prepare(
       'SELECT access_version FROM event_credentials WHERE event_id = ?1',
     ).bind(event.id).first<{ access_version: number }>();

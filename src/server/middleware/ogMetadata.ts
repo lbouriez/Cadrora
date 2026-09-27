@@ -32,12 +32,12 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
     return;
   }
 
-  const mayIndex = event.visibility === 'published' && event.access === 'public';
-  const title = mayIndex ? event.title : 'Cadrora';
-  const description = mayIndex ? (event.description ?? '') : '';
-  const robots = mayIndex ? 'index,follow' : 'noindex,nofollow';
+  const publicPreview = event.visibility === 'published' && event.access === 'public';
+  const title = publicPreview ? event.title : 'Cadrora';
+  const description = publicPreview ? (event.description ?? '') : '';
+  const robots = 'noindex,nofollow';
   const canonical = new URL(`/e/${encodeURIComponent(event.slug)}`, context.req.url).toString();
-  const cover = mayIndex && event.coverPhotoId
+  const cover = publicPreview && event.coverPhotoId
     ? await context.env.DB.prepare(
         "SELECT revision FROM photos WHERE id = ?1 AND event_id = ?2 AND state = 'published' LIMIT 1",
       ).bind(event.coverPhotoId, event.id).first<{ revision: number }>()
@@ -49,8 +49,8 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
       ).toString()
     : null;
   applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');
-  if (mayIndex) context.header('Cache-Control', 'public, max-age=60, no-transform');
-  if (!mayIndex) context.header('X-Robots-Tag', 'noindex, nofollow');
+  if (publicPreview) context.header('Cache-Control', 'public, max-age=60, no-transform');
+  context.header('X-Robots-Tag', 'noindex, nofollow');
   context.res = context.html(`<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}">

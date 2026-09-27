@@ -27,6 +27,7 @@ import { registerFaceSearchRoutes } from './routes/faceSearch';
 import { enqueueExpiredFacePurges } from './routes/faceSearch';
 import { registerMediaRoutes } from './routes/media';
 import { registerServiceRoutes } from './routes/services';
+import { registerPortfolioRoutes } from './routes/portfolio';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
 import type { AppEnv } from './types';
@@ -71,12 +72,13 @@ registerAdminImportRoutes(app);
 registerAdminSiteRoutes(app);
 registerMediaRoutes(app);
 registerServiceRoutes(app);
+registerPortfolioRoutes(app);
 registerPublicationRoutes(app);
 registerFaceSearchRoutes(app);
 registerFaceModelRoutes(app);
 
 app.notFound(async (context) => {
-  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/') || context.req.path.startsWith('/home-hero-image/')) {
+  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/') || context.req.path.startsWith('/portfolio-media/') || context.req.path.startsWith('/home-hero-image/')) {
     return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
   }
   if (context.env?.ASSETS) {
@@ -84,6 +86,7 @@ app.notFound(async (context) => {
     if (!response.headers.get('Content-Type')?.includes('text/html')) return response;
     const headers = new Headers(response.headers);
     headers.set('Cache-Control', 'public, max-age=0, must-revalidate, no-transform');
+    if (context.req.path.startsWith('/e/')) headers.set('X-Robots-Tag', 'noindex, nofollow');
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   }
   return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');

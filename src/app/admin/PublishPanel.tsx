@@ -14,6 +14,7 @@ installPublicationResources(i18n);
 
 export interface PublishPanelProps {
   eventId: string;
+  slug: string;
   onChanged?: (summary: PublicationSummary) => void;
   readOnly?: boolean;
   showSettingsLink?: boolean;
@@ -29,11 +30,12 @@ function defaultTarget(summary: PublicationSummary): PublicationState {
 }
 
 /** Shared reversible availability control used by gallery settings and import workflows. */
-export function PublishPanel({ eventId, onChanged, readOnly = false, showSettingsLink = false, summary }: PublishPanelProps) {
+export function PublishPanel({ eventId, slug, onChanged, readOnly = false, showSettingsLink = false, summary }: PublishPanelProps) {
   const { t } = useTranslation();
   const state = currentState(summary);
   const [target, setTarget] = useState<PublicationState>(() => defaultTarget(summary));
   const [confirmingOffline, setConfirmingOffline] = useState(false);
+  const [copyState, setCopyState] = useState<'copied' | 'failed' | null>(null);
   const mutation = useMutation({
     mutationFn: (nextState: PublicationState) => updatePublication(eventId, nextState),
     onSuccess: (updated) => {
@@ -55,6 +57,7 @@ export function PublishPanel({ eventId, onChanged, readOnly = false, showSetting
         ? 'publication.publish'
         : 'publication.saveAvailability';
   const badgeVariant = state === 'published' ? 'success' : state === 'unlisted' ? 'warning' : state === 'offline' ? 'danger' : 'neutral';
+  const shareUrl = new URL(`/e/${encodeURIComponent(slug)}`, window.location.origin).href;
 
   const apply = () => {
     if (target === 'offline' && state !== 'offline') {
@@ -79,6 +82,19 @@ export function PublishPanel({ eventId, onChanged, readOnly = false, showSetting
         <div><dt>{t('publication.variantsReady')}</dt><dd>{summary.readyPhotos}</dd></div>
         <div><dt>{t('publication.indexing')}</dt><dd>{summary.indexingPhotos}</dd></div>
       </dl>
+      <div className="publish-panel__share">
+        <label htmlFor={`gallery-share-${eventId}`}>{t('publication.shareLink')}</label>
+        <div className="publish-panel__share-controls">
+          <input id={`gallery-share-${eventId}`} onFocus={(event) => event.currentTarget.select()} readOnly type="url" value={shareUrl} />
+          <Button onClick={() => {
+            setCopyState(null);
+            if (!navigator.clipboard?.writeText) { setCopyState('failed'); return; }
+            void navigator.clipboard.writeText(shareUrl).then(() => setCopyState('copied')).catch(() => setCopyState('failed'));
+          }} type="button" variant="secondary">{t('publication.copyLink')}</Button>
+        </div>
+        {copyState ? <p role="status">{t(`publication.${copyState}`)}</p> : null}
+        <p className="publish-panel__note">{t(`publication.shareHint.${state}`)}</p>
+      </div>
       <Select
         hint={t(`publication.targetHint.${target}`)}
         label={t('publication.availability')}

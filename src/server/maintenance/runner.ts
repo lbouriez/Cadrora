@@ -4,6 +4,7 @@ import {
   parseDeleteGalleryPayload,
   parseDeleteGalleryOriginalsPayload,
   parseDeletePhotoPayload,
+  parseDeletePortfolioMediaPayload,
   parseDeleteReplacedMediaPayload,
   parseDeleteServiceMediaPayload,
   parsePurgeExpiredFacesPayload,
@@ -78,6 +79,13 @@ export class MaintenanceRunner {
 
     if (job.kind === 'delete_service_media') {
       const payload = parseDeleteServiceMediaPayload(job.payload);
+      await this.dependencies.storage.deleteMany(payload.storageKeys);
+      await this.dependencies.repository.completeJob(job.id, now.toISOString());
+      return;
+    }
+
+    if (job.kind === 'delete_portfolio_media') {
+      const payload = parseDeletePortfolioMediaPayload(job.payload);
       await this.dependencies.storage.deleteMany(payload.storageKeys);
       await this.dependencies.repository.completeJob(job.id, now.toISOString());
       return;

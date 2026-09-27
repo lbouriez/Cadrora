@@ -132,6 +132,7 @@ describe('admin site settings routes', () => {
         defaultLanguage: 'en',
         enabledLanguages: ['en'],
         enabledServices: ['wedding', 'corporate'],
+        galleryDirectoryEnabled: true,
         homeGalleries: { enabled: false, limit: 4 },
         homeServicesLimit: 4,
         map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
@@ -155,6 +156,7 @@ describe('admin site settings routes', () => {
       45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', 0, 4,
       4, JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
       expect.any(String),
+      1,
     );
   });
 

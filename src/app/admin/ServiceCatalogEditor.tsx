@@ -21,12 +21,13 @@ async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, ini
 
 function defaultCopy(card: ServiceCard | null, translate: (language: Language, key: string) => string): ServiceCopy {
   const languageCopy = (language: Language) => {
-    if (!card?.isBuiltin) return { title: '', shortDescription: '', description: '', points: ['', '', ''] };
+    if (!card?.isBuiltin) return { title: '', shortDescription: '', description: '', points: ['', '', ''], duration: '', priceRange: '', details: '' };
     const prefix = `gallery.servicesPage.${card.id}`;
     const body = translate(language, `${prefix}.body`);
     return {
       title: translate(language, `${prefix}.title`), shortDescription: body, description: body,
       points: [1, 2, 3].map((number) => translate(language, `${prefix}.point${number}`)),
+      duration: '', priceRange: '', details: '',
     };
   };
   return { fr: languageCopy('fr'), en: languageCopy('en') };
@@ -48,7 +49,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | number, value: string) => {
+  const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | 'duration' | 'priceRange' | 'details' | number, value: string) => {
     const nextLanguage = { ...copy[language] };
     if (typeof field === 'number') {
       const points = [...nextLanguage.points];
@@ -68,6 +69,9 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       shortDescription: copy[language].shortDescription.trim(),
       description: copy[language].description.trim(),
       points: copy[language].points.map((point) => point.trim()).filter(Boolean),
+      duration: copy[language].duration?.trim() ?? '',
+      priceRange: copy[language].priceRange?.trim() ?? '',
+      details: copy[language].details?.trim() ?? '',
     }]));
     const parsed = ServiceCopySchema.safeParse(normalized);
     if (!parsed.success) { setError(true); return; }
@@ -142,6 +146,11 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         label={t('admin.serviceEditor.point', { number: index + 1 })} languages={LanguageSchema.options}
         maxLength={200} onChange={(language, value) => updateCopy(language, index, value)} primaryLanguage={primaryLanguage}
         values={{ fr: copy.fr.points[index] ?? '', en: copy.en.points[index] ?? '' }} />)}
+      {(['duration', 'priceRange', 'details'] as const).map((field) => <LocalizedTextField
+        enabledLanguages={enabledLanguages} key={field} label={t(`admin.serviceEditor.${field}`)}
+        languages={LanguageSchema.options} maxLength={field === 'duration' ? 120 : field === 'priceRange' ? 160 : 2000}
+        multiline={field === 'details'} onChange={(language, value) => updateCopy(language, field, value)}
+        primaryLanguage={primaryLanguage} values={{ fr: copy.fr[field] ?? '', en: copy.en[field] ?? '' }} />)}
       {card ? <>
         <label className="admin-settings-services__option"><input checked={enabled} disabled={readOnly} onChange={(event) => setEnabled(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.enabled')}</span></label>
         <label className="admin-settings-services__option"><input checked={showOnHome} disabled={readOnly} onChange={(event) => setShowOnHome(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.showOnHome')}</span></label>

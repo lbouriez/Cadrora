@@ -13,6 +13,7 @@ import { formatMediaStorage } from './formatMediaStorage';
 import { GalleryServiceField } from './GalleryServiceField';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
+import { getPublicSiteSettings } from '../public/api';
 
 async function createEvent(payload: unknown): Promise<Event> {
   const response = await fetch('/api/v1/admin/galleries', {
@@ -77,13 +78,15 @@ export function AdminEventsPage() {
   const { i18n, t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
-  const [access, setAccess] = useState<'protected' | 'public'>('public');
+  const [access, setAccess] = useState<'protected' | 'public'>('protected');
   const [unlimitedRetention, setUnlimitedRetention] = useState(true);
   const [faceSearchEnabled, setFaceSearchEnabled] = useState(false);
   const [nearbySearchEnabled, setNearbySearchEnabled] = useState(false);
   const [allowDownloads, setAllowDownloads] = useState(false);
   const [keepOriginals, setKeepOriginals] = useState(false);
   const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
+  const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'] });
+  const galleryDirectoryEnabled = siteSettings.data?.galleryDirectoryEnabled === true;
   const creation = useMutation({
     mutationFn: createEvent,
     onSuccess: async () => {
@@ -110,7 +113,7 @@ export function AdminEventsPage() {
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       retouchSelectionEnabled: access === 'protected' && values.get('retouchSelectionEnabled') === 'on',
-      showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
+      showOnGalleryPage: galleryDirectoryEnabled && values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       password: access === 'protected' ? values.get('password') : undefined,
       retentionDays: unlimitedRetention ? null : typeof retention === 'string' && retention ? Number(retention) : null,
@@ -121,7 +124,7 @@ export function AdminEventsPage() {
     }, {
       onSuccess: () => {
         form.reset();
-        setAccess('public');
+        setAccess('protected');
         setUnlimitedRetention(true);
         setFaceSearchEnabled(false);
         setNearbySearchEnabled(false);
@@ -187,8 +190,8 @@ export function AdminEventsPage() {
           <Textarea className="admin-event-form__textarea" label={t('admin.events.description')} maxLength={5000} name="description" />
           <GalleryServiceField value={null} />
           <Select label={t('admin.events.access')} onChange={(event) => setAccess(event.target.value as 'protected' | 'public')} value={access}>
-              <option value="public">{t('admin.events.public')}</option>
               <option value="protected">{t('admin.events.protected')}</option>
+              {galleryDirectoryEnabled ? <option value="public">{t('admin.events.public')}</option> : null}
           </Select>
           <ProtectedListingHint access={access} />
           {access === 'protected' ? <Input label={t('admin.events.password')} minLength={8} name="password" required type="password" /> : null}
@@ -197,7 +200,7 @@ export function AdminEventsPage() {
           <label><input checked={unlimitedRetention} onChange={(event) => setUnlimitedRetention(event.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
           <fieldset className="admin-event-form__options">
             <legend>{t('admin.events.options')}</legend>
-            <div className="admin-event-form__option-with-info"><label><input defaultChecked name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div>
+            {galleryDirectoryEnabled ? <div className="admin-event-form__option-with-info"><label><input defaultChecked name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div> : null}
             <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
               setAllowDownloads(changeEvent.target.checked);
               if (!changeEvent.target.checked) setKeepOriginals(false);
@@ -274,6 +277,8 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
+  const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'] });
+  const galleryDirectoryEnabled = siteSettings.data?.galleryDirectoryEnabled === true;
   const [access, setAccess] = useState(event.access);
   const [unlimitedRetention, setUnlimitedRetention] = useState(event.retentionDays === null);
   const [faceSearchEnabled, setFaceSearchEnabled] = useState(event.faceSearchEnabled);
@@ -306,7 +311,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
       nearbySearchEnabled,
       showPhotoMetadata: values.get('showPhotoMetadata') === 'on',
       retouchSelectionEnabled: access === 'protected' && values.get('retouchSelectionEnabled') === 'on',
-      showOnGalleryPage: values.get('showOnGalleryPage') === 'on',
+      showOnGalleryPage: galleryDirectoryEnabled && values.get('showOnGalleryPage') === 'on',
       keepOriginals: allowDownloads && keepOriginals,
       ...(password ? { password } : {}),
       retentionDays: unlimitedRetention ? null : retention ? Number(retention) : null,
@@ -325,7 +330,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <Textarea className="admin-event-form__textarea" defaultValue={event.description ?? ''} label={t('admin.events.description')} maxLength={5000} name="description" />
         <GalleryServiceField value={event.service} />
         <Select label={t('admin.events.access')} onChange={(changeEvent) => setAccess(changeEvent.target.value as Event['access'])} value={access}>
-            <option value="public">{t('admin.events.public')}</option>
+            {galleryDirectoryEnabled ? <option value="public">{t('admin.events.public')}</option> : null}
             <option value="protected">{t('admin.events.protected')}</option>
         </Select>
         <ProtectedListingHint access={access} />
@@ -343,7 +348,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <label><input checked={unlimitedRetention} onChange={(changeEvent) => setUnlimitedRetention(changeEvent.target.checked)} type="checkbox" /> {t('admin.events.retentionUnlimited')}</label>
         <fieldset className="admin-event-form__options">
           <legend>{t('admin.events.options')}</legend>
-          <div className="admin-event-form__option-with-info"><label><input defaultChecked={event.showOnGalleryPage} name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div>
+          {galleryDirectoryEnabled ? <div className="admin-event-form__option-with-info"><label><input defaultChecked={event.showOnGalleryPage} name="showOnGalleryPage" type="checkbox" /> {t('admin.events.showOnGalleryPage')}</label><InfoTooltip text={t('admin.events.showOnGalleryPageHint')} /></div> : null}
           <label><input checked={allowDownloads} name="allowDownloads" onChange={(changeEvent) => {
             setAllowDownloads(changeEvent.target.checked);
             if (!changeEvent.target.checked) setKeepOriginals(false);
@@ -564,6 +569,7 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
       </header>
       <PublishPanel
         eventId={eventId}
+        slug={event.slug}
         onChanged={(updated) => {
           queryClient.setQueryData(['publication-summary', eventId], updated);
           void queryClient.invalidateQueries({ queryKey: ['admin-events'] });

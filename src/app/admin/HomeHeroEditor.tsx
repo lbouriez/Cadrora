@@ -155,7 +155,9 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
             primaryLanguage={primaryLanguage} required values={button.labels} />
           <Select disabled={busy || readOnly} label={t('admin.homeHero.buttonDestination', { number: index + 1 })}
             onChange={(event) => updateButton(index, { href: event.target.value as HomeHeroCopy['buttons'][number]['href'] })} value={button.href}>
-            {destinations.map((destination) => <option key={destination} value={destination}>{t(`admin.homeHero.destinations.${destination.replaceAll('/', '_').replace('#', 'section_')}`)}</option>)}
+            {destinations.map((destination) => <option disabled={!settings.galleryDirectoryEnabled
+              && (destination === '/galleries' || destination === '#galleries' || destination.startsWith('/e/'))}
+              key={destination} value={destination}>{t(`admin.homeHero.destinations.${destination.replaceAll('/', '_').replace('#', 'section_')}`)}</option>)}
           </Select>
           <Select disabled={busy || readOnly} label={t('admin.homeHero.buttonStyle', { number: index + 1 })}
             onChange={(event) => updateButton(index, { variant: event.target.value as HomeHeroCopy['buttons'][number]['variant'] })} value={button.variant}>

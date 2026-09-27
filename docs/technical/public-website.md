@@ -4,9 +4,10 @@
 
 Cadrora is both an event-gallery application and the photographer's public website. The two surfaces share the React build and visual system, but they have different availability and authorization characteristics:
 
-- `/` presents the photographer, services, and currently published public events;
+- `/` presents the photographer and services, plus recent public galleries when the owner enables gallery discovery;
 - `/services` presents the owner-enabled portrait, family, wedding, brand, corporate, and childhood offerings as image-led cards;
-- `/galleries` dynamically lists published public and protected galleries enabled for public listing, newest by event date first; showcase journeys belong on `/` and no legacy `/events` alias is registered;
+- `/portfolio` presents permanent owner-selected photographs grouped by enabled service, independently of customer galleries;
+- `/galleries` dynamically lists published public and protected galleries enabled for public listing, newest by event date first, while gallery discovery is enabled; showcase journeys belong on `/` and no legacy `/events` alias is registered;
 - `/contact` publishes direct contact coordinates without a form, plus a click-to-load OpenStreetMap card (or optional Google Maps card);
 - `/privacy` explains gallery and face-search privacy;
 - `/e/*` is the event-gallery surface and may require an event grant;
@@ -14,9 +15,13 @@ Cadrora is both an event-gallery application and the photographer's public websi
 
 The website shell must remain useful when the event API is unavailable. A gallery-list failure therefore renders a quiet status message and does not replace the landing page with an error screen.
 
-The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap reads D1 and includes only published, online, listed public galleries; protected, unlisted, draft and deleting galleries are omitted. Both paths must stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. Gallery routes use crawler metadata separately.
+Service cards may show a bilingual price range and open a shared details dialog with duration, explanation, included items, a portfolio link, and contact action. The existing admin service form edits these fields for both new and existing services. Portfolio images have bilingual alt text and are published from the separate admin Portfolio screen after every prepared variant reaches private R2. The screen reuses the browser service-image encoder to create preview, small, medium, and large variants. The public portfolio uses `ProgressivePhoto` to load a lazy preview followed by the browser-selected responsive size. Without owner photos, each category still shows its existing service illustration as an example. The public shell and service text remain usable if the portfolio API is unavailable.
 
-The Worker also serves `/llms.txt` as Markdown before the SPA fallback. Its title, summary and language come from Worker vars populated from the selected site profile by the deployment scripts; Wrangler bundles the Worker separately from Vite, so Vite's client-side defines must not be used in server routes. Links use the request hostname and point only to public pages and the existing dynamic sitemap. The guide works even when D1 is unavailable; the sitemap remains the source for changing public-gallery URLs. Keep `/llms.txt` in `assets.run_worker_first` so a missing file can never return the application HTML with HTTP 200.
+The admin Website setting can hide Galleries from navigation. Existing public galleries must first be switched to password-protected access. While hidden, the Home recent-gallery and showcase sections, public gallery directory API, and `/galleries` page stop promoting galleries; the portfolio remains visible. Direct `/e/*` customer links remain functional under the existing publication and password rules. New galleries start protected. The admin always shows a copyable direct URL for each gallery, including drafts and offline galleries; a copied link only works when the gallery is available. This switch does not delete media or revoke a protected-gallery grant.
+
+The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap contains only marketing pages, including `/portfolio`; `/galleries` and every `/e/*` gallery URL are omitted regardless of status. Both paths stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. The directory and all gallery pages use `noindex,nofollow`; public gallery direct links still provide social preview metadata.
+
+The Worker also serves `/llms.txt` as Markdown before the SPA fallback. Its title, summary and language come from Worker vars populated from the selected site profile by the deployment scripts; Wrangler bundles the Worker separately from Vite, so Vite's client-side defines must not be used in server routes. Links use the request hostname and point only to marketing pages and the sitemap. The guide works even when D1 is unavailable. Keep `/llms.txt` in `assets.run_worker_first` so a missing file can never return the application HTML with HTTP 200.
 
 ## Public profile configuration
 
@@ -110,4 +115,4 @@ Text placed on photos uses the shared `--color-on-photo` and overlay tokens; nev
 
 ## Validation
 
-After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/galleries`, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.
+After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/portfolio`, `/galleries` when enabled, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.
