@@ -4,11 +4,26 @@ import {
   CreateEventRequestSchema,
   EventCredentialsSchema,
   EventSchema,
+  HomeHeroCopySchema,
   ModelManifestSchema,
   UpdateSiteSettingsSchema,
 } from '../../../src/shared/schemas';
 
 describe('shared schemas', () => {
+  it('reads existing two-button Home copy as ordered actions and bounds new actions', () => {
+    const language = { label: 'Moments', title: 'Stories', description: 'Thoughtful photos', caption: '', imageAlt: 'A couple',
+      primaryButtonLabel: 'Contact', secondaryButtonLabel: 'Services' };
+    const legacy = { fr: language, en: language, primaryHref: '/contact', secondaryHref: '/services', showSecondary: true };
+    const converted = HomeHeroCopySchema.parse(legacy);
+    expect(converted.buttons).toEqual([
+      { labels: { fr: 'Contact', en: 'Contact' }, href: '/contact', variant: 'primary' },
+      { labels: { fr: 'Services', en: 'Services' }, href: '/services', variant: 'secondary' },
+    ]);
+    expect(HomeHeroCopySchema.parse({ ...legacy, showSecondary: false }).buttons).toHaveLength(1);
+    expect(HomeHeroCopySchema.safeParse({ ...converted, buttons: Array(7).fill(converted.buttons[0]) }).success).toBe(false);
+    expect(HomeHeroCopySchema.safeParse({ ...converted, buttons: [{ ...converted.buttons[0], href: 'https://example.com' }] }).success).toBe(false);
+  });
+
   it('keeps event credentials separate from public events', () => {
     expect('passwordHash' in EventSchema.shape).toBe(false);
     expect('passwordHash' in EventCredentialsSchema.shape).toBe(true);

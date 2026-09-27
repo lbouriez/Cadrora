@@ -12,6 +12,7 @@ The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-ad
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
 Owner-managed Home introduction copy and photo are recorded in [`ADR-029`](../decisions/ADR-029-owner-managed-home-introduction.md).
+Configurable Home introduction buttons and legacy-copy conversion are recorded in [`ADR-030`](../decisions/ADR-030-configurable-home-actions.md).
 Event-date directory ordering and bounded, owner-controlled home stories are recorded in [`ADR-021`](../decisions/ADR-021-gallery-event-date-and-home-stories.md), superseding ADR-012's creation-order rule.
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).

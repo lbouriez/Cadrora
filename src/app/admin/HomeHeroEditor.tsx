@@ -24,14 +24,15 @@ function defaultCopy(translate: (language: Language, key: string) => string): Ho
     description: translate(language, 'gallery.heroLead'),
     caption: translate(language, 'gallery.heroArtCaption'),
     imageAlt: translate(language, 'gallery.heroImageAlt'),
-    primaryButtonLabel: translate(language, siteProfile.home.primaryAction.labelKey),
-    secondaryButtonLabel: translate(language, siteProfile.home.secondaryAction.labelKey),
   });
   return {
     fr: languageCopy('fr'), en: languageCopy('en'),
-    primaryHref: siteProfile.home.primaryAction.href as HomeHeroCopy['primaryHref'],
-    secondaryHref: siteProfile.home.secondaryAction.href as HomeHeroCopy['secondaryHref'],
-    showSecondary: true,
+    buttons: [
+      { labels: { fr: translate('fr', siteProfile.home.primaryAction.labelKey), en: translate('en', siteProfile.home.primaryAction.labelKey) },
+        href: siteProfile.home.primaryAction.href as HomeHeroCopy['buttons'][number]['href'], variant: 'primary' },
+      { labels: { fr: translate('fr', siteProfile.home.secondaryAction.labelKey), en: translate('en', siteProfile.home.secondaryAction.labelKey) },
+        href: siteProfile.home.secondaryAction.href as HomeHeroCopy['buttons'][number]['href'], variant: 'secondary' },
+    ],
   };
 }
 
@@ -40,7 +41,6 @@ const fields: readonly { key: HeroField; maxLength: number; multiline?: boolean 
   { key: 'label', maxLength: 120 }, { key: 'title', maxLength: 120 },
   { key: 'description', maxLength: 500, multiline: true },
   { key: 'imageAlt', maxLength: 180 }, { key: 'caption', maxLength: 120 },
-  { key: 'primaryButtonLabel', maxLength: 60 }, { key: 'secondaryButtonLabel', maxLength: 60 },
 ];
 
 export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, readOnly }: {
@@ -62,7 +62,18 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
     setCopy((previous) => ({ ...previous, [language]: { ...previous[language], [field]: value } }));
     setSaved(false);
   };
-  const updateOptions = (next: HomeHeroCopy) => { setCopy(next); setSaved(false); };
+  const updateButton = (index: number, change: Partial<HomeHeroCopy['buttons'][number]>) => {
+    setCopy((previous) => ({ ...previous, buttons: previous.buttons.map((button, position) => position === index ? { ...button, ...change } : button) }));
+    setSaved(false);
+  };
+  const addButton = () => {
+    setCopy((previous) => ({ ...previous, buttons: [...previous.buttons, { labels: { fr: '', en: '' }, href: '/contact', variant: 'secondary' }] }));
+    setSaved(false);
+  };
+  const removeButton = (index: number) => {
+    setCopy((previous) => ({ ...previous, buttons: previous.buttons.filter((_, position) => position !== index) }));
+    setSaved(false);
+  };
   const refresh = async (result?: AdminSiteSettings) => {
     if (result) queryClient.setQueryData(['admin-site-settings'], result);
     await Promise.all([
@@ -76,6 +87,7 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
       ...copy,
       fr: Object.fromEntries(Object.entries(copy.fr).map(([key, value]) => [key, value.trim()])),
       en: Object.fromEntries(Object.entries(copy.en).map(([key, value]) => [key, value.trim()])),
+      buttons: copy.buttons.map((button) => ({ ...button, labels: { fr: button.labels.fr.trim(), en: button.labels.en.trim() } })),
     };
     const parsed = HomeHeroCopySchema.safeParse(normalized);
     setError(false); setSaved(false);
@@ -135,13 +147,25 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
         languages={LanguageSchema.options} maxLength={maxLength} multiline={multiline ?? false}
         onChange={(language, value) => updateField(language, key, value)} primaryLanguage={primaryLanguage}
         values={{ fr: copy.fr[key], en: copy.en[key] }} />)}
-      <Select disabled={busy || readOnly} label={t('admin.homeHero.primaryDestination')} onChange={(event) => updateOptions({ ...copy, primaryHref: event.target.value as HomeHeroCopy['primaryHref'] })} value={copy.primaryHref}>
-        {destinations.map((destination) => <option key={destination} value={destination}>{t(`admin.homeHero.destinations.${destination.replaceAll('/', '_').replace('#', 'section_')}`)}</option>)}
-      </Select>
-      <label className="admin-settings-services__option"><input checked={copy.showSecondary} disabled={busy || readOnly} onChange={(event) => updateOptions({ ...copy, showSecondary: event.target.checked })} type="checkbox" /><span>{t('admin.homeHero.showSecondary')}</span></label>
-      {copy.showSecondary ? <Select disabled={busy || readOnly} label={t('admin.homeHero.secondaryDestination')} onChange={(event) => updateOptions({ ...copy, secondaryHref: event.target.value as HomeHeroCopy['secondaryHref'] })} value={copy.secondaryHref}>
-        {destinations.map((destination) => <option key={destination} value={destination}>{t(`admin.homeHero.destinations.${destination.replaceAll('/', '_').replace('#', 'section_')}`)}</option>)}
-      </Select> : null}
+      <div className="admin-home-hero-buttons">
+        <h3>{t('admin.homeHero.buttons')}</h3>
+        {copy.buttons.map((button, index) => <div className="admin-home-hero-buttons__item" key={index}>
+          <LocalizedTextField enabledLanguages={enabledLanguages} label={t('admin.homeHero.buttonText', { number: index + 1 })}
+            languages={LanguageSchema.options} maxLength={60} onChange={(language, value) => updateButton(index, { labels: { ...button.labels, [language]: value } })}
+            primaryLanguage={primaryLanguage} required values={button.labels} />
+          <Select disabled={busy || readOnly} label={t('admin.homeHero.buttonDestination', { number: index + 1 })}
+            onChange={(event) => updateButton(index, { href: event.target.value as HomeHeroCopy['buttons'][number]['href'] })} value={button.href}>
+            {destinations.map((destination) => <option key={destination} value={destination}>{t(`admin.homeHero.destinations.${destination.replaceAll('/', '_').replace('#', 'section_')}`)}</option>)}
+          </Select>
+          <Select disabled={busy || readOnly} label={t('admin.homeHero.buttonStyle', { number: index + 1 })}
+            onChange={(event) => updateButton(index, { variant: event.target.value as HomeHeroCopy['buttons'][number]['variant'] })} value={button.variant}>
+            <option value="primary">{t('admin.homeHero.primaryStyle')}</option>
+            <option value="secondary">{t('admin.homeHero.secondaryStyle')}</option>
+          </Select>
+          <Button disabled={busy || readOnly} onClick={() => removeButton(index)} variant="secondary">{t('admin.homeHero.removeButton', { number: index + 1 })}</Button>
+        </div>)}
+        <Button disabled={busy || readOnly || copy.buttons.length >= 6} onClick={addButton} variant="secondary">{t('admin.homeHero.addButton')}</Button>
+      </div>
       <label className="field"><span className="field__label">{t('admin.homeHero.photo')}</span>
         <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
       </label>

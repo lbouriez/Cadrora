@@ -18,14 +18,14 @@ export function HomePage() {
   return Override ? <Override /> : <DefaultHomePage />;
 }
 
-function SiteActionLink({ action, primary, label, href }: { action: SiteAction; primary: boolean; label: string | undefined; href: string }) {
+function SiteActionLink({ action, variant, label, href }: { action?: SiteAction; variant: 'primary' | 'secondary'; label: string; href: string }) {
   const { t } = useTranslation();
-  const content = <><span className="site-actions__full">{label ?? t(action.labelKey)}</span><span aria-hidden="true" className="site-actions__short">{label ?? t(action.shortLabelKey)}</span></>;
-  const className = `button ${primary ? 'button--primary' : 'button--secondary'}`;
+  const content = <><span className="site-actions__full">{label}</span><span aria-hidden="true" className="site-actions__short">{action ? t(action.shortLabelKey) : label}</span></>;
+  const className = `button button--${variant}`;
   const destination = href;
   return destination.startsWith('#')
-    ? <a aria-label={label ?? t(action.labelKey)} className={className} href={destination}>{content}</a>
-    : <Link aria-label={label ?? t(action.labelKey)} className={className} to={destination}>{content}</Link>;
+    ? <a aria-label={label} className={className} href={destination}>{content}</a>
+    : <Link aria-label={label} className={className} to={destination}>{content}</Link>;
 }
 
 export function DefaultHomePage() {
@@ -40,8 +40,14 @@ export function DefaultHomePage() {
   const hero = settings.data?.homeHeroCopy;
   const heroText = hero?.[language];
   const resolveAction = (href: string) => !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
-  const primaryHref = hero?.primaryHref ?? siteProfile.home.primaryAction.href;
-  const secondaryHref = resolveAction(hero?.secondaryHref ?? siteProfile.home.secondaryAction.href);
+  const heroActions: { action?: SiteAction; href: string; label: string; variant: 'primary' | 'secondary' }[] = hero
+    ? hero.buttons.map((button) => ({ href: resolveAction(button.href), label: button.labels[language], variant: button.variant }))
+    : [
+      { action: siteProfile.home.primaryAction, href: resolveAction(siteProfile.home.primaryAction.href),
+        label: t(siteProfile.home.primaryAction.labelKey), variant: 'primary' },
+      { action: siteProfile.home.secondaryAction, href: resolveAction(siteProfile.home.secondaryAction.href),
+        label: t(siteProfile.home.secondaryAction.labelKey), variant: 'secondary' },
+    ];
   return (
     <PublicLayout>
       <section className="site-hero">
@@ -49,10 +55,9 @@ export function DefaultHomePage() {
           <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
           <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
           <p className="site-hero__lead">{heroText?.description ?? t('gallery.heroLead')}</p>
-          <div className="site-actions">
-            <SiteActionLink action={siteProfile.home.primaryAction} href={primaryHref} label={heroText?.primaryButtonLabel} primary />
-            {hero?.showSecondary ?? true ? <SiteActionLink action={siteProfile.home.secondaryAction} href={secondaryHref} label={heroText?.secondaryButtonLabel} primary={false} /> : null}
-          </div>
+          {heroActions.length ? <div className="site-actions">
+            {heroActions.map((action, index) => <SiteActionLink {...action} key={index} />)}
+          </div> : null}
           {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
             <span>{t('gallery.productProof.private')}</span>
             <span>{t('gallery.productProof.free')}</span>

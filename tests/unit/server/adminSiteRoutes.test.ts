@@ -86,9 +86,13 @@ describe('admin site settings routes', () => {
       }),
     } as unknown as D1Database;
     const copy = {
-      fr: { label: 'Images précieuses', title: 'Votre histoire', description: 'Des photos attentives.', caption: '', imageAlt: 'Un couple souriant', primaryButtonLabel: 'Écrivez-nous', secondaryButtonLabel: 'Services' },
-      en: { label: 'Precious images', title: 'Your story', description: 'Thoughtful photography.', caption: '', imageAlt: 'A smiling couple', primaryButtonLabel: 'Contact us', secondaryButtonLabel: 'Services' },
-      primaryHref: '/contact', secondaryHref: '#services', showSecondary: true,
+      fr: { label: 'Images précieuses', title: 'Votre histoire', description: 'Des photos attentives.', caption: '', imageAlt: 'Un couple souriant' },
+      en: { label: 'Precious images', title: 'Your story', description: 'Thoughtful photography.', caption: '', imageAlt: 'A smiling couple' },
+      buttons: [
+        { labels: { fr: 'Écrivez-nous', en: 'Contact us' }, href: '/contact', variant: 'primary' },
+        { labels: { fr: 'Services', en: 'Services' }, href: '#services', variant: 'secondary' },
+        { labels: { fr: 'Galeries', en: 'Galleries' }, href: '/galleries', variant: 'secondary' },
+      ],
     };
     const app = appWith();
     const saved = await app.request('/api/v1/admin/site/home-hero', {

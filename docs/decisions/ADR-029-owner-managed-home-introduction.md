@@ -2,6 +2,8 @@
 
 Status: accepted by the owner's 2026-09-27 implementation request. This extends ADR-008, ADR-013, ADR-027, and ADR-028.
 
+The fixed two-button portion below is superseded by [ADR-030](ADR-030-configurable-home-actions.md).
+
 ## Context
 
 The Home introduction text, buttons, photo, and photo tag were compiled into the site profile. The owner needs to edit them without a deployment while keeping the sample content as a resettable fallback. The first Home photo is also the likely largest contentful paint element, so its URL must be known before the settings request finishes.

@@ -55,8 +55,22 @@ describe('Home introduction editor', () => {
     const dialog = screen.getByRole('dialog', { name: 'Traductions : Petit titre' });
     fireEvent.change(within(dialog).getByRole('textbox', { name: 'Anglais' }), { target: { value: 'Chosen stories' } });
     fireEvent.click(within(dialog).getAllByRole('button', { name: 'Fermer les traductions' }).at(-1)!);
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter un bouton' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Texte du bouton 3 · Français' }), { target: { value: 'Voir les galeries' } });
+    fireEvent.click(screen.getByRole('button', { name: /^Traductions : Texte du bouton 3/ }));
+    const buttonDialog = screen.getByRole('dialog', { name: 'Traductions : Texte du bouton 3' });
+    fireEvent.change(within(buttonDialog).getByRole('textbox', { name: 'Anglais' }), { target: { value: 'See galleries' } });
+    fireEvent.click(within(buttonDialog).getAllByRole('button', { name: 'Fermer les traductions' }).at(-1)!);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Destination du bouton 3' }), { target: { value: '/galleries' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Style du bouton 3' }), { target: { value: 'primary' } });
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer l’introduction' }));
-    await waitFor(() => expect(savedBody).toMatchObject({ fr: { label: 'Histoires choisies' }, en: { label: 'Chosen stories' } }));
+    await waitFor(() => expect(savedBody).toMatchObject({
+      fr: { label: 'Histoires choisies' }, en: { label: 'Chosen stories' },
+      buttons: [expect.any(Object), expect.any(Object), { labels: { fr: 'Voir les galeries', en: 'See galleries' }, href: '/galleries', variant: 'primary' }],
+    }));
+    fireEvent.click(screen.getByRole('button', { name: 'Retirer le bouton 2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer l’introduction' }));
+    await waitFor(() => expect((savedBody as { buttons: unknown[] }).buttons).toHaveLength(2));
     fireEvent.click(screen.getByRole('button', { name: 'Rétablir l’exemple' }));
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/reset'))).toBe(true));
   });

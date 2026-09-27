@@ -65,6 +65,35 @@ test('owner-edited brand copy updates both languages without changing the design
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Your story');
 });
 
+test('three owner buttons keep their theme styles and fit a phone screen', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3,
+    homeHeroCopy: {
+      fr: { label: 'Des images', title: 'Votre histoire', description: 'Des photos à garder.', caption: '', imageAlt: 'Un couple souriant' },
+      en: { label: 'Images', title: 'Your story', description: 'Photos to keep.', caption: '', imageAlt: 'A smiling couple' },
+      buttons: [
+        { labels: { fr: 'Nous contacter', en: 'Contact us' }, href: '/contact', variant: 'primary' },
+        { labels: { fr: 'Services', en: 'Services' }, href: '/services', variant: 'secondary' },
+        { labels: { fr: 'Galeries', en: 'Galleries' }, href: '/galleries', variant: 'primary' },
+      ],
+    },
+    updatedAt: '2026-09-27T00:00:00.000Z',
+  }) }));
+  await page.goto('/');
+  const actions = page.locator('.site-hero .site-actions .button');
+  await expect(actions).toHaveCount(3);
+  await expect(actions.nth(2)).toHaveClass(/button--primary/u);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await assertNoHorizontalOverflow(page);
+  const first = await actions.first().boundingBox();
+  const last = await actions.last().boundingBox();
+  expect((last?.width ?? 0) > (first?.width ?? 0)).toBe(true);
+});
+
 test('fixed light appearance does not flash a dark theme or a theme switch while settings load', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('cadrora-theme', 'dark'));
   let releaseSettings: (() => void) | undefined;

@@ -33,16 +33,40 @@ export const HomeHeroLanguageSchema = z.object({
   description: z.string().min(1).max(500),
   caption: z.string().max(120),
   imageAlt: z.string().min(1).max(180),
+}).strict();
+export const HomeHeroButtonSchema = z.object({
+  labels: z.object({ fr: z.string().min(1).max(60), en: z.string().min(1).max(60) }).strict(),
+  href: HomeHeroDestinationSchema,
+  variant: z.enum(['primary', 'secondary']),
+}).strict();
+const CurrentHomeHeroCopySchema = z.object({
+  fr: HomeHeroLanguageSchema,
+  en: HomeHeroLanguageSchema,
+  buttons: z.array(HomeHeroButtonSchema).max(6),
+}).strict();
+const LegacyHomeHeroLanguageSchema = HomeHeroLanguageSchema.extend({
   primaryButtonLabel: z.string().min(1).max(60),
   secondaryButtonLabel: z.string().min(1).max(60),
 }).strict();
-export const HomeHeroCopySchema = z.object({
-  fr: HomeHeroLanguageSchema,
-  en: HomeHeroLanguageSchema,
+const LegacyHomeHeroCopySchema = z.object({
+  fr: LegacyHomeHeroLanguageSchema,
+  en: LegacyHomeHeroLanguageSchema,
   primaryHref: HomeHeroDestinationSchema,
   secondaryHref: HomeHeroDestinationSchema,
   showSecondary: z.boolean(),
 }).strict();
+/** Old D1 documents stay readable and are returned in the current action-list shape. */
+export const HomeHeroCopySchema = z.union([CurrentHomeHeroCopySchema, LegacyHomeHeroCopySchema.transform((legacy) => {
+  const { primaryButtonLabel: primaryFr, secondaryButtonLabel: secondaryFr, ...fr } = legacy.fr;
+  const { primaryButtonLabel: primaryEn, secondaryButtonLabel: secondaryEn, ...en } = legacy.en;
+  return {
+    fr, en,
+    buttons: [
+      { labels: { fr: primaryFr, en: primaryEn }, href: legacy.primaryHref, variant: 'primary' as const },
+      ...(legacy.showSecondary ? [{ labels: { fr: secondaryFr, en: secondaryEn }, href: legacy.secondaryHref, variant: 'secondary' as const }] : []),
+    ],
+  };
+})]);
 
 export const SiteCopyLanguageSchema = z.object({
   description: z.string().min(1).max(300).optional(),

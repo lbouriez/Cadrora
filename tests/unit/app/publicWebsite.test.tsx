@@ -143,9 +143,13 @@ describe('public photographer website', () => {
 
   it('uses the Home introduction from the existing site response and keeps the photo URL available immediately', async () => {
     const homeHeroCopy = {
-      fr: { label: 'Moments choisis', title: 'Votre lumière', description: 'Des images pour votre histoire.', caption: '', imageAlt: 'Portrait au soleil', primaryButtonLabel: 'Parlons-en', secondaryButtonLabel: 'Services' },
-      en: { label: 'Chosen moments', title: 'Your light', description: 'Images for your story.', caption: '', imageAlt: 'Sunlit portrait', primaryButtonLabel: 'Get in touch', secondaryButtonLabel: 'Services' },
-      primaryHref: '/contact', secondaryHref: '/services', showSecondary: false,
+      fr: { label: 'Moments choisis', title: 'Votre lumière', description: 'Des images pour votre histoire.', caption: '', imageAlt: 'Portrait au soleil' },
+      en: { label: 'Chosen moments', title: 'Your light', description: 'Images for your story.', caption: '', imageAlt: 'Sunlit portrait' },
+      buttons: [
+        { labels: { fr: 'Parlons-en', en: 'Get in touch' }, href: '/contact', variant: 'primary' },
+        { labels: { fr: 'Services', en: 'Services' }, href: '/services', variant: 'secondary' },
+        { labels: { fr: 'Galeries', en: 'Galleries' }, href: '/galleries', variant: 'primary' },
+      ],
     };
     const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
       url === '/api/v1/site' ? { ...runtimeSettings, homeHeroCopy, homeHeroImageRevision: 2, homeGalleries: { enabled: false, limit: 6 } } : [],
@@ -157,6 +161,8 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
     expect(screen.getByRole('img', { name: 'Portrait au soleil' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/contact');
+    expect(document.querySelector('.site-hero .site-actions a[href="/galleries"]')?.className).toContain('button--primary');
+    expect(document.querySelectorAll('.site-hero .site-actions .button')).toHaveLength(3);
     expect(document.querySelector('.site-hero__art figcaption')).toBeNull();
     expect(fetchMock.mock.calls.filter(([url]) => url === '/api/v1/site')).toHaveLength(1);
   });
