@@ -2,7 +2,7 @@
 
 Base path: `/api/v1`. All API failures are JSON objects with `code`, `message`, and `requestId`; `message` is an i18n key, not a guaranteed human-facing sentence. `/api/*` never falls back to SPA HTML. All admin responses are `Cache-Control: no-store`.
 
-This reference reflects routes registered by `src/server/app.ts` on 2026-09-22. Gallery HTTP routes use `/galleries` consistently. Some TypeScript and D1 identifiers still use `eventId`; those identifiers are implementation details and do not create an `/events` alias.
+This reference reflects routes registered by `src/server/app.ts` on 2026-09-27. Gallery HTTP routes use `/galleries` consistently. Some TypeScript and D1 identifiers still use `eventId`; those identifiers are implementation details and do not create an `/events` alias.
 
 ## Authentication
 
@@ -27,6 +27,15 @@ This reference reflects routes registered by `src/server/app.ts` on 2026-09-22. 
 
 Authentication failures expose only application-safe codes and a request ID. `TURNSTILE_FAILED` means the submitted challenge was rejected; `TURNSTILE_UNAVAILABLE` means verification could not be completed. Protected-event unlock can additionally return `INVALID_EVENT_PASSWORD`, `EVENT_PASSWORD_UNAVAILABLE`, or `EVENT_GRANT_UNAVAILABLE`. Provider tokens, secrets, visitor IPs, submitted passwords, the auth pepper, and stored verifiers are never API diagnostics.
 
+### Owner diagnostics
+
+| Method and path | Result |
+| --- | --- |
+| `GET /admin/worker-errors?before=` | Up to 50 classified Worker 5xx entries, newest first, with `nextBefore`; rows expire after 30 days. |
+| `GET /admin/diagnostics/media?scope=galleries|services|portfolio&cursor=` | One read-only page of at most 100 R2 objects in the selected namespace, compared with D1 variant rows after a 15-minute upload grace period. Returns `scanned`, `untracked`, `nextCursor`, and deletion-job state counts. |
+
+Both routes require a manage-capable owner session; the read-only demo is denied. Continue each media scan until `nextCursor` is null. Findings need manual review against D1 and maintenance jobs; this API never deletes an object.
+
 ## Galleries
 
 | Method and path | Access | Input/result |
@@ -37,7 +46,7 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 | `GET /galleries/:eventId/preview` | Public | Title, description, optional service, event date, and creation date of a published, online protected gallery, including one hidden from lists. No cover or photo URL. The full gallery still requires its password. |
 | `POST /galleries/:eventId/unlock` | Public + Turnstile | `{ password, turnstileToken }`; on success `{ unlocked: true }` and an event-grant cookie. |
 | `GET /galleries/:eventId/photos?cursor=&limit=` | Public or grant | Published photos, their revisioned derived-source URLs, and a revision-bound cursor. `limit` is 1–100 and defaults to 40. |
-| `GET /admin/galleries` | Admin | All galleries, including draft, unlisted, offline, and deletion-pending. Each item includes `storageBytes` and `photoCount`; the count excludes photo rows in `deleting` or `deleted` state. |
+| `GET /admin/galleries?cursor=&limit=` | Admin | Paginated galleries, including draft, unlisted, offline, and deletion-pending. Returns `{ events, nextCursor }`, ordered by event date and ID. `limit` defaults to 24 and must be 1–48. Each item includes `storageBytes` and `photoCount`; the count excludes photo rows in `deleting` or `deleted` state. |
 | `POST /admin/galleries/:eventId/view` | Owner admin | For a published, online gallery, returns `{ slug }`. For protected galleries it also issues a current gallery-scoped grant cookie, so the owner can open the ordinary viewer without entering the visitor password. Read-only demo sessions cannot use it. |
 | `POST /admin/galleries` | Admin | Creates a gallery; returns `201` with the full internal event record. |
 | `PATCH /admin/galleries/:eventId` | Admin | Partial gallery update; slug is intentionally absent from the update schema. A deletion-pending gallery rejects updates. |

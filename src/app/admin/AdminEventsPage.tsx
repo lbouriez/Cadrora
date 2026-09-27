@@ -6,11 +6,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
-import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
+import { BackLink, Button, ConfirmDialog, InfiniteLoadMore, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
 import { LockIcon } from '../components/Icons';
 import { useAdminAccess } from './AdminAccessContext';
 import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
-import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
+import { abandonOriginalImports, getAdminEvent, getAdminEventPage, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
 import { formatMediaStorage } from './formatMediaStorage';
 import { GalleryServiceField } from './GalleryServiceField';
 import { PublishPanel } from './PublishPanel';
@@ -91,7 +91,12 @@ export function AdminEventsPage() {
   const [nearbySearchEnabled, setNearbySearchEnabled] = useState(false);
   const [allowDownloads, setAllowDownloads] = useState(false);
   const [keepOriginals, setKeepOriginals] = useState(false);
-  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
+  const events = useInfiniteQuery({
+    queryFn: ({ pageParam }) => getAdminEventPage(pageParam ?? undefined),
+    queryKey: ['admin-events'], initialPageParam: null as string | null,
+    getNextPageParam: (page) => page.nextCursor,
+  });
+  const listedEvents = events.data?.pages.flatMap((page) => page.events) ?? [];
   const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'] });
   const galleryDirectoryEnabled = siteSettings.data?.galleryDirectoryEnabled === true;
   const creation = useMutation({
@@ -156,9 +161,9 @@ export function AdminEventsPage() {
           : <h1 className="admin-card__title" id="event-list-title">{t('admin.events.listTitle')}</h1>}
         {events.isPending ? <Spinner label={t('admin.events.loading')} /> : null}
         {events.isError ? <p role="alert">{t('admin.events.listError')}</p> : null}
-        {events.data?.length === 0 ? <p>{t('admin.events.empty')}</p> : null}
+        {events.data && listedEvents.length === 0 ? <p>{t('admin.events.empty')}</p> : null}
         <div className="admin-event-list">
-          {events.data?.map((event) => {
+          {listedEvents.map((event) => {
             const storage = formatMediaStorage(event.storageBytes, i18n.language);
             return <article className="admin-event-row" key={event.id}>
               <div>
@@ -191,6 +196,10 @@ export function AdminEventsPage() {
             </article>;
           })}
         </div>
+        <InfiniteLoadMore error={events.isFetchNextPageError} errorLabel={t('admin.events.listError')}
+          hasMore={Boolean(events.hasNextPage)} loadLabel={t('admin.events.loadMore')}
+          loading={events.isFetchingNextPage} loadingLabel={t('admin.events.loading')}
+          onLoadMore={() => void events.fetchNextPage()} />
       </section>
       <section aria-labelledby="event-create-title" className="admin-card">
         <h2 className="admin-card__title" id="event-create-title">{t('admin.events.createTitle')}</h2>
@@ -301,7 +310,10 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
     mutationFn: (payload: unknown) => updateEvent(event.id, payload),
     onSuccess: async () => {
       setSaved(true);
-      await queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-events'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-event', event.id] }),
+      ]);
     },
   });
 
@@ -459,12 +471,16 @@ function OriginalsCleanupPanel({ event }: { event: Event }) {
 function DeleteGalleryPanel({ event }: { event: Event }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const deletion = useMutation({
     mutationFn: () => deleteGallery(event.id, confirmation),
-    onSuccess: () => { void navigate('/admin/galleries', { replace: true }); },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      void navigate('/admin/galleries', { replace: true });
+    },
   });
   const close = () => {
     if (deletion.isPending) return;
@@ -520,7 +536,10 @@ function CoverPhotoPanel({ event }: { event: Event }) {
     mutationFn: (coverPhotoId: string | null) => updateEvent(event.id, { coverPhotoId }),
     onSuccess: async (updated) => {
       setSelectedId(updated.coverPhotoId);
-      await queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-events'] }),
+        queryClient.invalidateQueries({ queryKey: ['admin-event', event.id] }),
+      ]);
     },
   });
   const photos = candidates.data?.pages.flatMap((page) => page.photos) ?? [];
@@ -552,11 +571,11 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   const { t } = useTranslation();
   const { readOnly } = useAdminAccess();
   const queryClient = useQueryClient();
-  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
+  const eventQuery = useQuery({ queryFn: () => getAdminEvent(eventId), queryKey: ['admin-event', eventId] });
   const publication = useQuery({ queryFn: () => getPublicationSummary(eventId), queryKey: ['publication-summary', eventId] });
-  if (events.isPending || publication.isPending) return <Spinner label={t('admin.events.loading')} />;
-  const event = events.data?.find((candidate) => candidate.id === eventId);
-  if (events.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
+  if (eventQuery.isPending || publication.isPending) return <Spinner label={t('admin.events.loading')} />;
+  const event = eventQuery.data;
+  if (eventQuery.isError || publication.isError || !event || !publication.data) return <p role="alert">{t('admin.events.notFound')}</p>;
   return (
     <div className="admin-workspace">
       <header className="admin-workspace__heading">
@@ -569,6 +588,7 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
         onChanged={(updated) => {
           queryClient.setQueryData(['publication-summary', eventId], updated);
           void queryClient.invalidateQueries({ queryKey: ['admin-events'] });
+          void queryClient.invalidateQueries({ queryKey: ['admin-event', eventId] });
         }}
         readOnly={readOnly}
         summary={publication.data}

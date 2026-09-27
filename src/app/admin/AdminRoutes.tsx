@@ -15,11 +15,12 @@ import { adminImportResources } from './ImportResources';
 import { AdminEventsPage, AdminEventSettingsPage } from './AdminEventsPage';
 import { AdminFavoritesPage } from './AdminFavoritesPage';
 import { AdminAccessProvider, useAdminAccess } from './AdminAccessContext';
-import { getAdminEvents } from './adminEventsApi';
+import { getAdminEvent } from './adminEventsApi';
 import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
 import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
 import { AdminPortfolioPage } from './AdminPortfolioPage';
+import { WorkerErrorsPage } from './WorkerErrorsPage';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
 import { adminResourceFragment } from './resources';
@@ -28,12 +29,36 @@ import { homeHeroResources } from './homeHeroResources';
 import { portfolioResources } from './portfolioResources';
 import './admin.css';
 
+const diagnosticsResources = {
+  en: { admin: { diagnostics: {
+    title: 'Worker errors', description: 'Recent server errors kept for 30 days. Request IDs help match an error to a visitor report.',
+    denied: 'This view requires owner access.', loading: 'Loading errors…', error: 'Could not load errors.',
+    empty: 'No recorded errors.', time: 'Time', route: 'Route', code: 'Error', request: 'Request ID', loadMore: 'Load more errors',
+    mediaTitle: 'Media inventory', mediaDescription: 'Scan 100 R2 objects per request. Objects uploaded less than 15 minutes ago are ignored. A missing D1 row needs manual review; this screen never deletes objects.',
+    scope: { galleries: 'Scan galleries', services: 'Scan services', portfolio: 'Scan portfolio' },
+    scanning: 'Scanning media…', scanError: 'Could not scan media.', noUntracked: 'No untracked objects in scanned pages.',
+    scanStatus: 'Scanned {{count}} objects. Cleanup jobs: {{pending}} pending, {{running}} running, {{failed}} failed.',
+    objectKey: 'R2 object key', uploaded: 'Uploaded', scanNext: 'Scan next 100',
+  } } },
+  fr: { admin: { diagnostics: {
+    title: 'Erreurs Worker', description: 'Erreurs récentes du serveur conservées 30 jours. L’identifiant de requête aide à retrouver un incident signalé.',
+    denied: 'Cette vue exige l’accès propriétaire.', loading: 'Chargement des erreurs…', error: 'Impossible de charger les erreurs.',
+    empty: 'Aucune erreur enregistrée.', time: 'Heure', route: 'Route', code: 'Erreur', request: 'ID de requête', loadMore: 'Charger plus d’erreurs',
+    mediaTitle: 'Inventaire des médias', mediaDescription: 'Analyse de 100 objets R2 par requête. Les objets téléversés depuis moins de 15 minutes sont ignorés. Une absence dans D1 exige une vérification manuelle; cette page ne supprime rien.',
+    scope: { galleries: 'Analyser les galeries', services: 'Analyser les services', portfolio: 'Analyser le portfolio' },
+    scanning: 'Analyse des médias…', scanError: 'Impossible d’analyser les médias.', noUntracked: 'Aucun objet sans référence dans les pages analysées.',
+    scanStatus: '{{count}} objets analysés. Tâches de nettoyage : {{pending}} en attente, {{running}} en cours, {{failed}} en échec.',
+    objectKey: 'Clé de l’objet R2', uploaded: 'Téléversé', scanNext: 'Analyser les 100 suivants',
+  } } },
+} as const;
+
 for (const language of ['en', 'fr'] as const) {
   i18n.addResourceBundle(language, 'translation', adminResourceFragment[language], true, true);
   i18n.addResourceBundle(language, 'translation', adminImportResources[language].translation, true, true);
   i18n.addResourceBundle(language, 'translation', serviceEditorResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', homeHeroResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', portfolioResources[language], true, true);
+  i18n.addResourceBundle(language, 'translation', diagnosticsResources[language], true, true);
 }
 
 async function getSession(): Promise<Session | null> {
@@ -96,10 +121,10 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
     queryKey: ['publication-summary', eventId],
     refetchInterval: readOnly ? false : 3_000,
   });
-  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
-  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
-  const gallery = events.data?.find((candidate) => candidate.id === eventId);
-  if (events.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
+  const event = useQuery({ queryFn: () => getAdminEvent(eventId), queryKey: ['admin-event', eventId] });
+  if (event.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
+  const gallery = event.data;
+  if (event.isError || !gallery) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
   if (readOnly) {
     return <div className="admin-workspace">
       <section className="admin-card">
@@ -141,11 +166,11 @@ export function AdminImportRoute() {
 }
 
 function AdminFavoritesContent({ eventId }: { eventId: string }) {
-  const events = useQuery({ queryFn: getAdminEvents, queryKey: ['admin-events'] });
-  if (events.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
-  const event = events.data?.find((candidate) => candidate.id === eventId && candidate.access === 'protected' && !candidate.deletingAt);
-  if (events.isError || !event) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
-  return <AdminFavoritesPage event={event} />;
+  const event = useQuery({ queryFn: () => getAdminEvent(eventId), queryKey: ['admin-event', eventId] });
+  if (event.isPending) return <Spinner label={i18n.t('admin.events.loading')} />;
+  const gallery = event.data;
+  if (event.isError || !gallery || gallery.access !== 'protected' || gallery.deletingAt) return <p role="alert">{i18n.t('admin.events.notFound')}</p>;
+  return <AdminFavoritesPage event={gallery} />;
 }
 
 export function AdminFavoritesRoute() {
@@ -164,4 +189,8 @@ export function AdminSiteSettingsRoute() {
 
 export function AdminPortfolioRoute() {
   return <AdminFrame><AdminPortfolioPage /></AdminFrame>;
+}
+
+export function AdminWorkerErrorsRoute() {
+  return <AdminFrame><WorkerErrorsPage /></AdminFrame>;
 }

@@ -5,13 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 import {
   LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema,
-  ServiceImageRevisionSchema, ServiceImageUploadResponseSchema,
 } from '../../shared/schemas';
 import type { Language, ServiceCard, ServiceCopy } from '../../shared/schemas';
-import { createImageEncoder } from '../../browser/images';
 import { Button, Spinner } from '../components';
 import { ServicePhoto } from '../public/ServicePhoto';
 import { LocalizedTextField } from './LocalizedTextField';
+import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -110,25 +109,11 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     setBusy(true);
     setError(false);
     setSuccess(false);
-    const encoder = createImageEncoder();
     try {
-      const encoded = await encoder.encodeService(file);
-      const { revision } = await apiJson(`/api/v1/admin/services/${card.id}/image-revision`, ServiceImageRevisionSchema, { method: 'POST' });
-      for (const variant of encoded.variants) {
-        await apiJson(`/api/v1/admin/services/${card.id}/image/${revision}/${variant.name}`, ServiceImageUploadResponseSchema, {
-          method: 'PUT', body: variant.blob, headers: {
-            'Content-Type': variant.contentType,
-            'X-Cadrora-Byte-Size': String(variant.byteSize),
-            'X-Cadrora-Checksum-Sha256': variant.checksumSha256,
-            'X-Cadrora-Height': String(variant.height),
-            'X-Cadrora-Width': String(variant.width),
-          },
-        });
-      }
-      await apiJson(`/api/v1/admin/services/${card.id}/image/${revision}/publish`, ServiceCardSchema, { method: 'POST' });
+      await uploadMarketingPhoto(file, { kind: 'service', id: card.id });
       await onChanged();
       setSuccess(true);
-    } catch { setError(true); } finally { encoder.dispose(); setBusy(false); }
+    } catch { setError(true); } finally { setBusy(false); }
   };
 
   const label = card?.copy?.[primaryLanguage].title || (card?.isBuiltin

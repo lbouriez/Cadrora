@@ -93,10 +93,17 @@ export class MaintenanceRunner {
 
     if (job.kind === 'delete_gallery') {
       const payload = parseDeleteGalleryPayload(job.payload);
-      const cleanup = await this.dependencies.repository.galleryCleanupData(payload.eventId);
-      await this.dependencies.storage.deleteMany(cleanup.storageKeys);
-      await this.dependencies.vectors.deleteMany(cleanup.vectorIds);
-      await this.dependencies.repository.completeGalleryDeletion(job.id, payload.eventId, now.toISOString());
+      const batch = await this.dependencies.repository.galleryCleanupBatch(payload.eventId);
+      if (batch.kind === 'complete') {
+        await this.dependencies.repository.completeGalleryDeletion(job.id, payload.eventId, now.toISOString());
+        return;
+      }
+      if (batch.kind === 'media') {
+        await this.dependencies.storage.deleteMany(batch.rows.map((row) => row.storageKey));
+      } else if (batch.kind === 'faces') {
+        await this.dependencies.vectors.deleteMany(batch.rows.map((row) => row.vectorId));
+      }
+      await this.dependencies.repository.completeGalleryCleanupBatch(job.id, payload.eventId, batch, now.toISOString());
       return;
     }
 

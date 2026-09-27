@@ -156,7 +156,7 @@ test.describe('site vitrine statique', () => {
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   });
 
-  test('publie les coordonnees sans formulaire ni dependance distante', async ({ page }) => {
+  test('publie les coordonnees sans formulaire ni dependance distante', async ({ page, baseURL }) => {
     await page.route('**/api/v1/site', async (route) => {
       await route.fulfill({
         body: JSON.stringify({
@@ -171,9 +171,10 @@ test.describe('site vitrine statique', () => {
       });
     });
     const remoteRequests: string[] = [];
+    const localOrigin = new URL(baseURL ?? '').origin;
     page.on('request', (request) => {
       const url = new URL(request.url());
-      if (url.origin !== 'http://127.0.0.1:4178') remoteRequests.push(request.url());
+      if (url.origin !== localOrigin) remoteRequests.push(request.url());
     });
 
     await page.goto('/contact');
@@ -283,10 +284,9 @@ test.describe('site vitrine statique', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');
-    const heroArt = page.locator('.site-hero__art');
-    await expect(heroArt).toHaveClass(/motion-reveal--scale/);
-    await expect(heroArt).toHaveClass(/motion-reveal--visible/);
-    expect(await heroArt.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
+    const heroCopy = page.locator('.site-hero__copy');
+    await expect(heroCopy).toHaveClass(/motion-reveal--visible/);
+    expect(await heroCopy.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
     const demoCard = page.locator('.demo-experience-card').first();
     await demoCard.scrollIntoViewIfNeeded();
     await expect(demoCard).toHaveClass(/motion-reveal--visible/);

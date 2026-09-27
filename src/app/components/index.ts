@@ -34,6 +34,8 @@ export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 export { Pagination } from './Pagination';
 export type { PaginationProps } from './Pagination';
+export { InfiniteLoadMore } from './InfiniteLoadMore';
+export type { InfiniteLoadMoreProps } from './InfiniteLoadMore';
 export { Tabs } from './Tabs';
 export type { TabDefinition, TabsProps } from './Tabs';
 export { Badge } from './Badge';

@@ -19,7 +19,7 @@
   "vars": {
     "ADMIN_AUTH_MODE": "password",
     "DEMO_SHOWCASE_ENABLED": "false",
-    "FEATURE_PUBLIC_MEDIA_CACHE": "false",
+    "FEATURE_PUBLIC_MEDIA_CACHE": "true",
     "DEMO_ADMIN_USERNAME": "demo",
     "DEMO_ADMIN_PASSWORD": "cadrora-demo",
     "SESSION_TTL_H": "8",
@@ -38,6 +38,10 @@
   "triggers": {
     "crons": ["*/15 * * * *"]
   },
+  "ratelimits": [
+    { "name": "AUTH_RATE_LIMITER", "namespace_id": "2970101", "simple": { "limit": 20, "period": 60 } },
+    { "name": "FACE_RATE_LIMITER", "namespace_id": "2970102", "simple": { "limit": 30, "period": 60 } }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -61,10 +65,14 @@
   ],
   "env": {
     "preview": {
+      "ratelimits": [
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "2970201", "simple": { "limit": 20, "period": 60 } },
+        { "name": "FACE_RATE_LIMITER", "namespace_id": "2970202", "simple": { "limit": 30, "period": 60 } }
+      ],
       "vars": {
         "ADMIN_AUTH_MODE": "password",
         "DEMO_SHOWCASE_ENABLED": "false",
-        "FEATURE_PUBLIC_MEDIA_CACHE": "false",
+        "FEATURE_PUBLIC_MEDIA_CACHE": "true",
         "DEMO_ADMIN_USERNAME": "demo",
         "DEMO_ADMIN_PASSWORD": "cadrora-demo",
         "SESSION_TTL_H": "8",

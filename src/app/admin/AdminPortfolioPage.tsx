@@ -4,15 +4,15 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { createImageEncoder } from '../../browser/images';
 import {
   DeletePortfolioItemResponseSchema, PortfolioCollectionDetailSchema, PortfolioCollectionsSchema,
-  PortfolioCategoriesSchema, PortfolioCategorySchema, PortfolioItemSchema, ServiceImageUploadResponseSchema,
+  PortfolioCategoriesSchema, PortfolioCategorySchema, PortfolioItemSchema,
 } from '../../shared/schemas';
 import type { PortfolioCategory, PortfolioCollectionDetail, PortfolioItem } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, Dropzone, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
 import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
+import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -68,22 +68,7 @@ function PortfolioCategoryField({ categories, value, onChange, language, disable
 }
 
 async function uploadPhoto(id: string, file: File): Promise<void> {
-  const encoder = createImageEncoder();
-  try {
-    const encoded = await encoder.encodeService(file);
-    for (const variant of encoded.variants) {
-      await apiJson(`/api/v1/admin/portfolio/${id}/image/${variant.name}`, ServiceImageUploadResponseSchema, {
-        method: 'PUT', body: variant.blob, headers: {
-          'Content-Type': variant.contentType,
-          'X-Cadrora-Byte-Size': String(variant.byteSize),
-          'X-Cadrora-Checksum-Sha256': variant.checksumSha256,
-          'X-Cadrora-Height': String(variant.height),
-          'X-Cadrora-Width': String(variant.width),
-        },
-      });
-    }
-    await apiJson(`/api/v1/admin/portfolio/${id}/publish`, PortfolioItemSchema, { method: 'POST' });
-  } finally { encoder.dispose(); }
+  await uploadMarketingPhoto(file, { kind: 'portfolio', id });
 }
 
 function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () => Promise<void> }) {

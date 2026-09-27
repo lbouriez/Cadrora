@@ -8,12 +8,15 @@ import type {
 import type { StorageService } from '../../../src/server/services/storage';
 import type { VectorDeleteService } from '../../../src/server/services/vectorize';
 import { CloudflareVectorDeleteService } from '../../../src/server/services/vectorize';
+import { GALLERY_CLEANUP_BATCH_SIZE } from '../../../src/server/repositories/maintenanceRepository';
+import type { GalleryCleanupBatch } from '../../../src/server/repositories/maintenanceRepository';
 
 function repositoryFor(job: MaintenanceJobRecord) {
   let claimed = false;
   const completePhotoDeletion = vi.fn();
   const completeExpiredFacePurge = vi.fn();
   const completeGalleryDeletion = vi.fn();
+  const completeGalleryCleanupBatch = vi.fn();
   const completeOriginalCleanupBatch = vi.fn();
   const completeJob = vi.fn();
   const expiredFaceVectorIds = vi.fn().mockResolvedValue([]);
@@ -28,18 +31,19 @@ function repositoryFor(job: MaintenanceJobRecord) {
     completeEventFacePurge: vi.fn(),
     completeExpiredFacePurge,
     completeGalleryDeletion,
+    completeGalleryCleanupBatch,
     completeOriginalCleanupBatch,
     completeJob,
     completePhotoDeletion,
     eventFaceVectorIds: vi.fn().mockResolvedValue([]),
     expiredFaceVectorIds,
-    galleryCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['gallery/a'], vectorIds: ['gallery-v'] }),
+    galleryCleanupBatch: vi.fn().mockResolvedValue({ kind: 'media', rows: [{ photoId: 'photo-1', variant: 'small', storageKey: 'gallery/a' }] }),
     originalCleanupBatch,
     photoCleanupData: vi.fn().mockResolvedValue({ storageKeys: ['a', 'b'], vectorIds: ['v'] }),
     reconcileUsage: vi.fn(),
     retryJob,
   };
-  return { completeExpiredFacePurge, completeGalleryDeletion, completeOriginalCleanupBatch, completeJob, completePhotoDeletion, expiredFaceVectorIds, originalCleanupBatch, repository, retryJob };
+  return { completeExpiredFacePurge, completeGalleryCleanupBatch, completeGalleryDeletion, completeOriginalCleanupBatch, completeJob, completePhotoDeletion, expiredFaceVectorIds, originalCleanupBatch, repository, retryJob };
 }
 
 describe('maintenance runner', () => {
@@ -147,14 +151,14 @@ describe('maintenance runner', () => {
     );
   });
 
-  it('purges gallery providers before deleting its D1 records', async () => {
+  it('acknowledges only one gallery media batch after its R2 objects are deleted', async () => {
     const job: MaintenanceJobRecord = {
       attempts: 1,
       id: 'job-gallery',
       kind: 'delete_gallery',
       payload: { eventId: 'event-1' },
     };
-    const { completeGalleryDeletion, repository } = repositoryFor(job);
+    const { completeGalleryCleanupBatch, completeGalleryDeletion, repository } = repositoryFor(job);
     const deleteStorage = vi.fn();
     const deleteVectors = vi.fn();
     const runner = new MaintenanceRunner({
@@ -166,12 +170,76 @@ describe('maintenance runner', () => {
 
     expect(await runner.run()).toBe(1);
     expect(deleteStorage).toHaveBeenCalledWith(['gallery/a']);
-    expect(deleteVectors).toHaveBeenCalledWith(['gallery-v']);
-    expect(completeGalleryDeletion).toHaveBeenCalledWith(
+    expect(deleteVectors).not.toHaveBeenCalled();
+    expect(completeGalleryCleanupBatch).toHaveBeenCalledWith(
       'job-gallery',
       'event-1',
+      { kind: 'media', rows: [{ photoId: 'photo-1', variant: 'small', storageKey: 'gallery/a' }] },
       '2030-01-01T00:00:00.000Z',
     );
+    expect(completeGalleryDeletion).not.toHaveBeenCalled();
+  });
+
+  it('resumes a large gallery after a provider failure without losing its D1 progress', async () => {
+    const job: MaintenanceJobRecord = {
+      attempts: 1, id: 'job-large', kind: 'delete_gallery', payload: { eventId: 'event-large' },
+    };
+    const { repository, retryJob, completeGalleryDeletion } = repositoryFor(job);
+    const pending = Array.from({ length: GALLERY_CLEANUP_BATCH_SIZE * 2 + 7 }, (_, index) => `events/event-large/photos/photo-${index}/0/small.webp`);
+    const galleryCleanupBatch = vi.fn().mockImplementation(() => Promise.resolve(pending.length === 0
+      ? { kind: 'complete' }
+      : { kind: 'media', rows: pending.slice(0, GALLERY_CLEANUP_BATCH_SIZE).map((storageKey) => ({ photoId: 'photo', variant: 'small', storageKey })) }));
+    repository.galleryCleanupBatch = galleryCleanupBatch;
+    repository.claimNext = vi.fn().mockResolvedValue(job);
+    repository.completeGalleryCleanupBatch = vi.fn().mockImplementation((
+      _jobId: string, _eventId: string, batch: Exclude<GalleryCleanupBatch, { kind: 'complete' }>,
+    ) => {
+      if (batch.kind !== 'media') throw new Error('Expected media batch');
+      pending.splice(0, batch.rows.length);
+      return Promise.resolve();
+    });
+    let call = 0;
+    const batchSizes: number[] = [];
+    const deleteMany = vi.fn().mockImplementation((keys: string[]) => {
+      call += 1;
+      batchSizes.push(keys.length);
+      if (keys.length > GALLERY_CLEANUP_BATCH_SIZE) throw new Error('Oversized batch');
+      return call === 2 ? Promise.reject(new Error('R2 unavailable')) : Promise.resolve();
+    });
+    const runner = new MaintenanceRunner({
+      now: () => new Date('2030-01-01T00:00:00.000Z'), repository,
+      storage: { deleteMany, get: vi.fn() }, vectors: { deleteMany: vi.fn() },
+    });
+
+    await runner.run(1);
+    expect(pending).toHaveLength(GALLERY_CLEANUP_BATCH_SIZE + 7);
+    await runner.run(1);
+    expect(retryJob).toHaveBeenCalledWith(job, 'R2 unavailable', expect.any(String), expect.any(String));
+    expect(pending).toHaveLength(GALLERY_CLEANUP_BATCH_SIZE + 7);
+    await runner.run(1);
+    await runner.run(1);
+    await runner.run(1);
+    expect(pending).toHaveLength(0);
+    expect(batchSizes.every((size) => size <= GALLERY_CLEANUP_BATCH_SIZE)).toBe(true);
+    expect(completeGalleryDeletion).toHaveBeenCalledOnce();
+  });
+
+  it('keeps gallery face rows until Vectorize confirms their deletion', async () => {
+    const job: MaintenanceJobRecord = {
+      attempts: 2, id: 'job-faces', kind: 'delete_gallery', payload: { eventId: 'event-1' },
+    };
+    const { repository, retryJob, completeGalleryCleanupBatch } = repositoryFor(job);
+    repository.galleryCleanupBatch = vi.fn().mockResolvedValue({
+      kind: 'faces', rows: [{ id: 'face-1', vectorId: 'vector-1' }],
+    });
+    const deleteMany = vi.fn().mockRejectedValue(new Error('Vectorize unavailable'));
+    await new MaintenanceRunner({
+      now: () => new Date('2030-01-01T00:00:00.000Z'), repository,
+      storage: { deleteMany: vi.fn(), get: vi.fn() }, vectors: { deleteMany },
+    }).run();
+    expect(deleteMany).toHaveBeenCalledWith(['vector-1']);
+    expect(completeGalleryCleanupBatch).not.toHaveBeenCalled();
+    expect(retryJob).toHaveBeenCalledOnce();
   });
 
   it('deletes only original R2 objects before removing their D1 rows', async () => {

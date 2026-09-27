@@ -99,7 +99,18 @@ export type AdminEvent = z.infer<typeof AdminEventSchema>;
 
 export const AdminEventListSchema = z.object({
   events: z.array(AdminEventSchema),
-});
+  nextCursor: CursorSchema.nullable(),
+}).strict();
+
+export const AdminEventCursorSchema = z.object({
+  startsAt: IsoDateTimeSchema,
+  id: IdSchema,
+}).strict();
+
+export const AdminEventListQuerySchema = z.object({
+  cursor: CursorSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(48).default(24),
+}).strict();
 
 export const AdminGalleryViewResponseSchema = z.object({ slug: SlugSchema }).strict();
 

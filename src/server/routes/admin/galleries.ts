@@ -10,7 +10,10 @@ import {
   ReplacePhotoRequestSchema,
   ReplacePhotoResponseSchema,
   AdminOriginalsStatusSchema,
+  AdminEventCursorSchema,
   AdminEventListSchema,
+  AdminEventListQuerySchema,
+  AdminEventSchema,
   AdminGalleryViewResponseSchema,
   CreateEventRequestSchema,
   DeleteGalleryRequestSchema,
@@ -71,6 +74,34 @@ async function availableSlug(database: D1Database, requested: string): Promise<s
 
 interface OriginalStatusRow { count: number; bytes: number }
 interface OriginalJobRow { id: string; state: 'failed' | 'pending' | 'running' }
+type AdminEventRow = EventRow & { retouch_selection_count: number; photo_count: number; storage_bytes: number };
+
+const adminEventSelect = `SELECT e.*, (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
+  AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count,
+  (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
+    AND p.state NOT IN ('deleting', 'deleted')) AS photo_count,
+  (SELECT COALESCE(SUM(v.byte_size), 0) FROM photos p
+    JOIN photo_variants v ON v.photo_id = p.id WHERE p.event_id = e.id) AS storage_bytes
+  FROM events e`;
+
+function adminEventFromRow(row: AdminEventRow) {
+  return AdminEventSchema.parse({ ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count,
+    photoCount: row.photo_count, storageBytes: row.storage_bytes });
+}
+
+function readAdminCursor(value: string) {
+  try {
+    const padded = value.replaceAll('-', '+').replaceAll('_', '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+    return AdminEventCursorSchema.parse(JSON.parse(atob(padded)) as unknown);
+  } catch {
+    throw new ApiException('INVALID_CURSOR', 'errors.invalidCursor', 400);
+  }
+}
+
+function adminCursor(row: AdminEventRow): string {
+  return btoa(JSON.stringify({ startsAt: row.starts_at, id: row.id }))
+    .replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
+}
 
 async function originalStatus(database: D1Database, eventId: string) {
   const [files, imports, job] = await Promise.all([
@@ -98,21 +129,36 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
   routes.get('/galleries', async (context) => {
     requireAdmin(context);
     applyCachePolicy(context, 'admin');
-    const result = await context.env.DB.prepare(
-      `SELECT e.*, (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
-       AND p.state = 'published' AND p.selected_for_retouch = 1) AS retouch_selection_count,
-       (SELECT COUNT(*) FROM photos p WHERE p.event_id = e.id
-        AND p.state NOT IN ('deleting', 'deleted')) AS photo_count,
-       (SELECT COALESCE(SUM(v.byte_size), 0) FROM photos p
-        JOIN photo_variants v ON v.photo_id = p.id WHERE p.event_id = e.id) AS storage_bytes
-       FROM events e ORDER BY e.starts_at DESC, e.id ASC`,
-    ).all<EventRow & { retouch_selection_count: number; photo_count: number; storage_bytes: number }>();
-    const output = AdminEventListSchema.safeParse({ events: result.results.map((row) => ({
-      ...eventFromRow(row), retouchSelectionCount: row.retouch_selection_count,
-      photoCount: row.photo_count, storageBytes: row.storage_bytes,
-    })) });
+    const query = AdminEventListQuerySchema.safeParse(context.req.query());
+    if (!query.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const cursor = query.data.cursor ? readAdminCursor(query.data.cursor) : null;
+    const result = cursor
+      ? await context.env.DB.prepare(`${adminEventSelect}
+          WHERE e.starts_at < ?1 OR (e.starts_at = ?1 AND e.id > ?2)
+          ORDER BY e.starts_at DESC, e.id ASC LIMIT ?3`)
+        .bind(cursor.startsAt, cursor.id, query.data.limit + 1).all<AdminEventRow>()
+      : await context.env.DB.prepare(`${adminEventSelect}
+          ORDER BY e.starts_at DESC, e.id ASC LIMIT ?1`)
+        .bind(query.data.limit + 1).all<AdminEventRow>();
+    const rows = result.results.slice(0, query.data.limit);
+    const last = rows.at(-1);
+    const output = AdminEventListSchema.safeParse({
+      events: rows.map(adminEventFromRow),
+      nextCursor: result.results.length > query.data.limit && last ? adminCursor(last) : null,
+    });
     if (!output.success) throw new ApiException('INVALID_RESPONSE', 'errors.internal', 500);
     return context.json(output.data);
+  });
+
+  routes.get('/galleries/:eventId', async (context) => {
+    requireAdmin(context);
+    applyCachePolicy(context, 'admin');
+    const eventId = IdSchema.safeParse(context.req.param('eventId'));
+    if (!eventId.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const row = await context.env.DB.prepare(`${adminEventSelect} WHERE e.id = ?1`)
+      .bind(eventId.data).first<AdminEventRow>();
+    if (!row) throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
+    return context.json(adminEventFromRow(row));
   });
 
   routes.post('/galleries/:eventId/view', async (context) => {

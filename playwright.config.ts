@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { loadSiteProfile } from './scripts/sites/loadProfile.mjs';
 
-const port = 4_178;
+const port = Number(process.env.CADRORA_E2E_PORT ?? 4_178);
 const site = loadSiteProfile(process.env.CADRORA_SITE || 'cadrora');
 const showcase = site.allowShowcase === true;
 

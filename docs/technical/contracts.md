@@ -20,6 +20,7 @@ Configurable Home introduction buttons and legacy-copy conversion are recorded i
 Event-date directory ordering and bounded, owner-controlled home stories are recorded in [`ADR-021`](../decisions/ADR-021-gallery-event-date-and-home-stories.md), superseding ADR-012's creation-order rule.
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).
+Owner-only media inventory and its read-only diagnostics API are recorded in [`ADR-036`](../decisions/ADR-036-owner-media-inventory.md).
 
 ## Platform boundaries
 
@@ -56,6 +57,8 @@ Admin routes:
 POST   /api/v1/admin/login
 POST   /api/v1/admin/logout
 GET    /api/v1/admin/session
+GET    /api/v1/admin/worker-errors
+GET    /api/v1/admin/diagnostics/media?scope=galleries|services|portfolio&cursor=...
 GET    /api/v1/admin/site
 PATCH  /api/v1/admin/site
 PATCH  /api/v1/admin/site/home-hero
@@ -81,7 +84,9 @@ POST   /api/v1/admin/services/:id/reset
 POST   /api/v1/admin/services/:id/image-revision
 PUT    /api/v1/admin/services/:id/image/:revision/:variant
 POST   /api/v1/admin/services/:id/image/:revision/publish
-GET    /api/v1/admin/galleries
+GET    /api/v1/admin/galleries?limit=24&cursor=...
+GET    /api/v1/admin/galleries/:eventId
+GET    /api/v1/admin/worker-errors?before=...
 GET    /api/v1/admin/galleries/:eventId/cover-photos?offset=...
 GET    /api/v1/admin/galleries/:eventId/cover-photos/:photoId
 GET    /api/v1/admin/galleries/:eventId/originals
@@ -108,8 +113,9 @@ GET    /portfolio-media/:id/:variant
 GET    /home-hero-image/:variant
 ```
 
-Each event in the authenticated `GET /api/v1/admin/galleries` response includes `storageBytes`, the nonnegative sum of all recorded `photo_variants.byte_size` values for that gallery's photos. It includes prepared formats and retained originals, including rows from unfinished imports. Public gallery responses do not include this field.
+The authenticated admin gallery list returns at most 24 rows by default (`limit` accepts 1–48), ordered by descending gallery date and ascending ID. Its `nextCursor` continues the keyset page; the dedicated detail route returns one gallery. Each event includes `storageBytes`, the nonnegative sum of all recorded `photo_variants.byte_size` values for that gallery's photos. It includes prepared formats and retained originals, including rows from unfinished imports. Public gallery responses do not include this field.
 Each event also includes `photoCount`, the nonnegative count of its D1 photo rows except those in `deleting` or `deleted` state. This matches the admin publication summary's total and can include unfinished imports. Public gallery responses do not include this field.
+The owner-only Worker error list returns at most 50 newest entries per page. It records timestamp, request ID, HTTP method, route family, safe error code, and category; it excludes raw paths, exception text, headers, and payloads. The scheduled Worker deletes entries older than 30 days.
 The admin import-recovery response contains only pending ordinary-import photo IDs, filenames, source SHA-256 hashes, whether originals were retained, and D1-missing variant names. It grants no new media access; the existing upload and finalize routes enforce gallery and import state.
 
 All API errors are JSON `{ code, message, requestId }`. `message` is an i18n key. `/api/*` never falls back to HTML.
@@ -119,12 +125,12 @@ All API errors are JSON `{ code, message, requestId }`. `message` is an i18n key
 The conceptual order is fixed:
 
 ```text
-requestId -> errorBoundary -> securityHeaders -> authContext -> turnstile -> rateLimit -> demoReadOnly -> route -> cacheHeaders
+requestId -> errorBoundary -> securityHeaders -> authContext -> abuseRateLimit -> turnstile -> rateLimit -> demoReadOnly -> route -> cacheHeaders
 ```
 
 Hono implements the error boundary through `app.onError`; its module occupies the same boundary in the chain. Each other middleware is isolated in `src/server/middleware/`. New orthogonal behavior gets a new module and one registration in `app.ts`.
 
-`authContext` resolves optional verified admin and event-grant state without throwing for absence. Turnstile runs only for admin login and event unlock. Rate limiting is best-effort, process-local protection and is not a global quota. `demoReadOnly` is a server capability boundary: a demo identity may use only the exact allowlisted admin reads plus login/logout. It rejects every other admin request before a route can touch D1, R2, or another provider.
+`authContext` resolves optional verified admin and event-grant state without throwing for absence. The Cloudflare binding limiter checks login, gallery unlock, and face search before any Turnstile or Vectorize work; missing bindings fail closed for those POST routes. Turnstile runs only for admin login and event unlock. The older general and failed-login limiters remain best-effort, process-local safeguards, not global quotas. `demoReadOnly` is a server capability boundary: a demo identity may use only the exact allowlisted admin reads plus login/logout. It rejects every other admin request before a route can touch D1, R2, or another provider.
 
 ## Cache policy
 

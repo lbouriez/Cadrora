@@ -2,10 +2,15 @@ import type { ErrorHandler } from 'hono';
 
 import { ApiException } from '../../shared/errors/ApiError';
 import { apiErrorResponse } from '../http/apiErrorResponse';
+import { recordWorkerError } from '../services/workerErrorLog';
 import type { AppEnv } from '../types';
 
-export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
+export const errorBoundary: ErrorHandler<AppEnv> = async (error, context) => {
   if (error instanceof ApiException) {
+    if (error.status >= 500) await recordWorkerError(context.env?.DB, {
+      requestId: context.get('requestId') ?? 'unavailable', method: context.req.method,
+      path: context.req.path, code: error.code, category: 'api',
+    });
     return apiErrorResponse(
       context,
       error.status as 400 | 401 | 403 | 404 | 409 | 410 | 413 | 422 | 429 | 500 | 503,
@@ -15,6 +20,10 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
   }
 
   if (isD1DailyQuotaError(error)) {
+    await recordWorkerError(context.env?.DB, {
+      requestId: context.get('requestId') ?? 'unavailable', method: context.req.method,
+      path: context.req.path, code: 'D1_DAILY_QUOTA_EXCEEDED', category: 'd1-quota',
+    });
     return apiErrorResponse(context, 503, 'D1_DAILY_QUOTA_EXCEEDED', 'errors.d1DailyQuotaExceeded');
   }
 
@@ -23,6 +32,12 @@ export const errorBoundary: ErrorHandler<AppEnv> = (error, context) => {
     // their message. Keep diagnostics classified, never copy exception text.
     errorCategory: error instanceof TypeError ? 'type' : error instanceof SyntaxError ? 'syntax' : 'unexpected',
     requestId: context.get('requestId'),
+  });
+
+  await recordWorkerError(context.env?.DB, {
+    requestId: context.get('requestId') ?? 'unavailable', method: context.req.method,
+    path: context.req.path, code: 'INTERNAL_ERROR',
+    category: error instanceof TypeError ? 'type' : error instanceof SyntaxError ? 'syntax' : 'unexpected',
   });
 
   return apiErrorResponse(context, 500, 'INTERNAL_ERROR', 'errors.internal');

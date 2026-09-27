@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
-import { BackLink, Button, FavoriteButton, IconButton, InfoIcon, Input, ProgressivePhoto, RetouchButton, Spinner } from '../components';
+import { BackLink, Button, FavoriteButton, IconButton, InfiniteLoadMore, InfoIcon, Input, ProgressivePhoto, RetouchButton, Spinner } from '../components';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, getPublicSiteSettings, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
@@ -119,7 +119,6 @@ export function GalleryPage() {
   const [downloadComplete, setDownloadComplete] = useState(false);
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
   const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const backDestination = siteSettings.data?.galleryDirectoryEnabled === false ? '/portfolio' : '/galleries';
   const backLabel = t(siteSettings.data?.galleryDirectoryEnabled === false ? 'gallery.backPortfolio' : 'gallery.backGalleries');
@@ -244,19 +243,6 @@ export function GalleryPage() {
     retouchPendingId: retouch.isPending ? retouch.variables.photo.id : null, onToggleRetouch };
 
   useEffect(() => { lastSelectedId.current = null; }, [matchesView]);
-
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (matchesView || !target || !hasNextPage || isFetchingNextPage || isFetchNextPageError || !('IntersectionObserver' in window)) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) {
-        observer.disconnect();
-        void fetchNextPage();
-      }
-    }, { rootMargin: '700px 0px' });
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage, matchesView]);
 
   useEffect(() => () => {
     if (zipResult) URL.revokeObjectURL(zipResult.url);
@@ -497,10 +483,9 @@ export function GalleryPage() {
         </>
       ) : <GalleryPhotoGrid {...gridFavorites} downloadHelpId={downloadHelpId} onToggleSelection={toggleSelection} onUnavailablePhoto={() => setShowDownloadHelp(true)} photos={allPhotos} selectedIds={selectedIds} selectionMode={selectionMode} slug={event.data.slug} viewerQuery={viewerQuery} />}
       {matchesView && photos.hasNextPage && visiblePhotos.length < foundPhotoIds.length ? <Spinner label={t('gallery.photoFilter.loading')} /> : null}
-      {!matchesView && photos.hasNextPage ? <>
-        <div aria-hidden="true" className="gallery-load-sentinel" ref={loadMoreRef} />
-        {photos.isFetchingNextPage ? <Spinner label={t('gallery.loading')} /> : <Button onClick={() => void photos.fetchNextPage()}>{t('gallery.loadMore')}</Button>}
-      </> : null}
+      {!matchesView ? <InfiniteLoadMore error={isFetchNextPageError} hasMore={Boolean(photos.hasNextPage)}
+        loadLabel={t('gallery.loadMore')} loading={photos.isFetchingNextPage} loadingLabel={t('gallery.loading')}
+        onLoadMore={() => void photos.fetchNextPage()} /> : null}
       {matchesView && !photos.hasNextPage && visiblePhotos.length === 0 ? <p>{t('gallery.photoFilter.empty')}</p> : null}
       </section>
       {photoId && !selected && !photos.hasNextPage && !photos.isPending ? <p role="alert">{t('gallery.unavailable')}</p> : null}

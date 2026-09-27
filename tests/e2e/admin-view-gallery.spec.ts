@@ -20,7 +20,7 @@ test('owner View gallery opens a protected gallery without the visitor password'
         expiresAt: '2030-01-02T00:00:00.000Z', id: 'owner-session', revokedAt: null, subject: 'owner',
       }) });
     } else if (path.endsWith('/galleries')) {
-      await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [gallery] }) });
+      await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [gallery], nextCursor: null }) });
     } else if (path.endsWith('/private-gallery-1/view')) {
       grantRequests += 1;
       expect(route.request().method()).toBe('POST');

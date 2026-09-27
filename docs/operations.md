@@ -1,6 +1,6 @@
 # Operations runbook
 
-Use this runbook for a deployed Cadrora Worker. It is intentionally conservative: the repository contains no production telemetry, alert configuration, or maintenance-job dashboard. Remote D1 migrations are available only through the explicit release scripts; do not turn an uncertain provider operation into a claimed success.
+Use this runbook for a deployed Cadrora Worker. The repository includes a small D1 error history and an on-demand media inventory; it has no automatic alerts. Remote D1 migrations are available only through the explicit release scripts; do not turn an uncertain provider operation into a claimed success.
 
 ## Before changing production
 
@@ -10,7 +10,9 @@ Use this runbook for a deployed Cadrora Worker. It is intentionally conservative
 4. Verify custom hostname, preview hostname, and `workers.dev` behavior separately for admin and protected media.
 5. Never put secrets, cookies, raw embeddings, selfies, private EXIF, or event passwords into change notes.
 
-Unexpected Worker errors log a fixed category and request ID, not the exception message or stack: provider messages can contain private object keys or payload fragments. Use the request ID and safe API code for triage; do not copy raw provider exceptions into tickets.
+Worker 5xx errors are recorded in D1 for 30 days. An owner can open **Admin → Diagnostics** (`/admin/diagnostics`); read-only demo access is denied. Each error row contains a timestamp, request ID, HTTP method, route family, code, and category. Raw paths, exception messages, stacks, headers, and payloads are omitted because provider messages can contain private object keys or payload fragments. A D1 outage can also prevent this history from being written. Use the request ID and safe API code for triage; do not copy raw provider exceptions into tickets.
+
+The same page offers owner-triggered R2 inventory scans for gallery, service, and portfolio images. Each click reads at most 100 objects from one prefix and compares objects older than 15 minutes with the corresponding D1 variant table. Continue with **Scan next 100** until the scope is complete; an early page with no findings does not certify the whole bucket. The page also reports pending, running, and failed deletion jobs. An untracked object may be an in-flight operation or a deletion awaiting maintenance; compare its upload time, related job, and D1 state before acting. The scan is read-only and never deletes an R2 object without a D1-derived cleanup record. It does not prove that every D1 row has a corresponding R2 object or that Vectorize has no orphan vectors.
 
 `npm run build` removes the Cloudflare Vite plugin's local `.dev.vars`/`.env` preview copies from the generated Worker/client output after compilation. The source files remain local and git-ignored; production secrets are supplied through Cloudflare bindings and the release script's temporary secrets file. Before archiving or uploading a build, verify that no development-variable file remains under `dist/cadrora` or `dist/client`. Do not treat a successful local build as evidence that production secrets are configured.
 
@@ -24,12 +26,15 @@ Unexpected Worker errors log a fixed category and request ID, not the exception 
 | Gallery | Draft is 404; protected metadata/media reject missing or stale grants | Test the exact deployed event/version. |
 | Cache | Admin `no-store`; unknown/protected content private; public revisioned media immutable | Inspect actual response headers. |
 | Models | Only the two allowlisted `/models/v1/...` paths return immutable objects | Model objects and Vectorize binding need independent deployment confirmation. |
+| Abuse limits | Login/unlock and face-search POSTs have distinct Worker binding counters; the zone WAF rule catches larger floods | Confirm both bindings and the WAF rule on each deployed site. The current zone rules block after 30 matching requests per IP in 10 seconds for 10 seconds. Check 429 volume and legitimate shared-network use. |
 
 ## Maintenance jobs
 
 Photo deletion, gallery deletion, and face purge write a `maintenance_jobs` record after D1 access changes. A lost face-index lease also writes a targeted `delete_face_vector` compensation job when its immediate provider rollback fails. `MaintenanceRunner` defaults to up to 10 jobs per direct invocation and retries provider failures with exponential delay up to one hour. Ordinary jobs are retained as `failed` on the fifth failure for operator attention; `delete_gallery` remains pending and inaccessible while it retries, so gallery-owned provider data is not silently stranded. A `running` job has a 15-minute lease based on `updated_at`; a later scheduled invocation may reclaim it after an isolate termination. Provider deletes and completion writes must therefore remain idempotent.
 
 The checked-in Worker has a Cron Trigger every 15 minutes. Its scheduled handler calls `enqueueExpiredFacePurges` and then `runMaintenance(bindings, 25)`. That is the intended cleanup path, but it is not a job dashboard or proof a deployed Cron Trigger is active. Confirm trigger delivery and job completion before promising R2/Vectorize cleanup, storage reclamation, or final physical deletion.
+
+The same scheduled handler purges Worker error rows older than 30 days. Verify the deployed Cron Trigger and the new D1 migration before relying on the retention bound.
 
 Inspect the queue only with approved, least-privilege D1 access. Preserve job ID, state, attempts, and request IDs; do not hand-edit rows or delete media keys as an unrecorded workaround. A repaired runner must be tested against an isolated environment before retrying production jobs.
 

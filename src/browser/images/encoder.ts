@@ -7,15 +7,15 @@ type EncodableCanvas = HTMLCanvasElement | OffscreenCanvas;
 type CanvasContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 export async function encodePhoto(file: File): Promise<EncodedPhoto<PhotoVariantName>> {
-  return encodeImage(file, PHOTO_VARIANT_WIDTHS, 'download');
+  return encodeImage(file, PHOTO_VARIANT_WIDTHS, 0.9, 'download');
 }
 
 /** Service cards share the gallery decoder, orientation, metadata removal, and verified encoder. */
 export async function encodeServicePhoto(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
-  return encodeImage(file, SERVICE_VARIANT_WIDTHS);
+  return encodeImage(file, SERVICE_VARIANT_WIDTHS, 0.78);
 }
 
-async function encodeImage<Name extends string>(file: File, widths: Record<Name, number>, jpegVariant?: Name): Promise<EncodedPhoto<Name>> {
+async function encodeImage<Name extends string>(file: File, widths: Record<Name, number>, quality: number, jpegVariant?: Name): Promise<EncodedPhoto<Name>> {
   const header = new Uint8Array(await file.slice(0, 128 * 1024).arrayBuffer());
   const sourceContentType = sniffImageType(header);
   if (!sourceContentType) {
@@ -37,7 +37,7 @@ async function encodeImage<Name extends string>(file: File, widths: Record<Name,
     for (const [name, maximumWidth] of Object.entries(widths) as [Name, number][]) {
       const dimensions = constrainedDimensions(normalized.width, normalized.height, maximumWidth);
       const scaled = renderScaledCanvas(normalized, dimensions.width, dimensions.height);
-      const encoded = await encodeVariant(scaled, name === jpegVariant);
+      const encoded = await encodeVariant(scaled, name === jpegVariant, quality);
       variants.push({ ...encoded, ...dimensions, name });
     }
 
@@ -109,20 +109,20 @@ function renderScaledCanvas(source: EncodableCanvas, width: number, height: numb
   return canvas;
 }
 
-async function encodeVariant(canvas: EncodableCanvas, forceJpeg: boolean): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
+async function encodeVariant(canvas: EncodableCanvas, forceJpeg: boolean, quality: number): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
   if (forceJpeg) {
-    return encodeAs(canvas, 'image/jpeg');
+    return encodeAs(canvas, 'image/jpeg', quality);
   }
 
   try {
-    return await encodeAs(canvas, 'image/webp');
+    return await encodeAs(canvas, 'image/webp', quality);
   } catch {
-    return encodeAs(canvas, 'image/jpeg');
+    return encodeAs(canvas, 'image/jpeg', quality);
   }
 }
 
-async function encodeAs(canvas: EncodableCanvas, requestedType: EncodedImageType): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
-  const blob = await canvasToBlob(canvas, requestedType);
+async function encodeAs(canvas: EncodableCanvas, requestedType: EncodedImageType, quality: number): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
+  const blob = await canvasToBlob(canvas, requestedType, quality);
   const bytes = new Uint8Array(await blob.arrayBuffer());
   const actualType = sniffImageType(bytes);
   if (blob.type !== requestedType || actualType !== requestedType) {
@@ -154,8 +154,7 @@ function getContext(canvas: EncodableCanvas): CanvasContext {
   return context;
 }
 
-function canvasToBlob(canvas: EncodableCanvas, type: EncodedImageType): Promise<Blob> {
-  const quality = 0.9;
+function canvasToBlob(canvas: EncodableCanvas, type: EncodedImageType, quality: number): Promise<Blob> {
   if ('convertToBlob' in canvas) return canvas.convertToBlob({ quality, type });
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((blob) => {

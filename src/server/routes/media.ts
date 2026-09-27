@@ -24,9 +24,10 @@ const defaultDependencies: MediaRouteDependencies = {
       return await readPublicMediaCache(context.executionCtx, requestUrl, {
         contentType: media.contentType, eventId, storageKey: media.storageKey,
       });
-    } catch (error: unknown) {
+    } catch {
       // An edge-cache outage must not make an otherwise authorized photo unavailable.
-      console.warn('public_media_cache_read_failed', error instanceof Error ? error.message : 'unknown');
+      // Provider messages can contain private R2 keys; log only a fixed category.
+      console.warn('public_media_cache_read_failed');
       return null;
     }
   },

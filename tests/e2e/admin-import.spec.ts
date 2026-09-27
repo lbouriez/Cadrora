@@ -84,7 +84,22 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
           photoCount: 0,
           slug: 'event-resume', startsAt: '2026-09-20T16:00:00.000Z', timezone: 'America/Toronto',
           title: 'Resume test', updatedAt: '2026-09-20T16:00:00.000Z', visibility: 'draft',
-        }] }),
+        }], nextCursor: null }),
+        contentType: 'application/json',
+      });
+      return;
+    }
+    if (request.method() === 'GET' && path.endsWith(`/admin/galleries/${eventId}`)) {
+      await route.fulfill({
+        body: JSON.stringify({
+          access: 'public', allowDownloads: false, coverPhotoId: null,
+          createdAt: '2026-09-20T15:00:00.000Z', deletingAt: null, description: null, service: null,
+          faceSearchEnabled: false, id: eventId, keepOriginals: false, nearbySearchEnabled: false,
+          offlineAt: null, retentionDays: null, revision: 0, showPhotoMetadata: false, retouchSelectionEnabled: true, showOnGalleryPage: true,
+          storageBytes: 0, photoCount: 0,
+          slug: 'event-resume', startsAt: '2026-09-20T16:00:00.000Z', timezone: 'America/Toronto',
+          title: 'Resume test', updatedAt: '2026-09-20T16:00:00.000Z', visibility: 'draft',
+        }),
         contentType: 'application/json',
       });
       return;

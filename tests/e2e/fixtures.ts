@@ -17,6 +17,7 @@ export const publicEvent = {
   id: 'event-1',
   retentionDays: 30,
   revision: 3,
+  service: 'wedding',
   slug: 'mariage-lumiere',
   startsAt: NOW,
   createdAt: NOW,

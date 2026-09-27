@@ -15,6 +15,8 @@ npm run test:e2e
 
 `npm run test:e2e:headed` ouvre Chromium pour une inspection locale. En cas d'echec, Playwright conserve une capture, une trace et une video sous `test-results/`; le rapport HTML est produit en CI sous `playwright-report/`. Ces dossiers ne sont pas versionnes.
 
+Pour executer plusieurs validations locales en parallele, definir `CADRORA_E2E_PORT` sur un port libre. Garder les artefacts personnalises hors du depot avec `--output` : Vite peut tenter de surveiller les videos Playwright creees dans un dossier du projet sur Windows.
+
 ## Couverture actuelle
 
 - site vitrine en bureau et mobile, y compris la panne de l'API des galeries;

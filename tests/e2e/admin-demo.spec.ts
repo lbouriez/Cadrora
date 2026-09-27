@@ -135,7 +135,12 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       return;
     }
     if (path.endsWith('/galleries')) {
-      await route.fulfill({ body: JSON.stringify({ events: [demoEvent, protectedEvent, unlistedEvent] }), contentType: 'application/json' });
+      await route.fulfill({ body: JSON.stringify({ events: [demoEvent, protectedEvent, unlistedEvent], nextCursor: null }), contentType: 'application/json' });
+      return;
+    }
+    const gallery = [demoEvent, protectedEvent, unlistedEvent].find((event) => path.endsWith(`/galleries/${event.id}`));
+    if (gallery) {
+      await route.fulfill({ body: JSON.stringify(gallery), contentType: 'application/json' });
       return;
     }
     await route.fulfill({ body: '{}', contentType: 'application/json', status: 404 });

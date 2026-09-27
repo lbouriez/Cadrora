@@ -4,6 +4,8 @@ interface CloudflareBindings {
   MEDIA_BUCKET: R2Bucket;
   MODELS_BUCKET: R2Bucket;
   FACE_INDEX?: VectorizeIndex;
+  AUTH_RATE_LIMITER?: RateLimit;
+  FACE_RATE_LIMITER?: RateLimit;
   ADMIN_AUTH_MODE: 'password' | 'cloudflare-access';
   AUTH_PEPPER?: string;
   ADMIN_SECRET_HASH?: string;

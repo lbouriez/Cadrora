@@ -31,15 +31,18 @@ describe('portfolio publication and media', () => {
         en: { title: 'Weddings', description: 'A story.' } }),
       sort_order: 0, published: 1, cover_photo_id: 'photo-1',
     };
-    const resultsFor = (query: string) => Promise.resolve({ results: query.includes('FROM portfolio_collections c') ? [collection]
-        : query.includes('FROM portfolio_photos p') ? [{ id: 'photo-1', collection_id: 'collection-1',
-          alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 0, state: 'published' }]
-          : [{ photo_id: 'photo-1', variant: 'small', storage_key: 'site/portfolio/photo-1/small.webp',
-            content_type: 'image/webp', byte_size: 100, width: 640, height: 427, checksum_sha256: 'sha' }] });
+    const photo = { id: 'photo-1', collection_id: 'collection-1',
+      alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 0, state: 'published' };
+    const variant = { photo_id: 'photo-1', variant: 'small', storage_key: 'site/portfolio/photo-1/small.webp',
+      content_type: 'image/webp', byte_size: 100, width: 640, height: 427, checksum_sha256: 'sha' };
+    const resultsFor = (query: string) => Promise.resolve({ results: query.includes('FROM portfolio_collections') ? [collection]
+      : query.includes('FROM portfolio_photos') ? [photo]
+        : query.includes('FROM portfolio_variants') ? [variant] : [] });
     const queries: string[] = [];
     const database = { prepare: vi.fn((query: string) => {
       queries.push(query);
-      return { all: () => resultsFor(query), bind: () => ({ all: () => resultsFor(query) }) };
+      return { all: () => resultsFor(query), bind: () => ({ all: () => resultsFor(query),
+        first: () => Promise.resolve(query.includes('FROM portfolio_collections') ? collection : null) }) };
     }) } as unknown as D1Database;
     const app = portfolioApp();
     const cards = await app.request('/api/v1/portfolio', undefined, { DB: database });
@@ -52,6 +55,9 @@ describe('portfolio publication and media', () => {
     expect(detail.status).toBe(200);
     expect(PortfolioCollectionDetailSchema.parse(await detail.json()).photos).toHaveLength(1);
     expect(queries.some((query) => query.includes('c.published = 1'))).toBe(true);
+    expect(queries.some((query) => query.includes('WHERE slug = ? AND published = 1'))).toBe(true);
+    expect(queries.some((query) => query.includes('WHERE collection_id = ? AND'))).toBe(true);
+    expect(queries.some((query) => query.includes('FROM portfolio_variants WHERE photo_id IN'))).toBe(true);
     expect(queries.some((query) => query.includes('site_services'))).toBe(false);
   });
 
@@ -78,6 +84,28 @@ describe('portfolio publication and media', () => {
     expect(ApiErrorSchema.parse(await response.json()).code).toBe('VARIANTS_INCOMPLETE');
     expect(head).not.toHaveBeenCalled();
     expect(publish).not.toHaveBeenCalled();
+  });
+
+  it('reloads an edited item by its id and reads only its variants', async () => {
+    const photo = { id: 'photo-1', collection_id: 'collection-1',
+      alt_json: '{"fr":"Un couple","en":"A couple"}', sort_order: 2, state: 'published' };
+    const queries: string[] = [];
+    const database = { prepare: vi.fn((query: string) => {
+      queries.push(query);
+      return { bind: (...values: unknown[]) => ({
+        first: () => Promise.resolve(query.includes('FROM portfolio_photos WHERE id = ?') && values[0] === 'photo-1' ? photo : null),
+        all: () => Promise.resolve({ results: [] }),
+        run: () => Promise.resolve({ success: true }),
+      }) };
+    }) } as unknown as D1Database;
+    const response = await portfolioApp().request('/api/v1/admin/portfolio/photo-1', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alt: { fr: 'Un couple', en: 'A couple' }, sortOrder: 2 }),
+    }, { DB: database });
+    expect(response.status).toBe(200);
+    expect(queries.some((query) => query.includes('FROM portfolio_photos WHERE id = ?'))).toBe(true);
+    expect(queries.some((query) => query.includes('FROM portfolio_variants WHERE photo_id IN (?)'))).toBe(true);
+    expect(queries.some((query) => query.includes('JOIN portfolio_collections'))).toBe(false);
   });
 
   it('serves media only after the D1 published-photo and collection checks', async () => {

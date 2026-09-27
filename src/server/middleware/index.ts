@@ -6,6 +6,7 @@ export { adminPageGuard } from './adminPageGuard';
 export { cacheHeaders } from './cacheHeaders';
 export { errorBoundary } from './errorBoundary';
 export { rateLimit } from './rateLimit';
+export { abuseRateLimit } from './abuseRateLimit';
 export {
   clearFailedLogins,
   loginClientKey,

@@ -5,6 +5,7 @@ import { ApiException } from '../shared/errors/ApiError';
 import { apiErrorResponse } from './http/apiErrorResponse';
 import {
   adminCsrf,
+  abuseRateLimit,
   adminPageGuard,
   authContext,
   cacheHeaders,
@@ -18,6 +19,7 @@ import {
 import { ogMetadata } from './middleware/ogMetadata';
 import { runMaintenance } from './maintenance';
 import { registerAdminEventRoutes } from './routes/admin/galleries';
+import { registerAdminWorkerErrorRoutes } from './routes/admin/workerErrors';
 import { adminAuthRouter } from './routes/admin/auth';
 import { registerAdminImportRoutes } from './routes/admin/imports';
 import { registerAdminSiteRoutes } from './routes/admin/site';
@@ -30,6 +32,7 @@ import { registerServiceRoutes } from './routes/services';
 import { registerPortfolioRoutes } from './routes/portfolio';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
+import { purgeOldWorkerErrors } from './services/workerErrorLog';
 import type { AppEnv } from './types';
 export { PublicMediaCache } from './services/publicMediaCache';
 export { ServiceMediaCache } from './services/publicMediaCache';
@@ -37,12 +40,13 @@ export { ServiceMediaCache } from './services/publicMediaCache';
 export const app = new Hono<AppEnv>();
 
 // Frozen order: requestId -> errorBoundary -> securityHeaders -> authContext ->
-// turnstile -> rateLimit -> routes -> cacheHeaders.
+// abuseRateLimit -> turnstile -> rateLimit -> routes -> cacheHeaders.
 app.use('*', requestId);
 app.onError(errorBoundary);
 app.use('*', securityHeaders);
 app.use('*', authContext);
 app.use('*', adminPageGuard);
+app.use('*', abuseRateLimit);
 app.use('*', turnstile);
 app.use('*', rateLimit);
 app.use('*', ogMetadata);
@@ -68,6 +72,7 @@ registerPublicRoutes(app, {
   },
 });
 registerAdminEventRoutes(app);
+registerAdminWorkerErrorRoutes(app);
 registerAdminImportRoutes(app);
 registerAdminSiteRoutes(app);
 registerMediaRoutes(app);
@@ -95,10 +100,13 @@ app.notFound(async (context) => {
 const worker: ExportedHandler<CloudflareBindings> = {
   fetch: (request, bindings, executionContext) => app.fetch(request, bindings, executionContext),
   scheduled: (_controller, bindings, executionContext) => {
-    executionContext.waitUntil((async () => {
-      await enqueueExpiredFacePurges(bindings.DB, new Date().toISOString());
-      await runMaintenance(bindings, 25, executionContext);
-    })());
+    executionContext.waitUntil(Promise.all([
+      (async () => {
+        await enqueueExpiredFacePurges(bindings.DB, new Date().toISOString());
+        await runMaintenance(bindings, 25, executionContext);
+      })(),
+      purgeOldWorkerErrors(bindings.DB),
+    ]).then(() => undefined));
   },
 };
 

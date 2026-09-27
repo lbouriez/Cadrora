@@ -93,6 +93,7 @@ export const adminResourceFragment = {
         coverSaveError: 'The cover could not be saved. Try again.',
         listError: 'Galleries could not be loaded.',
         listTitle: 'Your galleries',
+        loadMore: 'Load more galleries',
         loading: 'Loading galleries…',
         storageUsed: 'Stored photos: {{amount}} {{unit}}',
         photoCount_one: '{{count}} photo',
@@ -178,6 +179,7 @@ export const adminResourceFragment = {
         label: 'Administration',
         galleries: 'Galleries',
         settings: 'Site settings',
+        diagnostics: 'Diagnostics',
       },
       settings: {
         restoreExample: 'Restore example',
@@ -362,6 +364,7 @@ export const adminResourceFragment = {
         coverSaveError: 'Impossible d’enregistrer la couverture. Réessayez.',
         listError: 'Impossible de charger les galeries.',
         listTitle: 'Vos galeries',
+        loadMore: 'Charger plus de galeries',
         loading: 'Chargement des galeries…',
         storageUsed: 'Photos stockées : {{amount}} {{unit}}',
         photoCount_one: '{{count}} photo',
@@ -447,6 +450,7 @@ export const adminResourceFragment = {
         label: 'Administration',
         galleries: 'Galeries',
         settings: 'Réglages du site',
+        diagnostics: 'Diagnostic',
       },
       settings: {
         restoreExample: 'Rétablir l’exemple',

@@ -1,11 +1,18 @@
-import { AdminEventListSchema } from '../../shared/schemas';
+import { AdminEventListSchema, AdminEventSchema } from '../../shared/schemas';
 import { AdminCoverPhotosSchema, AdminFavoritePhotosSchema, AdminGalleryViewResponseSchema, AdminOriginalsStatusSchema, ReplacePhotoResponseSchema } from '../../shared/schemas/gallery';
-import type { AdminEvent } from '../../shared/schemas/gallery';
 
-export async function getAdminEvents(): Promise<AdminEvent[]> {
-  const response = await fetch('/api/v1/admin/galleries', { credentials: 'same-origin' });
+export async function getAdminEventPage(cursor?: string) {
+  const query = new URLSearchParams({ limit: '24' });
+  if (cursor) query.set('cursor', cursor);
+  const response = await fetch(`/api/v1/admin/galleries?${query}`, { credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Event list returned ${response.status}`);
-  return AdminEventListSchema.parse(await response.json()).events;
+  return AdminEventListSchema.parse(await response.json());
+}
+
+export async function getAdminEvent(eventId: string) {
+  const response = await fetch(`/api/v1/admin/galleries/${encodeURIComponent(eventId)}`, { credentials: 'same-origin' });
+  if (!response.ok) throw new Error(`Event detail returned ${response.status}`);
+  return AdminEventSchema.parse(await response.json());
 }
 
 export async function openAdminGallery(eventId: string): Promise<string> {

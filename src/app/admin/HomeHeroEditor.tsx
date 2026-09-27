@@ -3,13 +3,12 @@ import { useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { createImageEncoder } from '../../browser/images';
-import { SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
-import { AdminSiteSettingsSchema, HomeHeroCopySchema, HomeHeroDestinationSchema, LanguageSchema, ServiceImageRevisionSchema, ServiceImageUploadResponseSchema } from '../../shared/schemas';
+import { AdminSiteSettingsSchema, HomeHeroCopySchema, HomeHeroDestinationSchema, LanguageSchema } from '../../shared/schemas';
 import type { AdminSiteSettings, HomeHeroCopy, Language } from '../../shared/schemas';
 import { Button, Select } from '../components';
 import { siteProfile } from '../public/siteProfile';
 import { LocalizedTextField } from './LocalizedTextField';
+import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -117,26 +116,11 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
     event.target.value = '';
     if (!file || busy || readOnly) return;
     setBusy(true); setError(false); setSaved(false);
-    const encoder = createImageEncoder();
     try {
-      const encoded = await encoder.encodeService(file);
-      if (encoded.width < SERVICE_VARIANT_WIDTHS.large) throw new Error('HOME_HERO_IMAGE_TOO_SMALL');
-      const { revision } = await apiJson('/api/v1/admin/services/home-hero/image-revision', ServiceImageRevisionSchema, { method: 'POST' });
-      for (const variant of encoded.variants) {
-        await apiJson(`/api/v1/admin/services/home-hero/image/${revision}/${variant.name}`, ServiceImageUploadResponseSchema, {
-          method: 'PUT', body: variant.blob, headers: {
-            'Content-Type': variant.contentType,
-            'X-Cadrora-Byte-Size': String(variant.byteSize),
-            'X-Cadrora-Checksum-Sha256': variant.checksumSha256,
-            'X-Cadrora-Height': String(variant.height),
-            'X-Cadrora-Width': String(variant.width),
-          },
-        });
-      }
-      await apiJson(`/api/v1/admin/services/home-hero/image/${revision}/publish`, ServiceImageRevisionSchema, { method: 'POST' });
+      await uploadMarketingPhoto(file, { kind: 'home-hero' });
       await refresh();
       setSaved(true);
-    } catch { setError(true); } finally { encoder.dispose(); setBusy(false); }
+    } catch { setError(true); } finally { setBusy(false); }
   };
   return <details className="admin-service-editor">
     <summary>{t('admin.homeHero.sectionTitle')}</summary>

@@ -15,7 +15,7 @@ import {
   type RecoverablePhoto,
 } from '../../shared/schemas';
 import { ApiErrorSchema } from '../../shared/schemas/apiError';
-import type { EncodedVariant } from '../images';
+import { variantUploadHeaders, type EncodedVariant } from '../images';
 
 export interface ImportApi {
   checkDuplicates(eventId: string, hashes: string[]): Promise<string[]>;
@@ -106,13 +106,7 @@ export class FetchImportApi implements ImportApi {
           `/api/v1/admin/photos/${encodeURIComponent(photoId)}/variants/${encodeURIComponent(variant.name)}`,
           {
             body: variant.blob,
-            headers: {
-              'Content-Type': variant.contentType,
-              'X-Cadrora-Byte-Size': String(variant.byteSize),
-              'X-Cadrora-Checksum-Sha256': variant.checksumSha256,
-              'X-Cadrora-Height': String(variant.height),
-              'X-Cadrora-Width': String(variant.width),
-            },
+            headers: variantUploadHeaders(variant),
             method: 'PUT',
             signal: requestController.signal,
           },

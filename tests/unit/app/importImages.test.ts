@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import sharp from 'sharp';
 
-import { applyOrientationTransform, constrainedDimensions, encodePhoto } from '../../../src/browser/images/encoder';
+import { applyOrientationTransform, constrainedDimensions, encodePhoto, encodeServicePhoto } from '../../../src/browser/images/encoder';
 import { readExifCapturedAt, readExifOrientation, sniffImageType } from '../../../src/browser/images/format';
 
 function jpegWithOrientation(orientation: number): Uint8Array {
@@ -62,6 +62,7 @@ describe('browser import image guards', () => {
 
   it('draws source pixels into fresh encodings, so private EXIF text is never uploaded', async () => {
     const imageOrientation = vi.fn();
+    const qualities: number[] = [];
     vi.stubGlobal('createImageBitmap', (_file: File, options: ImageBitmapOptions) => {
       imageOrientation(options.imageOrientation);
       return Promise.resolve({ close: vi.fn(), height: 3000, width: 4000 } as unknown as ImageBitmap);
@@ -76,6 +77,7 @@ describe('browser import image guards', () => {
       }
 
       convertToBlob(options: ImageEncodeOptions): Promise<Blob> {
+        qualities.push(options.quality ?? 0);
         // A JPEG response for every requested type exercises the WebP MIME/magic fallback.
         return Promise.resolve(
           new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], { type: options.type ?? 'image/jpeg' }),
@@ -92,9 +94,13 @@ describe('browser import image guards', () => {
       const source = new Uint8Array([...jpegWithOrientation(6), ...new TextEncoder().encode('GPS SERIAL PRIVATE COMMENT')]);
       const file = new File([source], 'private.jpg', { type: 'image/jpeg' });
       const encoded = await encodePhoto(file);
+      const serviceEncoded = await encodeServicePhoto(file);
 
       expect(imageOrientation).toHaveBeenCalledWith('none');
       expect(encoded.variants).toHaveLength(5);
+      expect(serviceEncoded.variants).toHaveLength(4);
+      expect(qualities.filter((quality) => quality === 0.9)).toHaveLength(9);
+      expect(qualities.filter((quality) => quality === 0.78)).toHaveLength(8);
       expect(encoded.variants.every((variant) => variant.contentType === 'image/jpeg')).toBe(true);
       const output = (await Promise.all(encoded.variants.map((variant) => variant.blob.text()))).join('');
       expect(output).not.toContain('GPS');

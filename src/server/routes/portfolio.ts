@@ -9,6 +9,7 @@ import {
   PortfolioCollectionDetailSchema, PortfolioCollectionTextSchema, PortfolioCollectionsSchema,
   PortfolioItemSchema, PortfolioItemsSchema, PortfolioVariantSchema, UpdatePortfolioCollectionSchema, UpdatePortfolioItemSchema,
 } from '../../shared/schemas/portfolio';
+import type { PortfolioCollection, PortfolioItem } from '../../shared/schemas/portfolio';
 import { ServiceImageUploadHeadersSchema, ServiceImageUploadResponseSchema } from '../../shared/schemas/services';
 import { applyCachePolicy } from '../middleware/cacheHeaders';
 import { contentTypeWithoutParameters, putVerifiedImage } from '../services/imageUpload';
@@ -61,54 +62,98 @@ async function photoRow(db: D1Database, id: string): Promise<PhotoRow | null> {
     .bind(id).first<PhotoRow>();
 }
 
-async function listPortfolio(db: D1Database, admin: boolean) {
-  const [photos, variants] = await Promise.all([
-    db.prepare(`SELECT p.id, p.collection_id, p.alt_json, p.sort_order, p.state FROM portfolio_photos p
-      JOIN portfolio_collections c ON c.id = p.collection_id
-      WHERE ? = 1 OR (p.state = 'published' AND c.published = 1)
-      ORDER BY c.sort_order, p.sort_order, p.id LIMIT 200`).bind(Number(admin)).all<PhotoRow>(),
-    db.prepare('SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM portfolio_variants')
-      .all<VariantRow>(),
-  ]);
-  return PortfolioItemsSchema.parse(photos.results.map((photo) => ({
-    id: photo.id, collectionId: photo.collection_id, alt: PortfolioAltSchema.parse(JSON.parse(photo.alt_json) as unknown),
-    sortOrder: photo.sort_order, state: photo.state,
-    imageSources: variants.results.filter((variant) => variant.photo_id === photo.id)
-      .sort((left, right) => left.width - right.width).map((variant) => ({
-      url: `/portfolio-media/${photo.id}/${variant.variant}`, width: variant.width, height: variant.height,
-      })),
-  })));
+async function variantsForPhotos(db: D1Database, photoIds: string[]): Promise<Map<string, VariantRow[]>> {
+  const grouped = new Map<string, VariantRow[]>();
+  if (!photoIds.length) return grouped;
+  const placeholders = photoIds.map(() => '?').join(', ');
+  const rows = await db.prepare(`SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256
+    FROM portfolio_variants WHERE photo_id IN (${placeholders}) ORDER BY photo_id, width`).bind(...photoIds).all<VariantRow>();
+  for (const variant of rows.results) {
+    const group = grouped.get(variant.photo_id) ?? [];
+    group.push(variant);
+    grouped.set(variant.photo_id, group);
+  }
+  return grouped;
 }
 
-async function item(db: D1Database, id: string) {
-  return (await listPortfolio(db, true)).find((photo) => photo.id === id);
-}
-
-async function listCollections(db: D1Database, admin: boolean) {
-  const rows = await db.prepare(`SELECT c.id, c.slug, c.category_id, c.copy_json, c.sort_order, c.published, c.cover_photo_id
-    FROM portfolio_collections c
-    WHERE ? = 1 OR (c.published = 1)
-    ORDER BY c.sort_order, c.id LIMIT 100`).bind(Number(admin)).all<CollectionRow>();
-  const photos = await listPortfolio(db, admin);
-  return PortfolioCollectionsSchema.parse(rows.results.map((row) => {
-    const members = photos.filter((photo) => photo.collectionId === row.id && (admin || photo.state === 'published'));
-    const cover = members.find((photo) => photo.id === row.cover_photo_id && photo.state === 'published')
-      ?? members.find((photo) => photo.state === 'published');
-    return {
-      id: row.id, slug: row.slug, categoryId: row.category_id,
-      copy: PortfolioCollectionTextSchema.parse(JSON.parse(row.copy_json) as unknown),
-      sortOrder: row.sort_order, published: row.published === 1, coverPhotoId: row.cover_photo_id,
-      coverSources: cover?.imageSources ?? [], photoCount: members.length,
-    };
+function imageSources(photoId: string, variants: VariantRow[]) {
+  return variants.map((variant) => ({
+    url: `/portfolio-media/${photoId}/${variant.variant}`, width: variant.width, height: variant.height,
   }));
 }
 
+function portfolioItems(photos: PhotoRow[], variants: Map<string, VariantRow[]>): PortfolioItem[] {
+  return PortfolioItemsSchema.parse(photos.map((photo) => ({
+    id: photo.id, collectionId: photo.collection_id, alt: PortfolioAltSchema.parse(JSON.parse(photo.alt_json) as unknown),
+    sortOrder: photo.sort_order, state: photo.state,
+    imageSources: imageSources(photo.id, variants.get(photo.id) ?? []),
+  })));
+}
+
+async function listPortfolio(db: D1Database, admin: boolean): Promise<PortfolioItem[]> {
+  const photos = await db.prepare(`SELECT p.id, p.collection_id, p.alt_json, p.sort_order, p.state FROM portfolio_photos p
+    JOIN portfolio_collections c ON c.id = p.collection_id
+    WHERE ? = 1 OR (p.state = 'published' AND c.published = 1)
+    ORDER BY c.sort_order, p.sort_order, p.id LIMIT 200`).bind(Number(admin)).all<PhotoRow>();
+  return portfolioItems(photos.results, await variantsForPhotos(db, photos.results.map((photo) => photo.id)));
+}
+
+async function item(db: D1Database, id: string): Promise<PortfolioItem | null> {
+  const photo = await photoRow(db, id);
+  if (!photo) return null;
+  const variants = await variantsForPhotos(db, [photo.id]);
+  return portfolioItems([photo], variants)[0] ?? null;
+}
+
+function coverPhoto(row: CollectionRow, photos: PhotoRow[]): PhotoRow | undefined {
+  return photos.find((photo) => photo.id === row.cover_photo_id && photo.state === 'published')
+    ?? photos.find((photo) => photo.state === 'published');
+}
+
+function collection(row: CollectionRow, photoCount: number, cover: PhotoRow | undefined,
+  variants: Map<string, VariantRow[]>): PortfolioCollection {
+  return {
+    id: row.id, slug: row.slug, categoryId: row.category_id,
+    copy: PortfolioCollectionTextSchema.parse(JSON.parse(row.copy_json) as unknown),
+    sortOrder: row.sort_order, published: row.published === 1, coverPhotoId: row.cover_photo_id,
+    coverSources: cover ? imageSources(cover.id, variants.get(cover.id) ?? []) : [], photoCount,
+  };
+}
+
+async function listCollections(db: D1Database, admin: boolean): Promise<PortfolioCollection[]> {
+  const rows = await db.prepare(`SELECT c.id, c.slug, c.category_id, c.copy_json, c.sort_order, c.published, c.cover_photo_id
+    FROM portfolio_collections c ${admin ? '' : 'WHERE c.published = 1'}
+    ORDER BY c.sort_order, c.id LIMIT 100`).all<CollectionRow>();
+  if (!rows.results.length) return PortfolioCollectionsSchema.parse([]);
+  const placeholders = rows.results.map(() => '?').join(', ');
+  const photos = await db.prepare(`SELECT id, collection_id, alt_json, sort_order, state FROM portfolio_photos
+    WHERE collection_id IN (${placeholders}) ${admin ? '' : "AND state = 'published'"}
+    ORDER BY collection_id, sort_order, id LIMIT 200`).bind(...rows.results.map((row) => row.id)).all<PhotoRow>();
+  const grouped = new Map<string, PhotoRow[]>();
+  for (const photo of photos.results) {
+    const group = grouped.get(photo.collection_id) ?? [];
+    group.push(photo);
+    grouped.set(photo.collection_id, group);
+  }
+  const covers = rows.results.map((row) => coverPhoto(row, grouped.get(row.id) ?? []));
+  const variants = await variantsForPhotos(db, covers.filter((cover): cover is PhotoRow => cover !== undefined).map((cover) => cover.id));
+  return PortfolioCollectionsSchema.parse(rows.results.map((row, index) =>
+    collection(row, grouped.get(row.id)?.length ?? 0, covers[index], variants)));
+}
+
 async function collectionDetail(db: D1Database, identifier: string, admin: boolean) {
-  const collections = await listCollections(db, admin);
-  const collection = collections.find((candidate) => admin ? candidate.id === identifier : candidate.slug === identifier);
-  if (!collection) return null;
-  const photos = (await listPortfolio(db, admin)).filter((photo) => photo.collectionId === collection.id);
-  return PortfolioCollectionDetailSchema.parse({ ...collection, photos });
+  const row = await db.prepare(`SELECT id, slug, category_id, copy_json, sort_order, published, cover_photo_id
+    FROM portfolio_collections WHERE ${admin ? 'id' : 'slug'} = ?${admin ? '' : ' AND published = 1'}`)
+    .bind(identifier).first<CollectionRow>();
+  if (!row) return null;
+  const photoRows = await db.prepare(`SELECT id, collection_id, alt_json, sort_order, state FROM portfolio_photos
+    WHERE collection_id = ? ${admin ? '' : "AND state = 'published'"} ORDER BY sort_order, id LIMIT 200`)
+    .bind(row.id).all<PhotoRow>();
+  const variants = await variantsForPhotos(db, photoRows.results.map((photo) => photo.id));
+  const photos = portfolioItems(photoRows.results, variants);
+  return PortfolioCollectionDetailSchema.parse({
+    ...collection(row, photos.length, coverPhoto(row, photoRows.results), variants), photos,
+  });
 }
 
 async function requireCategory(db: D1Database, id: string): Promise<void> {
@@ -241,10 +286,16 @@ export function registerPortfolioRoutes(app: Hono<AppEnv>): void {
     const variants = await context.env.DB.prepare(`SELECT v.photo_id, v.storage_key FROM portfolio_variants v
       JOIN portfolio_photos p ON p.id = v.photo_id WHERE p.collection_id = ?`).bind(id.data)
       .all<{ photo_id: string; storage_key: string }>();
+    const keysByPhoto = new Map<string, string[]>();
+    for (const variant of variants.results) {
+      const keys = keysByPhoto.get(variant.photo_id) ?? [];
+      keys.push(variant.storage_key);
+      keysByPhoto.set(variant.photo_id, keys);
+    }
     const now = new Date().toISOString();
     const statements: D1PreparedStatement[] = [context.env.DB.prepare('UPDATE portfolio_collections SET published = 0 WHERE id = ?').bind(id.data)];
     for (const photo of current.photos) {
-      const keys = variants.results.filter((row) => row.photo_id === photo.id).map((row) => row.storage_key);
+      const keys = keysByPhoto.get(photo.id) ?? [];
       if (keys.length) statements.push(deletionJob(context.env.DB, photo.id, keys, now));
     }
     statements.push(context.env.DB.prepare('DELETE FROM portfolio_collections WHERE id = ?').bind(id.data));

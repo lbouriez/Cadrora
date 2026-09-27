@@ -10,4 +10,5 @@ export type {
 } from './types';
 export { ImageProcessingError } from './types';
 export { createImageEncoder } from './workerEncoder';
+export { variantUploadHeaders } from './uploadHeaders';
 export type { ImageEncoder } from './workerEncoder';

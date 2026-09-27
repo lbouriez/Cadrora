@@ -4,6 +4,7 @@ public/brand/responsive/
 coverage/
 playwright-report/
 test-results/
+test-results-*/
 .wrangler/
 .artifacts/
 .dev.vars

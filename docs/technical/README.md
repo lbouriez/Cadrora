@@ -33,6 +33,7 @@ The approved contracts cannot be changed merely because current code differs. Co
 Package guides: [`browser-import.md`](browser-import.md), [`media-and-publication.md`](media-and-publication.md), [`public-website.md`](public-website.md), [`public-gallery.md`](public-gallery.md), and [`facial-search.md`](facial-search.md). Browser integration coverage and its provider-boundary limits are documented in [`e2e-testing.md`](e2e-testing.md). The optional fleet/operator concept is deferred in [`../future-operator-control-plane.md`](../future-operator-control-plane.md); it is not an active Cadrora runtime contract.
 
 The point-in-time UX and release-gate review is [`production-readiness-review-2026-09-23.md`](production-readiness-review-2026-09-23.md). It separates locally verified behavior from provider and device checks that remain mandatory before a production claim.
+The fresh preproduction stack review is [`production-readiness-review-2026-09-27.md`](production-readiness-review-2026-09-27.md), with current priorities for Cloudflare release evidence, D1/R2 cost, deletion, diagnostics, and shared UI/upload paths.
 
 The fresh-account [Atelier Giulia deployment rehearsal](deployment-rehearsal-2026-09-25.md) records exactly which README/Cloudflare steps have been exercised, which remain unverified, and the screenshots still required.
 

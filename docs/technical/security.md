@@ -14,6 +14,7 @@ This guide summarizes engineering constraints; executable auth and authorization
 - No admin route exists without password or verified Cloudflare Access mode.
 - The public demo account has a separate, signed `read-only` capability. A fail-closed exact route allowlist rejects all demo mutations and unknown future admin reads before provider access.
 - Missing secrets lock admin behavior and return a calm actionable error; they never open access.
+- Missing sensitive-route rate-limit bindings reject login, unlock, and face-search POST requests before external provider work.
 - Missing auth produces an empty auth context, followed by a route-level 401/403.
 - Unknown content classification is private and not cached.
 - Vectorize absence disables facial features without blocking core galleries.
@@ -31,4 +32,5 @@ Facial embeddings are biometric data even though they are not images. Keep them 
 - Confirm admin and protected responses do not enter shared cache.
 - Confirm API 404 and errors are JSON without stack traces.
 - Confirm source-derived images contain none of the stripped EXIF fields.
+- Confirm sensitive routes return JSON 429 after a deliberate test limit and that normal gallery browsing and imports remain unaffected.
 - Sign in with the published demo identity and verify create, update, publish, import, upload, delete, and unknown admin routes all return `DEMO_READ_ONLY` without changing D1 or R2.
