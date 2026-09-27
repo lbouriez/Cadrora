@@ -72,6 +72,9 @@ describe('public photographer website', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Retrouver des photos avec l’IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
+    const atelierLink = screen.getByRole('link', { name: /Atelier Giulia.*Visiter le site/u });
+    expect(atelierLink.getAttribute('href')).toBe('https://ateliergiulia.com/');
+    expect(atelierLink.getAttribute('rel')).toBe('noopener');
     await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
   });
 

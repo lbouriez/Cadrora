@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { MotionReveal, Spinner } from '../components';
 import { getPublicEvents, getPublicServices, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
+import { FeaturedSites } from './FeaturedSites';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { fallbackServices, serviceText } from './serviceCatalog';
@@ -132,6 +133,8 @@ export function DefaultHomePage() {
         {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
         <PublicEventCards events={events.data} language={i18n.language} limit={settings.data?.homeGalleries.limit ?? 6} />
       </MotionReveal> : null}
+
+      {section === 'featuredSites' && siteProfile.home.featuredSites?.length ? <FeaturedSites sites={siteProfile.home.featuredSites} /> : null}
 
       {section === 'contact' ? <MotionReveal as="section" className="site-contact-callout">
         <div>

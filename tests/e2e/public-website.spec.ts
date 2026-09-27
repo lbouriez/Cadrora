@@ -31,6 +31,24 @@ test.describe('site vitrine statique', () => {
     await assertNoHorizontalOverflow(page);
   });
 
+  test('présente les sites créés avec Cadrora dans les deux langues', async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+    await page.goto('/');
+
+    const card = page.locator('.featured-site-card');
+    await expect(page.getByRole('heading', { name: 'Ils utilisent Cadrora.' })).toBeVisible();
+    await expect(card).toHaveCount(1);
+    await expect(card).toHaveAttribute('href', 'https://ateliergiulia.com/');
+    await expect(card).toHaveAttribute('rel', 'noopener');
+    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
+    await expect(card).toContainText('Visiter le site');
+
+    await page.getByRole('button', { name: 'Afficher en EN' }).click();
+    await expect(page.getByRole('heading', { name: 'See it in use.' })).toBeVisible();
+    await expect(card).toContainText('Visit the website');
+    await assertNoHorizontalOverflow(page);
+  });
+
   test('ouvre les nouvelles pages en haut après une navigation depuis le bas', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');

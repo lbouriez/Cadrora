@@ -21,13 +21,16 @@ describe('site profiles', () => {
     expect(atelierGiuliaSite.demo).toBeNull();
     expect(atelierGiuliaSite.home.sections).not.toContain('demo');
     expect(atelierGiuliaSite.home.sections).not.toContain('stack');
+    expect(atelierGiuliaSite.home.sections).not.toContain('featuredSites');
     expect(atelierGiuliaSite.home.primaryAction.href).toBe('/contact');
     expect(cadroraSite.home.sections).toContain('demo');
+    expect(cadroraSite.home.featuredSites).toHaveLength(1);
     expect(cadroraSite.demo?.privateGallerySlug).toBe('instants-en-famille');
   });
 
   it('provides the same visitor-copy keys in French and English', () => {
     expect(leafKeys(atelierGiuliaSite.copy.fr)).toEqual(leafKeys(atelierGiuliaSite.copy.en));
+    expect(leafKeys(cadroraSite.copy.fr)).toEqual(leafKeys(cadroraSite.copy.en));
     expect(atelierGiuliaSite.copy.fr.gallery.footerTagline).toBe('Des images pleines de vie.');
     expect(atelierGiuliaSite.copy.en.gallery.footerTagline).toBe('Photography with feeling.');
   });

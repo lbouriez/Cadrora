@@ -23,8 +23,16 @@ export const cadroraSite = {
   home: {
     primaryAction: { href: '/e/find-your-photos/find', labelKey: 'gallery.tryAi', shortLabelKey: 'gallery.tryAiShort' },
     secondaryAction: { href: '#galleries', labelKey: 'gallery.discoverGalleries', shortLabelKey: 'gallery.discoverGalleriesShort' },
-    sections: ['demo', 'stack', 'services', 'approach', 'galleries', 'contact'],
+    sections: ['demo', 'stack', 'services', 'approach', 'galleries', 'featuredSites', 'contact'],
     showProof: true,
+    featuredSites: [
+      {
+        name: 'Atelier Giulia',
+        href: 'https://ateliergiulia.com/',
+        descriptionKey: 'gallery.featuredSites.atelierGiulia',
+        logoUrl: '/brand/atelier-giulia-logo.png',
+      },
+    ],
   },
   demo: {
     adminPassword: 'cadrora-demo',
@@ -33,7 +41,14 @@ export const cadroraSite = {
     privateGallerySlug: 'instants-en-famille',
     publicGallerySlug: 'lumiere-et-promesses',
   },
-  copy: { en: {}, fr: {} },
+  copy: {
+    en: { gallery: { featuredSites: {
+      atelierGiulia: 'Portraits, celebrations, and photo galleries on a site shaped around the studio.',
+    } } },
+    fr: { gallery: { featuredSites: {
+      atelierGiulia: 'Portraits, célébrations et galeries photo sur un site adapté au studio.',
+    } } },
+  },
 } as const satisfies SiteDefinition;
 
 export default cadroraSite;

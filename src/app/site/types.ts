@@ -3,7 +3,14 @@ import type { ComponentType } from 'react';
 import type { ServiceKey } from '../../shared/schemas/site';
 
 export type MarketingPage = 'home' | 'services' | 'galleries' | 'contact' | 'privacy';
-export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'contact';
+export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact';
+
+export interface FeaturedSite {
+  name: string;
+  href: string;
+  descriptionKey: string;
+  logoUrl?: string;
+}
 
 export interface SiteAction {
   href: string;
@@ -27,6 +34,7 @@ export interface SiteDefinition {
     secondaryAction: SiteAction;
     sections: readonly HomeSection[];
     showProof: boolean;
+    featuredSites?: readonly FeaturedSite[];
   };
   demo: {
     adminPassword: string;
