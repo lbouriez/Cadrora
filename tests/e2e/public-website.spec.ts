@@ -40,7 +40,7 @@ test.describe('site vitrine statique', () => {
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute('href', 'https://ateliergiulia.com/');
     await expect(card).toHaveAttribute('rel', 'noopener');
-    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
+    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-icon.png');
     await expect(card).toContainText('Visiter le site');
 
     await page.getByRole('button', { name: 'Afficher en EN' }).click();

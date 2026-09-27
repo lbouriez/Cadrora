@@ -30,7 +30,7 @@ export const cadroraSite = {
         name: 'Atelier Giulia',
         href: 'https://ateliergiulia.com/',
         descriptionKey: 'gallery.featuredSites.atelierGiulia',
-        logoUrl: '/brand/atelier-giulia-logo.png',
+        logoUrl: '/brand/atelier-giulia-icon.png',
       },
     ],
   },
