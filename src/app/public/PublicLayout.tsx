@@ -113,15 +113,17 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
       <main className={`public-main${wide ? ' public-main--gallery' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div className="public-footer__identity">
-          <p>© {siteName}{footerTagline ? ` · ${footerTagline}` : ''}</p>
+          <div className="public-footer__signature">
+            <p>© {siteName}{footerTagline ? ` · ${footerTagline}` : ''}</p>
+            {!siteProfile.demo.enabled ? (
+              <a className="public-footer__credit" href="https://cadrora.com/">
+                <span>{t('gallery.footerCredit')} </span>
+                <img alt="" height="256" src="/brand/cadrora-logo.png" width="256" />
+                <span>Cadrora</span>
+              </a>
+            ) : null}
+          </div>
           {siteProfile.demo.enabled ? <p className="public-footer__note">{t('gallery.footerDemo')}</p> : null}
-          {!siteProfile.demo.enabled ? (
-            <a className="public-footer__credit" href="https://cadrora.com/">
-              <span>{t('gallery.footerCredit')} </span>
-              <img alt="" height="256" src="/brand/cadrora-logo.png" width="256" />
-              <span>Cadrora</span>
-            </a>
-          ) : null}
         </div>
         <nav aria-label={t('gallery.footerNavigation')}>
           <Link to="/privacy">{t('gallery.privacy')}</Link>

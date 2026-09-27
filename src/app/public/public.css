@@ -114,7 +114,14 @@
   text-decoration: none;
 }
 
-.public-footer__identity > p:first-child {
+.public-footer__signature {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: var(--space-3);
+}
+
+.public-footer__signature > p {
   margin: 0;
 }
 
@@ -125,7 +132,8 @@
   color: inherit;
   font-size: 0.75rem;
   text-decoration: none;
-  gap: var(--space-2);
+  white-space: nowrap;
+  gap: var(--space-1);
 }
 
 .public-footer__credit img {
@@ -1624,6 +1632,11 @@
   .public-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .public-footer__signature {
+    font-size: 0.75rem;
+    column-gap: var(--space-2);
   }
 
   .photo-viewer__controls {

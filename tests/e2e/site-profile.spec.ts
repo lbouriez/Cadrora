@@ -16,6 +16,15 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await expect(credit).toHaveAttribute('href', 'https://cadrora.com/');
   await expect(credit).toHaveText('par Cadrora');
   await expect(credit.locator('img')).toHaveAttribute('src', '/brand/cadrora-logo.png');
+  const signatureAlignment = () => page.locator('.public-footer__signature').evaluate((signature) => {
+    const label = signature.querySelector('p');
+    const link = signature.querySelector('a');
+    if (!label || !link) return false;
+    const labelBox = label.getBoundingClientRect();
+    const linkBox = link.getBoundingClientRect();
+    return Math.abs(labelBox.top + labelBox.height / 2 - linkBox.top - linkBox.height / 2) < 2;
+  });
+  expect(await signatureAlignment()).toBe(true);
   await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-icon.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);
@@ -39,6 +48,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await assertNoHorizontalOverflow(page);
   await page.goto('/');
   await assertNoHorizontalOverflow(page);
+  expect(await signatureAlignment()).toBe(true);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 
