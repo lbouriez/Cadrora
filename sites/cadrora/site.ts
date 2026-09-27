@@ -3,6 +3,10 @@ import type { SiteDefinition } from '../../src/app/site/types';
 export const cadroraSite = {
   id: 'cadrora',
   name: 'Cadrora',
+  description: {
+    fr: 'Cadrora, photographie d’événements et galeries privées élégantes.',
+    en: 'Cadrora, event photography and elegant private galleries.',
+  },
   logoUrl: '/brand/cadrora-logo.png',
   heroImageUrl: '/brand/demo-hero.webp',
   heroAccentImageUrl: '/demo/face-search/test-portrait-amelia.webp',

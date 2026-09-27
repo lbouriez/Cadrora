@@ -24,7 +24,7 @@ function run(command, argumentsList, options = {}) {
   const result = spawnSync(command, argumentsList, {
     cwd: workspace,
     encoding: options.capture ? 'utf8' : undefined,
-    env: { ...process.env, CI: 'true', NO_COLOR: '1', WRANGLER_SEND_METRICS: 'false' },
+    env: { ...process.env, ...options.env, CI: 'true', NO_COLOR: '1', WRANGLER_SEND_METRICS: 'false' },
     stdio: options.capture ? 'pipe' : 'inherit',
   });
   if (result.error) throw result.error;
@@ -153,7 +153,7 @@ if (argumentsList.includes('--help')) {
 
 try {
   const target = parseInstanceArguments(argumentsList);
-  const siteId = process.env.CADRORA_SITE?.trim() || 'cadrora';
+  const siteId = process.env.CADRORA_SITE?.trim() || 'studio';
   const site = loadSiteProfile(siteId, workspace);
   assertSiteTarget(site, target, process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true', listSiteProfiles(workspace));
   const accountId = requiredEnvironment('CLOUDFLARE_ACCOUNT_ID');
@@ -190,7 +190,7 @@ try {
   try { await chmod(secretsPath, 0o600); } catch { /* Windows uses the ignored private directory boundary. */ }
 
   try {
-    run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build']);
+    run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { env: { CADRORA_SITE: siteId } });
     wrangler(['d1', 'migrations', 'apply', 'DB', '--remote', '--config', configPath, '--env=']);
     if (site.deployment?.initialSettingsSql) {
       wrangler(['d1', 'execute', 'DB', '--remote', '--file', site.deployment.initialSettingsSql, '--config', configPath, '--env=']);

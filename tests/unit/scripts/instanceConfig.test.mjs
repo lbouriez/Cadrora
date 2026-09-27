@@ -8,6 +8,7 @@ import {
   parseInstanceArguments,
   parseR2BucketNames,
 } from '../../../scripts/instances/instanceConfig.mjs';
+import { loadSiteProfile } from '../../../scripts/sites/loadProfile.mjs';
 
 describe('isolated instance deployment configuration', () => {
   it('accepts an exact root domain or subdomain and rejects URL syntax', () => {
@@ -82,5 +83,13 @@ describe('isolated instance deployment configuration', () => {
     expect(() => assertSiteTarget(profile, { ...target, hostname: 'cadrora.com' })).toThrow('only');
     expect(() => assertSiteTarget({ id: 'cadrora' }, target, false, [profile])).toThrow('reserved');
     expect(() => assertSiteTarget(profile, target, true)).toThrow('must never be seeded');
+  });
+
+  it('accepts the neutral studio profile on any non-reserved hostname despite its seed SQL', () => {
+    const studio = loadSiteProfile('studio');
+    const atelier = loadSiteProfile('atelier-giulia');
+    expect(() => assertSiteTarget(studio, { instance: 'alice', hostname: 'alice.example.com' }, false, [studio, atelier])).not.toThrow();
+    expect(() => assertSiteTarget(studio, { instance: 'atelier-giulia', hostname: 'ateliergiulia.com' }, false, [studio, atelier])).toThrow('reserved');
+    expect(() => assertSiteTarget({ id: 'partial', deployment: { instance: 'partial' } }, { instance: 'partial', hostname: 'example.com' })).toThrow('both');
   });
 });

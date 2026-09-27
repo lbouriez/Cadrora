@@ -1,0 +1,13 @@
+{
+  "id": "studio",
+  "name": "Studio photo",
+  "document": {
+    "description": "Studio photo, portraits et galeries privées.",
+    "themeColor": "#17111f",
+    "icon": "/brand/studio-icon.svg"
+  },
+  "defaultLanguage": "fr",
+  "deployment": {
+    "initialSettingsSql": "sites/studio/initial-settings.sql"
+  }
+}

@@ -66,5 +66,7 @@ describe('shared schemas', () => {
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, homeGalleries: { enabled: true, limit: 13 } }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, homeGalleries: { enabled: false, limit: 0 } }).success).toBe(false);
     expect(UpdateSiteSettingsSchema.safeParse({ ...settings, map: { centerLatitude: 45.5, centerLongitude: null, radiusKm: 50 } }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, siteCopy: { fr: { description: '' }, en: {} } }).success).toBe(false);
+    expect(UpdateSiteSettingsSchema.safeParse({ ...settings, siteCopy: { fr: { footerTagline: '' }, en: { description: 'Photo studio.' } } }).success).toBe(true);
   });
 });

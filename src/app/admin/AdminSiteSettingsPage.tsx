@@ -4,8 +4,8 @@ import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AdminSiteSettingsSchema } from '../../shared/schemas';
-import type { Language, QuotaLimits, ServiceKey, ThemeMode } from '../../shared/schemas';
-import { Button, Input, MultiSelect, Select, Spinner } from '../components';
+import type { Language, QuotaLimits, ServiceKey, SiteCopy, ThemeMode } from '../../shared/schemas';
+import { Button, Input, MultiSelect, Select, Spinner, Textarea } from '../components';
 import { siteProfile } from '../public/siteProfile';
 import { useAdminAccess } from './AdminAccessContext';
 import { CitySearch } from './CitySearch';
@@ -30,6 +30,7 @@ async function updateAdminSiteSettings(input: {
   quotas: QuotaLimits;
   serviceArea: string | null;
   siteName: string;
+  siteCopy: SiteCopy;
   themeMode: ThemeMode;
 }) {
   const response = await fetch('/api/v1/admin/site', {
@@ -80,6 +81,11 @@ export function AdminSiteSettingsPage() {
   const enabledLanguages = enabledLanguagesOverride ?? settings.data.enabledLanguages;
   const enabledServices = enabledServicesOverride ?? settings.data.enabledServices;
   const storageUsage = formatMediaStorage(settings.data.usage.storageBytes, i18n.language);
+  const siteCopy = settings.data.siteCopy;
+  const copyFallback = (language: Language, field: keyof SiteCopy['fr']) => field === 'description'
+    ? siteProfile.siteDescription[language]
+    : i18n.getFixedT(language)(`gallery.${field}`);
+  const copyValue = (language: Language, field: keyof SiteCopy['fr']) => siteCopy?.[language][field] ?? copyFallback(language, field);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -93,6 +99,16 @@ export function AdminSiteSettingsPage() {
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
     const homeGalleryLimit = Number(values.get('homeGalleryLimit'));
     const siteName = formText(values, 'siteName');
+    const nextSiteCopy: SiteCopy = {
+      fr: {
+        description: formText(values, 'description-fr'),
+        footerTagline: formText(values, 'footerTagline-fr'),
+      },
+      en: {
+        description: formText(values, 'description-en'),
+        footerTagline: formText(values, 'footerTagline-en'),
+      },
+    };
     const contactEmail = formText(values, 'contactEmail');
     const contactPhone = formText(values, 'contactPhone');
     const contactAddress = formText(values, 'contactAddress');
@@ -131,6 +147,7 @@ export function AdminSiteSettingsPage() {
       },
       serviceArea,
       siteName,
+      siteCopy: nextSiteCopy,
       themeMode,
     });
   };
@@ -146,11 +163,24 @@ export function AdminSiteSettingsPage() {
         <a href="#admin-settings-home">{t('admin.settings.homeGalleriesSection')}</a>
         <a href="#admin-settings-services">{t('admin.settings.servicesSection')}</a>
         <a href="#admin-settings-contact">{t('admin.settings.contactSection')}</a>
+        <a href="#admin-settings-footer">{t('admin.settings.footerSection')}</a>
       </nav>
       <form className="admin-event-form" onSubmit={submit}>
         <fieldset className="admin-settings-section" id="admin-settings-website">
           <legend>{t('admin.settings.websiteSection')}</legend>
           <Input defaultValue={settings.data.siteName} label={t('admin.settings.siteName')} maxLength={120} name="siteName" required />
+          <p className="admin-card__description">{t('admin.settings.siteDescriptionHint')}</p>
+          <div className="admin-settings-contact-grid">
+            {(['fr', 'en'] as const).map((language) => <Textarea
+              defaultValue={copyValue(language, 'description')}
+              key={language}
+              label={`${t('admin.settings.siteDescription')} · ${t(`admin.settings.language${language === 'fr' ? 'Fr' : 'En'}`)}`}
+              maxLength={300}
+              name={`description-${language}`}
+              required
+              rows={3}
+            />)}
+          </div>
         <MultiSelect
           hint={t('admin.settings.languagesHint')}
           label={t('admin.settings.languages')}
@@ -282,6 +312,19 @@ export function AdminSiteSettingsPage() {
             <Input defaultValue={settings.data.map.centerLatitude ?? ''} inputRef={latitudeInput} label={t('admin.settings.mapLatitude')} max="90" min="-90" name="mapLatitude" step="any" type="number" />
             <Input defaultValue={settings.data.map.centerLongitude ?? ''} inputRef={longitudeInput} label={t('admin.settings.mapLongitude')} max="180" min="-180" name="mapLongitude" step="any" type="number" />
             <Input defaultValue={settings.data.map.radiusKm ?? ''} label={t('admin.settings.mapRadius')} max="2000" min="1" name="mapRadiusKm" step="1" type="number" />
+          </div>
+        </fieldset>
+        <fieldset className="admin-settings-section" id="admin-settings-footer">
+          <legend>{t('admin.settings.footerSection')}</legend>
+          <p className="admin-card__description">{t('admin.settings.footerHint')}</p>
+          <div className="admin-settings-contact-grid">
+            {(['fr', 'en'] as const).map((language) => <Input
+              defaultValue={copyValue(language, 'footerTagline')}
+              key={language}
+              label={`${t('admin.settings.footerTagline')} · ${t(`admin.settings.language${language === 'fr' ? 'Fr' : 'En'}`)}`}
+              maxLength={160}
+              name={`footerTagline-${language}`}
+            />)}
           </div>
         </fieldset>
         {readOnly ? <p className="admin-card__description">{t('admin.settings.readOnly')}</p> : null}

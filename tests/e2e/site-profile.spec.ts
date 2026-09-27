@@ -11,6 +11,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre histoire|your story/i);
   await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
+  await expect(page.locator('.public-footer')).toContainText('Des images pleines de vie.');
   await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-icon.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);
@@ -35,6 +36,33 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await page.goto('/');
   await assertNoHorizontalOverflow(page);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+});
+
+test('owner-edited brand copy updates both languages without changing the designed home page', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Studio Boréal', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    siteCopy: {
+      fr: { description: 'Portraits du Québec.', footerTagline: 'Des histoires à garder.' },
+      en: { description: 'Portraits from Québec.', footerTagline: 'Stories to keep.' },
+    },
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled: true, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
+  }) }));
+  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
+  }));
+  await page.goto('/');
+  await expect(page).toHaveTitle('Studio Boréal');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits du Québec.');
+  await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Des histoires à garder.');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Votre histoire');
+
+  await page.locator('.public-header__language').click();
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits from Québec.');
+  await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Stories to keep.');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Your story');
 });
 
 test('fixed light appearance does not flash a dark theme or a theme switch while settings load', async ({ page }) => {

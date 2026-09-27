@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { atelierGiuliaSite } from '../../../sites/atelier-giulia/site';
+import atelierProfile from '../../../sites/atelier-giulia/profile.json';
 import { cadroraSite } from '../../../sites/cadrora/site';
+import cadroraProfile from '../../../sites/cadrora/profile.json';
+import { studioSite } from '../../../sites/studio/site';
+import studioProfile from '../../../sites/studio/profile.json';
 
 function leafKeys(value: Record<string, unknown>, prefix = ''): string[] {
   return Object.entries(value).flatMap(([key, entry]) => {
@@ -24,5 +28,25 @@ describe('site profiles', () => {
 
   it('provides the same visitor-copy keys in French and English', () => {
     expect(leafKeys(atelierGiuliaSite.copy.fr)).toEqual(leafKeys(atelierGiuliaSite.copy.en));
+    expect(atelierGiuliaSite.copy.fr.gallery.footerTagline).toBe('Des images pleines de vie.');
+    expect(atelierGiuliaSite.copy.en.gallery.footerTagline).toBe('Photography with feeling.');
+  });
+
+  it('starts independent non-demo sites with neutral copy and no showcase sections', () => {
+    expect(studioSite.name).toBe('Studio photo');
+    expect(studioSite.description.fr).toContain('Studio photo');
+    expect(studioSite.demo).toBeNull();
+    expect(studioSite.home.sections).toEqual(['services', 'approach', 'galleries', 'contact']);
+  });
+
+  it('keeps each compiled name and French description aligned with its static metadata', () => {
+    for (const [site, profile] of [
+      [cadroraSite, cadroraProfile],
+      [studioSite, studioProfile],
+      [atelierGiuliaSite, atelierProfile],
+    ] as const) {
+      expect(site.name).toBe(profile.name);
+      expect(site.description.fr).toBe(profile.document.description);
+    }
   });
 });

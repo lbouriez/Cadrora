@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -72,6 +72,33 @@ describe('public photographer website', () => {
     expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Retrouver des photos avec l’IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
     await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
+  });
+
+  it('renders owner-edited name, bilingual footer, and browser description', async () => {
+    const meta = document.createElement('meta');
+    meta.name = 'description';
+    document.head.append(meta);
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site' ? {
+        ...runtimeSettings,
+        siteName: 'Studio Boréal',
+        siteCopy: {
+          fr: { description: 'Portraits du Québec.', footerTagline: 'Des histoires à garder.' },
+          en: { description: 'Portraits from Québec.', footerTagline: 'Stories to keep.' },
+        },
+      } : { events: [], protectedGalleries: [], nextCursor: null },
+    ), { status: 200 }))));
+    renderPage(<HomePage />);
+
+    await waitFor(() => expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy());
+    expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy();
+    expect(document.title).toBe('Studio Boréal');
+    expect(meta.content).toBe('Portraits du Québec.');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Afficher en EN' }));
+    await waitFor(() => expect(screen.getByText('© Studio Boréal · Stories to keep.')).toBeTruthy());
+    await waitFor(() => expect(meta.content).toBe('Portraits from Québec.'));
+    meta.remove();
   });
 
   it('shows only the configured number of newest event dates on the home page', async () => {

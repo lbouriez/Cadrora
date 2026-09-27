@@ -28,12 +28,13 @@ export default defineConfig({
       name: 'cadrora-site-document',
       transformIndexHtml(html: string) {
         const icon = site.document.icon;
+        const iconType = icon?.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
         return html
           .replace(/<title>[^<]*<\/title>/u, `<title>${site.name}</title>`)
           .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${site.document.description}$2`)
           .replace(/(<meta name="theme-color" content=")[^"]*(" \/>)/u, `$1${site.document.themeColor}$2`)
           .replace(/\s*<link rel="(?:icon|apple-touch-icon)"[^>]*\/>/gu, '')
-          .replace('  </head>', `${icon ? `    <link rel="icon" href="${icon}" type="image/png" />\n    <link rel="apple-touch-icon" href="${icon}" />\n` : ''}  </head>`);
+          .replace('  </head>', `${icon ? `    <link rel="icon" href="${icon}" type="${iconType}" />\n${iconType === 'image/png' ? `    <link rel="apple-touch-icon" href="${icon}" />\n` : ''}` : ''}  </head>`);
       },
     },
     cloudflare(),

@@ -21,6 +21,7 @@ const row = {
   map_radius_km: null,
   service_area: null,
   site_name: 'Cadrora',
+  site_copy: null,
   theme_mode: 'both' as const,
   updated_at: '2026-09-21T00:00:00.000Z',
 };
@@ -84,6 +85,10 @@ describe('admin site settings routes', () => {
         quotas: { faceLimit: 2000, storageLimitBytes: 1000000000 },
         serviceArea: 'Greater Montréal',
         siteName: 'Studio North',
+        siteCopy: {
+          fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' },
+          en: { description: 'Northern studio.', footerTagline: 'Memories that last.' },
+        },
         themeMode: 'system',
       }),
       headers: { 'Content-Type': 'application/json', Origin: 'https://cadrora.test' },
@@ -94,7 +99,9 @@ describe('admin site settings routes', () => {
     expect(update.bind).toHaveBeenCalledWith(
       'en', '["en"]', 'system', 1000000000, 2000, 'G-ABCDEF1234',
       'bonjour@example.test', '+1 514 555-0142', 'Montréal, Québec', 'Greater Montréal',
-      45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', 0, 4, expect.any(String),
+      45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', 0, 4,
+      JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
+      expect.any(String),
     );
   });
 
