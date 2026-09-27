@@ -26,10 +26,12 @@ import { registerFaceModelRoutes } from './routes/faceModels';
 import { registerFaceSearchRoutes } from './routes/faceSearch';
 import { enqueueExpiredFacePurges } from './routes/faceSearch';
 import { registerMediaRoutes } from './routes/media';
+import { registerServiceRoutes } from './routes/services';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
 import type { AppEnv } from './types';
 export { PublicMediaCache } from './services/publicMediaCache';
+export { ServiceMediaCache } from './services/publicMediaCache';
 
 export const app = new Hono<AppEnv>();
 
@@ -68,12 +70,13 @@ registerAdminEventRoutes(app);
 registerAdminImportRoutes(app);
 registerAdminSiteRoutes(app);
 registerMediaRoutes(app);
+registerServiceRoutes(app);
 registerPublicationRoutes(app);
 registerFaceSearchRoutes(app);
 registerFaceModelRoutes(app);
 
 app.notFound(async (context) => {
-  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/')) {
+  if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/')) {
     return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
   }
   if (context.env?.ASSETS) {

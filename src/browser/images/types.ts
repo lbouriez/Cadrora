@@ -14,20 +14,20 @@ export interface ValidatedImageFile {
   width: number;
 }
 
-export interface EncodedVariant {
+export interface EncodedVariant<Name extends string = PhotoVariantName | 'original'> {
   blob: Blob;
   byteSize: number;
   checksumSha256: string;
   contentType: AcceptedSourceImageType;
   height: number;
-  name: PhotoVariantName | 'original';
+  name: Name;
   width: number;
 }
 
-export interface EncodedPhoto {
+export interface EncodedPhoto<Name extends string = PhotoVariantName | 'original'> {
   height: number;
   sourceContentType: AcceptedSourceImageType;
-  variants: EncodedVariant[];
+  variants: EncodedVariant<Name>[];
   width: number;
 }
 

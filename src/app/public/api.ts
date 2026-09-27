@@ -1,5 +1,6 @@
 import { ApiErrorSchema } from '../../shared/schemas/apiError';
 import { SiteSettingsSchema } from '../../shared/schemas/site';
+import { ServiceCardsSchema } from '../../shared/schemas/services';
 import {
   PublicEventListSchema,
   PublicEventSchema,
@@ -43,6 +44,10 @@ export async function getPublicGalleryIndex(cursor?: string) {
 /** Optional runtime presentation setting; public pages retain a safe local fallback if it is unavailable. */
 export async function getPublicSiteSettings(): Promise<SiteSettings> {
   return validatedFetch('/api/v1/site', SiteSettingsSchema);
+}
+
+export async function getPublicServices() {
+  return validatedFetch('/api/v1/services', ServiceCardsSchema);
 }
 
 export async function getPublicEvent(locator: string): Promise<PublicEvent> {

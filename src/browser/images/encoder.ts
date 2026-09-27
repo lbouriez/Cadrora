@@ -1,4 +1,4 @@
-import { PHOTO_VARIANT_WIDTHS, type PhotoVariantName } from '../../shared/constants';
+import { PHOTO_VARIANT_WIDTHS, SERVICE_VARIANT_WIDTHS, type PhotoVariantName, type ServiceVariantName } from '../../shared/constants';
 import { readExifOrientation, sniffImageType } from './format';
 import type { EncodedImageType, EncodedPhoto, EncodedVariant, ExifOrientation } from './types';
 import { ImageProcessingError } from './types';
@@ -6,7 +6,16 @@ import { ImageProcessingError } from './types';
 type EncodableCanvas = HTMLCanvasElement | OffscreenCanvas;
 type CanvasContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
-export async function encodePhoto(file: File): Promise<EncodedPhoto> {
+export async function encodePhoto(file: File): Promise<EncodedPhoto<PhotoVariantName>> {
+  return encodeImage(file, PHOTO_VARIANT_WIDTHS, 'download');
+}
+
+/** Service cards share the gallery decoder, orientation, metadata removal, and verified encoder. */
+export async function encodeServicePhoto(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
+  return encodeImage(file, SERVICE_VARIANT_WIDTHS);
+}
+
+async function encodeImage<Name extends string>(file: File, widths: Record<Name, number>, jpegVariant?: Name): Promise<EncodedPhoto<Name>> {
   const header = new Uint8Array(await file.slice(0, 128 * 1024).arrayBuffer());
   const sourceContentType = sniffImageType(header);
   if (!sourceContentType) {
@@ -24,14 +33,11 @@ export async function encodePhoto(file: File): Promise<EncodedPhoto> {
 
   try {
     const normalized = renderOrientedBitmap(bitmap, orientation);
-    const variants: EncodedVariant[] = [];
-    for (const [name, maximumWidth] of Object.entries(PHOTO_VARIANT_WIDTHS) as [
-      PhotoVariantName,
-      number,
-    ][]) {
+    const variants: EncodedVariant<Name>[] = [];
+    for (const [name, maximumWidth] of Object.entries(widths) as [Name, number][]) {
       const dimensions = constrainedDimensions(normalized.width, normalized.height, maximumWidth);
       const scaled = renderScaledCanvas(normalized, dimensions.width, dimensions.height);
-      const encoded = await encodeVariant(scaled, name);
+      const encoded = await encodeVariant(scaled, name === jpegVariant);
       variants.push({ ...encoded, ...dimensions, name });
     }
 
@@ -103,8 +109,8 @@ function renderScaledCanvas(source: EncodableCanvas, width: number, height: numb
   return canvas;
 }
 
-async function encodeVariant(canvas: EncodableCanvas, name: PhotoVariantName): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
-  if (name === 'download') {
+async function encodeVariant(canvas: EncodableCanvas, forceJpeg: boolean): Promise<Omit<EncodedVariant, 'height' | 'name' | 'width'>> {
+  if (forceJpeg) {
     return encodeAs(canvas, 'image/jpeg');
   }
 

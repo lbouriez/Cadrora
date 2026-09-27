@@ -10,3 +10,4 @@ export * from './media';
 export * from './photo';
 export * from './primitives';
 export * from './site';
+export * from './services';

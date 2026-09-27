@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { MotionReveal, Spinner } from '../components';
-import { getPublicEvents, getPublicSiteSettings } from './api';
+import { getPublicEvents, getPublicServices, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
-import { serviceVisuals } from './serviceCatalog';
+import { fallbackServices, serviceText } from './serviceCatalog';
+import { ServicePhoto } from './ServicePhoto';
 import { siteProfile } from './siteProfile';
 import type { HomeSection, SiteAction } from '../site/types';
 
@@ -29,10 +30,13 @@ function SiteActionLink({ action, primary }: { action: SiteAction; primary: bool
 
 export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
-  const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents });
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
   const showHomeGalleries = settings.data?.homeGalleries.enabled ?? true;
-  const featuredServices = serviceVisuals.filter(({ key }) => settings.data?.enabledServices.includes(key) ?? true).slice(0, 3);
+  const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
+  const featuredServices = (services.data ?? fallbackServices(settings.data?.enabledServices))
+    .filter((card) => card.enabled && card.showOnHome).slice(0, settings.data?.homeServicesLimit ?? 3);
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const secondaryAction = !showHomeGalleries && siteProfile.home.secondaryAction.href === '#galleries'
     ? { ...siteProfile.home.secondaryAction, href: '/galleries' }
     : siteProfile.home.secondaryAction;
@@ -96,12 +100,13 @@ export function DefaultHomePage() {
           <p>{t('gallery.servicesLead')}</p>
         </div>
         <div className="service-grid">
-          {featuredServices.map(({ key, src }, index) => (
-            <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
-              <BrandPhoto alt="" className="service-card__image" sizes="(max-width: 48rem) 100vw, 33vw" src={src} />
-              <div className="service-card__copy"><h3>{t(`gallery.servicesPage.${key}.title`)}</h3><p>{t(`gallery.servicesPage.${key}.body`)}</p></div>
-            </MotionReveal>
-          ))}
+          {featuredServices.map((card, index) => {
+            const copy = serviceText(card, language, (key) => t(key));
+            return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
+              <ServicePhoto card={card} className="service-card__image" sizes="(max-width: 48rem) 100vw, 33vw" />
+              <div className="service-card__copy"><h3>{copy.title}</h3><p>{copy.shortDescription}</p></div>
+            </MotionReveal>;
+          })}
         </div>
       </MotionReveal> : null}
 

@@ -1,4 +1,5 @@
-import { encodePhoto } from './encoder';
+import { encodePhoto, encodeServicePhoto } from './encoder';
+import type { ServiceVariantName } from '../../shared/constants';
 import type { EncodedPhoto } from './types';
 import { ImageProcessingError } from './types';
 
@@ -7,9 +8,20 @@ export interface ImageEncoder {
   dispose(): void;
 }
 
-interface WorkerSuccess {
+export interface ServiceImageEncoder extends ImageEncoder {
+  encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>>;
+}
+
+interface GalleryWorkerSuccess {
   id: string;
   photo: EncodedPhoto;
+  recipe: 'gallery';
+  type: 'success';
+}
+interface ServiceWorkerSuccess {
+  id: string;
+  photo: EncodedPhoto<ServiceVariantName>;
+  recipe: 'service';
   type: 'success';
 }
 
@@ -20,18 +32,23 @@ interface WorkerFailure {
   type: 'failure';
 }
 
-type WorkerResponse = WorkerSuccess | WorkerFailure;
+type WorkerResponse = GalleryWorkerSuccess | ServiceWorkerSuccess | WorkerFailure;
 
-class MainThreadImageEncoder implements ImageEncoder {
+class MainThreadImageEncoder implements ServiceImageEncoder {
   async encode(file: File): Promise<EncodedPhoto> {
     return encodePhoto(file);
+  }
+
+  async encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
+    return encodeServicePhoto(file);
   }
 
   dispose(): void {}
 }
 
-class WebWorkerImageEncoder implements ImageEncoder {
+class WebWorkerImageEncoder implements ServiceImageEncoder {
   private readonly pending = new Map<string, { reject: (reason: Error) => void; resolve: (photo: EncodedPhoto) => void }>();
+  private readonly servicePending = new Map<string, { reject: (reason: Error) => void; resolve: (photo: EncodedPhoto<ServiceVariantName>) => void }>();
   private readonly worker: Worker;
 
   constructor() {
@@ -44,7 +61,15 @@ class WebWorkerImageEncoder implements ImageEncoder {
     const id = crypto.randomUUID();
     return new Promise<EncodedPhoto>((resolve, reject) => {
       this.pending.set(id, { reject, resolve });
-      this.worker.postMessage({ file, id, type: 'encode' });
+      this.worker.postMessage({ file, id, recipe: 'gallery', type: 'encode' });
+    });
+  }
+
+  encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
+    const id = crypto.randomUUID();
+    return new Promise((resolve, reject) => {
+      this.servicePending.set(id, { reject, resolve });
+      this.worker.postMessage({ file, id, recipe: 'service', type: 'encode' });
     });
   }
 
@@ -54,24 +79,33 @@ class WebWorkerImageEncoder implements ImageEncoder {
   }
 
   private onMessage(response: WorkerResponse): void {
+    const servicePending = this.servicePending.get(response.id);
+    if (servicePending) {
+      this.servicePending.delete(response.id);
+      if (response.type === 'success' && response.recipe === 'service') servicePending.resolve(response.photo);
+      else servicePending.reject(new ImageProcessingError(response.type === 'failure' && response.code === 'CORRUPT_IMAGE' ? 'CORRUPT_IMAGE' : 'ENCODE_FAILED', response.type === 'failure' ? response.message : 'Image encoding failed.'));
+      return;
+    }
     const pending = this.pending.get(response.id);
     if (!pending) return;
     this.pending.delete(response.id);
-    if (response.type === 'success') {
+    if (response.type === 'success' && response.recipe === 'gallery') {
       pending.resolve(response.photo);
       return;
     }
-    const code = response.code === 'CORRUPT_IMAGE' || response.code === 'UNSUPPORTED_IMAGE' ? response.code : 'ENCODE_FAILED';
-    pending.reject(new ImageProcessingError(code, response.message));
+    const code = response.type === 'failure' && (response.code === 'CORRUPT_IMAGE' || response.code === 'UNSUPPORTED_IMAGE') ? response.code : 'ENCODE_FAILED';
+    pending.reject(new ImageProcessingError(code, response.type === 'failure' ? response.message : 'Image encoding failed.'));
   }
 
   private failPending(error: Error): void {
     for (const pending of this.pending.values()) pending.reject(error);
     this.pending.clear();
+    for (const pending of this.servicePending.values()) pending.reject(error);
+    this.servicePending.clear();
   }
 }
 
-class FallbackImageEncoder implements ImageEncoder {
+class FallbackImageEncoder implements ServiceImageEncoder {
   private readonly mainThread = new MainThreadImageEncoder();
   private worker: WebWorkerImageEncoder | undefined;
 
@@ -95,6 +129,18 @@ class FallbackImageEncoder implements ImageEncoder {
     }
   }
 
+  async encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
+    if (!this.worker) return this.mainThread.encodeService(file);
+    try {
+      return await this.worker.encodeService(file);
+    } catch (error) {
+      if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) throw error;
+      this.worker.dispose();
+      this.worker = undefined;
+      return this.mainThread.encodeService(file);
+    }
+  }
+
   dispose(): void {
     this.worker?.dispose();
     this.worker = undefined;
@@ -103,7 +149,7 @@ class FallbackImageEncoder implements ImageEncoder {
 }
 
 /** Uses a module Worker when available; rendering stays functional with a main-thread fallback. */
-export function createImageEncoder(): ImageEncoder {
+export function createImageEncoder(): ServiceImageEncoder {
   if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') {
     return new MainThreadImageEncoder();
   }

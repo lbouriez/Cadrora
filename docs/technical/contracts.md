@@ -10,6 +10,7 @@ Browser-local public hearts and the gallery retouch-closure switch are recorded 
 Per-gallery D1-recorded storage in the admin list is recorded in [`ADR-016`](../decisions/ADR-016-admin-gallery-storage-usage.md).
 The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-admin-gallery-photo-count.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
+Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
 Event-date directory ordering and bounded, owner-controlled home stories are recorded in [`ADR-021`](../decisions/ADR-021-gallery-event-date-and-home-stories.md), superseding ADR-012's creation-order rule.
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).
@@ -28,6 +29,7 @@ Public routes:
 
 ```text
 GET    /api/v1/site
+GET    /api/v1/services
 GET    /api/v1/galleries
 GET    /api/v1/galleries/:eventId
 GET    /api/v1/galleries/:eventId/preview
@@ -47,6 +49,12 @@ POST   /api/v1/admin/logout
 GET    /api/v1/admin/session
 GET    /api/v1/admin/site
 PATCH  /api/v1/admin/site
+GET    /api/v1/admin/services
+POST   /api/v1/admin/services
+PATCH  /api/v1/admin/services/:id
+POST   /api/v1/admin/services/:id/image-revision
+PUT    /api/v1/admin/services/:id/image/:revision/:variant
+POST   /api/v1/admin/services/:id/image/:revision/publish
 GET    /api/v1/admin/galleries
 GET    /api/v1/admin/galleries/:eventId/cover-photos?offset=...
 GET    /api/v1/admin/galleries/:eventId/cover-photos/:photoId
@@ -69,6 +77,7 @@ PUT    /api/v1/admin/galleries/:eventId/publication
 DELETE /api/v1/admin/photos/:photoId
 POST   /api/v1/admin/galleries/:eventId/purge-faces
 GET    /api/v1/admin/usage
+GET    /service-media/:id/:revision/:variant
 ```
 
 Each event in the authenticated `GET /api/v1/admin/galleries` response includes `storageBytes`, the nonnegative sum of all recorded `photo_variants.byte_size` values for that gallery's photos. It includes prepared formats and retained originals, including rows from unfinished imports. Public gallery responses do not include this field.
@@ -98,6 +107,8 @@ Hono implements the error boundary through `app.onError`; its module occupies th
 | Public event API | `public, max-age=60` keyed by revision | `private, no-store` |
 | Admin API | `no-store` | `no-store` |
 | Hashed app assets | `public, immutable` | `public, immutable` |
+
+Published service-card images use versioned `/service-media/*` URLs. The default Worker resolves the current D1 variant on every request and uses the dedicated `ServiceMediaCache` entrypoint for a five-minute public edge copy, falling back to R2 on cache failure. They are unrelated to gallery grants and never make the private R2 bucket directly public.
 
 Unknown access classification fails closed as `private, no-store`. Changing an event from public to protected cannot revoke copies already downloaded.
 
@@ -135,7 +146,7 @@ A separate check-mark control selects private-gallery photos for retouching; it 
 
 `site_settings.theme_mode` is `light`, `dark`, `both`, or `system`; `default_language` is `fr` or `en`; and `enabled_languages` is a non-empty, unique JSON list drawn from those languages that must contain the default. Only an authenticated owner can update them. `both` preserves the local visitor preference and exposes the public switch; a fixed mode enforces that presentation and removes the switch; `system` follows `prefers-color-scheme`. One enabled language is enforced and hides the public language control; multiple enabled languages expose it. The public shell falls back to build-time language selection, both languages, and visitor-selectable colour when the settings read is unavailable.
 
-The same owner settings include public contact fields, a non-empty unique list of enabled service keys, and either a complete map centre/radius tuple or no map tuple. Public pages fall back to build-time contact values on absent/null runtime fields and remain useful without D1. Empty strings intentionally hide individual contact fields. The keyless OpenStreetMap iframe and optional Google Maps iframe require a visitor click; Google additionally requires a restricted public Embed API key. Contact text and the outbound map link must still work if the embed does not load. The configured radius is approximate context and must not be drawn or described as a precise service boundary.
+The same owner settings include public contact fields, a legacy non-empty unique list of enabled built-in service keys, a separate Home service count from 1 to 12, and either a complete map centre/radius tuple or no map tuple. The owner-managed `site_services` catalog is authoritative for actual service visibility, ordering, bilingual copy, and image revisions; the legacy list remains synchronized for compatibility and compiled fallback. Public pages fall back to build-time contact and service values on absent runtime fields or API failure and remain useful without D1. Empty strings intentionally hide individual contact fields. The keyless OpenStreetMap iframe and optional Google Maps iframe require a visitor click; Google additionally requires a restricted public Embed API key. Contact text and the outbound map link must still work if the embed does not load. The configured radius is approximate context and must not be drawn or described as a precise service boundary.
 
 As updated by ADR-022, the public directory API returns a bounded combined page (`limit` 1–48, default 24) plus `nextCursor`; the cursor binds the access filter and `startsAt DESC, id ASC` position. The home page requests at most 12 public entries. The directory loads further pages near the viewport and has a manual button. `events.service` is nullable and constrained to the shared wedding, family, portrait, maternity, brand, work, kids, events, or other key set. A selected key adds a localized text tag to public and protected cards without relaxing protected media access.
 

@@ -590,13 +590,13 @@
   padding: clamp(1.5rem, 4vw, 2.5rem);
 }
 
-.service-detail-card:last-child {
+.service-detail-card:last-child:nth-child(odd) {
   grid-column: span 2;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.service-detail-card:last-child .service-detail-card__image {
+.service-detail-card:last-child:nth-child(odd) .service-detail-card__image {
   height: 100%;
   min-height: 22rem;
 }
@@ -1880,8 +1880,8 @@
 @media (max-width: 54rem) {
   .service-area-map { grid-template-columns: 1fr; }
   .service-detail-grid { grid-template-columns: 1fr; }
-  .service-detail-card:last-child { grid-column: auto; grid-template-columns: 1fr; }
-  .service-detail-card:last-child .service-detail-card__image { height: auto; min-height: 0; }
+  .service-detail-card:last-child:nth-child(odd) { grid-column: auto; grid-template-columns: 1fr; }
+  .service-detail-card:last-child:nth-child(odd) .service-detail-card__image { height: auto; min-height: 0; }
   .public-header { min-height: 4.25rem; flex-wrap: nowrap; align-items: center; }
   .public-header__actions { width: auto; margin-left: auto; }
   .public-header__controls { border: 0; }

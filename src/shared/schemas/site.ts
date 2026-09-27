@@ -22,6 +22,7 @@ export const HomeGalleriesSchema = z.object({
   enabled: z.boolean(),
   limit: z.number().int().min(1).max(12),
 });
+export const HomeServicesLimitSchema = z.number().int().min(1).max(12);
 
 export const SiteCopyLanguageSchema = z.object({
   description: z.string().min(1).max(300).optional(),
@@ -57,6 +58,7 @@ export const SiteSettingsSchema = z.object({
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
   homeGalleries: HomeGalleriesSchema,
+  homeServicesLimit: HomeServicesLimitSchema,
   analyticsMeasurementId: AnalyticsMeasurementIdSchema,
   themeMode: ThemeModeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -76,6 +78,7 @@ export const UpdateSiteSettingsSchema = z.object({
   map: MapSettingsSchema,
   enabledServices: EnabledServicesSchema,
   homeGalleries: HomeGalleriesSchema,
+  homeServicesLimit: HomeServicesLimitSchema,
   defaultLanguage: LanguageSchema,
   enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
     (languages) => new Set(languages).size === languages.length,

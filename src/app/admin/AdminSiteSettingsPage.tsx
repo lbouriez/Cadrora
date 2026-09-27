@@ -11,6 +11,7 @@ import { useAdminAccess } from './AdminAccessContext';
 import { CitySearch } from './CitySearch';
 import { formatMediaStorage } from './formatMediaStorage';
 import { LocalizedTextField } from './LocalizedTextField';
+import { ServiceCatalogEditor } from './ServiceCatalogEditor';
 
 type SiteCopyDraft = Record<Language, { description: string; footerTagline: string }>;
 
@@ -29,6 +30,7 @@ async function updateAdminSiteSettings(input: {
   enabledLanguages: Language[];
   enabledServices: ServiceKey[];
   homeGalleries: { enabled: boolean; limit: number };
+  homeServicesLimit: number;
   map: { centerLatitude: number | null; centerLongitude: number | null; radiusKm: number | null };
   quotas: QuotaLimits;
   serviceArea: string | null;
@@ -65,7 +67,6 @@ export function AdminSiteSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [defaultLanguageOverride, setDefaultLanguage] = useState<Language | null>(null);
   const [enabledLanguagesOverride, setEnabledLanguages] = useState<Language[] | null>(null);
-  const [enabledServicesOverride, setEnabledServices] = useState<ServiceKey[] | null>(null);
   const [siteCopyDraftOverride, setSiteCopyDraft] = useState<SiteCopyDraft | null>(null);
   const [formError, setFormError] = useState(false);
   const latitudeInput = useRef<HTMLInputElement>(null);
@@ -83,7 +84,7 @@ export function AdminSiteSettingsPage() {
   if (settings.isError || !settings.data) return <p role="alert">{t('admin.settings.error')}</p>;
   const defaultLanguage = defaultLanguageOverride ?? settings.data.defaultLanguage;
   const enabledLanguages = enabledLanguagesOverride ?? settings.data.enabledLanguages;
-  const enabledServices = enabledServicesOverride ?? settings.data.enabledServices;
+  const enabledServices = settings.data.enabledServices;
   const storageUsage = formatMediaStorage(settings.data.usage.storageBytes, i18n.language);
   const siteCopy = settings.data.siteCopy;
   const copyFallback = (language: Language, field: keyof SiteCopy['fr']) => field === 'description'
@@ -114,6 +115,7 @@ export function AdminSiteSettingsPage() {
     const faceLimit = Number(values.get('faceLimit'));
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
     const homeGalleryLimit = Number(values.get('homeGalleryLimit'));
+    const homeServicesLimit = Number(values.get('homeServicesLimit'));
     const siteName = formText(values, 'siteName');
     const parsedCopy = SiteCopySchema.safeParse(Object.fromEntries(LanguageSchema.options.map((language) => {
       const description = siteCopyDraft[language].description.trim();
@@ -136,7 +138,8 @@ export function AdminSiteSettingsPage() {
     const mapComplete = Boolean(rawLatitude && rawLongitude && rawRadius);
     const mapEmpty = !rawLatitude && !rawLongitude && !rawRadius;
     if ((!mapComplete && !mapEmpty) || enabledServices.length === 0
-      || !Number.isSafeInteger(homeGalleryLimit) || homeGalleryLimit < 1 || homeGalleryLimit > 12) {
+      || !Number.isSafeInteger(homeGalleryLimit) || homeGalleryLimit < 1 || homeGalleryLimit > 12
+      || !Number.isSafeInteger(homeServicesLimit) || homeServicesLimit < 1 || homeServicesLimit > 12) {
       setFormError(true);
       return;
     }
@@ -153,6 +156,7 @@ export function AdminSiteSettingsPage() {
       enabledLanguages,
       enabledServices,
       homeGalleries: { enabled: values.get('homeGalleriesEnabled') === 'on', limit: homeGalleryLimit },
+      homeServicesLimit,
       map: {
         centerLatitude: mapComplete ? Number(rawLatitude) : null,
         centerLongitude: mapComplete ? Number(rawLongitude) : null,
@@ -291,24 +295,14 @@ export function AdminSiteSettingsPage() {
             step="1"
             type="number"
           />
+          <h2 className="admin-settings-section__subheading">{t('admin.settings.homeServicesTitle')}</h2>
+          <Input defaultValue={settings.data.homeServicesLimit} hint={t('admin.settings.homeServicesLimitHint')}
+            label={t('admin.settings.homeServicesLimit')} max="12" min="1" name="homeServicesLimit" required step="1" type="number" />
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-services">
           <legend>{t('admin.settings.servicesSection')}</legend>
           <p className="admin-card__description">{t('admin.settings.servicesHint')}</p>
-          <div className="admin-settings-services">
-            {(['wedding', 'family', 'brand', 'corporate', 'children'] as const).map((service) => (
-              <label className="admin-settings-services__option" key={service}>
-                <input
-                  checked={enabledServices.includes(service)}
-                  onChange={(event) => setEnabledServices(event.target.checked
-                    ? [...enabledServices, service]
-                    : enabledServices.filter((item) => item !== service))}
-                  type="checkbox"
-                />
-                <span>{t(`admin.settings.service.${service}`)}</span>
-              </label>
-            ))}
-          </div>
+          <ServiceCatalogEditor enabledLanguages={enabledLanguages} homeLimit={settings.data.homeServicesLimit} primaryLanguage={primaryLanguage} readOnly={readOnly} />
         </fieldset>
         <fieldset className="admin-settings-section" id="admin-settings-contact">
           <legend>{t('admin.settings.contactSection')}</legend>

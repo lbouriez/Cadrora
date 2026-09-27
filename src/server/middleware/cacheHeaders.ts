@@ -32,7 +32,7 @@ export const cacheHeaders = createMiddleware<AppEnv>(async (context, next) => {
     context.header('Cache-Control', CACHE_CONTROL_BY_POLICY.admin);
   } else if (/^\/assets\/[^/]+-[A-Za-z0-9_-]{8,}\.[A-Za-z0-9]+$/u.test(context.req.path)) {
     context.header('Cache-Control', CACHE_CONTROL_BY_POLICY.asset);
-  } else if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/')) {
+  } else if (context.req.path.startsWith('/api/') || context.req.path.startsWith('/media/') || context.req.path.startsWith('/service-media/')) {
     // Unknown or missing event classification is always private/fail-closed.
     context.header('Cache-Control', 'private, no-store');
   }

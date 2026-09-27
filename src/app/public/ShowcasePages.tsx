@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { Button, MotionReveal, Spinner } from '../components';
-import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
-import { BrandPhoto } from './BrandPhoto';
+import { getPublicGalleryIndex, getPublicServices, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
-import { serviceVisuals } from './serviceCatalog';
+import { fallbackServices, serviceText } from './serviceCatalog';
+import { ServicePhoto } from './ServicePhoto';
 import { siteProfile } from './siteProfile';
 
 export function ServicesPage() {
@@ -17,9 +17,11 @@ export function ServicesPage() {
 }
 
 export function DefaultServicesPage() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const visibleServices = serviceVisuals.filter(({ key }) => settings.data?.enabledServices.includes(key) ?? true);
+  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const visibleServices = (services.data ?? fallbackServices(settings.data?.enabledServices)).filter((card) => card.enabled);
   return (
     <PublicLayout>
       <MotionReveal as="header" className="editorial-heading editorial-heading--services">
@@ -28,20 +30,19 @@ export function DefaultServicesPage() {
         <p>{t('gallery.servicesPage.lead')}</p>
       </MotionReveal>
       <div className="service-detail-grid">
-        {visibleServices.map(({ key, src }, index) => (
-          <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={key}>
-            <BrandPhoto alt="" className="service-detail-card__image" immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" src={src} />
+        {visibleServices.map((card, index) => {
+          const copy = serviceText(card, language, (key) => t(key));
+          return <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
+            <ServicePhoto card={card} className="service-detail-card__image" immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" />
             <div className="service-detail-card__copy">
-              <h2>{t(`gallery.servicesPage.${key}.title`)}</h2>
-              <p>{t(`gallery.servicesPage.${key}.body`)}</p>
+              <h2>{copy.title}</h2>
+              <p>{copy.description}</p>
               <ul>
-                <li>{t(`gallery.servicesPage.${key}.point1`)}</li>
-                <li>{t(`gallery.servicesPage.${key}.point2`)}</li>
-                <li>{t(`gallery.servicesPage.${key}.point3`)}</li>
+                {copy.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
               </ul>
             </div>
-          </MotionReveal>
-        ))}
+          </MotionReveal>;
+        })}
       </div>
       <MotionReveal as="section" className="process-section">
         <div>

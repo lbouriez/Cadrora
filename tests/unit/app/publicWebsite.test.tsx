@@ -19,6 +19,7 @@ const runtimeSettings = {
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
   homeGalleries: { enabled: true, limit: 6 },
+  homeServicesLimit: 3,
   updatedAt: '2026-09-26T00:00:00.000Z',
 };
 
@@ -119,6 +120,27 @@ describe('public photographer website', () => {
     expect(titles).toEqual(['Newer event', 'Middle event']);
   });
 
+  it('shows the first three of seven Home-eligible services in admin order', async () => {
+    const cards = Array.from({ length: 7 }, (_, index) => ({
+      id: `custom-${index}`, isBuiltin: false, sortOrder: index, enabled: true, showOnHome: true,
+      copy: {
+        fr: { title: `Service ${index}`, shortDescription: `Résumé ${index}`, description: `Description ${index}`, points: [] },
+        en: { title: `Service ${index}`, shortDescription: `Summary ${index}`, description: `Description ${index}`, points: [] },
+      },
+      imageRevision: 1,
+      imageSources: [{ url: `/service-media/custom-${index}/1/preview`, width: 320, height: 213 }],
+    }));
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site' ? { ...runtimeSettings, homeServicesLimit: 3, homeGalleries: { enabled: false, limit: 6 } }
+        : url === '/api/v1/services' ? cards : { events: [], protectedGalleries: [], nextCursor: null },
+    ), { status: 200 }))));
+    renderPage(<HomePage />);
+
+    await waitFor(() => expect([...document.querySelectorAll('.service-card h3')].map((title) => title.textContent))
+      .toEqual(['Service 0', 'Service 1', 'Service 2']));
+    expect(screen.getByText('Résumé 0')).toBeTruthy();
+  });
+
   it('interleaves public and protected cards by event date in the full directory', () => {
     renderPage(<PublicEventCards
       events={[
@@ -145,7 +167,7 @@ describe('public photographer website', () => {
     renderPage(<HomePage />);
 
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
     expect(screen.getByRole('link', { name: 'Explorer les galeries en ligne' }).getAttribute('href')).toBe('/galleries');
   });
 
@@ -156,6 +178,7 @@ describe('public photographer website', () => {
       contactAddress: '456 rue du Studio, Québec', serviceArea: 'Québec et Charlevoix',
       enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
       homeGalleries: { enabled: true, limit: 6 },
+      homeServicesLimit: 3,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       updatedAt: '2026-09-23T00:00:00.000Z',
     }), { headers: { 'content-type': 'application/json' }, status: 200 })));

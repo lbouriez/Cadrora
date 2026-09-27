@@ -28,6 +28,7 @@ import {
 import { ApiException } from '../../../shared/errors/ApiError';
 import { requireAdmin } from '../../middleware';
 import { effectiveQuotaLimits, storedMediaBytes } from '../../services/quotas';
+import { contentTypeWithoutParameters, putVerifiedImage } from '../../services/imageUpload';
 import type { AppEnv } from '../../types';
 
 interface ImportRow {
@@ -337,11 +338,6 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
   }
 
-  const declaredContentLength = parseContentLength(context.req.header('Content-Length'));
-  if (declaredContentLength !== undefined && declaredContentLength !== headers.byteSize) {
-    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
-  }
-
   const existing = await getVariant(context.env.DB, photoId, variant);
   if (existing) {
     if (existing.byteSize !== headers.byteSize || existing.checksumSha256 !== headers.checksumSha256 ||
@@ -355,38 +351,9 @@ adminImportRoutes.put('/photos/:photoId/variants/:variant', async (context) => {
     throw new ApiException('STORAGE_QUOTA_EXCEEDED', 'errors.storageQuotaExceeded', 413);
   }
 
-  // Fetch request bodies are byte streams; Hono's DOM typing widens their chunk type at this external boundary.
-  const requestBody = context.req.raw.body as unknown as ReadableStream<Uint8Array> | null;
-  if (!requestBody) throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
-  const inspected = await inspectStreamPrefix(requestBody, 12);
-  if (sniffEncodedMime(inspected.prefix) !== headers.contentType) {
-    await inspected.stream.cancel();
-    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
-  }
-
   const extension = headers.contentType === 'image/webp' ? 'webp' : headers.contentType === 'image/png' ? 'png' : 'jpg';
   const storageKey = `events/${photo.eventId}/photos/${photo.id}/${photo.revision}/${variant}.${extension}`;
-  let stored: R2Object | null;
-  try {
-    // Prefix inspection creates an ordinary stream and loses the incoming
-    // request body's known length. R2 requires a known-length stream for put().
-    stored = await context.env.MEDIA_BUCKET.put(storageKey,
-      inspected.stream.pipeThrough(new FixedLengthStream(headers.byteSize)), {
-      customMetadata: { checksumSha256: headers.checksumSha256 },
-      httpMetadata: { contentType: headers.contentType },
-      // R2 validates the digest while consuming the stream, avoiding a second full-body buffer in the Worker.
-      sha256: headers.checksumSha256,
-    });
-  } catch (error) {
-    if (isR2ChecksumMismatch(error)) {
-      throw new ApiException('VARIANT_CHECKSUM_MISMATCH', 'errors.variantChecksumMismatch', 422, { cause: error });
-    }
-    throw error;
-  }
-  if (!stored || stored.size !== headers.byteSize) {
-    if (stored) await context.env.MEDIA_BUCKET.delete(storageKey);
-    throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
-  }
+  await putVerifiedImage(context.env.MEDIA_BUCKET, context.req.raw, storageKey, headers);
 
   const currentImport = await getImport(context.env.DB, photo.importId);
   if (!currentImport || currentImport.state === 'cancelled') {
@@ -677,68 +644,4 @@ function samePhotoIds(serialized: string, expected: string[]): boolean {
   } catch {
     return false;
   }
-}
-
-function contentTypeWithoutParameters(value: string | undefined): string | undefined {
-  return value?.split(';', 1)[0]?.trim().toLowerCase();
-}
-
-function parseContentLength(value: string | undefined): number | undefined {
-  if (value === undefined || !/^\d+$/.test(value)) return undefined;
-  const parsed = Number(value);
-  return Number.isSafeInteger(parsed) ? parsed : undefined;
-}
-
-interface InspectedStream {
-  prefix: Uint8Array;
-  stream: ReadableStream<Uint8Array>;
-}
-
-async function inspectStreamPrefix(body: ReadableStream<Uint8Array>, prefixLength: number): Promise<InspectedStream> {
-  // Let the runtime forward the upload branch directly to R2. A JavaScript
-  // pull loop over every large image chunk can exhaust Workers Free CPU time.
-  const [inspection, stream] = body.tee();
-  const reader = inspection.getReader();
-  const prefix = new Uint8Array(prefixLength);
-  let prefixBytes = 0;
-  try {
-    while (prefixBytes < prefixLength) {
-      const next = await reader.read();
-      if (next.done) break;
-      const copied = Math.min(next.value.byteLength, prefixLength - prefixBytes);
-      prefix.set(next.value.subarray(0, copied), prefixBytes);
-      prefixBytes += copied;
-    }
-  } catch (error) {
-    void reader.cancel().catch(() => {});
-    void stream.cancel().catch(() => {});
-    throw error;
-  }
-  // Cancellation of one tee branch resolves after the other finishes, so do
-  // not await it before R2 starts consuming the upload branch.
-  void reader.cancel().catch(() => {});
-  return { prefix: prefix.subarray(0, prefixBytes), stream };
-}
-
-function sniffEncodedMime(bytes: Uint8Array): 'image/jpeg' | 'image/png' | 'image/webp' | undefined {
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg';
-  if ([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((value, index) => bytes[index] === value)) return 'image/png';
-  if (
-    bytes.length >= 12 &&
-    bytes[0] === 0x52 &&
-    bytes[1] === 0x49 &&
-    bytes[2] === 0x46 &&
-    bytes[3] === 0x46 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50
-  ) {
-    return 'image/webp';
-  }
-  return undefined;
-}
-
-function isR2ChecksumMismatch(error: unknown): boolean {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 10037;
 }

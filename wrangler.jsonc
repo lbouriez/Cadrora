@@ -6,14 +6,15 @@
   "cache": { "enabled": false },
   "exports": {
     "default": { "type": "worker", "cache": { "enabled": false } },
-    "PublicMediaCache": { "type": "worker", "cache": { "enabled": true } }
+    "PublicMediaCache": { "type": "worker", "cache": { "enabled": true } },
+    "ServiceMediaCache": { "type": "worker", "cache": { "enabled": true } }
   },
   "keep_vars": true,
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/media/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt"]
+    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt"]
   },
   "vars": {
     "ADMIN_AUTH_MODE": "password",

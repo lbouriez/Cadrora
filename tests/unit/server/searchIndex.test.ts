@@ -26,6 +26,7 @@ describe('search index routes', () => {
       analytics_measurement_id: null, contact_address: null, contact_email: null, contact_phone: null,
       default_language: 'fr', enabled_languages: '["fr","en"]', enabled_services: '["wedding"]',
       home_galleries_enabled: 1, home_galleries_limit: 6,
+      home_services_limit: 3,
       map_center_latitude: null, map_center_longitude: null, map_radius_km: null,
       service_area: null, site_name: 'Studio Boréal',
       site_copy: JSON.stringify({ fr: { description: 'Portraits du Québec.' }, en: { description: 'Portraits from Québec.' } }),

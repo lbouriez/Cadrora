@@ -48,7 +48,7 @@ test('owner-edited brand copy updates both languages without changing the design
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled: true, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
+    homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
     contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
@@ -77,6 +77,7 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       enabledServices: ['wedding'], analyticsMeasurementId: 'G-ABCDEF12', themeMode: 'light',
       homeGalleries: { enabled: true, limit: 6 },
+      homeServicesLimit: 3,
       updatedAt: '2026-09-25T00:00:00.000Z',
     }) });
   });
@@ -111,7 +112,7 @@ test('home stories obey their visibility and limit while the directory stays com
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled, limit: 2 }, updatedAt: createdAt,
+    homeGalleries: { enabled, limit: 2 }, homeServicesLimit: 3, updatedAt: createdAt,
   }) }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     events: [
@@ -176,7 +177,7 @@ test('runtime language wins until a visitor makes and keeps a choice', async ({ 
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
+    homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');

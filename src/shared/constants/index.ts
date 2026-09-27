@@ -6,6 +6,9 @@ export const PHOTO_VARIANT_WIDTHS = {
   download: 3840,
 } as const;
 
+export const SERVICE_VARIANT_WIDTHS = { preview: 320, small: 640, medium: 960, large: 1280 } as const;
+export type ServiceVariantName = keyof typeof SERVICE_VARIANT_WIDTHS;
+
 export type PhotoVariantName = keyof typeof PHOTO_VARIANT_WIDTHS;
 
 export const DEFAULT_SESSION_TTL_HOURS = 8;
@@ -22,4 +25,3 @@ export const DEFAULT_LIMITS = {
 
 export const API_PREFIX = '/api/v1';
 export const REQUEST_ID_HEADER = 'X-Request-Id';
-

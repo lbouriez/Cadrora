@@ -12,6 +12,7 @@ const settings = {
   analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
   defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
   homeGalleries: { enabled: true, limit: 6 },
+  homeServicesLimit: 3,
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
   quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 },

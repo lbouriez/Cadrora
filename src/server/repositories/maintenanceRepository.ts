@@ -21,8 +21,14 @@ const DeleteReplacedMediaPayloadSchema = z.object({
   /^events\/[^/]+\/photos\/[^/]+\/\d+\/(thumb|small|medium|large|download|original)\.(jpg|webp|png)$/u.test(key)), {
   message: 'Replacement cleanup keys must belong to this gallery.',
 });
+const DeleteServiceMediaPayloadSchema = z.object({
+  serviceId: z.string().min(1).max(64),
+  revision: z.number().int().positive(),
+  storageKeys: z.array(z.string().min(1).max(1_024)).min(1).max(4),
+}).refine((value) => value.storageKeys.every((key) => key.startsWith(`site/services/${value.serviceId}/${value.revision}/`) &&
+  /^site\/services\/[^/]+\/\d+\/(preview|small|medium|large)\.(jpg|webp)$/u.test(key)));
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
+export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'delete_service_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
 
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
@@ -281,7 +287,9 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
       this.database
         .prepare(
           `INSERT INTO usage_counters (key, value, updated_at)
-           SELECT 'storage_bytes', COALESCE(SUM(byte_size), 0), ?1 FROM photo_variants
+           SELECT 'storage_bytes',
+             (SELECT COALESCE(SUM(byte_size), 0) FROM photo_variants) +
+             (SELECT COALESCE(SUM(byte_size), 0) FROM site_service_variants), ?1
            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
         )
         .bind(now),
@@ -340,6 +348,10 @@ export function parseDeleteGalleryOriginalsPayload(payload: unknown) {
 
 export function parseDeleteReplacedMediaPayload(payload: unknown) {
   return DeleteReplacedMediaPayloadSchema.parse(payload);
+}
+
+export function parseDeleteServiceMediaPayload(payload: unknown) {
+  return DeleteServiceMediaPayloadSchema.parse(payload);
 }
 
 export function parsePurgeFacesPayload(payload: unknown) {

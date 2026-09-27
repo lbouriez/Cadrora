@@ -14,6 +14,8 @@ Post-plan extension (2026-09-26): ADR-021 changes public directory card ordering
 
 Post-plan extension (2026-09-26): ADR-022 adds bounded keyset pagination to the combined public/protected directory and an optional gallery service across PB, admin gallery forms, shared schemas, and D1 migration 025. Acceptance includes correct event-date order across page boundaries, a bounded home request, scroll-triggered loading with manual fallback, localized category labels, and no private media in protected previews.
 
+Post-plan extension (2026-09-27): ADR-028 adds owner-managed service cards across PB, PC image encoding, PD media delivery, admin site settings, and D1 migration 028. Acceptance includes FR/EN overrides and new cards, independent Home eligibility and count, a complete variant set before publication, D1-derived versioned image delivery, retryable cleanup, static HTML routing, and mobile/desktop Lighthouse comparison on both site profiles.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

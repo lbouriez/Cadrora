@@ -1,14 +1,24 @@
-import { encodePhoto } from './encoder';
+import { encodePhoto, encodeServicePhoto } from './encoder';
+import type { ServiceVariantName } from '../../shared/constants';
+import type { EncodedPhoto } from './types';
 
 interface EncodeRequest {
   file: File;
   id: string;
+  recipe: 'gallery' | 'service';
   type: 'encode';
 }
 
-interface EncodeSuccess {
+interface GalleryEncodeSuccess {
   id: string;
   photo: Awaited<ReturnType<typeof encodePhoto>>;
+  recipe: 'gallery';
+  type: 'success';
+}
+interface ServiceEncodeSuccess {
+  id: string;
+  photo: EncodedPhoto<ServiceVariantName>;
+  recipe: 'service';
   type: 'success';
 }
 
@@ -22,7 +32,7 @@ interface EncodeFailure {
 function isEncodeRequest(value: unknown): value is EncodeRequest {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Partial<EncodeRequest>;
-  return candidate.type === 'encode' && typeof candidate.id === 'string' && candidate.file instanceof File;
+  return candidate.type === 'encode' && typeof candidate.id === 'string' && (candidate.recipe === 'gallery' || candidate.recipe === 'service') && candidate.file instanceof File;
 }
 
 self.addEventListener('message', (event: MessageEvent<unknown>) => {
@@ -32,7 +42,9 @@ self.addEventListener('message', (event: MessageEvent<unknown>) => {
 
 async function encode(request: EncodeRequest): Promise<void> {
   try {
-    const response: EncodeSuccess = { id: request.id, photo: await encodePhoto(request.file), type: 'success' };
+    const response: GalleryEncodeSuccess | ServiceEncodeSuccess = request.recipe === 'service'
+      ? { id: request.id, photo: await encodeServicePhoto(request.file), recipe: 'service', type: 'success' }
+      : { id: request.id, photo: await encodePhoto(request.file), recipe: 'gallery', type: 'success' };
     self.postMessage(response);
   } catch (error) {
     const response: EncodeFailure = {

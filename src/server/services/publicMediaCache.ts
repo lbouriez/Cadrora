@@ -54,6 +54,45 @@ export class PublicMediaCache extends WorkerEntrypoint<CloudflareBindings, Publi
   }
 }
 
+export interface ServiceMediaCacheProps {
+  contentType: string;
+  serviceId: string;
+  revision: number;
+  storageKey: string;
+}
+
+/** Public marketing images have versioned URLs and can use a separate edge cache. */
+export class ServiceMediaCache extends WorkerEntrypoint<CloudflareBindings, ServiceMediaCacheProps> {
+  async fetch(request: Request): Promise<Response> {
+    const { contentType, serviceId, revision, storageKey } = this.ctx.props;
+    if (!/^[a-z0-9-]{1,64}$/u.test(serviceId) || !Number.isSafeInteger(revision) || revision < 1 ||
+      !storageKey.startsWith(`site/services/${serviceId}/${revision}/`) ||
+      !/^site\/services\/[^/]+\/\d+\/(preview|small|medium|large)\.(jpg|webp)$/u.test(storageKey) ||
+      !new URL(request.url).pathname.startsWith(`/service-media/${serviceId}/${revision}/`)) {
+      return new Response(null, { status: 403, headers: { 'Cache-Control': 'no-store' } });
+    }
+    const object = await this.env.MEDIA_BUCKET.get(storageKey);
+    if (!object) return new Response(null, { status: 404, headers: { 'Cache-Control': 'no-store' } });
+    return new Response(object.body, { headers: {
+      'Cache-Control': 'public, max-age=300, must-revalidate',
+      'Content-Length': String(object.size),
+      'Content-Type': contentType,
+      ETag: object.httpEtag,
+      'X-Content-Type-Options': 'nosniff',
+    } });
+  }
+}
+
+export async function readServiceMediaCache(executionContext: unknown, requestUrl: string, props: ServiceMediaCacheProps): Promise<Response | null> {
+  if (!executionContext || typeof executionContext !== 'object' || !('exports' in executionContext)) return null;
+  const exports = executionContext.exports as { ServiceMediaCache?: (options: { props: ServiceMediaCacheProps }) => { fetch(request: Request): Promise<Response> } } | undefined;
+  const binding = exports?.ServiceMediaCache;
+  if (!binding) return null;
+  const url = new URL(requestUrl);
+  url.search = '';
+  return binding({ props }).fetch(new Request(url));
+}
+
 interface PublicMediaCacheExport {
   (options: { props: PublicMediaCacheProps }): { fetch(request: Request): Promise<Response> };
   purgeGallery(eventId: string): Promise<void>;

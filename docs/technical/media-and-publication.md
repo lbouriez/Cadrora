@@ -2,6 +2,8 @@
 
 Package PD owns media streaming, publication readiness, D1-first deletion, provider cleanup, and usage reporting.
 
+Owner-managed service-card images use a separate `site/services/` key namespace in the private media bucket. The browser encodes four marketing variants with the shared image pipeline, and the admin uploads them to a pending D1 revision. The owner publishes only after all four rows and R2 objects exist. Public `/service-media/*` reads resolve the current revision from D1, then use the dedicated `ServiceMediaCache` entrypoint or stream R2 directly on cache failure. Replacing an image removes old D1 rows and queues `delete_service_media` for retryable R2 cleanup. These image rows participate in the instance storage usage counter.
+
 ## Published variant integrity
 
 Every media URL emitted by the public UI must resolve to a variant recorded in D1 **and** an object in the instance's private R2 bucket at the published photo revision. The gallery cover component derives `thumb`, `small`, and `medium` URLs from a public `medium` cover URL, so publishing or seeding that cover requires all three variants. Ordinary browser imports finalize only after all five prepared variants exist. The opt-in fictional showcase seed has its own files and D1 rows: its 960 px `medium` bytes also serve as a distinct `small` object and row, because no upscaling is needed. Upload seed objects before inserting their D1 rows, and verify public GETs for each cover variant after deployment. A D1 row alone does not prove its R2 object exists.
