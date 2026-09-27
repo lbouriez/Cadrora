@@ -66,21 +66,23 @@ async function listServices(db: D1Database): Promise<ServiceCard[]> {
     db.prepare("SELECT * FROM site_services WHERE id <> 'home-hero' ORDER BY sort_order, id LIMIT 30").all<ServiceRow>(),
     db.prepare('SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width').all<VariantRow>(),
   ]);
-  return ServiceCardsSchema.parse(cards.results.map((row) => ({
-    id: row.id,
-    isBuiltin: row.is_builtin === 1,
-    sortOrder: row.sort_order,
-    enabled: row.enabled === 1,
-    showOnHome: row.show_on_home === 1,
-    copy: row.copy_json ? ServiceCopySchema.parse(JSON.parse(row.copy_json) as unknown) : null,
-    imageRevision: row.image_revision || null,
-    imageSources: variants.results.filter((variant) => variant.service_id === row.id && variant.revision === row.image_revision)
-      .map((variant) => ({
+  return ServiceCardsSchema.parse(cards.results.map((row) => {
+    const published = variants.results.filter((variant) => variant.service_id === row.id && variant.revision === row.image_revision);
+    return {
+      id: row.id,
+      isBuiltin: row.is_builtin === 1,
+      sortOrder: row.sort_order,
+      enabled: row.enabled === 1,
+      showOnHome: row.show_on_home === 1,
+      copy: row.copy_json ? ServiceCopySchema.parse(JSON.parse(row.copy_json) as unknown) : null,
+      imageRevision: published.length ? row.image_revision : null,
+      imageSources: published.map((variant) => ({
         url: `/service-media/${row.id}/${row.image_revision}/${variant.variant}`,
         width: variant.width,
         height: variant.height,
       })),
-  })));
+    };
+  }));
 }
 
 function requireOwner(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
@@ -226,6 +228,26 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     ).bind(Number(input.data.enabled), Number(input.data.showOnHome), input.data.sortOrder,
       input.data.copy ? JSON.stringify(input.data.copy) : null, now, id.data).run();
     if (previous.is_builtin) await syncLegacyServices(context.env.DB);
+    const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
+    if (!card) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 500);
+    return context.json(ServiceCardSchema.parse(card));
+  });
+
+  app.post('/api/v1/admin/services/:id/reset', async (context) => {
+    requireOwner(context);
+    applyCachePolicy(context, 'admin');
+    const id = ServiceIdSchema.safeParse(context.req.param('id'));
+    if (!id.success || id.data === 'home-hero') throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const row = await serviceRow(context.env.DB, id.data);
+    if (!row || row.is_builtin !== 1) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    const now = new Date().toISOString();
+    await context.env.DB.batch([
+      ...await oldImageCleanup(context.env.DB, id.data, row.image_revision, now),
+      ...await oldImageCleanup(context.env.DB, id.data, row.pending_image_revision ?? 0, now),
+      context.env.DB.prepare(`UPDATE site_services SET copy_json = NULL, image_revision = ?,
+        pending_image_revision = NULL, updated_at = ? WHERE id = ? AND is_builtin = 1`)
+        .bind(Math.max(row.image_revision, row.pending_image_revision ?? 0), now, id.data),
+    ]);
     const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
     if (!card) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 500);
     return context.json(ServiceCardSchema.parse(card));

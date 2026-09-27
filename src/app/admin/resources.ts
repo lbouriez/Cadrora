@@ -183,6 +183,7 @@ export const adminResourceFragment = {
         settings: 'Site settings',
       },
       settings: {
+        restoreExample: 'Restore example',
         websiteSection: 'Website',
         sectionsLabel: 'Site setting sections',
         servicesSection: 'Services',
@@ -451,6 +452,7 @@ export const adminResourceFragment = {
         settings: 'Réglages du site',
       },
       settings: {
+        restoreExample: 'Rétablir l’exemple',
         websiteSection: 'Site Web',
         sectionsLabel: 'Sections des réglages du site',
         servicesSection: 'Services',

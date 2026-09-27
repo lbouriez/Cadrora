@@ -7,16 +7,81 @@ import { registerServiceRoutes } from '../../../src/server/routes/services';
 import type { AppEnv } from '../../../src/server/types';
 import { ServiceCardsSchema } from '../../../src/shared/schemas/services';
 
-function testApp(withAnonymousAuth = false) {
+function testApp(withAnonymousAuth = false, withOwnerAuth = false) {
   const app = new Hono<AppEnv>();
   app.use('*', requestId);
   app.onError(errorBoundary);
   if (withAnonymousAuth) app.use('*', async (context, next) => { context.set('auth', {}); await next(); });
+  if (withOwnerAuth) app.use('*', async (context, next) => {
+    context.set('auth', { admin: {
+      access: 'manage', authMode: 'password', createdAt: '2026-09-27T00:00:00.000Z',
+      expiresAt: '2026-09-28T00:00:00.000Z', id: 'owner', revokedAt: null, subject: 'owner',
+    } });
+    await next();
+  });
   registerServiceRoutes(app);
   return app;
 }
 
 describe('service catalog routes', () => {
+  it('restores a built-in card’s example copy and photo while preserving its visibility and revision counter', async () => {
+    const copy = { fr: { title: 'Mariages', shortDescription: 'Court', description: 'Long', points: [] },
+      en: { title: 'Weddings', shortDescription: 'Short', description: 'Long', points: [] } };
+    const row: { id: string; is_builtin: number; sort_order: number; enabled: number; show_on_home: number;
+      copy_json: string | null; image_revision: number; pending_image_revision: number | null } = {
+      id: 'wedding', is_builtin: 1, sort_order: 2, enabled: 1, show_on_home: 0,
+      copy_json: JSON.stringify(copy), image_revision: 3, pending_image_revision: 4 };
+    let variants = [3, 4].map((revision) => ({ service_id: 'wedding', revision,
+      variant: 'preview', storage_key: `site/services/wedding/${revision}/preview.webp`,
+      content_type: 'image/webp', byte_size: 100, width: 320, height: 213, checksum_sha256: 'a'.repeat(64) }));
+    const batched: string[] = [];
+    const database = {
+      prepare: vi.fn((query: string) => ({
+        query,
+        all: () => Promise.resolve({ results: query.includes('FROM site_services') ? [row] : variants }),
+        bind: (...values: unknown[]) => ({
+          query,
+          values,
+          first: () => Promise.resolve(query.includes('FROM site_services') ? row : null),
+          all: () => Promise.resolve({ results: variants.filter((variant) =>
+            variant.revision === values[1]).map((variant) => ({ storage_key: variant.storage_key })) }),
+        }),
+      })),
+      batch: vi.fn((statements: { query: string; values?: unknown[] }[]) => {
+        batched.push(...statements.map((statement) => statement.query));
+        const reset = statements.find((statement) => statement.query.includes('copy_json = NULL'));
+        if (reset) {
+          row.copy_json = null;
+          row.image_revision = Number(reset.values?.[0]);
+          row.pending_image_revision = null;
+          variants = [];
+        }
+        const newRevision = statements.find((statement) => statement.query.includes('SET pending_image_revision = ?'));
+        if (newRevision) row.pending_image_revision = Number(newRevision.values?.[0]);
+        return Promise.resolve([]);
+      }),
+    } as unknown as D1Database;
+    const response = await testApp(false, true).request('/api/v1/admin/services/wedding/reset', { method: 'POST' }, { DB: database });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      id: 'wedding', enabled: true, showOnHome: false, sortOrder: 2, copy: null,
+      imageRevision: null, imageSources: [],
+    });
+    expect(batched.filter((query) => query.includes("'delete_service_media'"))).toHaveLength(2);
+    expect(batched.filter((query) => query.startsWith('DELETE FROM site_service_variants'))).toHaveLength(2);
+    expect(batched.some((query) => query.includes('copy_json = NULL'))).toBe(true);
+    const nextUpload = await testApp(false, true).request('/api/v1/admin/services/wedding/image-revision', { method: 'POST' }, { DB: database });
+    expect(await nextUpload.json()).toEqual({ revision: 5 });
+  });
+
+  it('rejects example reset for a custom service', async () => {
+    const batch = vi.fn();
+    const database = { prepare: vi.fn(() => ({ bind: () => ({ first: () => Promise.resolve({ is_builtin: 0 }) }) })), batch } as unknown as D1Database;
+    const response = await testApp(false, true).request('/api/v1/admin/services/custom/reset', { method: 'POST' }, { DB: database });
+    expect(response.status).toBe(400);
+    expect(batch).not.toHaveBeenCalled();
+  });
+
   it('serves the compiled Home photo when D1 is unavailable', async () => {
     const assetFetch = vi.fn().mockResolvedValue(new Response('default-photo', { headers: { 'Content-Type': 'image/webp' } }));
     const database = { prepare: vi.fn(() => ({ bind: () => ({ first: () => Promise.reject(new Error('D1 unavailable')) }) })) } as unknown as D1Database;

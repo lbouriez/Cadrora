@@ -70,6 +70,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
           map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
           enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
           homeGalleries: { enabled: true, limit: 6 },
+          homeServicesLimit: 3,
           analyticsMeasurementId: null,
           themeMode: 'both',
           quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
@@ -79,6 +80,13 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
         }),
         contentType: 'application/json',
       });
+      return;
+    }
+    if (path.endsWith('/services')) {
+      await route.fulfill({ body: JSON.stringify([{
+        id: 'wedding', isBuiltin: true, sortOrder: 0, enabled: true, showOnHome: true,
+        copy: null, imageRevision: null, imageSources: [],
+      }]), contentType: 'application/json' });
       return;
     }
     if (path.endsWith('/cover-photos')) {
@@ -160,10 +168,9 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   const analyticsId = page.getByRole('textbox', { name: /google analytics id|identifiant google analytics/i });
   await analyticsId.fill('G-ABCDEF1234');
   await expect(analyticsId).toHaveValue('G-ABCDEF1234');
-  const corporateService = page.getByRole('checkbox', { name: /workplace photography|photos d’entreprise/i });
-  await corporateService.uncheck();
-  await expect(corporateService).not.toBeChecked();
-  await corporateService.check();
+  const serviceEditor = page.locator('#admin-settings-services .admin-service-editor').first();
+  await serviceEditor.locator('summary').click();
+  await expect(serviceEditor.getByRole('button', { name: /restore example|rétablir l’exemple/i })).toBeDisabled();
   const mapRadius = page.getByRole('spinbutton', { name: /travel distance|distance de déplacement/i });
   await mapRadius.fill('150');
   await expect(mapRadius).toHaveValue('150');

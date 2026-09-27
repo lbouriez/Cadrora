@@ -11,6 +11,7 @@ Per-gallery D1-recorded storage in the admin list is recorded in [`ADR-016`](../
 The admin gallery photo count is recorded in [`ADR-019`](../decisions/ADR-019-admin-gallery-photo-count.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
+Complete built-in service example reset is recorded in [`ADR-031`](../decisions/ADR-031-service-example-reset.md).
 Owner-managed Home introduction copy and photo are recorded in [`ADR-029`](../decisions/ADR-029-owner-managed-home-introduction.md).
 Configurable Home introduction buttons and legacy-copy conversion are recorded in [`ADR-030`](../decisions/ADR-030-configurable-home-actions.md).
 Event-date directory ordering and bounded, owner-controlled home stories are recorded in [`ADR-021`](../decisions/ADR-021-gallery-event-date-and-home-stories.md), superseding ADR-012's creation-order rule.
@@ -56,6 +57,7 @@ POST   /api/v1/admin/site/home-hero/reset
 GET    /api/v1/admin/services
 POST   /api/v1/admin/services
 PATCH  /api/v1/admin/services/:id
+POST   /api/v1/admin/services/:id/reset
 POST   /api/v1/admin/services/:id/image-revision
 PUT    /api/v1/admin/services/:id/image/:revision/:variant
 POST   /api/v1/admin/services/:id/image/:revision/publish

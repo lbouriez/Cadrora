@@ -59,7 +59,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     setSuccess(false);
   };
 
-  const save = async (reset = false) => {
+  const save = async () => {
     if (readOnly || busy) return;
     setError(false);
     setSuccess(false);
@@ -70,20 +70,30 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       points: copy[language].points.map((point) => point.trim()).filter(Boolean),
     }]));
     const parsed = ServiceCopySchema.safeParse(normalized);
-    if (!reset && !parsed.success) { setError(true); return; }
+    if (!parsed.success) { setError(true); return; }
     setBusy(true);
     try {
       if (card) {
         await apiJson(`/api/v1/admin/services/${card.id}`, ServiceCardSchema, {
           method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled, showOnHome, sortOrder: card.sortOrder, copy: reset ? null : parsed.data }),
+          body: JSON.stringify({ enabled, showOnHome, sortOrder: card.sortOrder, copy: parsed.data }),
         });
-        if (reset) setCopy(defaultCopy(card, translate));
       } else {
         await apiJson('/api/v1/admin/services', ServiceCardSchema, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed.data),
         });
       }
+      await onChanged();
+      setSuccess(true);
+    } catch { setError(true); } finally { setBusy(false); }
+  };
+
+  const reset = async () => {
+    if (!card?.isBuiltin || readOnly || busy) return;
+    setBusy(true); setError(false); setSuccess(false);
+    try {
+      await apiJson(`/api/v1/admin/services/${card.id}/reset`, ServiceCardSchema, { method: 'POST' });
+      setCopy(defaultCopy(card, translate));
       await onChanged();
       setSuccess(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -143,7 +153,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       </> : null}
       <div className="admin-service-editor__actions">
         <Button disabled={busy || readOnly} onClick={() => { void save(); }}>{card ? t('admin.serviceEditor.save') : t('admin.serviceEditor.create')}</Button>
-        {card?.isBuiltin && card.copy ? <Button disabled={busy || readOnly} onClick={() => { void save(true); }} variant="secondary">{t('admin.serviceEditor.resetCopy')}</Button> : null}
+        {card?.isBuiltin ? <Button disabled={busy || readOnly} onClick={() => { void reset(); }} variant="secondary">{t('admin.settings.restoreExample')}</Button> : null}
       </div>
       {error ? <p role="alert">{t('admin.serviceEditor.error')}</p> : null}
       {success ? <p role="status">{t('admin.serviceEditor.saved')}</p> : null}

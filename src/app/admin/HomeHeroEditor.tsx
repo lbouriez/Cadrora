@@ -173,7 +173,7 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
       <p className="field__hint">{t('admin.homeHero.photoHint')}</p>
       <div className="admin-service-editor__actions">
         <Button disabled={busy || readOnly} onClick={() => { void save(); }}>{t('admin.homeHero.save')}</Button>
-        <Button disabled={busy || readOnly} onClick={() => { void reset(); }} variant="secondary">{t('admin.homeHero.reset')}</Button>
+        <Button disabled={busy || readOnly} onClick={() => { void reset(); }} variant="secondary">{t('admin.settings.restoreExample')}</Button>
       </div>
       {error ? <p role="alert">{t('admin.homeHero.error')}</p> : null}
       {saved ? <p role="status">{t('admin.homeHero.saved')}</p> : null}
