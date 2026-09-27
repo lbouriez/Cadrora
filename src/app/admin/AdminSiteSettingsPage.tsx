@@ -352,7 +352,7 @@ export function AdminSiteSettingsPage() {
         </fieldset>
         {readOnly ? <p className="admin-card__description">{t('admin.settings.readOnly')}</p> : null}
         {formError ? <p role="alert">{t('admin.settings.formError')}</p> : null}
-        {update.isError ? <p role="alert">{t(update.error.message === 'PUBLIC_GALLERIES_REMAIN' ? 'admin.settings.publicGalleriesRemain' : 'admin.settings.error')}</p> : null}
+        {update.isError ? <p className="admin-settings-alert" role="alert">{t(update.error.message === 'PUBLIC_GALLERIES_REMAIN' ? 'admin.settings.publicGalleriesRemain' : 'admin.settings.error')}</p> : null}
         {saved ? <p role="status">{t('admin.settings.saved')}</p> : null}
         <Button disabled={readOnly || update.isPending} type="submit">{t('admin.settings.save')}</Button>
       </form>

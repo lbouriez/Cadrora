@@ -1,4 +1,4 @@
-import { PublicationSummarySchema } from '../../shared/schemas';
+import { ApiErrorSchema, PublicationSummarySchema } from '../../shared/schemas';
 import type { PublicationState, PublicationSummary } from '../../shared/schemas';
 
 export async function getPublicationSummary(eventId: string): Promise<PublicationSummary> {
@@ -14,6 +14,9 @@ export async function updatePublication(eventId: string, state: PublicationState
     headers: { 'Content-Type': 'application/json' },
     method: 'PUT',
   });
-  if (!response.ok) throw new Error(`Publication update returned ${response.status}`);
+  if (!response.ok) {
+    const error = ApiErrorSchema.safeParse(await response.json().catch(() => null));
+    throw new Error(error.success ? error.data.code : `Publication update returned ${response.status}`);
+  }
   return PublicationSummarySchema.parse(await response.json());
 }

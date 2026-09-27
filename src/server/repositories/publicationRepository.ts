@@ -26,7 +26,7 @@ export interface PublicationRepository {
 
 export type PublicationUpdateResult =
   | { status: 'updated'; summary: PublicationSummary; cachePurgeJobId?: string | undefined }
-  | { status: 'not-found' | 'not-ready' | 'not-published' };
+  | { status: 'not-found' | 'not-ready' | 'not-published' | 'public-disabled' };
 
 export class D1PublicationRepository implements PublicationRepository {
   constructor(private readonly database: D1Database) {}
@@ -80,6 +80,13 @@ export class D1PublicationRepository implements PublicationRepository {
     if (state === 'offline' && before.visibility === 'draft') return { status: 'not-published' };
     if (state !== 'offline' && (before.totalPhotos === 0 || before.readyPhotos !== before.totalPhotos)) {
       return { status: 'not-ready' };
+    }
+    if (state !== 'offline') {
+      const publicDisabled = await this.database.prepare(
+        `SELECT 1 FROM events e JOIN site_settings s ON s.id = 1
+         WHERE e.id = ?1 AND e.access = 'public' AND s.gallery_directory_enabled = 0`,
+      ).bind(eventId).first();
+      if (publicDisabled) return { status: 'public-disabled' };
     }
 
     const statements: D1PreparedStatement[] = [];

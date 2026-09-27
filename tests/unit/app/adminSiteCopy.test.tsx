@@ -35,6 +35,27 @@ beforeAll(() => {
 afterEach(async () => { cleanup(); vi.unstubAllGlobals(); await i18n.changeLanguage('fr'); });
 
 describe('admin site copy', () => {
+  it('shows a prominent alert when an accessible public gallery blocks hiding Galleries', async () => {
+    vi.stubGlobal('fetch', vi.fn((_url: string, options?: RequestInit) => Promise.resolve(new Response(
+      options?.method === 'PATCH'
+        ? JSON.stringify({ code: 'PUBLIC_GALLERIES_REMAIN', message: 'errors.publicGalleriesRemain', requestId: 'test-request' })
+        : JSON.stringify(settings),
+      { status: options?.method === 'PATCH' ? 409 : 200 },
+    ))));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    render(<QueryClientProvider client={client}><AdminSiteSettingsPage /></QueryClientProvider>);
+
+    const directory = await screen.findByRole('checkbox', { name: 'Afficher Galeries sur le site public' });
+    fireEvent.click(directory);
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer les réglages publics' }));
+
+    const alert = await screen.findByText(/Les réglages n’ont pas été enregistrés/);
+    expect(alert.className).toContain('admin-settings-alert');
+    expect(alert.getAttribute('role')).toBe('alert');
+    expect(alert.textContent).toContain('hors ligne ou protégez-les par mot de passe');
+    expect(screen.queryByRole('status', { name: /enregistrés/i })).toBeNull();
+  });
+
   it('edits both fields through one primary input and saves their translations in one PATCH', async () => {
     let saved: Record<string, unknown> | null = null;
     let patchCount = 0;

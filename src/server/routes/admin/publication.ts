@@ -40,6 +40,7 @@ export function registerPublicationRoutes(
     if (result.status !== 'updated') {
       if (result.status === 'not-found') throw new ApiException('EVENT_NOT_FOUND', 'errors.eventNotFound', 404);
       if (result.status === 'not-ready') throw new ApiException('EVENT_NOT_READY', 'errors.eventNotReady', 409);
+      if (result.status === 'public-disabled') throw new ApiException('PUBLIC_GALLERIES_DISABLED', 'errors.invalidRequest', 409);
       throw new ApiException('EVENT_NOT_PUBLISHED', 'errors.invalidPublishRequest', 409);
     }
     if (result.cachePurgeJobId) {

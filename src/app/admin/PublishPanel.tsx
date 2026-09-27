@@ -106,7 +106,7 @@ export function PublishPanel({ eventId, slug, onChanged, readOnly = false, showS
         <option disabled={state === 'draft'} value="offline">{t('publication.target.offline')}</option>
       </Select>
       {readOnly ? <p className="publish-panel__note">{t('publication.readOnly')}</p> : null}
-      {mutation.isError ? <p role="alert">{t('publication.error')}</p> : null}
+      {mutation.isError ? <p role="alert">{t(mutation.error.message === 'PUBLIC_GALLERIES_DISABLED' ? 'publication.publicDisabled' : 'publication.error')}</p> : null}
       <div className="publish-panel__actions">
         <Button disabled={disabled} onClick={apply} variant={target === 'offline' ? 'danger' : 'primary'}>
           {mutation.isPending ? t('publication.saving') : t(actionKey)}

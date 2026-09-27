@@ -87,7 +87,7 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       ? currentDirectory?.gallery_directory_enabled !== 0 : input.data.galleryDirectoryEnabled;
     if (!galleryDirectoryEnabled) {
       const publicGallery = await context.env.DB.prepare(
-        "SELECT id FROM events WHERE access = 'public' AND deleting_at IS NULL LIMIT 1",
+        "SELECT id FROM events WHERE access = 'public' AND visibility != 'draft' AND offline_at IS NULL AND deleting_at IS NULL LIMIT 1",
       ).first<{ id: string }>();
       if (publicGallery) throw new ApiException('PUBLIC_GALLERIES_REMAIN', 'errors.publicGalleriesRemain', 409);
     }

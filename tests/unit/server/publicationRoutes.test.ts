@@ -54,6 +54,17 @@ function repository(overrides: Partial<PublicationRepository> = {}): Publication
 }
 
 describe('publication admin routes', () => {
+  it('returns a clear conflict for public republication while Galleries is hidden', async () => {
+    const response = await appWith(repository({ updatePublication: vi.fn().mockResolvedValue({ status: 'public-disabled' }) }))
+      .request('/api/v1/admin/galleries/event-1/publication', {
+        body: JSON.stringify({ state: 'published' }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'PUT',
+      });
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ code: 'PUBLIC_GALLERIES_DISABLED' });
+  });
+
   it('publishes without waiting for face indexing', async () => {
     const publicationRepository = repository({
       updatePublication: vi.fn().mockResolvedValue({ status: 'updated', summary }),

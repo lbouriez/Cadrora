@@ -404,6 +404,16 @@
   max-width: 44rem;
 }
 
+.admin-settings-alert {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 0.0625rem solid color-mix(in srgb, var(--color-danger) 55%, var(--color-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+  color: var(--color-danger);
+  font-weight: 700;
+}
+
 .admin-settings-nav {
   display: flex;
   position: sticky;

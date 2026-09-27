@@ -458,7 +458,7 @@ export function createAdminEventRoutes(): Hono<AppEnv> {
       }
     }
     const nextAccess = input.data.access ?? event.access;
-    if (nextAccess === 'public') await requirePublicGalleryOption(context.env.DB);
+    if (nextAccess === 'public' && event.access !== 'public') await requirePublicGalleryOption(context.env.DB);
     const existingVersion = await context.env.DB.prepare(
       'SELECT access_version FROM event_credentials WHERE event_id = ?1',
     ).bind(event.id).first<{ access_version: number }>();

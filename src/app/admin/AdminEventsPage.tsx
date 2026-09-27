@@ -341,7 +341,7 @@ function AdminEventSettingsForm({ event }: { event: Event }) {
         <Textarea className="admin-event-form__textarea" defaultValue={event.description ?? ''} label={t('admin.events.description')} maxLength={5000} name="description" />
         <GalleryServiceField value={event.service} />
         <Select label={t('admin.events.access')} onChange={(changeEvent) => setAccess(changeEvent.target.value as Event['access'])} value={access}>
-            {galleryDirectoryEnabled ? <option value="public">{t('admin.events.public')}</option> : null}
+            {galleryDirectoryEnabled || event.access === 'public' ? <option disabled={!galleryDirectoryEnabled} value="public">{t('admin.events.public')}</option> : null}
             <option value="protected">{t('admin.events.protected')}</option>
         </Select>
         <ProtectedListingHint access={access} />

@@ -57,6 +57,45 @@ function appWith() {
 }
 
 describe('admin site settings routes', () => {
+  it('allows hiding Galleries once public galleries are draft or offline', async () => {
+    let blockingPublicGallery = true;
+    let directoryEnabled = 1;
+    const prepare = vi.fn((query: string) => ({
+      bind: (...values: unknown[]) => ({
+        run: () => {
+          directoryEnabled = Number(values.at(-1));
+          return Promise.resolve({ meta: { changes: 1 } });
+        },
+      }),
+      first: () => Promise.resolve(query.includes('FROM events')
+        ? blockingPublicGallery ? { id: 'public-online' } : null
+        : query.startsWith('SELECT site_name') ? { ...row, gallery_directory_enabled: directoryEnabled }
+          : query.includes('owner_storage_limit_bytes') ? { owner_storage_limit_bytes: null, owner_face_limit: null }
+            : { value: 0 }),
+    }));
+    const database = { prepare } as unknown as D1Database;
+    const input = {
+      analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
+      defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
+      galleryDirectoryEnabled: false, homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3,
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 }, serviceArea: null,
+      siteName: 'Atelier Giulia', themeMode: 'both',
+    };
+    const save = () => appWith().request('/api/v1/admin/site', {
+      body: JSON.stringify(input), headers: { 'Content-Type': 'application/json' }, method: 'PATCH',
+    }, { DB: database, ...quotaBindings });
+
+    const blocked = await save();
+    expect(blocked.status).toBe(409);
+    expect(directoryEnabled).toBe(1);
+    blockingPublicGallery = false;
+    const saved = await save();
+    expect(saved.status).toBe(200);
+    expect(AdminSiteSettingsSchema.parse(await saved.json()).galleryDirectoryEnabled).toBe(false);
+    expect(prepare).toHaveBeenCalledWith(expect.stringContaining("visibility != 'draft' AND offline_at IS NULL"));
+  });
+
   it('saves bilingual Home introduction and resets its copy and photo selection', async () => {
     let current = { ...row, home_hero_copy: null as string | null, home_hero_image_revision: 3 as number | null };
     const writes: string[] = [];
