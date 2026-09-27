@@ -5,12 +5,6 @@
 export const adminResourceFragment = {
   en: {
     admin: {
-      dashboard: {
-        description: 'Create a gallery, add photos, then choose when to share it.',
-        events: 'Gallery management',
-        eventsDescription: 'Open a gallery to add photos, change its settings, or share it with visitors.',
-        title: 'Dashboard',
-      },
       demo: {
         dashboardBody: 'Open a gallery to explore its settings, or try the new-gallery options below. Nothing you change in this demo will be saved.',
         dashboardTitle: 'Explore the gallery workspace.',
@@ -179,7 +173,8 @@ export const adminResourceFragment = {
       logout: 'Sign out',
       backToSite: 'Back to website',
       navigation: {
-        dashboard: 'Dashboard',
+        label: 'Administration',
+        galleries: 'Galleries',
         settings: 'Site settings',
       },
       settings: {
@@ -277,12 +272,6 @@ export const adminResourceFragment = {
   },
   fr: {
     admin: {
-      dashboard: {
-        description: 'Créez une galerie, ajoutez des photos, puis choisissez quand la partager.',
-        events: 'Gestion des galeries',
-        eventsDescription: 'Ouvrez une galerie pour ajouter des photos, modifier ses réglages ou la partager.',
-        title: 'Tableau de bord',
-      },
       demo: {
         dashboardBody: 'Ouvrez une galerie pour explorer ses réglages ou essayez les options de création ci-dessous. Rien de ce que vous modifiez dans cette démo ne sera enregistré.',
         dashboardTitle: 'Explorez la gestion des galeries.',
@@ -451,7 +440,8 @@ export const adminResourceFragment = {
       logout: 'Se déconnecter',
       backToSite: 'Retour au site',
       navigation: {
-        dashboard: 'Tableau de bord',
+        label: 'Administration',
+        galleries: 'Galeries',
         settings: 'Réglages du site',
       },
       settings: {

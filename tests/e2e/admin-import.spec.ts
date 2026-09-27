@@ -206,7 +206,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
       contentType: 'application/json', status: 404,
     });
   });
-  await page.getByRole('link', { name: /tableau de bord|dashboard/i }).click();
+  await page.locator('.admin-shell__nav').getByRole('link', { name: /^(galeries|galleries)$/i }).click();
   await page.getByRole('link', { name: /importer des photos|import photos/i }).click();
   await page.getByRole('button', { name: /annuler l'importation|cancel import/i }).click();
   await expect(page.getByRole('button', { name: /reprendre l'importation|resume import/i })).toHaveCount(0);
@@ -221,7 +221,7 @@ test('reprend au troisieme lot un journal local de 200 photos et rejette un form
       contentType: 'application/json',
     });
   });
-  await page.getByRole('link', { name: /tableau de bord|dashboard/i }).click();
+  await page.locator('.admin-shell__nav').getByRole('link', { name: /^(galeries|galleries)$/i }).click();
   await page.getByRole('link', { name: /importer des photos|import photos/i }).click();
   await expect(page.getByRole('heading', { name: /photos incomplètes \(1\)|unfinished photos \(1\)/i })).toBeVisible();
   await expect(page.getByText('original.jpg')).toBeVisible();

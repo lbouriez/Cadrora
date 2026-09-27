@@ -122,6 +122,8 @@
   color: var(--color-text-muted);
 }
 
+.admin-portfolio-collections__title { margin-block: var(--space-5) var(--space-3); }
+
 .admin-event-row__favorites,
 .admin-favorites__count {
   color: var(--color-primary);

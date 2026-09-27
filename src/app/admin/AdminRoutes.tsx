@@ -80,7 +80,7 @@ export function AdminLoginRoute() {
     <>
       <AdminLoginPage
         demoMode={siteProfile.demo.enabled && new URLSearchParams(window.location.search).get('demo') === '1'}
-        onAuthenticated={() => { void navigate('/admin', { replace: true }); }}
+        onAuthenticated={() => { void navigate('/admin/galleries', { replace: true }); }}
         requestTurnstileToken={() => challenge.current?.requestToken() ?? Promise.reject(new Error('TURNSTILE_UNAVAILABLE'))}
       />
       <TurnstileChallenge ref={challenge} />
@@ -125,7 +125,7 @@ function AdminImportContent({ eventId, replacementPhotoId }: { eventId: string; 
   );
 }
 
-export function AdminDashboardRoute() {
+export function AdminGalleriesRoute() {
   return <AdminFrame><AdminEventsPage /></AdminFrame>;
 }
 

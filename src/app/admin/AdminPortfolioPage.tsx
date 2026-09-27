@@ -10,9 +10,10 @@ import {
   PortfolioItemSchema, ServiceCardsSchema, ServiceImageUploadResponseSchema,
 } from '../../shared/schemas';
 import type { PortfolioCollectionDetail, PortfolioItem, ServiceCard } from '../../shared/schemas';
-import { BackLink, Button, ConfirmDialog, Input, Select, Spinner, Textarea } from '../components';
+import { BackLink, Button, ConfirmDialog, Dropzone, Input, Select, Spinner, Textarea } from '../components';
 import { serviceText } from '../public/serviceCatalog';
 import { useAdminAccess } from './AdminAccessContext';
+import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -140,6 +141,23 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
     <section className="admin-card">
       <h1 className="admin-card__title">{t('admin.portfolio.title')}</h1>
       <p className="admin-card__description">{t('admin.portfolio.description')}</p>
+      <h2 className="admin-card__title admin-portfolio-collections__title">{t('admin.portfolio.collections')}</h2>
+      {collections.isPending ? <Spinner label={t('admin.portfolio.loading')} /> : null}
+      {collections.isError ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
+      {collections.data?.length === 0 ? <p>{t('admin.portfolio.empty')}</p> : null}
+      <div className="admin-event-list">{collections.data?.map((collection) => <article className="admin-event-row" key={collection.id}>
+        {collection.coverSources[0] ? <img alt="" className="admin-portfolio-collection__cover"
+          src={collection.coverSources[0].url.replace(/^\/portfolio-media\/([^/]+)\//u, '/api/v1/admin/portfolio/$1/image/')} /> : null}
+        <div><h3>{collection.copy[language].title}</h3><p>{collection.copy[language].description}</p>
+          <p>{t(`gallery.category.${collection.serviceId}`)} · {t('admin.portfolio.photoCount', { count: collection.photoCount })}</p>
+          <span className="admin-event-row__state">{t(collection.published ? 'admin.portfolio.published' : 'admin.portfolio.draft')}</span>
+        </div>
+        <div className="admin-event-row__actions"><Link className="button button--secondary" to={`/admin/portfolio/${collection.id}`}>
+          {t('admin.portfolio.manage')}</Link></div>
+      </article>)}</div>
+    </section>
+    <section className="admin-card">
+      <h2 className="admin-card__title">{t('admin.portfolio.addCollection')}</h2>
       <form className="admin-event-form" onSubmit={(event) => { void submit(event); }}>
         <Input label={t('admin.portfolio.titleFr')} maxLength={160} onChange={(event) => {
           setTitleFr(event.target.value); if (!slugEdited) setSlug(slugify(event.target.value));
@@ -156,22 +174,6 @@ function CollectionList({ services }: { services: ServiceCard[] }) {
         <Button disabled={busy || readOnly || !services.length} type="submit">{t('admin.portfolio.addCollection')}</Button>
         {error ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
       </form>
-    </section>
-    <section className="admin-card">
-      <h2 className="admin-card__title">{t('admin.portfolio.collections')}</h2>
-      {collections.isPending ? <Spinner label={t('admin.portfolio.loading')} /> : null}
-      {collections.isError ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
-      {collections.data?.length === 0 ? <p>{t('admin.portfolio.empty')}</p> : null}
-      <div className="admin-event-list">{collections.data?.map((collection) => <article className="admin-event-row" key={collection.id}>
-        {collection.coverSources[0] ? <img alt="" className="admin-portfolio-collection__cover"
-          src={collection.coverSources[0].url.replace(/^\/portfolio-media\/([^/]+)\//u, '/api/v1/admin/portfolio/$1/image/')} /> : null}
-        <div><h3>{collection.copy[language].title}</h3><p>{collection.copy[language].description}</p>
-          <p>{t(`gallery.category.${collection.serviceId}`)} · {t('admin.portfolio.photoCount', { count: collection.photoCount })}</p>
-          <span className="admin-event-row__state">{t(collection.published ? 'admin.portfolio.published' : 'admin.portfolio.draft')}</span>
-        </div>
-        <div className="admin-event-row__actions"><Link className="button button--secondary" to={`/admin/portfolio/${collection.id}`}>
-          {t('admin.portfolio.manage')}</Link></div>
-      </article>)}</div>
     </section>
   </div>;
 }
@@ -203,8 +205,7 @@ function CollectionEditor({ id, services }: { id: string; services: ServiceCard[
           method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated),
         }); await refresh();
       } catch { setError(true); } finally { setBusy(false); }
-    }} onUpload={async (event) => {
-      const files = Array.from(event.target.files ?? []); event.target.value = '';
+    }} onUpload={async (files) => {
       if (!files.length || busy || readOnly) return;
       setBusy(true); setError(false); setProgress({ done: 0, total: files.length });
       try {
@@ -235,7 +236,7 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
   onConfirmDelete: (open: boolean) => void;
   onSave: (value: { slug: string; serviceId: string; copy: PortfolioCollectionDetail['copy']; sortOrder: number;
     published: boolean; coverPhotoId: string | null }) => Promise<void>;
-  onUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>; onDelete: () => Promise<void>;
+  onUpload: (files: File[]) => Promise<void>; onDelete: () => Promise<void>;
   refresh: () => Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -268,10 +269,19 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
           {services.map((service) => <option key={service.id} value={service.id}>{serviceText(service, language, (key) => t(key)).title}</option>)}
         </Select>
         <Input label={t('admin.portfolio.collectionOrder')} min="0" onChange={(event) => setSortOrder(Number(event.target.value))} required type="number" value={sortOrder} />
-        <Select label={t('admin.portfolio.cover')} onChange={(event) => setCoverPhotoId(event.target.value)} value={coverPhotoId}>
-          <option value="">{t('admin.portfolio.firstPhoto')}</option>
-          {collection.photos.filter((photo) => photo.state === 'published').map((photo) => <option key={photo.id} value={photo.id}>{photo.alt[language]}</option>)}
-        </Select>
+        <div className="admin-cover">
+          <h2 className="admin-card__title">{t('admin.portfolio.cover')}</h2>
+          <p className="admin-card__description">{t('admin.portfolio.coverDescription')}</p>
+          <AdminCoverPhotoPicker choices={collection.photos.filter((photo) => photo.state === 'published')
+            .map((photo) => ({
+              id: photo.id, label: photo.alt[language],
+              thumbnailUrl: `/api/v1/admin/portfolio/${encodeURIComponent(photo.id)}/image/small`,
+            }))} disabled={busy || readOnly} labels={{
+              choose: (filename) => t('admin.portfolio.coverChoose', { filename }),
+              clear: t('admin.portfolio.firstPhoto'), current: t('admin.portfolio.coverCurrent'),
+              empty: t('admin.portfolio.coverEmpty'),
+            }} onSelect={(id) => setCoverPhotoId(id ?? '')} selectedId={coverPhotoId || null} />
+        </div>
         <label className="admin-portfolio-visibility"><input checked={published}
           disabled={busy || readOnly || !collection.photos.some((photo) => photo.state === 'published')}
           onChange={(event) => setPublished(event.target.checked)} type="checkbox" /> {t('admin.portfolio.visible')}</label>
@@ -286,11 +296,8 @@ function CollectionFields({ collection, services, language, readOnly, busy, erro
     </section>
     <section className="admin-card">
       <h2 className="admin-card__title">{t('admin.portfolio.photos')}</h2>
-      <label className="field"><span className="field__label">{t('admin.portfolio.addPhotos')}</span>
-        <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly}
-          multiple onChange={(event) => { void onUpload(event); }} type="file" />
-        <span className="field__hint">{t('admin.portfolio.uploadHint')}</span>
-      </label>
+      <Dropzone accept="image/jpeg,image/png,image/webp" description={t('admin.portfolio.uploadHint')}
+        disabled={busy || readOnly} label={t('admin.portfolio.addPhotos')} onFiles={(files) => { void onUpload(files); }} />
       {progress ? <p role="status">{t('admin.portfolio.uploadProgress', progress)}</p> : null}
       {!collection.photos.length ? <p>{t('admin.portfolio.emptyPhotos')}</p> : null}
       <div className="admin-portfolio-list">{collection.photos.map((photo) => <PhotoEditor item={photo} key={photo.id} onChanged={refresh} />)}</div>

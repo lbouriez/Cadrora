@@ -89,6 +89,10 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
       }]), contentType: 'application/json' });
       return;
     }
+    if (path.endsWith('/portfolio/collections')) {
+      await route.fulfill({ body: '[]', contentType: 'application/json' });
+      return;
+    }
     if (path.endsWith('/cover-photos')) {
       await route.fulfill({ body: JSON.stringify({ photos: [{
         id: 'demo-ai-01', filename: 'portrait.webp',
@@ -315,5 +319,14 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await retouchSwitch.uncheck();
   await expect(retouchSwitch).not.toBeChecked();
   await expect(page.getByRole('button', { name: /save settings|enregistrer les réglages/i })).toBeDisabled();
+  const adminNav = page.locator('.admin-shell__nav');
+  const galleriesLink = adminNav.getByRole('link', { name: /^(galleries|galeries)$/i });
+  await expect(galleriesLink).toHaveAttribute('href', '/admin/galleries');
+  await adminNav.getByRole('link', { name: /^portfolio$/i }).click();
+  await expect(page).toHaveURL(/\/admin\/portfolio$/u);
+  await expect(page.getByRole('heading', { level: 1, name: 'Portfolio' })).toBeVisible();
+  await galleriesLink.click();
+  await expect(page).toHaveURL(/\/admin\/galleries$/u);
+  await expect(page.getByRole('heading', { name: /your galleries|vos galeries/i })).toBeVisible();
   expect(writes).toEqual([]);
 });

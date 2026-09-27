@@ -8,6 +8,7 @@ import { DeleteGalleryResponseSchema, EventSchema } from '../../shared/schemas';
 import type { Event } from '../../shared/schemas';
 import { BackLink, Button, ConfirmDialog, InfoTooltip, Input, Select, Spinner, Textarea } from '../components';
 import { useAdminAccess } from './AdminAccessContext';
+import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
 import { abandonOriginalImports, getAdminEvents, getCoverPhotos, getOriginalsStatus, openAdminGallery, requestOriginalsCleanup } from './adminEventsApi';
 import { formatMediaStorage } from './formatMediaStorage';
 import { GalleryServiceField } from './GalleryServiceField';
@@ -453,7 +454,7 @@ function DeleteGalleryPanel({ event }: { event: Event }) {
   const [confirmation, setConfirmation] = useState('');
   const deletion = useMutation({
     mutationFn: () => deleteGallery(event.id, confirmation),
-    onSuccess: () => { void navigate('/admin', { replace: true }); },
+    onSuccess: () => { void navigate('/admin/galleries', { replace: true }); },
   });
   const close = () => {
     if (deletion.isPending) return;
@@ -521,31 +522,16 @@ function CoverPhotoPanel({ event }: { event: Event }) {
     <section aria-labelledby="gallery-cover-title" className="admin-card admin-cover">
       <h2 className="admin-card__title" id="gallery-cover-title">{t('admin.events.coverTitle')}</h2>
       <p className="admin-card__description">{t('admin.events.coverDescription')}</p>
-      {selectedId ? <div className="admin-cover__current">
-        <img alt="" src={`/api/v1/admin/galleries/${encodeURIComponent(event.id)}/cover-photos/${encodeURIComponent(selectedId)}`} />
-        <span>{t('admin.events.coverCurrent')}</span>
-      </div> : null}
       {candidates.isPending ? <Spinner label={t('admin.events.coverLoading')} /> : null}
       {candidates.isError ? <p role="alert">{t('admin.events.coverError')}</p> : null}
-      {!candidates.isPending && photos.length === 0 ? <p>{t('admin.events.coverEmpty')}</p> : null}
-      <div className="admin-cover__grid">
-        {photos.map((photo) => (
-          <button
-            aria-label={t('admin.events.coverChoose', { filename: photo.filename })}
-            aria-pressed={selectedId === photo.id}
-            className="admin-cover__choice"
-            disabled={update.isPending}
-            key={photo.id}
-            onClick={() => select(photo.id)}
-            type="button"
-          >
-            <img alt="" loading="lazy" src={photo.thumbnailUrl} />
-            <span>{photo.filename}</span>
-          </button>
-        ))}
-      </div>
+      <AdminCoverPhotoPicker choices={photos.map((photo) => ({ id: photo.id, label: photo.filename, thumbnailUrl: photo.thumbnailUrl }))}
+        currentThumbnailUrl={selectedId
+          ? `/api/v1/admin/galleries/${encodeURIComponent(event.id)}/cover-photos/${encodeURIComponent(selectedId)}` : undefined}
+        disabled={update.isPending} labels={{
+          choose: (filename) => t('admin.events.coverChoose', { filename }), clear: t('admin.events.coverClear'),
+          current: t('admin.events.coverCurrent'), empty: t('admin.events.coverEmpty'),
+        }} onSelect={select} selectedId={selectedId} showEmpty={!candidates.isPending} />
       {candidates.hasNextPage ? <Button disabled={candidates.isFetchingNextPage} onClick={() => void candidates.fetchNextPage()} type="button" variant="secondary">{t('admin.events.coverMore')}</Button> : null}
-      {selectedId ? <Button disabled={update.isPending} onClick={() => select(null)} type="button" variant="secondary">{t('admin.events.coverClear')}</Button> : null}
       {update.isError ? <p role="alert">{t('admin.events.coverSaveError')}</p> : null}
       {readOnly ? <p className="admin-card__description">{t('admin.demo.formPlayground')}</p> : null}
     </section>
@@ -564,7 +550,7 @@ export function AdminEventSettingsPage({ eventId }: { eventId: string }) {
   return (
     <div className="admin-workspace">
       <header className="admin-workspace__heading">
-        <BackLink to="/admin">{t('admin.events.back')}</BackLink>
+        <BackLink to="/admin/galleries">{t('admin.events.back')}</BackLink>
         <h1>{t('admin.events.settingsTitle', { title: event.title })}</h1>
       </header>
       <PublishPanel

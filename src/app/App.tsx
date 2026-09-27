@@ -1,14 +1,14 @@
 import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRoutes } from 'react-router-dom';
+import { Navigate, useRoutes } from 'react-router-dom';
 
 import { publicRouteObjects } from './routes/publicRoutes';
 import { RouteScrollReset } from './routes/RouteScrollReset';
 import { Spinner } from './components';
 import { siteProfile } from './public/siteProfile';
 
-const AdminDashboardRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminDashboardRoute }));
+const AdminGalleriesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminGalleriesRoute }));
 const AdminEventSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminEventSettingsRoute }));
 const AdminImportRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminImportRoute }));
 const AdminFavoritesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminFavoritesRoute }));
@@ -44,7 +44,8 @@ function FoundationShell() {
 export function App() {
   const routes = useRoutes([
     { path: '/admin/login', element: adminElement(<AdminLoginRoute />) },
-    { path: '/admin', element: adminElement(<AdminDashboardRoute />) },
+    { path: '/admin', element: <Navigate replace to="/admin/galleries" /> },
+    { path: '/admin/galleries', element: adminElement(<AdminGalleriesRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
     { path: '/admin/portfolio', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/portfolio/:id', element: adminElement(<AdminPortfolioRoute />) },

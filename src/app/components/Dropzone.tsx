@@ -23,7 +23,10 @@ export function Dropzone({
   const receive = (files: FileList | null) => {
     if (files) onFiles([...files]);
   };
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => receive(event.currentTarget.files);
+  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
+    receive(event.currentTarget.files);
+    event.currentTarget.value = '';
+  };
   const onDrop = (event: DragEvent<HTMLLabelElement>) => {
     event.preventDefault();
     if (!disabled) receive(event.dataTransfer.files);
