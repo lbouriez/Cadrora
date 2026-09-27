@@ -57,7 +57,7 @@ function appWith() {
 }
 
 describe('admin site settings routes', () => {
-  it('allows hiding Galleries once public galleries are draft or offline', async () => {
+  it('allows hiding Galleries once public galleries are unlisted, draft, or offline', async () => {
     let blockingPublicGallery = true;
     let directoryEnabled = 1;
     const prepare = vi.fn((query: string) => ({
@@ -93,7 +93,7 @@ describe('admin site settings routes', () => {
     const saved = await save();
     expect(saved.status).toBe(200);
     expect(AdminSiteSettingsSchema.parse(await saved.json()).galleryDirectoryEnabled).toBe(false);
-    expect(prepare).toHaveBeenCalledWith(expect.stringContaining("visibility != 'draft' AND offline_at IS NULL"));
+    expect(prepare).toHaveBeenCalledWith(expect.stringContaining("visibility = 'published' AND offline_at IS NULL"));
   });
 
   it('saves bilingual Home introduction and resets its copy and photo selection', async () => {

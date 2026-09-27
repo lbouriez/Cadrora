@@ -24,6 +24,24 @@ describe('publication repository deletion fence', () => {
     expect(prepare).toHaveBeenCalledWith(expect.stringContaining('s.gallery_directory_enabled = 0'));
   });
 
+  it('allows an existing public gallery to return as Unlisted while the directory is hidden', async () => {
+    const offline = {
+      eventId: 'event-1', totalPhotos: 1, readyPhotos: 1, publishedPhotos: 1, indexingPhotos: 0,
+      publishedAt: null, visibility: 'published' as const, offlineAt: '2030-01-01T00:00:00.000Z',
+    };
+    const unlisted = { ...offline, visibility: 'unlisted' as const, offlineAt: null };
+    const statement = { bind: vi.fn(() => statement) };
+    const prepare = vi.fn(() => statement);
+    const batch = vi.fn().mockResolvedValue([]);
+    const publication = new D1PublicationRepository({ prepare, batch } as unknown as D1Database);
+    vi.spyOn(publication, 'publicationSummary').mockResolvedValueOnce(offline).mockResolvedValueOnce(unlisted);
+
+    await expect(publication.updatePublication('event-1', 'unlisted', '2030-01-02T00:00:00.000Z'))
+      .resolves.toMatchObject({ status: 'updated', summary: unlisted });
+    expect(batch).toHaveBeenCalledOnce();
+    expect(prepare).not.toHaveBeenCalledWith(expect.stringContaining('s.gallery_directory_enabled = 0'));
+  });
+
   it('returns zero photo counters for a new empty gallery', async () => {
     let query = '';
     const statement = {

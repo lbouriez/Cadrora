@@ -81,7 +81,7 @@ export class D1PublicationRepository implements PublicationRepository {
     if (state !== 'offline' && (before.totalPhotos === 0 || before.readyPhotos !== before.totalPhotos)) {
       return { status: 'not-ready' };
     }
-    if (state !== 'offline') {
+    if (state === 'published') {
       const publicDisabled = await this.database.prepare(
         `SELECT 1 FROM events e JOIN site_settings s ON s.id = 1
          WHERE e.id = ?1 AND e.access = 'public' AND s.gallery_directory_enabled = 0`,
