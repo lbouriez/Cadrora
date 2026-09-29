@@ -15,6 +15,7 @@ const AdminFavoritesRoute = lazy(async () => ({ default: (await import('./admin/
 const AdminLoginRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminLoginRoute }));
 const AdminSiteSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminSiteSettingsRoute }));
 const AdminPortfolioRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminPortfolioRoute }));
+const AdminAboutRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminAboutRoute }));
 const AdminWorkerErrorsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminWorkerErrorsRoute }));
 
 function adminElement(element: ReactNode) {
@@ -49,6 +50,7 @@ export function App() {
     { path: '/admin/galleries', element: adminElement(<AdminGalleriesRoute />) },
     { path: '/admin/settings', element: adminElement(<AdminSiteSettingsRoute />) },
     { path: '/admin/portfolio', element: adminElement(<AdminPortfolioRoute />) },
+    { path: '/admin/about', element: adminElement(<AdminAboutRoute />) },
     { path: '/admin/diagnostics', element: adminElement(<AdminWorkerErrorsRoute />) },
     { path: '/admin/portfolio/:id', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },

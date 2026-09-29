@@ -13,9 +13,10 @@ import { siteProfile } from './siteProfile';
 import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
 import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
+import type { NavigationItem } from '../site/types';
 
-export function PublicLayout({ children, pageDescription, pageTitle, wide = false }: {
-  children: ReactNode; pageDescription?: string; pageTitle?: string; wide?: boolean;
+export function PublicLayout({ children, fullBleed = false, pageDescription, pageTitle, wide = false }: {
+  children: ReactNode; fullBleed?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -37,6 +38,15 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
   const description = settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
   const footerTagline = settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
   const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
+  const navigation: readonly NavigationItem[] = siteProfile.navigation ?? ['home', 'services', 'portfolio', 'galleries', 'about', 'contact'];
+  const navigationTarget: Record<NavigationItem, { href: string; label: string }> = {
+    home: { href: '/', label: t('gallery.home') },
+    portfolio: { href: '/portfolio', label: t('gallery.portfolio') },
+    services: { href: '/services', label: t('gallery.services') },
+    galleries: { href: '/galleries', label: t('gallery.events') },
+    about: { href: '/about', label: t('gallery.about') },
+    contact: { href: '/contact', label: t('gallery.contact') },
+  };
 
   useEffect(() => {
     if (!settings.data?.defaultLanguage) return;
@@ -68,7 +78,7 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
   }, [pathname]);
 
   return (
-    <div className="public-shell">
+    <div className={`public-shell${siteProfile.home.presentation === 'session-slides' && pathname === '/' ? ' public-shell--immersive' : ''}`}>
       {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
@@ -77,11 +87,11 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
         </Link>
         <div className="public-header__actions">
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
-            <NavLink end onClick={() => setMenuOpen(false)} to="/">{t('gallery.home')}</NavLink>
-            <NavLink onClick={() => setMenuOpen(false)} to="/services">{t('gallery.services')}</NavLink>
-            <NavLink onClick={() => setMenuOpen(false)} to="/portfolio">{t('gallery.portfolio')}</NavLink>
-            {galleryDirectoryEnabled ? <NavLink onClick={() => setMenuOpen(false)} to="/galleries">{t('gallery.events')}</NavLink> : null}
-            <NavLink onClick={() => setMenuOpen(false)} to="/contact">{t('gallery.contact')}</NavLink>
+            {navigation.filter((item) => (item !== 'galleries' || galleryDirectoryEnabled)
+              && (item !== 'about' || (settings.data?.aboutEnabled ?? true))).map((item) => (
+              <NavLink end={item === 'home'} key={item} onClick={() => setMenuOpen(false)}
+                to={navigationTarget[item].href}>{navigationTarget[item].label}</NavLink>
+            ))}
           </nav>
           <div className="public-header__controls">
           <button
@@ -112,7 +122,7 @@ export function PublicLayout({ children, pageDescription, pageTitle, wide = fals
           </div>
         </div>
       </header>
-      <main className={`public-main${wide ? ' public-main--gallery' : ''}`}>{children}</main>
+      <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || (siteProfile.home.presentation === 'session-slides' && pathname === '/') ? ' public-main--immersive' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div className="public-footer__identity">
           <div className="public-footer__signature">

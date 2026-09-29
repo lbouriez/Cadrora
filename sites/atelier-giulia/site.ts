@@ -21,7 +21,9 @@ export const atelierGiuliaSite = {
     corporate: '/brand/service-corporate.webp',
     children: '/brand/service-children.webp',
   },
+  navigation: ['portfolio', 'services', 'about', 'contact'],
   home: {
+    presentation: 'session-slides',
     primaryAction: { href: '/contact', labelKey: 'gallery.contactCalloutAction', shortLabelKey: 'gallery.contactCalloutAction' },
     secondaryAction: { href: '#services', labelKey: 'gallery.services', shortLabelKey: 'gallery.services' },
     sections: ['services', 'approach', 'galleries', 'contact'],
@@ -42,6 +44,10 @@ export const atelierGiuliaSite = {
       galleryLead: 'Explore the galleries we have chosen to share. Private galleries open only through their own link.',
       contactCalloutTitle: 'Let’s talk about your plans.',
       footerTagline: 'Photography with feeling.',
+      aboutPage: {
+        title: 'Meet Giulia',
+        body: "I'm Giulia, an Italian girl who moved to Canada with a passion for family photography. I've always been the one grabbing the camera to capture happy moments — with a keen eye for aesthetics and, above all, making people feel at ease in front of the lens.",
+      },
     } },
     fr: { gallery: {
       heroEyebrow: 'Des images pour les moments qui comptent',
@@ -56,6 +62,10 @@ export const atelierGiuliaSite = {
       galleryLead: 'Découvrez les galeries que nous avons choisi de partager. Les galeries privées sont accessibles uniquement par leur lien.',
       contactCalloutTitle: 'Parlons de votre projet.',
       footerTagline: 'Des images pleines de vie.',
+      aboutPage: {
+        title: 'Rencontrez Giulia',
+        body: 'Je suis Giulia, une Italienne installée au Canada et passionnée par la photographie de famille. J’ai toujours été celle qui saisit l’appareil pour garder les moments heureux, avec un œil sensible à l’esthétique et surtout l’envie de mettre chacun à l’aise devant l’objectif.',
+      },
     } },
   },
 } as const satisfies SiteDefinition;

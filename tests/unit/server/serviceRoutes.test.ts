@@ -5,7 +5,7 @@ import { errorBoundary } from '../../../src/server/middleware/errorBoundary';
 import { requestId } from '../../../src/server/middleware/requestId';
 import { registerServiceRoutes } from '../../../src/server/routes/services';
 import type { AppEnv } from '../../../src/server/types';
-import { ServiceCardsSchema } from '../../../src/shared/schemas/services';
+import { ServiceCardsSchema, ServiceImageUploadHeadersSchema } from '../../../src/shared/schemas/services';
 
 function testApp(withAnonymousAuth = false, withOwnerAuth = false) {
   const app = new Hono<AppEnv>();
@@ -24,6 +24,13 @@ function testApp(withAnonymousAuth = false, withOwnerAuth = false) {
 }
 
 describe('service catalog routes', () => {
+  it('accepts the dimensions of a 2560 px wide portrait marketing image', () => {
+    expect(ServiceImageUploadHeadersSchema.safeParse({
+      byteSize: 3_000_000, checksumSha256: 'a'.repeat(64), contentType: 'image/webp',
+      width: 2560, height: 4551,
+    }).success).toBe(true);
+  });
+
   it('restores a built-in card’s example copy and photo while preserving its visibility and revision counter', async () => {
     const copy = { fr: { title: 'Mariages', shortDescription: 'Court', description: 'Long', points: [] },
       en: { title: 'Weddings', shortDescription: 'Short', description: 'Long', points: [] } };
@@ -106,6 +113,18 @@ describe('service catalog routes', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('owner-photo');
     expect(get).toHaveBeenCalledWith('site/services/home-hero/3/medium.webp');
+  });
+
+  it('does not expose an uploaded About photo when the page is disabled', async () => {
+    const prepare = vi.fn(() => ({ bind: () => ({ first: () => Promise.resolve(null) }) }));
+    const database = { prepare } as unknown as D1Database;
+    const get = vi.fn();
+    const response = await testApp().request('/service-media/about-hero/3/large', undefined, {
+      DB: database, MEDIA_BUCKET: { get },
+    });
+    expect(response.status).toBe(404);
+    expect(prepare).toHaveBeenCalledWith(expect.stringContaining('settings.about_enabled = 1'));
+    expect(get).not.toHaveBeenCalled();
   });
 
   it('publishes only enabled complete cards and emits versioned D1-derived image URLs', async () => {

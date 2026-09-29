@@ -281,7 +281,7 @@ function CollectionFields({ collection, categories, language, readOnly, busy, er
       copy: { fr: { title: titleFr.trim(), description: descriptionFr.trim() },
         en: { title: titleEn.trim(), description: descriptionEn.trim() } } });
   };
-  return <div className="admin-workspace">
+  return <div className="admin-workspace admin-portfolio-workspace">
     <BackLink to="/admin/portfolio">{t('admin.portfolio.back')}</BackLink>
     <section className="admin-card">
       <h1 className="admin-card__title">{collection.copy[language].title}</h1>

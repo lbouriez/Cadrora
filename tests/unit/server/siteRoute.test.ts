@@ -22,6 +22,9 @@ describe('public site settings route', () => {
         home_galleries_enabled: 1,
         home_galleries_limit: 6,
         home_services_limit: 3,
+        home_hero_image_revision: 4,
+        home_hero_image_medium_width: 1280,
+        home_hero_image_large_width: 2560,
         map_center_latitude: null,
         map_center_longitude: null,
         map_radius_km: null,
@@ -43,6 +46,11 @@ describe('public site settings route', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=60');
     await expect(response.json()).resolves.toEqual({
+      aboutCopy: null,
+      aboutEnabled: true,
+      aboutImageRevision: null,
+      aboutImageMediumWidth: null,
+      aboutImageLargeWidth: null,
       analyticsMeasurementId: null,
       contactAddress: null,
       contactEmail: null,
@@ -55,7 +63,9 @@ describe('public site settings route', () => {
       homeGalleries: { enabled: true, limit: 6 },
       homeServicesLimit: 3,
       homeHeroCopy: null,
-      homeHeroImageRevision: null,
+      homeHeroImageRevision: 4,
+      homeHeroImageMediumWidth: 1280,
+      homeHeroImageLargeWidth: 2560,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       serviceArea: null,
       siteName: 'Cadrora',

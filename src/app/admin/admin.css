@@ -482,6 +482,10 @@
 .admin-service-editor__fields { display: grid; padding-top: var(--space-3); gap: var(--space-4); }
 .admin-service-editor__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .admin-service-editor__preview { display: block; width: min(100%, 20rem); aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-md); }
+.admin-about { display: grid; gap: var(--space-5); }
+.admin-about__preview { display: block; width: min(100%, 26rem); aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius-md); }
+.admin-settings-switch { display: inline-flex; align-items: center; gap: var(--space-3); min-height: var(--control-min-size); font-weight: 700; }
+.admin-settings-switch input { width: 1.25rem; height: 1.25rem; accent-color: var(--color-primary); }
 .admin-home-hero-buttons { display: grid; justify-items: start; gap: var(--space-3); }
 .admin-home-hero-buttons h3 { margin: 0; }
 .admin-home-hero-buttons__item { display: grid; width: 100%; padding: var(--space-3); border: 0.0625rem solid var(--color-border); border-radius: var(--radius-md); gap: var(--space-3); }
@@ -589,6 +593,10 @@
 .admin-portfolio-list {
   display: grid;
   gap: var(--space-4);
+}
+
+.admin-portfolio-workspace > * {
+  grid-column: 1 / -1;
 }
 
 .admin-event-row__sharing {

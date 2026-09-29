@@ -14,6 +14,8 @@ Portfolio collections and gallery-style presentation are recorded in [`ADR-033`]
 Independent portfolio categories and admin sharing badges are recorded in [`ADR-034`](../decisions/ADR-034-portfolio-categories.md).
 Build-time presentation profiles and the optional independent-account pipeline are recorded in [`ADR-013`](../decisions/ADR-013-site-profiles.md); they do not change API or authentication contracts.
 Owner-managed service cards and prepared marketing images are recorded in [`ADR-028`](../decisions/ADR-028-owner-managed-service-cards.md).
+The enlarged marketing image recipe and legacy-width compatibility are recorded in [`ADR-038`](../decisions/ADR-038-larger-marketing-photos.md).
+Profile-selected session slides, shared navigation, and the owner-managed About page are recorded in [`ADR-039`](../decisions/ADR-039-profile-session-slides-and-about.md).
 Complete built-in service example reset is recorded in [`ADR-031`](../decisions/ADR-031-service-example-reset.md).
 Owner-managed Home introduction copy and photo are recorded in [`ADR-029`](../decisions/ADR-029-owner-managed-home-introduction.md).
 Configurable Home introduction buttons and legacy-copy conversion are recorded in [`ADR-030`](../decisions/ADR-030-configurable-home-actions.md).

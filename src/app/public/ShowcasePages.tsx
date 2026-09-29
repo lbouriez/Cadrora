@@ -8,7 +8,7 @@ import { getPublicGalleryIndex, getPublicServices, getPublicSiteSettings } from 
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { fallbackServices, serviceText } from './serviceCatalog';
-import { ServicePhoto } from './ServicePhoto';
+import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { siteProfile } from './siteProfile';
 
 export function ServicesPage() {
@@ -36,9 +36,9 @@ export function DefaultServicesPage() {
         {visibleServices.map((card, index) => {
           const copy = serviceText(card, language, (key) => t(key));
           return <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
-            <ServicePhoto card={card} className="service-detail-card__image" immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" />
+            <ServicePhotoHeader card={card} className="service-detail-card__visual" heading="h2"
+              immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" title={copy.title} />
             <div className="service-detail-card__copy">
-              <h2>{copy.title}</h2>
               <p>{copy.description}</p>
               <ul>
                 {copy.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}

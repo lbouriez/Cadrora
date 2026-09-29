@@ -35,7 +35,7 @@ export const ServiceImageUploadHeadersSchema = z.object({
   checksumSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   contentType: z.enum(['image/jpeg', 'image/webp']),
   width: z.coerce.number().int().min(1).max(4000),
-  height: z.coerce.number().int().min(1).max(4000),
+  height: z.coerce.number().int().min(1).max(8000),
 }).strict();
 export const ServiceImageRevisionSchema = z.object({ revision: z.number().int().positive() }).strict();
 export const ServiceImageUploadResponseSchema = z.object({ variant: ServiceVariantSchema }).strict();

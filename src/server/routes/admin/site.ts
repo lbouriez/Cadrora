@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 
 import { ApiException } from '../../../shared/errors/ApiError';
-import { AdminSiteSettingsSchema, HomeHeroCopySchema, UpdateSiteSettingsSchema } from '../../../shared/schemas';
+import { AdminSiteSettingsSchema, HomeHeroCopySchema, UpdateAboutSchema, UpdateSiteSettingsSchema } from '../../../shared/schemas';
 import { applyCachePolicy } from '../../middleware/cacheHeaders';
 import { quotaCeilings, siteQuotaSnapshot } from '../../services/quotas';
 import type { AppEnv } from '../../types';
@@ -64,6 +64,37 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       context.env.DB.prepare('UPDATE site_services SET image_revision = ?, pending_image_revision = NULL, updated_at = ? WHERE id = ?')
         .bind(Math.max(row.image_revision, row.pending_image_revision ?? 0), now, 'home-hero'),
       context.env.DB.prepare('UPDATE site_settings SET home_hero_copy = NULL, home_hero_image_enabled = 0, updated_at = ? WHERE id = 1').bind(now),
+    ]);
+    const settings = await findSettings(context.env.DB);
+    if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
+    return context.json(await adminSettings(context, settings));
+  });
+
+  routes.patch('/site/about', async (context) => {
+    if (context.get('auth').admin?.access !== 'manage') throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 403);
+    applyCachePolicy(context, 'admin');
+    const input = UpdateAboutSchema.safeParse(await context.req.json().catch(() => null));
+    if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    await context.env.DB.prepare('UPDATE site_settings SET about_enabled = ?, about_copy = ?, updated_at = ? WHERE id = 1')
+      .bind(Number(input.data.enabled), JSON.stringify(input.data.copy), new Date().toISOString()).run();
+    const settings = await findSettings(context.env.DB);
+    if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
+    return context.json(await adminSettings(context, settings));
+  });
+
+  routes.post('/site/about/photo/reset', async (context) => {
+    if (context.get('auth').admin?.access !== 'manage') throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 403);
+    applyCachePolicy(context, 'admin');
+    const row = await context.env.DB.prepare('SELECT image_revision, pending_image_revision FROM site_services WHERE id = ?')
+      .bind('about-hero').first<{ image_revision: number; pending_image_revision: number | null }>();
+    if (!row) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
+    const now = new Date().toISOString();
+    await context.env.DB.batch([
+      ...await oldImageCleanup(context.env.DB, 'about-hero', row.image_revision, now),
+      ...await oldImageCleanup(context.env.DB, 'about-hero', row.pending_image_revision ?? 0, now),
+      context.env.DB.prepare('UPDATE site_services SET image_revision = ?, pending_image_revision = NULL, updated_at = ? WHERE id = ?')
+        .bind(Math.max(row.image_revision, row.pending_image_revision ?? 0), now, 'about-hero'),
+      context.env.DB.prepare('UPDATE site_settings SET about_image_enabled = 0, updated_at = ? WHERE id = 1').bind(now),
     ]);
     const settings = await findSettings(context.env.DB);
     if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);

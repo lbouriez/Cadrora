@@ -6,6 +6,7 @@ import { i18n } from '../i18n';
 import { ContactPage, PrivacyPage } from '../public/InfoPage';
 import { faceFindRouteObject, installFaceFindResources } from '../public/FindRoute';
 import { HomePage } from '../public/HomePage';
+import { AboutPage } from '../public/AboutPage';
 import { PortfolioDetailPage, PortfolioPage } from '../public/PortfolioPage';
 import { PublicRouteFallback } from '../public/PublicRouteFallback';
 import { installPublicResources } from '../public/i18n';
@@ -20,6 +21,7 @@ const galleryElement = <Suspense fallback={<PublicRouteFallback />}><GalleryPage
 
 export const publicRouteObjects: RouteObject[] = [
   { path: '/', element: <HomePage /> },
+  { path: '/about', element: <AboutPage /> },
   { path: '/services', element: <ServicesPage /> },
   { path: '/portfolio', element: <PortfolioPage /> },
   { path: '/portfolio/:slug', element: <PortfolioDetailPage /> },

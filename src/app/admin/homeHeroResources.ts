@@ -8,7 +8,7 @@ export const homeHeroResources = {
     buttonDestination: 'Button {{number}} destination', buttonStyle: 'Button {{number}} style',
     primaryStyle: 'Primary', secondaryStyle: 'Secondary', addButton: 'Add button', removeButton: 'Remove button {{number}}',
     photo: 'Home introduction photo',
-    photoHint: 'Choose a photo at least 1280 px wide. The current or example photo is shown above. Reset restores the example text, buttons and photo.',
+    photoHint: 'Choose a photo at least 2560 px wide. The current or example photo is shown above. Reset restores the example text, buttons and photo.',
     save: 'Save introduction', saved: 'Introduction saved.',
     error: 'The introduction could not be saved. Check both translations and try again.',
     destinations: {
@@ -26,7 +26,7 @@ export const homeHeroResources = {
     buttonDestination: 'Destination du bouton {{number}}', buttonStyle: 'Style du bouton {{number}}',
     primaryStyle: 'Primaire', secondaryStyle: 'Secondaire', addButton: 'Ajouter un bouton', removeButton: 'Retirer le bouton {{number}}',
     photo: 'Photo de l’introduction',
-    photoHint: 'Choisissez une photo d’au moins 1 280 px de large. La photo actuelle ou d’exemple apparaît ci-dessus. Rétablir remet le texte, les boutons et la photo d’exemple.',
+    photoHint: 'Choisissez une photo d’au moins 2 560 px de large. La photo actuelle ou d’exemple apparaît ci-dessus. Rétablir remet le texte, les boutons et la photo d’exemple.',
     save: 'Enregistrer l’introduction', saved: 'Introduction enregistrée.',
     error: 'L’introduction n’a pas pu être enregistrée. Vérifiez les deux traductions et réessayez.',
     destinations: {

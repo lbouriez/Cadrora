@@ -1,28 +1,30 @@
 /* Site-only semantic tokens. Components, layout, and motion stay in the shared core. */
 :root[data-site='atelier-giulia'] {
-  --color-background: #faf8f3;
-  --color-surface-raised: #f1ece2;
-  --color-text: #262923;
-  --color-text-muted: #62695e;
-  --color-border: #d9d6cb;
-  --color-primary: #526f58;
-  --color-primary-hover: #3b5841;
-  --color-primary-contrast: #ffffff;
-  --gradient-brand: linear-gradient(135deg, #e4d7be 0%, #92aa8e 55%, #526f58 100%);
+  --color-background: #F6F1E7;
+  --color-surface: #FBF8F1;
+  --color-surface-raised: #E7DCC8;
+  --color-text: #2E2A24;
+  --color-text-muted: #6f655b;
+  --color-border: #E7DCC8;
+  --color-primary: #2E2A24;
+  --color-primary-hover: #544b41;
+  --color-primary-contrast: #FBF8F1;
+  --color-focus: #7f6e58;
+  --color-overlay: rgb(25 22 19 / 48%);
+  --gradient-brand: linear-gradient(135deg, #FBF8F1 0%, #E7DCC8 55%, #A79B8D 100%);
+  --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, sans-serif;
+  --font-display: "Iowan Old Style", Baskerville, Georgia, serif;
 }
 
 :root[data-site='atelier-giulia'][data-theme='dark'] {
-  --color-background: #181d18;
-  --color-surface: #222922;
-  --color-surface-raised: #2b342b;
-  --color-text: #f5f4ec;
-  --color-text-muted: #cad0c4;
-  --color-border: #465144;
-  --color-primary: #b7d2aa;
-  --color-primary-hover: #d0e3c5;
-  --color-primary-contrast: #172218;
-}
-
-:root[data-site='atelier-giulia'][data-theme='dark'] .public-brand img {
-  filter: invert(1);
+  --color-background: #2E2A24;
+  --color-surface: #38332c;
+  --color-surface-raised: #4e453a;
+  --color-text: #FBF8F1;
+  --color-text-muted: #d6cbbb;
+  --color-border: #6a5f51;
+  --color-primary: #F6F1E7;
+  --color-primary-hover: #E7DCC8;
+  --color-primary-contrast: #2E2A24;
+  --color-focus: #d2bda0;
 }

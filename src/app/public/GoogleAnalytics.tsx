@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
-const ANALYTICS_ROUTES = new Set(['/', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
+const ANALYTICS_ROUTES = new Set(['/', '/about', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
 function isAnalyticsRoute(pathname: string): boolean {
   return ANALYTICS_ROUTES.has(pathname) || /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(pathname);
 }

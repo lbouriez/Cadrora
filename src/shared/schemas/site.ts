@@ -24,6 +24,14 @@ export const HomeGalleriesSchema = z.object({
 });
 export const HomeServicesLimitSchema = z.number().int().min(1).max(12);
 
+export const AboutCopyLanguageSchema = z.object({
+  title: z.string().min(1).max(120),
+  body: z.string().min(1).max(2000),
+  imageAlt: z.string().max(180),
+}).strict();
+export const AboutCopySchema = z.object({ fr: AboutCopyLanguageSchema, en: AboutCopyLanguageSchema }).strict();
+export const UpdateAboutSchema = z.object({ enabled: z.boolean(), copy: AboutCopySchema }).strict();
+
 export const HomeHeroDestinationSchema = z.enum([
   '/contact', '/services', '/portfolio', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
 ]);
@@ -107,6 +115,13 @@ export const SiteSettingsSchema = z.object({
   homeServicesLimit: HomeServicesLimitSchema,
   homeHeroCopy: HomeHeroCopySchema.nullable().default(null),
   homeHeroImageRevision: z.number().int().positive().nullable().default(null),
+  homeHeroImageMediumWidth: z.number().int().positive().nullable().default(null),
+  homeHeroImageLargeWidth: z.number().int().positive().nullable().default(null),
+  aboutEnabled: z.boolean().default(true),
+  aboutCopy: AboutCopySchema.nullable().default(null),
+  aboutImageRevision: z.number().int().positive().nullable().default(null),
+  aboutImageMediumWidth: z.number().int().positive().nullable().default(null),
+  aboutImageLargeWidth: z.number().int().positive().nullable().default(null),
   analyticsMeasurementId: AnalyticsMeasurementIdSchema,
   themeMode: ThemeModeSchema,
   updatedAt: IsoDateTimeSchema,
@@ -171,6 +186,7 @@ export const ModelManifestSchema = z.object({
 export type SiteSettings = z.infer<typeof SiteSettingsSchema>;
 export type SiteCopy = z.infer<typeof SiteCopySchema>;
 export type HomeHeroCopy = z.infer<typeof HomeHeroCopySchema>;
+export type AboutCopy = z.infer<typeof AboutCopySchema>;
 export type AdminSiteSettings = z.infer<typeof AdminSiteSettingsSchema>;
 export type Language = z.infer<typeof LanguageSchema>;
 export type QuotaLimits = z.infer<typeof QuotaLimitsSchema>;

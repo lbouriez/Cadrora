@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import type { ServiceKey } from '../../shared/schemas/site';
 
 export type MarketingPage = 'home' | 'services' | 'galleries' | 'contact' | 'privacy';
+export type NavigationItem = 'home' | 'portfolio' | 'services' | 'galleries' | 'about' | 'contact';
 export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact';
 
 export interface FeaturedSite {
@@ -29,7 +30,9 @@ export interface SiteDefinition {
   mapPreviewUrl: string;
   privateGalleryCoverUrl: string;
   serviceImages: Readonly<Record<ServiceKey, string>>;
+  navigation?: readonly NavigationItem[];
   home: {
+    presentation?: 'standard' | 'session-slides';
     primaryAction: SiteAction;
     secondaryAction: SiteAction;
     sections: readonly HomeSection[];

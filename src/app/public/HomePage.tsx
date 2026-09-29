@@ -10,13 +10,15 @@ import { FeaturedSites } from './FeaturedSites';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { fallbackServices, serviceText } from './serviceCatalog';
-import { ServicePhoto } from './ServicePhoto';
+import { ServicePhotoHeader } from './ServicePhotoHeader';
+import { SessionSlideShow } from './SessionSlideShow';
 import { siteProfile } from './siteProfile';
 import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
   const Override = siteProfile.pages?.home;
-  return Override ? <Override /> : <DefaultHomePage />;
+  return Override ? <Override /> : siteProfile.home.presentation === 'session-slides'
+    ? <SessionSlideShow /> : <DefaultHomePage />;
 }
 
 function SiteActionLink({ action, variant, label, href }: { action?: SiteAction; variant: 'primary' | 'secondary'; label: string; href: string }) {
@@ -75,7 +77,7 @@ export function DefaultHomePage() {
         <figure className="site-hero__art">
           <img alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} fetchPriority="high" height="853" loading="eager"
             sizes="(max-width: 48rem) 100vw, 42vw" src="/home-hero-image/medium"
-            srcSet="/home-hero-image/small 640w, /home-hero-image/medium 960w, /home-hero-image/large 1280w" width="1280" />
+            srcSet={`/home-hero-image/small 640w, /home-hero-image/medium ${settings.data?.homeHeroImageMediumWidth ?? 960}w, /home-hero-image/large ${settings.data?.homeHeroImageLargeWidth ?? 1280}w`} width="1280" />
           {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
           {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
             <img alt="" src={siteProfile.heroAccentImageUrl} />
@@ -114,8 +116,9 @@ export function DefaultHomePage() {
           {featuredServices.map((card, index) => {
             const copy = serviceText(card, language, (key) => t(key));
             return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
-              <ServicePhoto card={card} className="service-card__image" sizes="(max-width: 48rem) 100vw, 33vw" />
-              <div className="service-card__copy"><h3>{copy.title}</h3><p>{copy.shortDescription}</p></div>
+              <ServicePhotoHeader card={card} className="service-card__visual" heading="h3"
+                sizes="(max-width: 48rem) 100vw, 33vw" title={copy.title} />
+              <div className="service-card__copy"><p>{copy.shortDescription}</p></div>
             </MotionReveal>;
           })}
         </div>

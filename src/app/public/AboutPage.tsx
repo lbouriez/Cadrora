@@ -1,0 +1,43 @@
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { Link, Navigate } from 'react-router-dom';
+
+import { ProgressivePhoto } from '../components';
+import { getPublicSiteSettings } from './api';
+import { PublicLayout } from './PublicLayout';
+import { siteProfile } from './siteProfile';
+
+/** One owner-managed About page with presentation selected by the site profile. */
+export function AboutPage() {
+  const { i18n, t } = useTranslation();
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  if (settings.data?.aboutEnabled === false) return <Navigate replace to="/" />;
+
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const copy = settings.data?.aboutCopy?.[language];
+  const title = copy?.title ?? t('gallery.aboutPage.title');
+  const body = copy?.body ?? t('gallery.aboutPage.body');
+  const alt = settings.data?.aboutImageRevision ? (copy?.imageAlt ?? '') : '';
+  const sources = [
+    { url: '/about-hero-image/preview', width: 320 },
+    { url: '/about-hero-image/small', width: 640 },
+    { url: '/about-hero-image/medium', width: settings.data?.aboutImageMediumWidth ?? 960 },
+    { url: '/about-hero-image/large', width: settings.data?.aboutImageLargeWidth ?? 1280 },
+  ];
+  const immersive = siteProfile.home.presentation === 'session-slides';
+
+  return <PublicLayout fullBleed={immersive} pageTitle={title}>
+    <article className={`about-page${immersive ? ' about-page--immersive' : ''}`}>
+      <div className="about-page__hero">
+        <ProgressivePhoto alt={alt} className="about-page__image" height={853} immediate priority sizes={immersive ? '100vw' : '(max-width: 48rem) 100vw, 48vw'} sources={sources} width={1280} />
+        <div className="about-page__hero-copy">
+          <h1>{title}</h1>
+          <Link className="about-page__action" to="/contact">{t('gallery.bookSession')}</Link>
+        </div>
+      </div>
+      <section aria-label={title} className="about-page__story">
+        <p>{body}</p>
+      </section>
+    </article>
+  </PublicLayout>;
+}

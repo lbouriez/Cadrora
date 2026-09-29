@@ -21,6 +21,7 @@ export const siteProfile = {
   mapPreviewUrl: activeSite.mapPreviewUrl,
   privateGalleryCoverUrl: activeSite.privateGalleryCoverUrl,
   serviceImages: activeSite.serviceImages,
+  navigation: activeSite.navigation,
   home: activeSite.home,
   pages: activeSite.pages,
   contact: {

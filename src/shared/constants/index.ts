@@ -6,7 +6,7 @@ export const PHOTO_VARIANT_WIDTHS = {
   download: 3840,
 } as const;
 
-export const SERVICE_VARIANT_WIDTHS = { preview: 320, small: 640, medium: 960, large: 1280 } as const;
+export const SERVICE_VARIANT_WIDTHS = { preview: 320, small: 640, medium: 1280, large: 2560 } as const;
 export type ServiceVariantName = keyof typeof SERVICE_VARIANT_WIDTHS;
 
 export type PhotoVariantName = keyof typeof PHOTO_VARIANT_WIDTHS;

@@ -1,4 +1,4 @@
-import type { Hono } from 'hono';
+import type { Context, Hono } from 'hono';
 
 import { ApiException } from '../../shared/errors/ApiError';
 import { SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
@@ -40,6 +40,10 @@ interface VariantRow {
 
 const MAX_SERVICES = 30;
 const requiredVariants = ['preview', 'small', 'medium', 'large'] as const;
+const reservedOwners = ['home-hero', 'about-hero'] as const;
+function isReservedOwner(id: string): id is typeof reservedOwners[number] {
+  return reservedOwners.some((owner) => owner === id);
+}
 
 export async function oldImageCleanup(db: D1Database, id: string, revision: number, now: string): Promise<D1PreparedStatement[]> {
   if (revision < 1) return [];
@@ -63,7 +67,7 @@ async function serviceRow(db: D1Database, id: string): Promise<ServiceRow | null
 
 async function listServices(db: D1Database): Promise<ServiceCard[]> {
   const [cards, variants] = await Promise.all([
-    db.prepare("SELECT * FROM site_services WHERE id <> 'home-hero' ORDER BY sort_order, id LIMIT 30").all<ServiceRow>(),
+    db.prepare("SELECT * FROM site_services WHERE id NOT IN ('home-hero', 'about-hero') ORDER BY sort_order, id LIMIT 30").all<ServiceRow>(),
     db.prepare('SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width').all<VariantRow>(),
   ]);
   return ServiceCardsSchema.parse(cards.results.map((row) => {
@@ -103,24 +107,25 @@ async function syncLegacyServices(db: D1Database): Promise<void> {
   await db.prepare('UPDATE site_settings SET enabled_services = ? WHERE id = 1').bind(JSON.stringify(keys.length ? keys : ['wedding'])).run();
 }
 
-export function registerServiceRoutes(app: Hono<AppEnv>): void {
-  app.get('/home-hero-image/:variant', async (context) => {
+async function reservedImage(context: Context<AppEnv>, owner: typeof reservedOwners[number], fallback: string) {
     const variant = ServiceVariantSchema.safeParse(context.req.param('variant'));
     if (!variant.success) throw new ApiException('INVALID_MEDIA_PATH', 'errors.invalidMediaPath', 400);
     applyCachePolicy(context, 'media-public');
+    const enabledColumn = owner === 'home-hero' ? 'home_hero_image_enabled' : 'about_image_enabled';
     const row = await context.env.DB.prepare(
       `SELECT v.storage_key, v.content_type, v.byte_size, v.checksum_sha256, v.revision
        FROM site_service_variants v JOIN site_services s ON s.id = v.service_id
        JOIN site_settings settings ON settings.id = 1
-       WHERE v.service_id = 'home-hero' AND v.variant = ? AND v.revision = s.image_revision
-         AND settings.home_hero_image_enabled = 1`,
-    ).bind(variant.data).first<VariantRow>().catch(() => null);
+       WHERE v.service_id = ? AND v.variant = ? AND v.revision = s.image_revision
+         AND settings.${enabledColumn} = 1
+         ${owner === 'about-hero' ? 'AND settings.about_enabled = 1' : ''}`,
+    ).bind(owner, variant.data).first<VariantRow>().catch(() => null);
     if (row) {
       let response: Response | null = null;
       try {
-        const versionedUrl = new URL(`/service-media/home-hero/${row.revision}/${variant.data}`, context.req.url).toString();
+        const versionedUrl = new URL(`/service-media/${owner}/${row.revision}/${variant.data}`, context.req.url).toString();
         response = await readServiceMediaCache(context.executionCtx, versionedUrl, {
-          contentType: row.content_type, serviceId: 'home-hero', revision: row.revision, storageKey: row.storage_key,
+          contentType: row.content_type, serviceId: owner, revision: row.revision, storageKey: row.storage_key,
         });
       } catch { /* R2 remains the source if the edge cache is unavailable. */ }
       if (!response?.ok) {
@@ -135,9 +140,10 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
       return new Response(response.body, { status: response.status, headers });
     }
-    const fallback = context.env.SITE_HERO_IMAGE_URL || '/brand/demo-hero.webp';
     const photo = dimensions[fallback as keyof typeof dimensions];
-    const width = SERVICE_VARIANT_WIDTHS[variant.data];
+    // Compiled brand assets retain the original responsive widths. Owner uploads
+    // use the newer marketing recipe; /api/v1/site exposes their recorded widths.
+    const width = { preview: 320, small: 640, medium: 960, large: 1280 }[variant.data];
     const basename = fallback.startsWith('/brand/') && fallback.endsWith('.webp')
       ? fallback.slice('/brand/'.length, -'.webp'.length) : null;
     const path = photo && basename && width < photo.width
@@ -146,7 +152,11 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     const headers = new Headers(asset.headers);
     headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
     return new Response(asset.body, { status: asset.status, headers });
-  });
+}
+
+export function registerServiceRoutes(app: Hono<AppEnv>): void {
+  app.get('/home-hero-image/:variant', (context) => reservedImage(context, 'home-hero', context.env.SITE_HERO_IMAGE_URL || '/brand/demo-hero.webp'));
+  app.get('/about-hero-image/:variant', (context) => reservedImage(context, 'about-hero', '/brand/service-brand.webp'));
 
   app.get('/service-media/:id/:revision/:variant', async (context) => {
     const id = ServiceIdSchema.safeParse(context.req.param('id'));
@@ -159,7 +169,10 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       `SELECT v.service_id, v.revision, v.variant, v.storage_key, v.content_type, v.byte_size,
               v.width, v.height, v.checksum_sha256
        FROM site_service_variants v JOIN site_services s ON s.id = v.service_id
-       WHERE v.service_id = ? AND v.revision = ? AND v.variant = ? AND s.image_revision = v.revision`,
+       JOIN site_settings settings ON settings.id = 1
+       WHERE v.service_id = ? AND v.revision = ? AND v.variant = ? AND s.image_revision = v.revision
+         AND (v.service_id != 'about-hero' OR (settings.about_enabled = 1 AND settings.about_image_enabled = 1))
+         AND (v.service_id != 'home-hero' OR settings.home_hero_image_enabled = 1)`,
     ).bind(id.data, revision, variant.data).first<VariantRow>();
     if (!row) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
     applyCachePolicy(context, 'media-public');
@@ -197,9 +210,9 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     applyCachePolicy(context, 'admin');
     const input = ServiceCopySchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    const count = await context.env.DB.prepare("SELECT COUNT(*) AS value FROM site_services WHERE id <> 'home-hero'").first<{ value: number }>();
+    const count = await context.env.DB.prepare("SELECT COUNT(*) AS value FROM site_services WHERE id NOT IN ('home-hero', 'about-hero')").first<{ value: number }>();
     if ((count?.value ?? 0) >= MAX_SERVICES) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
-    const order = await context.env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) + 1 AS value FROM site_services WHERE id <> 'home-hero'").first<{ value: number }>();
+    const order = await context.env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) + 1 AS value FROM site_services WHERE id NOT IN ('home-hero', 'about-hero')").first<{ value: number }>();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     await context.env.DB.prepare(
@@ -218,7 +231,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     if (!id.success || !input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const previous = await serviceRow(context.env.DB, id.data);
     if (!previous) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 404);
-    if (id.data === 'home-hero') throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    if (isReservedOwner(id.data)) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     if (input.data.enabled && !previous.is_builtin && (!input.data.copy || previous.image_revision === 0)) {
       throw new ApiException('SERVICE_INCOMPLETE', 'errors.invalidRequest', 409);
     }
@@ -237,7 +250,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     requireOwner(context);
     applyCachePolicy(context, 'admin');
     const id = ServiceIdSchema.safeParse(context.req.param('id'));
-    if (!id.success || id.data === 'home-hero') throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
+    if (!id.success || isReservedOwner(id.data)) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const row = await serviceRow(context.env.DB, id.data);
     if (!row || row.is_builtin !== 1) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const now = new Date().toISOString();
@@ -289,7 +302,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     if (headers.data.width > SERVICE_VARIANT_WIDTHS[variant.data]) {
       throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
     }
-    if (id.data === 'home-hero' && headers.data.width !== SERVICE_VARIANT_WIDTHS[variant.data]) {
+    if (isReservedOwner(id.data) && headers.data.width !== SERVICE_VARIANT_WIDTHS[variant.data]) {
       throw new ApiException('INVALID_VARIANT_MEDIA', 'errors.invalidVariantMedia', 422);
     }
     const row = await serviceRow(context.env.DB, id.data);
@@ -354,8 +367,11 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       ...(id.data === 'home-hero' ? [context.env.DB.prepare(`UPDATE site_settings SET home_hero_image_enabled = 1, updated_at = ?
         WHERE id = 1 AND EXISTS (SELECT 1 FROM site_services WHERE id = 'home-hero' AND image_revision = ?)`)
         .bind(now, revision)] : []),
+      ...(id.data === 'about-hero' ? [context.env.DB.prepare(`UPDATE site_settings SET about_image_enabled = 1, updated_at = ?
+        WHERE id = 1 AND EXISTS (SELECT 1 FROM site_services WHERE id = 'about-hero' AND image_revision = ?)`)
+        .bind(now, revision)] : []),
     ]);
-    if (id.data === 'home-hero') return context.json(ServiceImageRevisionSchema.parse({ revision }));
+    if (isReservedOwner(id.data)) return context.json(ServiceImageRevisionSchema.parse({ revision }));
     const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
     if (!card) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 500);
     return context.json(ServiceCardSchema.parse(card));

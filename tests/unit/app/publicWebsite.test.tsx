@@ -9,6 +9,7 @@ import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
 import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
+import { AboutPage } from '../../../src/app/public/AboutPage';
 import { PublicEventCards } from '../../../src/app/public/PublicEventCards';
 import { installFindResources } from '../../../src/app/public/FindI18n';
 import { installPublicResources, publicResources } from '../../../src/app/public/i18n';
@@ -76,6 +77,30 @@ describe('public photographer website', () => {
     expect(atelierLink.getAttribute('href')).toBe('https://ateliergiulia.com/');
     expect(atelierLink.getAttribute('rel')).toBe('noopener');
     await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
+  });
+
+  it('hides About from shared navigation when the owner disables the page', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
+      url === '/api/v1/site' ? { ...runtimeSettings, aboutEnabled: false }
+        : { events: [], protectedGalleries: [], nextCursor: null },
+    ), { status: 200 }))));
+    renderPage(<HomePage />);
+    await waitFor(() => expect(screen.queryByRole('link', { name: 'À propos' })).toBeNull());
+  });
+
+  it('renders owner-managed About text in the Cadrora presentation', async () => {
+    const aboutCopy = {
+      fr: { title: 'Rencontrez Anna', body: 'Je photographie les familles.', imageAlt: 'Anna au studio' },
+      en: { title: 'Meet Anna', body: 'I photograph families.', imageAlt: 'Anna in her studio' },
+    };
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json({ ...runtimeSettings, aboutEnabled: true,
+      aboutCopy, aboutImageRevision: 2, aboutImageMediumWidth: 1280, aboutImageLargeWidth: 2560 }))));
+    renderPage(<AboutPage />);
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Rencontrez Anna' })).toBeTruthy());
+    expect(screen.getByText('Je photographie les familles.')).toBeTruthy();
+    fireEvent.load(screen.getByRole('img', { name: 'Anna au studio' }));
+    await waitFor(() => expect(document.querySelector('.about-page__image img[srcset]')?.getAttribute('srcset'))
+      .toContain('/about-hero-image/large 2560w'));
   });
 
   it('renders owner-edited name, bilingual footer, and browser description', async () => {
@@ -158,13 +183,16 @@ describe('public photographer website', () => {
       ],
     };
     const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
-      url === '/api/v1/site' ? { ...runtimeSettings, homeHeroCopy, homeHeroImageRevision: 2, homeGalleries: { enabled: false, limit: 6 } } : [],
+      url === '/api/v1/site' ? { ...runtimeSettings, homeHeroCopy, homeHeroImageRevision: 2,
+        homeHeroImageMediumWidth: 1280, homeHeroImageLargeWidth: 2560, homeGalleries: { enabled: false, limit: 6 } } : [],
     ), { status: 200 })));
     vi.stubGlobal('fetch', fetchMock);
     renderPage(<HomePage />);
 
     expect(document.querySelector('.site-hero__art img')?.getAttribute('srcset')).toContain('/home-hero-image/medium 960w');
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
+    expect(document.querySelector('.site-hero__art img')?.getAttribute('srcset'))
+      .toContain('/home-hero-image/medium 1280w, /home-hero-image/large 2560w');
     expect(screen.getByRole('img', { name: 'Portrait au soleil' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/contact');
     expect(document.querySelector('.site-hero .site-actions a[href="/galleries"]')?.className).toContain('button--primary');

@@ -13,14 +13,9 @@ import { formatMediaStorage } from './formatMediaStorage';
 import { LocalizedTextField } from './LocalizedTextField';
 import { ServiceCatalogEditor } from './ServiceCatalogEditor';
 import { HomeHeroEditor } from './HomeHeroEditor';
+import { getAdminSiteSettings } from './adminSiteApi';
 
 type SiteCopyDraft = Record<Language, { description: string; footerTagline: string }>;
-
-async function getAdminSiteSettings() {
-  const response = await fetch('/api/v1/admin/site', { credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`Site settings returned ${response.status}`);
-  return AdminSiteSettingsSchema.parse(await response.json());
-}
 
 async function updateAdminSiteSettings(input: {
   analyticsMeasurementId: string | null;
@@ -75,6 +70,7 @@ export function AdminSiteSettingsPage() {
   const [enabledLanguagesOverride, setEnabledLanguages] = useState<Language[] | null>(null);
   const [siteCopyDraftOverride, setSiteCopyDraft] = useState<SiteCopyDraft | null>(null);
   const [formError, setFormError] = useState(false);
+  const [galleryDirectoryEnabledOverride, setGalleryDirectoryEnabled] = useState<boolean | null>(null);
   const latitudeInput = useRef<HTMLInputElement>(null);
   const longitudeInput = useRef<HTMLInputElement>(null);
   const update = useMutation({
@@ -89,6 +85,7 @@ export function AdminSiteSettingsPage() {
   if (settings.isPending) return <Spinner label={t('admin.settings.loading')} />;
   if (settings.isError || !settings.data) return <p role="alert">{t('admin.settings.error')}</p>;
   const defaultLanguage = defaultLanguageOverride ?? settings.data.defaultLanguage;
+  const galleryDirectoryEnabled = galleryDirectoryEnabledOverride ?? settings.data.galleryDirectoryEnabled;
   const enabledLanguages = enabledLanguagesOverride ?? settings.data.enabledLanguages;
   const enabledServices = settings.data.enabledServices;
   const storageUsage = formatMediaStorage(settings.data.usage.storageBytes, i18n.language);
@@ -120,7 +117,8 @@ export function AdminSiteSettingsPage() {
     const storageLimitGb = Number(values.get('storageLimitGb'));
     const faceLimit = Number(values.get('faceLimit'));
     const analyticsMeasurementId = formText(values, 'analyticsMeasurementId').toUpperCase() || null;
-    const homeGalleryLimit = Number(values.get('homeGalleryLimit'));
+    const homeGalleryLimit = galleryDirectoryEnabled
+      ? Number(values.get('homeGalleryLimit')) : settings.data.homeGalleries.limit;
     const homeServicesLimit = Number(values.get('homeServicesLimit'));
     const siteName = formText(values, 'siteName');
     const parsedCopy = SiteCopySchema.safeParse(Object.fromEntries(LanguageSchema.options.map((language) => {
@@ -162,8 +160,11 @@ export function AdminSiteSettingsPage() {
       enabledLanguages,
       enabledServices,
       constructionNoticeEnabled: values.get('constructionNoticeEnabled') === 'on',
-      galleryDirectoryEnabled: values.get('galleryDirectoryEnabled') === 'on',
-      homeGalleries: { enabled: values.get('homeGalleriesEnabled') === 'on', limit: homeGalleryLimit },
+      galleryDirectoryEnabled,
+      homeGalleries: {
+        enabled: galleryDirectoryEnabled ? values.get('homeGalleriesEnabled') === 'on' : settings.data.homeGalleries.enabled,
+        limit: homeGalleryLimit,
+      },
       homeServicesLimit,
       map: {
         centerLatitude: mapComplete ? Number(rawLatitude) : null,
@@ -239,7 +240,8 @@ export function AdminSiteSettingsPage() {
           <option value="system">{t('admin.settings.themeSystem')}</option>
         </Select>
         <label className="admin-settings-services__option">
-          <input defaultChecked={settings.data.galleryDirectoryEnabled} name="galleryDirectoryEnabled" type="checkbox" />
+          <input checked={galleryDirectoryEnabled} name="galleryDirectoryEnabled"
+            onChange={(event) => setGalleryDirectoryEnabled(event.target.checked)} type="checkbox" />
           <span>{t('admin.settings.galleryDirectoryEnabled')}</span>
         </label>
         <p className="field__hint">{t('admin.settings.galleryDirectoryHint')}</p>
@@ -300,11 +302,13 @@ export function AdminSiteSettingsPage() {
           <h2 className="admin-settings-section__subheading">{t('admin.settings.homeGalleriesTitle')}</h2>
           <p className="admin-card__description">{t('admin.settings.homeGalleriesHint')}</p>
           <label className="admin-settings-services__option">
-            <input defaultChecked={settings.data.homeGalleries.enabled} name="homeGalleriesEnabled" type="checkbox" />
+            <input defaultChecked={settings.data.homeGalleries.enabled} disabled={!galleryDirectoryEnabled}
+              name="homeGalleriesEnabled" type="checkbox" />
             <span>{t('admin.settings.homeGalleriesEnabled')}</span>
           </label>
           <Input
             defaultValue={settings.data.homeGalleries.limit}
+            disabled={!galleryDirectoryEnabled}
             hint={t('admin.settings.homeGalleriesLimitHint')}
             label={t('admin.settings.homeGalleriesLimit')}
             max="12"

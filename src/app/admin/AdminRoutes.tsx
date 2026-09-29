@@ -20,6 +20,7 @@ import { AdminLayout } from './AdminLayout';
 import { AdminLoginPage } from './AdminLoginPage';
 import { AdminSiteSettingsPage } from './AdminSiteSettingsPage';
 import { AdminPortfolioPage } from './AdminPortfolioPage';
+import { AdminAboutPage } from './AdminAboutPage';
 import { WorkerErrorsPage } from './WorkerErrorsPage';
 import { PublishPanel } from './PublishPanel';
 import { getPublicationSummary } from './publicationApi';
@@ -27,6 +28,7 @@ import { adminResourceFragment } from './resources';
 import { serviceEditorResources } from './serviceEditorResources';
 import { homeHeroResources } from './homeHeroResources';
 import { portfolioResources } from './portfolioResources';
+import { aboutResources } from './aboutResources';
 import './admin.css';
 
 const diagnosticsResources = {
@@ -58,6 +60,7 @@ for (const language of ['en', 'fr'] as const) {
   i18n.addResourceBundle(language, 'translation', serviceEditorResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', homeHeroResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', portfolioResources[language], true, true);
+  i18n.addResourceBundle(language, 'translation', aboutResources[language], true, true);
   i18n.addResourceBundle(language, 'translation', diagnosticsResources[language], true, true);
 }
 
@@ -189,6 +192,10 @@ export function AdminSiteSettingsRoute() {
 
 export function AdminPortfolioRoute() {
   return <AdminFrame><AdminPortfolioPage /></AdminFrame>;
+}
+
+export function AdminAboutRoute() {
+  return <AdminFrame><AdminAboutPage /></AdminFrame>;
 }
 
 export function AdminWorkerErrorsRoute() {
