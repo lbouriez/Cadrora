@@ -13,6 +13,15 @@ function sessionCard(id: string, fr: string, en: string, sortOrder: number, show
   };
 }
 
+async function dismissConsent(page: import('@playwright/test').Page) {
+  const necessary = page.getByRole('button', { name: /nécessaire seulement|necessary only/i });
+  if (await necessary.isVisible()) await necessary.click();
+}
+
+async function openMenuForHiddenLanguage(page: import('@playwright/test').Page) {
+  if (await page.locator('.public-header__language').isHidden()) await page.locator('.public-header__menu').click();
+}
+
 test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }) }));
@@ -84,6 +93,7 @@ test('owner-edited brand copy updates both languages without changing the design
     contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
   }));
   await page.goto('/');
+  await dismissConsent(page);
   await expect(page).toHaveTitle('Studio Boréal');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits du Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Des histoires à garder.');
@@ -91,6 +101,7 @@ test('owner-edited brand copy updates both languages without changing the design
   await expect(page.locator('.public-construction-notice')).toHaveText('Notre site est en préparation. Merci de votre patience.');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Mariages');
 
+  await openMenuForHiddenLanguage(page);
   await page.locator('.public-header__language').click();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits from Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Stories to keep.');
@@ -117,6 +128,10 @@ test('owner sessions fill the screen with one booking action and discreet side a
   ]) }));
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  const hero = await page.locator('.session-slideshow').boundingBox();
+  expect(hero?.y).toBe(0);
+  expect(hero?.height).toBe(page.viewportSize()?.height);
+  await expect(page.locator('.public-shell--immersive .public-header')).toHaveCSS('position', 'absolute');
   await expect(page.locator('.session-slideshow__cta')).toHaveAttribute('href', '/contact');
   await expect(page.locator('.session-slideshow__arrow')).toHaveCount(2);
   await expect(page.locator('.session-slideshow__controls')).toHaveCount(0);
@@ -128,6 +143,41 @@ test('owner sessions fill the screen with one booking action and discreet side a
   await page.setViewportSize({ width: 390, height: 844 });
   await assertNoHorizontalOverflow(page);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  const mobileHero = await page.locator('.session-slideshow').boundingBox();
+  expect((mobileHero?.y ?? NaN) + await page.evaluate(() => scrollY)).toBe(0);
+  expect(mobileHero?.height).toBe(844);
+});
+
+test('Atelier mobile menu covers the photo and returns to the ivory interior header', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.goto('/');
+  await dismissConsent(page);
+  const menu = page.locator('.public-header__menu');
+  await expect(page.locator('.public-brand span')).toBeVisible();
+  await expect(page.locator('.public-header__language')).toBeHidden();
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.public-nav')).toBeVisible();
+  await expect(page.locator('.public-header__language')).toBeVisible();
+  expect(await page.locator('.public-nav').boundingBox()).toMatchObject({ x: 0, y: 0, width: 390, height: 844 });
+  expect(await page.locator('main').evaluate((main) => (main as HTMLElement).inert)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  expect(await page.locator('main').evaluate((main) => (main as HTMLElement).inert)).toBe(false);
+  await menu.click();
+  await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /séances|sessions/i }).click();
+  await expect(page).toHaveURL(/\/services$/u);
+  await expect(page.locator('.public-shell--immersive')).toHaveCount(0);
+  expect(await page.locator('.public-header').evaluate((header) => {
+    const sample = document.createElement('div');
+    sample.style.backgroundColor = 'var(--color-background)';
+    document.body.append(sample);
+    const expected = getComputedStyle(sample).backgroundColor;
+    sample.remove();
+    return getComputedStyle(header).backgroundColor === expected;
+  })).toBe(true);
+  await assertNoHorizontalOverflow(page);
 });
 
 test('fixed light appearance does not flash a dark theme or a theme switch while settings load', async ({ page }) => {
@@ -234,7 +284,9 @@ test('runtime language wins until a visitor makes and keeps a choice', async ({ 
     homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.goto('/');
+  await dismissConsent(page);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await openMenuForHiddenLanguage(page);
   await page.locator('.public-header__language').click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
   await page.reload();

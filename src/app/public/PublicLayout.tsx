@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, useLocation } from 'react-router-dom';
@@ -20,7 +20,9 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+  const immersiveHome = siteProfile.home.presentation === 'session-slides' && pathname === '/';
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
     queryFn: getPublicSiteSettings,
@@ -77,8 +79,38 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
     robots.content = pathname === '/galleries' || pathname.startsWith('/e/') ? 'noindex,nofollow' : 'index,follow';
   }, [pathname]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButton.current?.focus();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    if (siteProfile.home.presentation !== 'session-slides') {
+      return () => window.removeEventListener('keydown', onKeyDown);
+    }
+    const mobile = window.matchMedia('(max-width: 54rem)');
+    const content = document.querySelectorAll<HTMLElement>('.public-main, .public-footer');
+    const previousOverflow = document.body.style.overflow;
+    const previousInert = [...content].map((element) => element.inert);
+    const syncMenu = () => {
+      document.body.style.overflow = mobile.matches ? 'hidden' : previousOverflow;
+      content.forEach((element, index) => { element.inert = mobile.matches || previousInert[index] === true; });
+    };
+    syncMenu();
+    if (mobile.matches) document.querySelector<HTMLAnchorElement>('#public-navigation a')?.focus();
+    mobile.addEventListener('change', syncMenu);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      mobile.removeEventListener('change', syncMenu);
+      document.body.style.overflow = previousOverflow;
+      content.forEach((element, index) => { element.inert = previousInert[index] === true; });
+    };
+  }, [menuOpen]);
+
   return (
-    <div className={`public-shell${siteProfile.home.presentation === 'session-slides' && pathname === '/' ? ' public-shell--immersive' : ''}`}>
+    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
@@ -100,6 +132,7 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
             aria-label={t(menuOpen ? 'gallery.closeMenu' : 'gallery.openMenu')}
             className="public-header__menu"
             onClick={() => setMenuOpen((open) => !open)}
+            ref={menuButton}
             type="button"
           ><span aria-hidden="true">{menuOpen ? '×' : '☰'}</span></button>
           {canChooseTheme ? <button
@@ -122,7 +155,7 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
           </div>
         </div>
       </header>
-      <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || (siteProfile.home.presentation === 'session-slides' && pathname === '/') ? ' public-main--immersive' : ''}`}>{children}</main>
+      <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || immersiveHome ? ' public-main--immersive' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div className="public-footer__identity">
           <div className="public-footer__signature">
