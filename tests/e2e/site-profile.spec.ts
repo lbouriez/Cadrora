@@ -2,6 +2,17 @@ import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 
 test.skip(process.env.CADRORA_SITE !== 'atelier-giulia', 'Run with CADRORA_SITE=atelier-giulia.');
 
+function sessionCard(id: string, fr: string, en: string, sortOrder: number, showOnHome = true) {
+  return {
+    id, isBuiltin: true, sortOrder, enabled: true, showOnHome,
+    copy: {
+      fr: { title: fr, shortDescription: `Séance ${fr}`, description: `Photographier ${fr}`, points: [] },
+      en: { title: en, shortDescription: `${en} session`, description: `Photograph ${en}`, points: [] },
+    },
+    imageRevision: null, imageSources: [],
+  };
+}
+
 test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }) }));
@@ -9,7 +20,8 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
 
   await expect(page).toHaveTitle('Atelier Giulia');
   await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre histoire|your story/i);
+  await expect(page.locator('.session-slideshow')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/mariages|weddings/i);
   await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
   await expect(page.locator('.public-footer')).toContainText('Des images pleines de vie.');
   const credit = page.locator('.public-footer__credit');
@@ -50,6 +62,9 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await assertNoHorizontalOverflow(page);
   expect(await signatureAlignment()).toBe(true);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.goto('/about');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rencontrez Giulia');
+  await expect(page.getByText('Derrière l’objectif')).toHaveCount(0);
 });
 
 test('owner-edited brand copy updates both languages without changing the designed home page', async ({ page }) => {
@@ -74,45 +89,45 @@ test('owner-edited brand copy updates both languages without changing the design
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Des histoires à garder.');
   await expect(page.locator('.public-footer__credit')).toHaveText('par Cadrora');
   await expect(page.locator('.public-construction-notice')).toHaveText('Notre site est en préparation. Merci de votre patience.');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Votre histoire');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Mariages');
 
   await page.locator('.public-header__language').click();
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'Portraits from Québec.');
   await expect(page.locator('.public-footer')).toContainText('© Studio Boréal · Stories to keep.');
   await expect(page.locator('.public-footer__credit')).toHaveText('by Cadrora');
   await expect(page.locator('.public-construction-notice')).toHaveText('Our site is in progress. Thank you for your patience.');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Your story');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Weddings');
   await page.setViewportSize({ width: 390, height: 844 });
   await assertNoHorizontalOverflow(page);
 });
 
-test('three owner buttons keep their theme styles and fit a phone screen', async ({ page }) => {
+test('owner sessions fill the screen with one booking action and discreet side arrows', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
     homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3,
-    homeHeroCopy: {
-      fr: { label: 'Des images', title: 'Votre histoire', description: 'Des photos à garder.', caption: '', imageAlt: 'Un couple souriant' },
-      en: { label: 'Images', title: 'Your story', description: 'Photos to keep.', caption: '', imageAlt: 'A smiling couple' },
-      buttons: [
-        { labels: { fr: 'Nous contacter', en: 'Contact us' }, href: '/contact', variant: 'primary' },
-        { labels: { fr: 'Services', en: 'Services' }, href: '/services', variant: 'secondary' },
-        { labels: { fr: 'Galeries', en: 'Galleries' }, href: '/galleries', variant: 'primary' },
-      ],
-    },
     updatedAt: '2026-09-27T00:00:00.000Z',
   }) }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('wedding', 'Mariages', 'Weddings', 0),
+    sessionCard('family', 'Familles', 'Families', 1),
+    sessionCard('brand', 'Portraits', 'Portraits', 2),
+  ]) }));
   await page.goto('/');
-  const actions = page.locator('.site-hero .site-actions .button');
-  await expect(actions).toHaveCount(3);
-  await expect(actions.nth(2)).toHaveClass(/button--primary/u);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await expect(page.locator('.session-slideshow__cta')).toHaveAttribute('href', '/contact');
+  await expect(page.locator('.session-slideshow__arrow')).toHaveCount(2);
+  await expect(page.locator('.session-slideshow__controls')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Séance suivante' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+  const left = await page.getByRole('button', { name: 'Séance précédente' }).boundingBox();
+  const right = await page.getByRole('button', { name: 'Séance suivante' }).boundingBox();
+  expect(Math.abs((left?.y ?? 0) - (right?.y ?? 0))).toBeLessThan(2);
   await page.setViewportSize({ width: 390, height: 844 });
   await assertNoHorizontalOverflow(page);
-  const first = await actions.first().boundingBox();
-  const last = await actions.last().boundingBox();
-  expect((last?.width ?? 0) > (first?.width ?? 0)).toBe(true);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 });
 
 test('fixed light appearance does not flash a dark theme or a theme switch while settings load', async ({ page }) => {
@@ -147,42 +162,31 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
   expect(Math.abs((afterConsent?.height ?? 0) - (beforeConsent?.height ?? 0))).toBeLessThan(1);
 });
 
-test('home stories obey their visibility and limit while the directory stays complete', async ({ page }) => {
-  let enabled = true;
-  const createdAt = '2026-09-26T12:00:00.000Z';
-  const gallery = (id: string, title: string, startsAt: string) => ({
-    id, slug: id, title, description: null, service: null, startsAt, timezone: 'America/Toronto',
-    coverPhotoId: null, visibility: 'published', access: 'public', allowDownloads: false,
-    faceSearchEnabled: false, nearbySearchEnabled: false, showPhotoMetadata: false,
-    retouchSelectionEnabled: false, retentionDays: null, revision: 1,
-    createdAt, updatedAt: createdAt, coverPhotoUrl: null,
-  });
+test('Home obeys session eligibility and limit while the Sessions page stays complete', async ({ page }) => {
+  const sessions = [
+    sessionCard('wedding', 'Mariages', 'Weddings', 0),
+    sessionCard('family', 'Familles', 'Families', 1),
+    sessionCard('brand', 'Portraits', 'Portraits', 2),
+    sessionCard('children', 'Enfants', 'Children', 3, false),
+  ];
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled, limit: 2 }, homeServicesLimit: 3, updatedAt: createdAt,
+    homeGalleries: { enabled: true, limit: 2 }, homeServicesLimit: 2, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
-  await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
-    events: [
-      gallery('older', 'Older story', '2020-01-01T12:00:00.000Z'),
-      gallery('newer', 'Newer story', '2022-01-01T12:00:00.000Z'),
-      gallery('middle', 'Middle story', '2021-01-01T12:00:00.000Z'),
-    ],
-    protectedGalleries: [], nextCursor: null,
-  }) }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sessions) }));
 
-  await page.goto('/');
-  await expect(page.locator('#galleries .event-card h3')).toHaveText(['Newer story', 'Middle story']);
-  await page.goto('/galleries');
-  await expect(page.locator('.event-card h3')).toHaveText(['Newer story', 'Middle story', 'Older story']);
-
-  enabled = false;
   await page.goto('/');
   await expect(page.locator('#galleries')).toHaveCount(0);
-  await page.goto('/galleries');
-  await expect(page.locator('.event-card')).toHaveCount(3);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await page.getByRole('button', { name: 'Séance suivante' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+  await page.getByRole('button', { name: 'Séance suivante' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await page.goto('/services');
+  await expect(page.locator('.service-detail-card')).toHaveCount(4);
 });
 
 test('gallery directory fetches one bounded page and loads more on scroll', async ({ page }) => {
