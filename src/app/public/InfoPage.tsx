@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { BackLink, Spinner } from '../components';
+import { Spinner } from '../components';
 import { getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
 import { ServiceAreaMap } from './ServiceAreaMap';
@@ -133,7 +133,6 @@ export function DefaultContactPage() {
             <li><strong>03</strong><span>{t('gallery.contactExpectation3')}</span></li>
           </ol>
         </section> : null}
-        {!settings.isPending ? <BackLink className="contact-page__back" to="/">{t('gallery.backHome')}</BackLink> : null}
       </article>
     </PublicLayout>
   );

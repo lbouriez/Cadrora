@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -21,15 +21,34 @@ export function SessionSlideShow() {
   const [active, setActive] = useState(0);
   const [outgoing, setOutgoing] = useState<number | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const wheelGesture = useRef({ lastAt: 0, distance: 0, consumed: false });
   const activeIndex = slides.length ? active % slides.length : 0;
   const nextIndex = slides.length ? (activeIndex + 1) % slides.length : 0;
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
 
-  const show = (index: number) => {
+  const show = useCallback((index: number) => {
     if (index === activeIndex) return;
     setOutgoing(activeIndex);
     setActive(index);
-  };
+  }, [activeIndex]);
+
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (document.querySelector('.public-shell--menu-open')) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || target.closest('input, textarea, select, [role="slider"]'))) return;
+      const slide = document.querySelector('.session-slideshow');
+      const bounds = slide?.getBoundingClientRect();
+      if (!bounds || bounds.bottom <= 0 || bounds.top >= window.innerHeight) return;
+      event.preventDefault();
+      show((activeIndex + (event.key === 'ArrowRight' ? 1 : -1) + slides.length) % slides.length);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeIndex, show, slides.length]);
 
   useEffect(() => {
     const preference = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -61,7 +80,19 @@ export function SessionSlideShow() {
     index !== null && index < slides.length))];
 
   return <PublicLayout>
-    <section aria-label={t('gallery.services')} className="session-slideshow">
+    <section aria-label={t('gallery.services')} className="session-slideshow" onWheel={(event) => {
+      if (slides.length < 2 || event.ctrlKey || document.querySelector('.public-shell--menu-open')) return;
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || Math.abs(event.deltaX) < 1) return;
+      const gesture = wheelGesture.current;
+      const now = performance.now();
+      if (now - gesture.lastAt > 240) { gesture.distance = 0; gesture.consumed = false; }
+      gesture.lastAt = now;
+      if (gesture.consumed) return;
+      gesture.distance += event.deltaX;
+      if (Math.abs(gesture.distance) < 70) return;
+      gesture.consumed = true;
+      show((activeIndex + (gesture.distance > 0 ? 1 : -1) + slides.length) % slides.length);
+    }}>
       {slides.length ? rendered.map((index) => {
         const card = slides[index];
         if (!card) return null;

@@ -110,7 +110,7 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
   }, [menuOpen]);
 
   return (
-    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${pathname === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
       <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">

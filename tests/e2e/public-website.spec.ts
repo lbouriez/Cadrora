@@ -253,6 +253,29 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
+  test('Contact ends near its footer and uses the logo to return Home', async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({
+      body: JSON.stringify({
+        ...siteSettingsFixture,
+        contactEmail: '', contactPhone: '', contactAddress: '', serviceArea: '',
+        map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      }),
+      contentType: 'application/json',
+    }));
+    await page.goto('/contact');
+    await expect(page.locator('.contact-page__expectations')).toBeVisible();
+    await expect(page.locator('.contact-page__back')).toHaveCount(0);
+    const gap = await page.evaluate(() => {
+      const lastSection = document.querySelector('.contact-page__expectations');
+      const footer = document.querySelector('.public-footer');
+      if (!lastSection || !footer) return Infinity;
+      return footer.getBoundingClientRect().top - lastSection.getBoundingClientRect().bottom;
+    });
+    expect(gap).toBeLessThan(120);
+    await page.locator('.public-brand').click();
+    await expect(page).toHaveURL('/');
+  });
+
   test('garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés', async ({ page }) => {
     await page.route('**/api/v1/site', async (route) => {
       await route.fulfill({

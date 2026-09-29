@@ -85,6 +85,9 @@
   width: min(100% - 2 * var(--space-4), 150rem);
 }
 
+.public-shell--contact { display: flex; min-height: 100svh; flex-direction: column; }
+.public-shell--contact .public-main { flex: 1; min-height: 0; padding-bottom: 0; }
+
 .public-footer {
   display: flex;
   width: min(100% - 2 * var(--space-4), var(--content-max-width));
@@ -938,8 +941,7 @@
 }
 
 .contact-page {
-  min-height: 38rem;
-  padding: clamp(3rem, 8vw, 7rem) 0;
+  padding: clamp(3rem, 8vw, 7rem) 0 var(--space-6);
 }
 
 .contact-page__heading {
@@ -982,10 +984,6 @@
   max-width: 40rem;
   margin: var(--space-7) 0;
   color: var(--color-text-muted);
-}
-
-.contact-page__back {
-  margin-top: var(--space-5);
 }
 
 .unlock-card {
@@ -2139,6 +2137,12 @@
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language.icon-button { color: var(--color-text); text-shadow: none; }
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__menu { border-color: var(--color-border); background: var(--color-surface); color: var(--color-text); }
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__theme { border-color: var(--color-border); background: var(--color-surface-raised); color: var(--color-text); }
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__theme:hover,
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language.icon-button:hover { background: var(--color-surface-raised); color: var(--color-text); }
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-brand:focus-visible,
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-nav a:focus-visible,
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__theme:focus-visible,
+  :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language:focus-visible { outline-color: var(--color-focus); }
   :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-header { top: 0; }
   :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-construction-notice { visibility: hidden; }
 }

@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test';
 import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 
 test.skip(process.env.CADRORA_SITE !== 'atelier-giulia', 'Run with CADRORA_SITE=atelier-giulia.');
@@ -13,12 +14,12 @@ function sessionCard(id: string, fr: string, en: string, sortOrder: number, show
   };
 }
 
-async function dismissConsent(page: import('@playwright/test').Page) {
+async function dismissConsent(page: Page) {
   const necessary = page.getByRole('button', { name: /nécessaire seulement|necessary only/i });
   if (await necessary.isVisible()) await necessary.click();
 }
 
-async function openMenuForHiddenLanguage(page: import('@playwright/test').Page) {
+async function openMenuForHiddenLanguage(page: Page) {
   if (await page.locator('.public-header__language').isHidden()) await page.locator('.public-header__menu').click();
 }
 
@@ -146,6 +147,35 @@ test('owner sessions fill the screen with one booking action and discreet side a
   const mobileHero = await page.locator('.session-slideshow').boundingBox();
   expect((mobileHero?.y ?? NaN) + await page.evaluate(() => scrollY)).toBe(0);
   expect(mobileHero?.height).toBe(844);
+});
+
+test('keyboard arrows and horizontal wheel move one Home session at a time', async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('wedding', 'Mariages', 'Weddings', 0),
+    sessionCard('family', 'Familles', 'Families', 1),
+    sessionCard('brand', 'Portraits', 'Portraits', 2),
+  ]) }));
+  await page.goto('/');
+  await dismissConsent(page);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  if (testInfo.project.name === 'mobile-chromium') return;
+  const viewport = page.viewportSize();
+  await page.mouse.move((viewport?.width ?? 390) / 2, (viewport?.height ?? 844) / 2);
+  await page.mouse.wheel(0, 120);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  for (let index = 0; index < 3; index += 1) await page.mouse.wheel(25, 0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+  await page.mouse.wheel(120, 0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+  await page.waitForTimeout(260);
+  await page.mouse.wheel(120, 0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Portraits');
 });
 
 test('Atelier mobile menu covers the photo and returns to the ivory interior header', async ({ page }) => {
