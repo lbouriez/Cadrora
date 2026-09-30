@@ -6,7 +6,8 @@ import { Link, useParams } from 'react-router-dom';
 
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
-import { BackLink, Button, Carousel, ProgressivePhoto, Spinner } from '../components';
+import { BackLink, Button, ProgressivePhoto, Spinner } from '../components';
+import { Carousel } from '../components/Carousel';
 import { BrandPhoto } from './BrandPhoto';
 import { getPublicEvent } from './api';
 import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';

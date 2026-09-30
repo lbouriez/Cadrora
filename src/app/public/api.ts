@@ -14,6 +14,7 @@ import {
 } from '../../shared/schemas/gallery';
 import type { PublicEvent, PublicPhoto } from '../../shared/schemas/gallery';
 import type { SiteSettings } from '../../shared/schemas/site';
+import { takeInitialPublicRequest } from './initialPublicRequests';
 
 export class GalleryApiError extends Error {
   constructor(readonly status: number, readonly code?: string) {
@@ -22,7 +23,8 @@ export class GalleryApiError extends Error {
 }
 
 async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
+  const initial = init === undefined ? takeInitialPublicRequest(url) : undefined;
+  const response = (initial ? await initial : undefined) ?? await fetch(url, init);
   if (!response.ok) {
     const error = ApiErrorSchema.safeParse(await response.clone().json().catch(() => null));
     throw new GalleryApiError(response.status, error.success ? error.data.code : undefined);

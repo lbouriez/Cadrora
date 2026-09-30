@@ -681,6 +681,8 @@
 
 .progressive-photo--ready .progressive-photo__preview { filter: none; transform: none; }
 .progressive-photo--ready .progressive-photo__optimized { opacity: 1; }
+/* Critical photos become sharp as soon as they decode; slide/section motion stays on the parent. */
+.progressive-photo--priority > img { transition: none; }
 
 /* Logos, local previews, and other single-source images retain their natural layout. */
 .progressive-photo--single > img { position: static; height: auto; filter: none; transform: none; }

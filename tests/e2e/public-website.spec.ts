@@ -11,6 +11,8 @@ const siteSettingsFixture = {
 
 test.describe('site vitrine statique', () => {
   test.beforeEach(async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(siteSettingsFixture) }));
+    await page.route('**/api/v1/services', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
     await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, async (route) => {
       await route.fulfill({
         body: JSON.stringify({ code: 'E2E_GALLERY_OFFLINE', message: 'errors.serviceUnavailable', requestId: 'e2e' }),
@@ -76,6 +78,7 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i })
       .getByRole('link', { name: /galeries|galleries/i })).toHaveCount(0);
     await expect(page.locator('.service-detail-card')).not.toContainText('2 000 $ à 3 000 $');
+    await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
     await page.getByRole('button', { name: 'Plus d’infos' }).click();
     const dialog = page.getByRole('dialog', { name: 'Mariages' });
     await expect(dialog).toContainText('2 000 $ à 3 000 $');
@@ -126,7 +129,7 @@ test.describe('site vitrine statique', () => {
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute('href', 'https://ateliergiulia.com/');
     await expect(card).toHaveAttribute('rel', 'noopener');
-    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-icon.png');
+    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
     await expect(card).toContainText('Visiter le site');
 
     await page.getByRole('button', { name: 'Afficher en EN' }).click();
@@ -323,7 +326,7 @@ test.describe('site vitrine statique', () => {
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /photos d’entreprise|workplace photography/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /portraits d’enfants|children’s portraits/i })).toBeVisible();
-    await expect(page.locator('.service-detail-card__image')).toHaveCount(5);
+    await expect(page.locator('.service-detail-card .service-photo')).toHaveCount(5);
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/galleries');
@@ -357,13 +360,13 @@ test.describe('site vitrine statique', () => {
     expect(actions).toHaveLength(2);
     const actionRows = await page.locator('.site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
     expect(Math.abs((actionRows[0] ?? 0) - (actionRows[1] ?? 0))).toBeLessThan(1);
-    const portrait = await page.locator('.site-hero__ai-card img').boundingBox();
+    const portrait = await page.locator('.site-hero__ai-card .progressive-photo').boundingBox();
     expect(portrait?.height).toBeLessThan(80);
     await assertNoHorizontalOverflow(page);
 
     await page.getByRole('button', { name: /ouvrir le menu|open menu/i }).click();
     await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i })).toBeVisible();
-    await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /services/i }).click();
+    await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /séances|sessions/i }).click();
     await expect(page.getByRole('button', { name: /ouvrir le menu|open menu/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
   });
@@ -384,6 +387,7 @@ test.describe('site vitrine statique', () => {
 });
 
 test('presente les galeries publiees avec une couverture plein cadre et les visages visibles', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(siteSettingsFixture) }));
   await page.route('**/media/demo-ai-face-search/demo-ai-01/0/*', async (route) => {
     await route.fulfill({ body: '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#ad806a"/></svg>', contentType: 'image/svg+xml' });
   });
@@ -432,7 +436,9 @@ test('presente les galeries publiees avec une couverture plein cadre et les visa
   await expect(image).toHaveJSProperty('naturalWidth', 800);
   expect(await image.evaluate((element) => getComputedStyle(element).objectFit)).toBe('cover');
   await expect(image).toHaveAttribute('src', '/media/demo-ai-face-search/demo-ai-01/0/thumb');
-  await expect(cover.locator('.progressive-photo__optimized')).toHaveAttribute('srcset', /480w.*960w.*1600w/u);
+  await expect(cover.locator('.progressive-photo__optimized')).toHaveAttribute('srcset', /thumb 480w/u);
+  const coverSize = await cover.evaluate((element) => Math.ceil(element.clientWidth));
+  await expect(cover.locator('.progressive-photo__optimized')).toHaveAttribute('sizes', `${coverSize}px`);
   await expect(cover).toHaveClass(/progressive-photo--ready/u);
   await expect(page.locator('.event-card').first().locator('a')).toHaveAttribute('href', '/e/private-sample');
   await expect(page.locator('.event-card').nth(1).locator('a')).toHaveAttribute('href', '/e/find-your-photos');

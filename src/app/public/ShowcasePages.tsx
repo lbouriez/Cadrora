@@ -31,7 +31,7 @@ export function DefaultServicesPage() {
     <PublicLayout>
       <PublicPageIntro eyebrow={t('gallery.servicesPage.eyebrow')}
         lead={t('gallery.servicesPage.lead')} title={t('gallery.servicesPage.title')} />
-      <div aria-busy={services.isPending} className="service-detail-grid">
+      <div aria-busy={services.isPending} className={`service-detail-grid${services.isPending ? ' public-data-region--pending' : ''}`}>
         {services.isPending ? <Spinner label={t('gallery.servicesLoading')} /> : null}
         {visibleServices.map((card, index) => {
           const copy = serviceText(card, language, (key) => t(key));

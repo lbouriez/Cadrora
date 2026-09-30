@@ -129,7 +129,9 @@ for (const path of ['/', '/about']) {
       for (const image of await frame.locator('img').all()) {
         await expect(image).toHaveAttribute('src', new RegExp(`^/service-media/${owner}/2/`, 'u'));
       }
-      await expect(frame.locator('img[srcset]')).toHaveAttribute('srcset', /large 2560w/u);
+      await expect(frame.locator('img[srcset]')).toHaveAttribute('srcset', /small 640w/u);
+      const size = await frame.evaluate((element) => Math.ceil(element.clientWidth));
+      await expect(frame.locator('img[srcset]')).toHaveAttribute('sizes', `${size}px`);
       expect(requests.every((url) => url.startsWith(`/service-media/${owner}/2/`))).toBe(true);
       await assertNoHorizontalOverflow(page);
       await page.screenshot({ path: testInfo.outputPath('site-photo-resolved.png') });

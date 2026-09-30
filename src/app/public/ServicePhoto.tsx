@@ -14,7 +14,7 @@ export function ServicePhoto({ card, className, sizes, immediate = false, priori
     + (framing ? '' : ` service-photo--mobile-${mobile}`);
   const first = card.imageSources[0];
   if (first) return <ProgressivePhoto alt="" className={photoClass} height={first.height} immediate={immediate}
-    priority={priority} sizes={sizes} sources={card.imageSources} width={first.width} />;
+    lazyPreview priority={priority} sizes={sizes} sources={card.imageSources} width={first.width} />;
   const source = defaultServiceImage(card.id);
   return source ? <BrandPhoto alt="" className={photoClass} immediate={immediate} priority={priority} sizes={sizes} src={source} /> : null;
 }

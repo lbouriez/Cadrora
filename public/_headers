@@ -14,6 +14,9 @@
 /services
   Cache-Control: public, max-age=0, must-revalidate, no-transform
 
+/about
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
+
 /portfolio
   Cache-Control: public, max-age=0, must-revalidate, no-transform
 

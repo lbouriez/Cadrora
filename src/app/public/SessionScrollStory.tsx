@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Spinner, VerticalStorySlider } from '../components';
+import { Spinner } from '../components';
 import { getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicLayout } from './PublicLayout';
 import { SessionStoryContent } from './SessionStoryContent';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
+
+const loadSlider = async () => ({ default: (await import('../components/VerticalStorySlider')).VerticalStorySlider });
+const VerticalStorySlider = lazy(loadSlider);
 
 /** Present owner-managed Home sessions through the shared vertical slider. */
 export function SessionScrollStory() {
@@ -18,6 +21,10 @@ export function SessionScrollStory() {
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const sessions = services.cards.filter((card) => card.enabled && card.showOnHome);
+  useEffect(() => {
+    // The lazy boundary still handles a failed chunk; speculative warming must not reject unhandled.
+    void loadSlider().catch(() => undefined);
+  }, []);
   if (services.isPending) return <PublicLayout immersiveFooterVisible={false}>
     <section aria-busy="true" aria-label={t('gallery.services')} className="session-story session-story--loading">
       <Spinner label={t('gallery.servicesLoading')} />
@@ -42,7 +49,9 @@ export function SessionScrollStory() {
   </> }];
 
   return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
-    <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
-      motionPreference="always" onActiveIndexChange={setActiveSlideIndex} slideClassName="session-story__panel" slides={slides} />
+    <Suspense fallback={<section className="session-story"><div className="session-story__panel">{slides[0]?.content}</div></section>}>
+      <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
+        motionPreference="always" onActiveIndexChange={setActiveSlideIndex} slideClassName="session-story__panel" slides={slides} />
+    </Suspense>
   </PublicLayout>;
 }

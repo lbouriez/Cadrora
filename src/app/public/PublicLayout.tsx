@@ -166,7 +166,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
             {!siteProfile.demo.enabled ? (
               <a className="public-footer__credit" href="https://cadrora.com/">
                 <span>{t('gallery.footerCredit')} </span>
-                <BrandPhoto alt="" className="public-footer__logo" fit="contain" height={256} sizes="20px" src="/brand/cadrora-logo.png" width={256} />
+                <BrandPhoto alt="" className="public-footer__logo" fit="contain" sizes="20px" src="/brand/cadrora-credit.webp" />
                 <span>Cadrora</span>
               </a>
             ) : null}

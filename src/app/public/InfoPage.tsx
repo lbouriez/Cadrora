@@ -102,6 +102,7 @@ export function DefaultContactPage() {
       <article className="contact-page">
         <PublicPageIntro eyebrow={t('gallery.contactEyebrow')}
           lead={t('gallery.contactBody')} title={t('gallery.contactTitle')} />
+        <div className={settings.isPending ? 'public-data-region--pending' : undefined}>
         {contactItems.length > 0 ? (
           <dl className="contact-list">
             {contactItems.map((item) => (
@@ -118,7 +119,8 @@ export function DefaultContactPage() {
         {!settings.isPending && map && map.centerLatitude !== null && map.centerLongitude !== null && map.radiusKm !== null ? (
           <ServiceAreaMap centerLatitude={map.centerLatitude} centerLongitude={map.centerLongitude} radiusKm={map.radiusKm} />
         ) : null}
-        {!settings.isPending ? <section className="contact-page__expectations">
+        </div>
+        <section className="contact-page__expectations">
           <div>
             <p className="site-eyebrow">{t('gallery.contactExpectationEyebrow')}</p>
             <h2>{t('gallery.contactExpectationTitle')}</h2>
@@ -128,7 +130,7 @@ export function DefaultContactPage() {
             <li><strong>02</strong><span>{t('gallery.contactExpectation2')}</span></li>
             <li><strong>03</strong><span>{t('gallery.contactExpectation3')}</span></li>
           </ol>
-        </section> : null}
+        </section>
       </article>
     </PublicLayout>
   );

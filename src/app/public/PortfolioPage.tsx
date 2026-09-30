@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
@@ -7,11 +7,12 @@ import { PortfolioCategoriesSchema, PortfolioCollectionDetailSchema, PortfolioCo
 import type { PortfolioCollection, PortfolioItem } from '../../shared/schemas/portfolio';
 import { BackLink, ProgressivePhoto, Spinner } from '../components';
 import { EditorialGalleryCard } from './EditorialGalleryCard';
-import { PhotoViewer } from './PhotoViewer';
 import type { ViewerPhoto } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
 import { PublicPageIntro } from './PublicPageIntro';
 import { usePhotoColumns } from './usePhotoColumns';
+
+const PhotoViewer = lazy(async () => ({ default: (await import('./PhotoViewer')).PhotoViewer }));
 
 async function getCollections(): Promise<PortfolioCollection[]> {
   const response = await fetch('/api/v1/portfolio');
@@ -105,10 +106,10 @@ export function PortfolioDetailPage() {
           </Link>)}
         </div>)}
       </div>
-      {selected ? <PhotoViewer favoriteEnabled={false} favoritePending={false} onClose={() => setSearchParams({}, { replace: true })}
+      {selected ? <Suspense fallback={<Spinner label={t('gallery.loading')} />}><PhotoViewer favoriteEnabled={false} favoritePending={false} onClose={() => setSearchParams({}, { replace: true })}
         onSelect={(photo) => setSearchParams({ photo: photo.id }, { replace: true })}
         onToggleFavorite={() => undefined} onToggleRetouch={() => undefined} photo={selected} photos={photos}
-        retouchEnabled={false} retouchPending={false} showMetadata={false} timezone="UTC" /> : null}
+        retouchEnabled={false} retouchPending={false} showMetadata={false} timezone="UTC" /></Suspense> : null}
     </> : null}
   </PublicLayout>;
 }

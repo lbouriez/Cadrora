@@ -5,7 +5,8 @@
   "document": {
     "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
     "themeColor": "#F6F1E7",
-    "icon": "/brand/atelier-giulia-icon.png"
+    "icon": "/brand/atelier-giulia-logo.png",
+    "fonts": ["/sites/atelier-giulia/fonts/PlayfairDisplay-latin.woff2"]
   },
   "defaultLanguage": "fr",
   "deployment": {

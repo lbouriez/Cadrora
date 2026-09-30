@@ -50,7 +50,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   const credit = page.locator('.public-footer__credit');
   await expect(credit).toHaveAttribute('href', 'https://cadrora.com/');
   await expect(credit).toHaveText('par Cadrora');
-  await expect(credit.locator('img')).toHaveAttribute('src', '/brand/cadrora-logo.png');
+  await expect(credit.locator('img')).toHaveAttribute('src', '/brand/cadrora-credit.webp');
   const signatureAlignment = () => page.locator('.public-footer__signature').evaluate((signature) => {
     const label = signature.querySelector('p');
     const link = signature.querySelector('a');
@@ -61,7 +61,8 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   });
   expect(await signatureAlignment()).toBe(true);
   await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
-  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-icon.png');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-logo.png');
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);
   await expect(page.locator('.product-stack')).toHaveCount(0);
   await expect(page.locator('.site-hero__ai-card')).toHaveCount(0);

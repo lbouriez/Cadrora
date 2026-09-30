@@ -1,7 +1,7 @@
 export interface SiteManifest {
   id: string;
   name: string;
-  document: { description: string; themeColor: string; icon: string | null };
+  document: { description: string; themeColor: string; icon: string | null; fonts?: readonly string[] };
   defaultLanguage?: 'fr' | 'en';
   allowShowcase?: boolean;
   deployment?: { instance: string; hostname: string; initialSettingsSql?: string };
