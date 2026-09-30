@@ -3,6 +3,7 @@ import { MAX_SITE_SERVICES } from '../constants';
 
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
+export const ServicePhotoAlignmentSchema = z.enum(['left', 'center', 'right']);
 export const ServiceCopyLanguageSchema = z.object({
   title: z.string().min(1).max(120),
   shortDescription: z.string().min(1).max(180),
@@ -23,6 +24,8 @@ export const ServiceCardSchema = z.object({
   copy: ServiceCopySchema.nullable(),
   imageRevision: z.number().int().positive().nullable(),
   imageSources: z.array(ServiceImageSourceSchema),
+  photoAlignment: ServicePhotoAlignmentSchema.default('center'),
+  mobilePhotoAlignment: ServicePhotoAlignmentSchema.nullable().default(null),
 }).strict();
 export const ServiceCardsSchema = z.array(ServiceCardSchema).max(MAX_SITE_SERVICES);
 export const ServiceCardUpdateSchema = z.object({
@@ -30,6 +33,8 @@ export const ServiceCardUpdateSchema = z.object({
   showOnHome: z.boolean(),
   sortOrder: z.number().int().min(0).max(MAX_SITE_SERVICES - 1),
   copy: ServiceCopySchema.nullable(),
+  photoAlignment: ServicePhotoAlignmentSchema.optional(),
+  mobilePhotoAlignment: ServicePhotoAlignmentSchema.nullable().optional(),
 }).strict();
 export const ServiceImageUploadHeadersSchema = z.object({
   byteSize: z.coerce.number().int().min(1).max(8_000_000),
@@ -41,5 +46,6 @@ export const ServiceImageUploadHeadersSchema = z.object({
 export const ServiceImageRevisionSchema = z.object({ revision: z.number().int().positive() }).strict();
 export const ServiceImageUploadResponseSchema = z.object({ variant: ServiceVariantSchema }).strict();
 export type ServiceCard = z.infer<typeof ServiceCardSchema>;
+export type ServicePhotoAlignment = z.infer<typeof ServicePhotoAlignmentSchema>;
 export type ServiceCopy = z.infer<typeof ServiceCopySchema>;
 export type ServiceVariant = z.infer<typeof ServiceVariantSchema>;
