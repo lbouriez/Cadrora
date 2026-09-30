@@ -33,6 +33,10 @@
   color: var(--color-primary-contrast);
 }
 
+.button--primary:hover {
+  color: var(--color-primary-contrast);
+}
+
 .button--secondary {
   border: 0.0625rem solid var(--color-border);
   background: var(--color-surface);
