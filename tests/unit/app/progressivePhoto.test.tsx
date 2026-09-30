@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ProgressivePhoto } from '../../../src/app/components/ProgressivePhoto';
@@ -36,6 +36,31 @@ describe('ProgressivePhoto', () => {
     expect(container.querySelectorAll('img')).toHaveLength(2);
     expect(container.querySelector('.progressive-photo__optimized')).toHaveAttribute('sizes', '412px');
     expect(container.innerHTML).not.toContain('/default-');
+  });
+
+  it('reports a hero photo once after its first image decodes', async () => {
+    const onVisualReady = vi.fn();
+    const { container } = render(<ProgressivePhoto alt="Hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} sizes="100vw"
+      sources={[{ url: '/preview.webp', width: 320 }, { url: '/large.webp', width: 1280 }]} />);
+    const preview = screen.getByRole('img');
+    Object.defineProperty(preview, 'decode', { value: () => Promise.resolve() });
+    fireEvent.load(preview);
+    expect(onVisualReady).not.toHaveBeenCalled();
+    await waitFor(() => expect(onVisualReady).toHaveBeenCalledOnce());
+    fireEvent.load(container.querySelector('.progressive-photo__optimized') as HTMLImageElement);
+    expect(onVisualReady).toHaveBeenCalledOnce();
+  });
+
+  it('releases hero copy after both variants fail', () => {
+    const onVisualReady = vi.fn();
+    const { container } = render(<ProgressivePhoto alt="Hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} sizes="100vw"
+      sources={[{ url: '/preview.webp', width: 320 }, { url: '/large.webp', width: 1280 }]} />);
+    fireEvent.error(screen.getByRole('img'));
+    expect(onVisualReady).not.toHaveBeenCalled();
+    fireEvent.error(container.querySelector('.progressive-photo__optimized') as HTMLImageElement);
+    expect(onVisualReady).toHaveBeenCalledOnce();
   });
 
   it('updates the responsive size when its frame changes without a window resize', () => {

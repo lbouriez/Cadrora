@@ -214,8 +214,81 @@ test('Home photo fills the viewport while the slider chunk loads', async ({ page
     expect((await fallback.locator('.session-story__photo').boundingBox())?.height).toBe(viewportHeight);
     const copy = await fallback.locator('.session-story__copy').boundingBox();
     expect((copy?.y ?? 0) + (copy?.height ?? 0) / 2).toBeCloseTo((viewportHeight ?? 0) / 2, 0);
+    const content = await fallback.locator('.session-story__content').boundingBox();
+    expect((content?.x ?? 0) + (content?.width ?? 0) / 2).toBeCloseTo((page.viewportSize()?.width ?? 0) / 2, 0);
   } finally { releaseSlider(); }
-  await expect(page.locator('.swiper-slide-active.session-story__panel')).toBeVisible();
+  const slide = page.locator('.swiper-slide-active.session-story__panel');
+  await expect(slide).toBeVisible();
+  const content = await slide.locator('.session-story__content').boundingBox();
+  expect((content?.x ?? 0) + (content?.width ?? 0) / 2).toBeCloseTo((page.viewportSize()?.width ?? 0) / 2, 0);
+});
+
+test('Home owner photo keeps its monochrome framing through image load and slider mount', async ({ page }) => {
+  let releaseImages = () => {};
+  let releaseSlider = () => {};
+  const imagesReady = new Promise<void>((resolve) => { releaseImages = resolve; });
+  const sliderReady = new Promise<void>((resolve) => { releaseSlider = resolve; });
+  await page.route('**/service-media/**', async (route) => {
+    await imagesReady;
+    await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="853"><rect width="1280" height="853" fill="#a65"/></svg>' });
+  });
+  await page.route('**/*VerticalStorySlider*', async (route) => {
+    await sliderReady;
+    await route.continue();
+  });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    {
+      ...sessionCard('wedding', 'Mariages', 'Weddings', 0), imageRevision: 1, photoAlignment: 'center', mobilePhotoAlignment: null,
+      imageSources: [
+        { url: '/service-media/wedding/1/preview', width: 320, height: 213 },
+        { url: '/service-media/wedding/1/large', width: 1280, height: 853 },
+      ],
+    },
+  ]) }));
+
+  const expectStablePhoto = async (selector: string) => {
+    const images = page.locator(`${selector} .session-story__photo > img`);
+    await expect(images).toHaveCount(2);
+    for (const image of await images.all()) {
+      const styles = await image.evaluate((element) => {
+        const { filter, transform } = getComputedStyle(element);
+        return { filter, transform };
+      });
+      expect(styles).toEqual({ filter: 'grayscale(1)', transform: 'none' });
+    }
+  };
+
+  try {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const fallback = page.locator('.session-story--fallback');
+    await expect(fallback).toBeVisible();
+    await expect(fallback.locator('.session-story__copy')).toBeHidden();
+    expect(await fallback.locator('.session-story__photo').evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toBe(await fallback.evaluate((element) => getComputedStyle(element).backgroundColor));
+    await expectStablePhoto('.session-story--fallback');
+    releaseImages();
+    await expect(fallback.locator('.progressive-photo--ready')).toBeVisible();
+    await expect(fallback.locator('.session-story__copy')).toBeVisible();
+    await expectStablePhoto('.session-story--fallback');
+  } finally {
+    releaseImages();
+    releaseSlider();
+  }
+  const slide = page.locator('.swiper-slide-active.session-story__panel');
+  await expect(slide.locator('.progressive-photo--ready')).toBeVisible();
+  await expect(slide.locator('.session-story__copy')).toBeVisible();
+  await expectStablePhoto('.swiper-slide-active.session-story__panel');
+});
+
+test('Home session copy stays available when a custom session has no photo', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('custom-no-photo', 'Ma séance', 'My session', 0),
+  ]) }));
+  await page.goto('/');
+  await expect(page.locator('.session-story__copy').first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Ma séance' })).toBeVisible();
 });
 
 test('owner sessions form full-height panels with their own booking action', async ({ page }) => {
