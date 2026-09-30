@@ -15,6 +15,7 @@ export interface VerticalStorySliderProps {
   slides: readonly VerticalStorySlide[];
   className?: string;
   slideClassName?: string;
+  motionPreference?: 'system' | 'always';
 }
 
 function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean) {
@@ -24,12 +25,17 @@ function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean) {
   }
 }
 
+const EDGE_SCROLL_MS = 700;
+
 /** Full-viewport vertical slides with parallax, accessible focus, and document scroll at the edges. */
-export function VerticalStorySlider({ label, slides, className, slideClassName }: VerticalStorySliderProps) {
+export function VerticalStorySlider({ label, slides, className, slideClassName,
+  motionPreference = 'system' }: VerticalStorySliderProps) {
+  const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const animate = motionPreference === 'always' || !reducedMotion;
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -37,6 +43,47 @@ export function VerticalStorySlider({ label, slides, className, slideClassName }
     media.addEventListener('change', update);
     return () => media.removeEventListener('change', update);
   }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || !animate) return;
+    let frame = 0;
+    let exiting = false;
+    const onWheel = (event: WheelEvent) => {
+      const swiper = swiperRef.current;
+      if (!swiper || swiper.destroyed || swiper.el.closest('[inert]')) return;
+      if (exiting) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      if (event.ctrlKey || event.deltaY <= 0 || Math.abs(event.deltaY) <= Math.abs(event.deltaX)
+        || !swiper.isEnd || swiper.animating) return;
+      const maximum = document.documentElement.scrollHeight - window.innerHeight;
+      const sectionEnd = section.getBoundingClientRect().bottom + window.scrollY;
+      const destination = Math.min(sectionEnd, maximum);
+      const start = window.scrollY;
+      if (destination - start < 1) return;
+      event.preventDefault();
+      event.stopPropagation();
+      exiting = true;
+      let startedAt: number | null = null;
+      const step = (now: number) => {
+        startedAt ??= now;
+        const progress = Math.min((now - startedAt) / EDGE_SCROLL_MS, 1);
+        const eased = progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        window.scrollTo(0, start + (destination - start) * eased);
+        if (progress < 1) frame = window.requestAnimationFrame(step);
+        else exiting = false;
+      };
+      frame = window.requestAnimationFrame(step);
+    };
+    section.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      section.removeEventListener('wheel', onWheel, true);
+    };
+  }, [animate]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -65,7 +112,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName }
   }, []);
 
   const currentIndex = Math.min(activeIndex, Math.max(0, slides.length - 1));
-  return <section aria-label={label} className={className}>
+  return <section aria-label={label} className={className} ref={sectionRef}>
     <Swiper
       aria-label={label}
       className="vertical-story-slider"
@@ -74,15 +121,22 @@ export function VerticalStorySlider({ label, slides, className, slideClassName }
       longSwipes={false}
       modules={[Mousewheel, Parallax]}
       mousewheel={{ forceToAxis: true, releaseOnEdges: false }}
+      observeParents
+      observer
       onSlideChange={(swiper) => {
         setActiveIndex(swiper.activeIndex);
         releaseWheelAtSettledEdge(swiper, false);
+        const top = swiper.el.getBoundingClientRect().top + window.scrollY;
+        if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: 'smooth' });
       }}
       onSlideChangeTransitionEnd={(swiper) => releaseWheelAtSettledEdge(swiper, true)}
-      onSwiper={(swiper) => { swiperRef.current = swiper; }}
-      parallax={!reducedMotion}
+      onSwiper={(swiper) => {
+        swiperRef.current = swiper;
+        releaseWheelAtSettledEdge(swiper, true);
+      }}
+      parallax={animate}
       preventInteractionOnTransition
-      speed={reducedMotion ? 0 : 1200}
+      speed={animate ? 1200 : 0}
       tabIndex={0}
       touchReleaseOnEdges
     >
