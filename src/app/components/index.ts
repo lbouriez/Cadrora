@@ -12,6 +12,8 @@ export { InfoTooltip } from './InfoTooltip';
 export type { InfoTooltipProps } from './InfoTooltip';
 export { Carousel } from './Carousel';
 export type { CarouselProps } from './Carousel';
+export { VerticalStorySlider } from './VerticalStorySlider';
+export type { VerticalStorySlide, VerticalStorySliderProps } from './VerticalStorySlider';
 export { ChevronLeftIcon, ChevronRightIcon, CloseIcon, DownloadIcon, HeartIcon, InfoIcon, LanguageIcon, RetouchIcon } from './Icons';
 export { FavoriteButton } from './FavoriteButton';
 export { RetouchButton } from './RetouchButton';

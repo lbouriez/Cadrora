@@ -8,7 +8,7 @@ The Atelier Giulia Home previously animated `window.scrollY` between full-height
 
 ## Decision
 
-- Add a pinned, bundled `swiper` dependency for the profile-selected vertical Home presentation. The public page remains a static React asset and makes no runtime request to the reference site or a CDN.
+- Add a pinned, bundled `swiper` dependency behind a reusable `VerticalStorySlider` component. The profile-selected Home supplies its own slide content and styles. The public page remains a static React asset and makes no runtime request to the reference site or a CDN.
 - Use Swiper's vertical transform, 1200 ms transition, photo and text parallax, wheel input, touch input, and keyboard navigation. Prevent another slide change during the transition. Respect reduced motion with an immediate transition and no parallax.
 - Keep owner-managed Home session ordering, bilingual copy, published photos, the shared header and booking link, and the existing footer. Release wheel and touch input at the first and last slide so the document can scroll to the footer. Keep inactive slides out of sequential focus and assistive technology navigation.
 - Remove the custom document-scroll gesture hook. The shared Cadrora card Home remains unchanged.

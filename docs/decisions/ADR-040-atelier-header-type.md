@@ -8,7 +8,7 @@ The Atelier Giulia brief specifies a cream `#F6F1E7` header, warm ink navigation
 
 ## Decision
 
-- Keep the shared header, navigation, theme controls, and menu behavior. Use the profile's semantic background and text tokens for the header on Home and interior pages, including the mobile layout. On the immersive Home photo, use the semantic background at 88% opacity so the photograph remains visible beneath the header; interior pages retain a solid background. The dark theme uses the corresponding dark semantic tokens.
+- Keep the shared header, navigation, theme controls, and menu behavior. Use the profile's semantic background and text tokens for the header on Home and interior pages, including the mobile layout. On the immersive Home photo, use the semantic background at 98% opacity so the photograph remains visible beneath the header; interior pages retain a solid background. The dark theme uses the corresponding dark semantic tokens.
 - Self-host the Latin Playfair Display variable font in the Atelier profile, with its SIL Open Font License beside the font file. Use it through the profile's `--font-display` token; Cadrora retains its own font. No third-party font request is made at runtime.
 - Uppercase the visible site name in the shared public brand link with CSS. Preserve owner-entered spelling in the DOM, document title, metadata, and admin data.
 

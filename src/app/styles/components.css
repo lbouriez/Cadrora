@@ -627,6 +627,8 @@
   }
 }
 /* Shared enter-on-view motion never hides content when reduced motion is requested. */
+.vertical-story-slider { width: 100%; height: 100svh; }
+
 .motion-reveal.motion-reveal--pending {
   opacity: 0;
   transform: translateY(var(--motion-reveal-distance));
