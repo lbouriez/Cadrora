@@ -4,8 +4,8 @@ import { IdSchema, IsoDateTimeSchema, LanguageSchema } from './primitives';
 
 export const ThemeModeSchema = z.enum(['light', 'dark', 'both', 'system']);
 export const AnalyticsMeasurementIdSchema = z.string().regex(/^G-[A-Z0-9]{6,20}$/u).nullable();
-export const ServiceKeySchema = z.enum(['wedding', 'family', 'brand', 'corporate', 'children']);
-export const EnabledServicesSchema = z.array(ServiceKeySchema).min(1).max(5).refine(
+export const ServiceKeySchema = z.enum(['wedding', 'family', 'brand', 'corporate', 'children', 'maternity', 'portrait', 'couples']);
+export const EnabledServicesSchema = z.array(ServiceKeySchema).min(1).max(8).refine(
   (services) => new Set(services).size === services.length,
   { message: 'services must be unique' },
 );
@@ -22,7 +22,6 @@ export const HomeGalleriesSchema = z.object({
   enabled: z.boolean(),
   limit: z.number().int().min(1).max(12),
 });
-export const HomeServicesLimitSchema = z.number().int().min(1).max(12);
 
 export const AboutCopyLanguageSchema = z.object({
   title: z.string().min(1).max(120),
@@ -112,7 +111,6 @@ export const SiteSettingsSchema = z.object({
   constructionNoticeEnabled: z.boolean().default(false),
   galleryDirectoryEnabled: z.boolean().default(true),
   homeGalleries: HomeGalleriesSchema,
-  homeServicesLimit: HomeServicesLimitSchema,
   homeHeroCopy: HomeHeroCopySchema.nullable().default(null),
   homeHeroImageRevision: z.number().int().positive().nullable().default(null),
   homeHeroImageMediumWidth: z.number().int().positive().nullable().default(null),
@@ -143,7 +141,6 @@ export const UpdateSiteSettingsSchema = z.object({
   constructionNoticeEnabled: z.boolean().optional(),
   galleryDirectoryEnabled: z.boolean().optional(),
   homeGalleries: HomeGalleriesSchema,
-  homeServicesLimit: HomeServicesLimitSchema,
   defaultLanguage: LanguageSchema,
   enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(
     (languages) => new Set(languages).size === languages.length,

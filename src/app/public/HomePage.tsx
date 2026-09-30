@@ -39,7 +39,7 @@ export function DefaultHomePage() {
   const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
   const featuredServices = (services.data ?? fallbackServices(settings.data?.enabledServices))
-    .filter((card) => card.enabled && card.showOnHome).slice(0, settings.data?.homeServicesLimit ?? 3);
+    .filter((card) => card.enabled && card.showOnHome);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const hero = settings.data?.homeHeroCopy;
   const heroText = hero?.[language];

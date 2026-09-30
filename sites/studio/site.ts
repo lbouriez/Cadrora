@@ -20,6 +20,9 @@ export const studioSite = {
     brand: '/brand/service-brand.webp',
     corporate: '/brand/service-corporate.webp',
     children: '/brand/service-children.webp',
+    maternity: '/brand/service-maternity.webp',
+    portrait: '/brand/service-portrait.webp',
+    couples: '/brand/service-couples.webp',
   },
   home: {
     primaryAction: { href: '/contact', labelKey: 'gallery.contactCalloutAction', shortLabelKey: 'gallery.contactCalloutAction' },

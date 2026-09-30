@@ -17,8 +17,7 @@ export function SessionScrollStory() {
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
   const sessions = (services.data ?? fallbackServices(settings.data?.enabledServices))
-    .filter((card) => card.enabled && card.showOnHome)
-    .slice(0, settings.data?.homeServicesLimit ?? 3);
+    .filter((card) => card.enabled && card.showOnHome);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const storyRef = useSessionStorySteps(sessions.length);
 

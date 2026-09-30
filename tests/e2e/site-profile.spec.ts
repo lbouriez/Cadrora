@@ -88,7 +88,7 @@ test('owner-edited brand copy updates both languages without changing the design
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
     constructionNoticeEnabled: true,
-    homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
+    homeGalleries: { enabled: true, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({
     contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
@@ -119,7 +119,7 @@ test('the shared masthead and page introductions align across routes', async ({ 
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    constructionNoticeEnabled: true, homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3,
+    constructionNoticeEnabled: true, homeGalleries: { enabled: false, limit: 6 },
     updatedAt: '2026-09-27T00:00:00.000Z',
   }) }));
   const positions = [];
@@ -156,7 +156,7 @@ test('owner sessions form full-height panels with their own booking action', asy
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3,
+    homeGalleries: { enabled: false, limit: 6 },
     updatedAt: '2026-09-27T00:00:00.000Z',
   }) }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -181,7 +181,14 @@ test('owner sessions form full-height panels with their own booking action', asy
 });
 
 test('even strong wheel or finger gestures settle on exactly one session', async ({ page }, testInfo) => {
-  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding', 'family', 'brand'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled: false, limit: 6 },
+    updatedAt: '2026-09-29T00:00:00.000Z',
+  }) }));
   let releaseServices = () => {};
   const servicesReady = new Promise<void>((resolve) => { releaseServices = () => resolve(); });
   await page.route('**/api/v1/services', async (route) => {
@@ -332,7 +339,6 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       enabledServices: ['wedding'], analyticsMeasurementId: 'G-ABCDEF12', themeMode: 'light',
       homeGalleries: { enabled: true, limit: 6 },
-      homeServicesLimit: 3,
       updatedAt: '2026-09-25T00:00:00.000Z',
     }) });
   });
@@ -352,7 +358,7 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
   expect(Math.abs((afterConsent?.height ?? 0) - (beforeConsent?.height ?? 0))).toBeLessThan(1);
 });
 
-test('Home obeys session eligibility and limit while the Sessions page stays complete', async ({ page }) => {
+test('Home obeys session eligibility while the Sessions page stays complete', async ({ page }) => {
   const sessions = [
     sessionCard('wedding', 'Mariages', 'Weddings', 0),
     sessionCard('family', 'Familles', 'Families', 1),
@@ -364,16 +370,16 @@ test('Home obeys session eligibility and limit while the Sessions page stays com
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled: true, limit: 2 }, homeServicesLimit: 2, updatedAt: '2026-09-26T12:00:00.000Z',
+    homeGalleries: { enabled: true, limit: 2 }, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify(sessions) }));
 
   await page.goto('/');
   await expect(page.locator('#galleries')).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  await expect(page.locator('.session-story__panel')).toHaveCount(2);
+  await expect(page.locator('.session-story__panel')).toHaveCount(3);
   await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
-  await expect(page.getByRole('heading', { name: 'Portraits' })).toHaveCount(0);
+  await expect(page.locator('.session-story__panel').nth(2).getByRole('heading', { level: 2 })).toHaveText('Portraits');
   await page.goto('/services');
   await expect(page.locator('.service-detail-card')).toHaveCount(4);
 });
@@ -420,7 +426,7 @@ test('runtime language wins until a visitor makes and keeps a choice', async ({ 
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
     map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
     enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
-    homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3, updatedAt: '2026-09-26T12:00:00.000Z',
+    homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-09-26T12:00:00.000Z',
   }) }));
   await page.goto('/');
   await dismissConsent(page);

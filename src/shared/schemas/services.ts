@@ -1,4 +1,5 @@
 import { z } from '../zod';
+import { MAX_SITE_SERVICES } from '../constants';
 
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
@@ -23,11 +24,11 @@ export const ServiceCardSchema = z.object({
   imageRevision: z.number().int().positive().nullable(),
   imageSources: z.array(ServiceImageSourceSchema),
 }).strict();
-export const ServiceCardsSchema = z.array(ServiceCardSchema).max(30);
+export const ServiceCardsSchema = z.array(ServiceCardSchema).max(MAX_SITE_SERVICES);
 export const ServiceCardUpdateSchema = z.object({
   enabled: z.boolean(),
   showOnHome: z.boolean(),
-  sortOrder: z.number().int().min(0).max(29),
+  sortOrder: z.number().int().min(0).max(MAX_SITE_SERVICES - 1),
   copy: ServiceCopySchema.nullable(),
 }).strict();
 export const ServiceImageUploadHeadersSchema = z.object({

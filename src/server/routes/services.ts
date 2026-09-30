@@ -1,7 +1,7 @@
 import type { Context, Hono } from 'hono';
 
 import { ApiException } from '../../shared/errors/ApiError';
-import { SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
+import { MAX_SITE_SERVICES, SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
 import {
   ServiceCardSchema, ServiceCardsSchema, ServiceCardUpdateSchema, ServiceCopySchema,
   ServiceIdSchema, ServiceImageUploadHeadersSchema, ServiceVariantSchema,
@@ -38,7 +38,6 @@ interface VariantRow {
   checksum_sha256: string;
 }
 
-const MAX_SERVICES = 30;
 const requiredVariants = ['preview', 'small', 'medium', 'large'] as const;
 const reservedOwners = ['home-hero', 'about-hero'] as const;
 function isReservedOwner(id: string): id is typeof reservedOwners[number] {
@@ -67,7 +66,7 @@ async function serviceRow(db: D1Database, id: string): Promise<ServiceRow | null
 
 async function listServices(db: D1Database): Promise<ServiceCard[]> {
   const [cards, variants] = await Promise.all([
-    db.prepare("SELECT * FROM site_services WHERE id NOT IN ('home-hero', 'about-hero') ORDER BY sort_order, id LIMIT 30").all<ServiceRow>(),
+    db.prepare(`SELECT * FROM site_services WHERE id NOT IN ('home-hero', 'about-hero') ORDER BY sort_order, id LIMIT ${MAX_SITE_SERVICES}`).all<ServiceRow>(),
     db.prepare('SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width').all<VariantRow>(),
   ]);
   return ServiceCardsSchema.parse(cards.results.map((row) => {
@@ -211,7 +210,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     const input = ServiceCopySchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
     const count = await context.env.DB.prepare("SELECT COUNT(*) AS value FROM site_services WHERE id NOT IN ('home-hero', 'about-hero')").first<{ value: number }>();
-    if ((count?.value ?? 0) >= MAX_SERVICES) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
+    if ((count?.value ?? 0) >= MAX_SITE_SERVICES) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 409);
     const order = await context.env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) + 1 AS value FROM site_services WHERE id NOT IN ('home-hero', 'about-hero')").first<{ value: number }>();
     const id = crypto.randomUUID();
     const now = new Date().toISOString();

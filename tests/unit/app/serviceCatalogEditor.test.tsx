@@ -42,12 +42,12 @@ describe('service catalog editor', () => {
     vi.stubGlobal('fetch', fetchMock);
     const client = new QueryClient();
     render(<QueryClientProvider client={client}><ServiceCatalogEditor enabledLanguages={['fr', 'en']}
-      homeLimit={3} primaryLanguage="fr" readOnly={false} /></QueryClientProvider>);
+      primaryLanguage="fr" readOnly={false} /></QueryClientProvider>);
 
     fireEvent.click(await screen.findByText('Mariages personnalisés'));
     fireEvent.change(screen.getByRole('textbox', { name: 'Durée de la séance (facultatif) · Français' }),
       { target: { value: '8 heures' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer le service' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la séance' }));
     await waitFor(() => expect(savedBody).toBeDefined());
     expect(savedBody).toMatchObject({ copy: {
       fr: { duration: '8 heures', priceRange: '2 000 $ à 3 000 $', details: 'Rencontre incluse.' },
@@ -74,7 +74,7 @@ describe('service catalog editor', () => {
     vi.stubGlobal('fetch', fetchMock);
     const client = new QueryClient();
     render(<QueryClientProvider client={client}><ServiceCatalogEditor enabledLanguages={['fr', 'en']}
-      homeLimit={3} primaryLanguage="fr" readOnly={false} /></QueryClientProvider>);
+      primaryLanguage="fr" readOnly={false} /></QueryClientProvider>);
 
     const summary = await screen.findByText('Mariages personnalisés');
     fireEvent.click(summary);

@@ -12,8 +12,8 @@ export const homeHeroResources = {
     save: 'Save introduction', saved: 'Introduction saved.',
     error: 'The introduction could not be saved. Check both translations and try again.',
     destinations: {
-      _contact: 'Contact page', _services: 'Services page', _portfolio: 'Portfolio page', _galleries: 'Galleries page',
-      section_services: 'Services below on Home', section_galleries: 'Galleries below on Home',
+      _contact: 'Contact page', _services: 'Sessions page', _portfolio: 'Portfolio page', _galleries: 'Galleries page',
+      section_services: 'Sessions below on Home', section_galleries: 'Galleries below on Home',
       '_e_find-your-photos_find': 'Find your photos',
     },
   } } },
@@ -30,8 +30,8 @@ export const homeHeroResources = {
     save: 'Enregistrer l’introduction', saved: 'Introduction enregistrée.',
     error: 'L’introduction n’a pas pu être enregistrée. Vérifiez les deux traductions et réessayez.',
     destinations: {
-      _contact: 'Page Contact', _services: 'Page Services', _portfolio: 'Page Portfolio', _galleries: 'Page Galeries',
-      section_services: 'Services plus bas sur l’accueil', section_galleries: 'Galeries plus bas sur l’accueil',
+      _contact: 'Page Contact', _services: 'Page Séances', _portfolio: 'Page Portfolio', _galleries: 'Page Galeries',
+      section_services: 'Séances plus bas sur l’accueil', section_galleries: 'Galeries plus bas sur l’accueil',
       '_e_find-your-photos_find': 'Retrouver ses photos',
     },
   } } },

@@ -76,7 +76,6 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
           map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
           enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
           homeGalleries: { enabled: true, limit: 6 },
-          homeServicesLimit: 3,
           analyticsMeasurementId: null,
           themeMode: 'both',
           quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },
@@ -155,7 +154,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   await expect(page.getByRole('navigation', { name: /site setting sections|sections des réglages du site/i })).toBeVisible();
   await expect(page.locator('.admin-shell__header').getByRole('link', { name: /back to website|retour au site/i })).toHaveAttribute('href', '/');
   await expect(page.getByRole('group', { name: /website|site web/i })).toBeVisible();
-  await expect(page.getByRole('group', { name: /^services$/i })).toBeVisible();
+  await expect(page.getByRole('group', { name: /^(sessions|séances)$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /^contact$/i })).toBeVisible();
   await expect(page.getByRole('group', { name: /your site limits|limites de votre site/i })).toBeVisible();
   const descriptionField = page.locator('#admin-settings-website .admin-localized-field');
@@ -241,7 +240,7 @@ test('la demo admin laisse explorer les reglages sans autoriser les ecritures', 
   }, demoEvent.id);
   await expect(page.locator('input[name="startsAt"]')).toHaveAttribute('type', 'date');
   await expect(page.locator('input[name="startsAt"]')).toHaveValue('2026-09-20');
-  const galleryService = page.getByRole('combobox', { name: /gallery service|service de la galerie/i });
+  const galleryService = page.getByRole('combobox', { name: /gallery session|séance de la galerie/i });
   await galleryService.selectOption('wedding');
   await expect(galleryService).toHaveValue('wedding');
   const downloads = page.getByRole('checkbox', { name: /allow photo downloads|autoriser le téléchargement des photos/i });

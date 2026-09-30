@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import {
   LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema,
 } from '../../shared/schemas';
+import { MAX_SITE_SERVICES } from '../../shared/constants';
 import type { Language, ServiceCard, ServiceCopy } from '../../shared/schemas';
 import { Button, Spinner } from '../components';
 import { ServicePhoto } from '../public/ServicePhoto';
@@ -155,8 +156,8 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
   </details>;
 }
 
-export function ServiceCatalogEditor({ enabledLanguages, homeLimit, primaryLanguage, readOnly }: {
-  enabledLanguages: readonly Language[]; homeLimit: number; primaryLanguage: Language; readOnly: boolean;
+export function ServiceCatalogEditor({ enabledLanguages, primaryLanguage, readOnly }: {
+  enabledLanguages: readonly Language[]; primaryLanguage: Language; readOnly: boolean;
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -175,7 +176,6 @@ export function ServiceCatalogEditor({ enabledLanguages, homeLimit, primaryLangu
   if (services.isError || !services.data) return <p role="alert">{t('admin.serviceEditor.error')}</p>;
   const ordered = [...services.data].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
   const eligible = ordered.filter((card) => card.enabled && card.showOnHome);
-  const shown = eligible.slice(0, homeLimit);
   const move = async (index: number, direction: -1 | 1) => {
     const first = ordered[index];
     const second = ordered[index + direction];
@@ -190,11 +190,11 @@ export function ServiceCatalogEditor({ enabledLanguages, homeLimit, primaryLangu
     } catch { setOrderError(true); }
   };
   return <div className="admin-service-catalog">
-    <p className="admin-card__description">{t('admin.serviceEditor.homeSummary', { selected: eligible.length, shown: shown.length, limit: homeLimit })}</p>
+    <p className="admin-card__description">{t('admin.serviceEditor.homeSummary', { count: eligible.length })}</p>
     <ol className="admin-service-catalog__list">
       {ordered.map((card, index) => <li key={card.id}>
         <div className="admin-service-catalog__order">
-          <span>{shown.some((item) => item.id === card.id) ? t('admin.serviceEditor.onHome') : card.showOnHome ? t('admin.serviceEditor.beyondLimit') : ''}</span>
+          <span>{card.enabled && card.showOnHome ? t('admin.serviceEditor.onHome') : ''}</span>
           <Button aria-label={t('admin.serviceEditor.moveUp', { name: card.copy?.[primaryLanguage].title ?? t(`gallery.servicesPage.${card.id}.title`) })}
             disabled={index === 0 || readOnly} onClick={() => { void move(index, -1); }} variant="secondary">↑</Button>
           <Button aria-label={t('admin.serviceEditor.moveDown', { name: card.copy?.[primaryLanguage].title ?? t(`gallery.servicesPage.${card.id}.title`) })}
@@ -205,6 +205,6 @@ export function ServiceCatalogEditor({ enabledLanguages, homeLimit, primaryLangu
     </ol>
     {orderError ? <p role="alert">{t('admin.serviceEditor.error')}</p> : null}
     {adding ? <EditableService card={null} enabledLanguages={enabledLanguages} onChanged={async () => { setAdding(false); await refresh(); }} primaryLanguage={primaryLanguage} readOnly={readOnly} />
-      : <Button disabled={readOnly || ordered.length >= 30} onClick={() => setAdding(true)} variant="secondary">{t('admin.serviceEditor.add')}</Button>}
+      : <Button disabled={readOnly || ordered.length >= MAX_SITE_SERVICES} onClick={() => setAdding(true)} variant="secondary">{t('admin.serviceEditor.add')}</Button>}
   </div>;
 }

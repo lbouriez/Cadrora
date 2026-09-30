@@ -20,7 +20,6 @@ const runtimeSettings = {
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
   homeGalleries: { enabled: true, limit: 6 },
-  homeServicesLimit: 3,
   updatedAt: '2026-09-26T00:00:00.000Z',
 };
 
@@ -151,7 +150,7 @@ describe('public photographer website', () => {
     expect(titles).toEqual(['Newer event', 'Middle event']);
   });
 
-  it('shows the first three of seven Home-eligible services in admin order', async () => {
+  it('shows every Home-eligible service in admin order', async () => {
     const cards = Array.from({ length: 7 }, (_, index) => ({
       id: `custom-${index}`, isBuiltin: false, sortOrder: index, enabled: true, showOnHome: true,
       copy: {
@@ -162,13 +161,13 @@ describe('public photographer website', () => {
       imageSources: [{ url: `/service-media/custom-${index}/1/preview`, width: 320, height: 213 }],
     }));
     vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
-      url === '/api/v1/site' ? { ...runtimeSettings, homeServicesLimit: 3, homeGalleries: { enabled: false, limit: 6 } }
+      url === '/api/v1/site' ? { ...runtimeSettings, homeGalleries: { enabled: false, limit: 6 } }
         : url === '/api/v1/services' ? cards : { events: [], protectedGalleries: [], nextCursor: null },
     ), { status: 200 }))));
     renderPage(<HomePage />);
 
     await waitFor(() => expect([...document.querySelectorAll('.service-card h3')].map((title) => title.textContent))
-      .toEqual(['Service 0', 'Service 1', 'Service 2']));
+      .toEqual(['Service 0', 'Service 1', 'Service 2', 'Service 3', 'Service 4', 'Service 5', 'Service 6']));
     expect(screen.getByText('Résumé 0')).toBeTruthy();
   });
 
@@ -254,7 +253,6 @@ describe('public photographer website', () => {
       contactAddress: '456 rue du Studio, Québec', serviceArea: 'Québec et Charlevoix',
       enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
       homeGalleries: { enabled: true, limit: 6 },
-      homeServicesLimit: 3,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       updatedAt: '2026-09-23T00:00:00.000Z',
     }), { headers: { 'content-type': 'application/json' }, status: 200 })));

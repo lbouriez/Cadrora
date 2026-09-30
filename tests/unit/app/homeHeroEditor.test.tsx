@@ -14,7 +14,7 @@ const settings = AdminSiteSettingsSchema.parse({
   siteName: 'Studio', siteCopy: null, defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
   contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
-  enabledServices: ['wedding'], homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3,
+  enabledServices: ['wedding'], homeGalleries: { enabled: true, limit: 6 },
   homeHeroCopy: null, homeHeroImageRevision: null,
   analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-09-27T00:00:00.000Z',
   quotaCeilings: { faceLimit: 39000, storageLimitBytes: 9900000000 },

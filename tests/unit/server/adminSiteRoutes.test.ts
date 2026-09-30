@@ -18,7 +18,6 @@ const row = {
   construction_notice_enabled: 0,
   home_galleries_enabled: 1,
   home_galleries_limit: 6,
-  home_services_limit: 3,
   map_center_latitude: null,
   map_center_longitude: null,
   map_radius_km: null,
@@ -80,7 +79,7 @@ describe('admin site settings routes', () => {
     const input = {
       analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
       defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
-      constructionNoticeEnabled: true, galleryDirectoryEnabled: false, homeGalleries: { enabled: true, limit: 6 }, homeServicesLimit: 3,
+      constructionNoticeEnabled: true, galleryDirectoryEnabled: false, homeGalleries: { enabled: true, limit: 6 },
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 }, serviceArea: null,
       siteName: 'Atelier Giulia', themeMode: 'both',
@@ -166,7 +165,6 @@ describe('admin site settings routes', () => {
       quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 },
       themeMode: 'both',
       homeGalleries: { enabled: true, limit: 6 },
-      homeServicesLimit: 3,
     });
     const response = await app.request('/api/v1/admin/site', {
       body: JSON.stringify({
@@ -179,7 +177,6 @@ describe('admin site settings routes', () => {
         enabledServices: ['wedding', 'corporate'],
         galleryDirectoryEnabled: true,
         homeGalleries: { enabled: false, limit: 4 },
-        homeServicesLimit: 4,
         map: { centerLatitude: 45.5019, centerLongitude: -73.5674, radiusKm: 125 },
         quotas: { faceLimit: 2000, storageLimitBytes: 1000000000 },
         serviceArea: 'Greater Montréal',
@@ -199,7 +196,7 @@ describe('admin site settings routes', () => {
       'en', '["en"]', 'system', 1000000000, 2000, 'G-ABCDEF1234',
       'bonjour@example.test', '+1 514 555-0142', 'Montréal, Québec', 'Greater Montréal',
       45.5019, -73.5674, 125, '["wedding","corporate"]', 'Studio North', 0, 4,
-      4, JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
+      JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
       expect.any(String),
       1,
       null,
@@ -226,7 +223,6 @@ describe('admin site settings routes', () => {
         enabledLanguages: ['fr'],
         enabledServices: ['wedding'],
         homeGalleries: { enabled: true, limit: 6 },
-        homeServicesLimit: 3,
         map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
         quotas: { faceLimit: 39001, storageLimitBytes: 1000000000 },
         serviceArea: null,

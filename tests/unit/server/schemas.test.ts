@@ -69,7 +69,6 @@ describe('shared schemas', () => {
       enabledServices: ['wedding'],
       galleryDirectoryEnabled: true,
       homeGalleries: { enabled: true, limit: 6 },
-      homeServicesLimit: 3,
       map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
       quotas: { faceLimit: 100, storageLimitBytes: 1000 },
       serviceArea: null,

@@ -6,5 +6,8 @@
   "/brand/service-area-preview.webp": { "width": 1536, "height": 1024 },
   "/brand/service-brand.webp": { "width": 1536, "height": 1024 },
   "/brand/service-children.webp": { "width": 1536, "height": 1024 },
-  "/brand/service-corporate.webp": { "width": 1536, "height": 1024 }
+  "/brand/service-corporate.webp": { "width": 1536, "height": 1024 },
+  "/brand/service-maternity.webp": { "width": 1280, "height": 853 },
+  "/brand/service-portrait.webp": { "width": 1280, "height": 853 },
+  "/brand/service-couples.webp": { "width": 1280, "height": 853 }
 }

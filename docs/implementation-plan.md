@@ -24,6 +24,8 @@ Post-plan extension (2026-09-27): ADR-034 separates portfolio categories from se
 
 Post-plan extension (2026-09-27): ADR-037 adds an owner-controlled public site progress notice across PB, admin site settings, shared schemas, the Atelier Giulia seed, and D1 migration 038. Acceptance includes FR/EN public copy, Atelier-only initial enablement, owner toggling through the existing settings request, and no new public API or R2 dependency.
 
+Post-plan extension (2026-09-29): ADR-041 adds three bilingual built-in sessions and removes the Home session count across PB, admin settings, shared schemas, and D1 migration 040. Acceptance includes FR/EN fallback copy and photos, preservation of existing session edits, direct Home visibility from each session's switch, and unchanged Recent stories limits.
+
 This versioned plan is the coordination source for coding agents. Frozen details live in [`technical/contracts.md`](technical/contracts.md); no package may change them without an ADR and human validation.
 
 ## Wave 1: P0 foundation

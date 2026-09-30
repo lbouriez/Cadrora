@@ -6,7 +6,6 @@ const siteSettingsFixture = {
   map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
   enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
   homeGalleries: { enabled: true, limit: 6 },
-  homeServicesLimit: 3,
   analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-09-23T00:00:00.000Z',
 };
 
