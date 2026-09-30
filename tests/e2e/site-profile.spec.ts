@@ -262,11 +262,22 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await settledAt(1);
   await gesture(1);
   await settledAt(2);
-  await gesture(1);
+  if (testInfo.project.name === 'mobile-chromium') {
+    await gesture(1);
+  } else {
+    await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
+    await page.mouse.wheel(0, height * 3);
+    const firstPosition = await page.evaluate(() => scrollY);
+    await page.waitForTimeout(300);
+    const middlePosition = await page.evaluate(() => scrollY);
+    const footerPosition = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    expect(middlePosition).toBeGreaterThan(firstPosition);
+    expect(middlePosition).toBeLessThan(footerPosition);
+  }
   await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
-test('reduced motion keeps session changes immediate for wheel, touch, and keyboard', async ({ page }, testInfo) => {
+test('Atelier keeps the reference slide animation for wheel and touch in a reduced-motion browser', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -291,18 +302,23 @@ test('reduced motion keeps session changes immediate for wheel, touch, and keybo
       await page.waitForTimeout(16);
     }
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
     await session.detach();
   } else {
     await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
     await page.mouse.wheel(0, 120);
-    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
-    await page.waitForTimeout(230);
-    await page.mouse.wheel(0, 120);
-    await expect(page.locator('.session-story__panel').nth(2)).toHaveClass(/swiper-slide-active/u);
+  }
+  await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
+  const wrapper = page.locator('.vertical-story-slider .swiper-wrapper');
+  await expect.poll(() => wrapper.evaluate((element) => (element as HTMLElement).style.transitionDuration)).toBe('1200ms');
+  const firstFrame = await wrapper.evaluate((element) => getComputedStyle(element).transform);
+  await page.waitForTimeout(250);
+  const middleFrame = await wrapper.evaluate((element) => getComputedStyle(element).transform);
+  expect(middleFrame).not.toBe(firstFrame);
+  if (testInfo.project.name === 'desktop-chromium') {
+    await page.waitForTimeout(1_000);
     await page.locator('.vertical-story-slider').focus();
-    await page.keyboard.press('PageUp');
-    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
+    await page.keyboard.press('PageDown');
+    await expect(page.locator('.session-story__panel').nth(2)).toHaveClass(/swiper-slide-active/u);
   }
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
 });

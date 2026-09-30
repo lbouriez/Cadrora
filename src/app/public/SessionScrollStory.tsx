@@ -52,7 +52,7 @@ export function SessionScrollStory() {
   </> }];
 
   return <PublicLayout>
-    <VerticalStorySlider className="session-story" label={t('gallery.services')}
+    <VerticalStorySlider className="session-story" label={t('gallery.services')} motionPreference="always"
       slideClassName="session-story__panel" slides={slides} />
   </PublicLayout>;
 }
