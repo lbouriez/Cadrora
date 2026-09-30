@@ -12,9 +12,6 @@ export function useSessionStorySteps(panelCount: number) {
   useEffect(() => {
     const story = storyRef.current;
     if (!story || panelCount < 2) return;
-    const panels = [...story.querySelectorAll<HTMLElement>('.session-story__panel')];
-    if (panels.length !== panelCount) return;
-
     let frame = 0;
     let transitioning = false;
     let wheelLastAt = 0;
@@ -23,10 +20,12 @@ export function useSessionStorySteps(panelCount: number) {
     let touchStart: { x: number; y: number } | null = null;
 
     const snapPoints = () => {
+      // Owner data can replace fallback panels without changing their count.
+      const panels = story.querySelectorAll<HTMLElement>('.session-story__panel');
       const storyTop = story.getBoundingClientRect().top + window.scrollY;
       const maximum = document.documentElement.scrollHeight - window.innerHeight;
       let position = storyTop;
-      const points = panels.map((panel) => {
+      const points = [...panels].map((panel) => {
         const point = Math.min(position, maximum);
         position += panel.offsetHeight;
         return point;
@@ -38,8 +37,9 @@ export function useSessionStorySteps(panelCount: number) {
     const move = (direction: -1 | 1) => {
       if (transitioning) return;
       const points = snapPoints();
+      if (points.length < 3) return;
       const fromIndex = nearestIndex(points);
-      const toIndex = Math.max(0, Math.min(panelCount, fromIndex + direction));
+      const toIndex = Math.max(0, Math.min(points.length - 1, fromIndex + direction));
       if (fromIndex === toIndex) return;
       const start = window.scrollY;
       const destination = points[toIndex] ?? start;
@@ -63,8 +63,9 @@ export function useSessionStorySteps(panelCount: number) {
     const canStep = (direction: -1 | 1) => {
       if (document.querySelector('.public-shell--menu-open')) return false;
       const points = snapPoints();
+      if (points.length < 3) return false;
       const index = nearestIndex(points);
-      return direction > 0 ? index < panelCount : index > 0;
+      return direction > 0 ? index < points.length - 1 : index > 0;
     };
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;

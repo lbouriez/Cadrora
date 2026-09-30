@@ -181,16 +181,23 @@ test('owner sessions form full-height panels with their own booking action', asy
 });
 
 test('even strong wheel or finger gestures settle on exactly one session', async ({ page }, testInfo) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
-  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
-    sessionCard('wedding', 'Mariages', 'Weddings', 0),
-    sessionCard('family', 'Familles', 'Families', 1),
-    sessionCard('brand', 'Portraits', 'Portraits', 2),
-  ]) }));
+  let releaseServices = () => {};
+  const servicesReady = new Promise<void>((resolve) => { releaseServices = () => resolve(); });
+  await page.route('**/api/v1/services', async (route) => {
+    await servicesReady;
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+      sessionCard('children', 'Enfants', 'Children', 0),
+      sessionCard('corporate', 'Entreprises', 'Corporate', 1),
+      sessionCard('family', 'Familles', 'Families', 2),
+    ]) });
+  });
   await page.goto('/');
   await dismissConsent(page);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await expect(page.locator('.session-story__panel')).toHaveCount(3);
+  await page.waitForTimeout(100);
+  releaseServices();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
