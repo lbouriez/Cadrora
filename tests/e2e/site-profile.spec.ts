@@ -162,6 +162,7 @@ test('the shared masthead and page introductions align across routes', async ({ 
   for (const path of ['/', '/services']) {
     await page.goto(path);
     await expect(page.locator('.public-construction-notice')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
     narrowPositions.push(await page.locator('.public-brand').boundingBox());
   }
   expect(narrowPositions[0]?.y).toBeCloseTo(narrowPositions[1]?.y ?? NaN, 0);
@@ -218,9 +219,10 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   });
   await page.goto('/');
   await dismissConsent(page);
-  await expect(page.locator('.session-story__panel')).toHaveCount(3);
-  await page.waitForTimeout(100);
+  await expect(page.locator('.session-story--loading')).toBeVisible();
+  await expect(page.locator('.session-story__panel')).toHaveCount(0);
   releaseServices();
+  await expect(page.locator('.session-story__panel')).toHaveCount(3);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
   const footer = page.locator('.public-footer');
   await expect(footer).toBeHidden();
@@ -334,7 +336,7 @@ test('Atelier mobile menu covers the photo and returns to the ivory interior hea
   await page.goto('/');
   await dismissConsent(page);
   const menu = page.locator('.public-header__menu');
-  await expect(page.locator('.public-brand span')).toBeVisible();
+  await expect(page.locator('.public-brand__name')).toBeVisible();
   await expect(page.locator('.public-header__language')).toBeHidden();
   await menu.click();
   await expect(menu).toHaveAttribute('aria-expanded', 'true');

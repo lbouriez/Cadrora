@@ -3,22 +3,26 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { VerticalStorySlider } from '../components';
-import { getPublicServices, getPublicSiteSettings } from './api';
+import { Spinner, VerticalStorySlider } from '../components';
+import { getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicLayout } from './PublicLayout';
 import { SessionStoryContent } from './SessionStoryContent';
-import { fallbackServices } from './serviceCatalog';
 import { siteProfile } from './siteProfile';
+import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
 /** Present owner-managed Home sessions through the shared vertical slider. */
 export function SessionScrollStory() {
   const { t } = useTranslation();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
-  const sessions = (services.data ?? fallbackServices(settings.data?.enabledServices))
-    .filter((card) => card.enabled && card.showOnHome);
+  const services = usePublicServiceCatalog(settings);
+  const sessions = services.cards.filter((card) => card.enabled && card.showOnHome);
+  if (services.isPending) return <PublicLayout immersiveFooterVisible={false}>
+    <section aria-busy="true" aria-label={t('gallery.services')} className="session-story session-story--loading">
+      <Spinner label={t('gallery.servicesLoading')} />
+    </section>
+  </PublicLayout>;
   const slides = sessions.length ? sessions.map((card, index) => ({
     id: card.id,
     content: <SessionStoryContent card={card} heading={index === 0 ? 'h1' : 'h2'}

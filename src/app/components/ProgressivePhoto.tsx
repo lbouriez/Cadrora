@@ -5,28 +5,32 @@ interface PhotoSource {
   width: number;
 }
 
-export interface ProgressivePhotoProps {
+interface CommonPhotoProps {
   alt: string;
   className?: string;
+  /** Keep the reserved frame without requesting images until their owner-managed sources resolve. */
   enabled?: boolean;
-  height: number;
+  fit?: 'cover' | 'contain';
   immediate?: boolean;
   lazyPreview?: boolean;
   maxQuality?: 'preview' | 'medium' | 'full';
   priority?: boolean;
   sizes: string;
-  sources: readonly PhotoSource[];
-  width: number;
 }
 
-/** Show a small blurred preview, then let the browser select one display-sized source. */
-export function ProgressivePhoto({ alt, className, enabled = true, height, immediate = false, lazyPreview = false, maxQuality = 'full', priority = false, sizes, sources, width }: ProgressivePhotoProps) {
+export type ProgressivePhotoProps = CommonPhotoProps & (
+  | { sources: readonly PhotoSource[]; src?: never; width: number; height: number }
+  | { src: string; sources?: never; width?: number; height?: number }
+);
+
+/** Select a display-sized source after the preview, or render one unblurred local/static source. */
+export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
   const frame = useRef<HTMLSpanElement>(null);
   const [nearby, setNearby] = useState(() => typeof window !== 'undefined' && !('IntersectionObserver' in window));
   const [previewReady, setPreviewReady] = useState(false);
   const [optimizedReady, setOptimizedReady] = useState(false);
-  const ordered = [...sources].sort((left, right) => left.width - right.width);
-  const preview = ordered[0];
+  const ordered = [...(sources ?? [])].sort((left, right) => left.width - right.width);
+  const previewUrl = src ?? ordered[0]?.url;
   const candidates = maxQuality === 'preview' ? ordered.slice(0, 1)
     : maxQuality === 'medium' ? ordered.filter((source) => source.width <= 1600) : ordered;
   const responsiveSources = candidates.length > 0 ? candidates : ordered.slice(0, 1);
@@ -48,8 +52,8 @@ export function ProgressivePhoto({ alt, className, enabled = true, height, immed
   const revealOptimized = enabled && (nearby || immediate) && previewReady && responsiveSources.length > 1;
   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
 
-  return <span className={`progressive-photo${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={{ aspectRatio: `${width} / ${height}` }}>
-    {enabled && preview && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} loading={immediate ? 'eager' : 'lazy'} onError={() => setPreviewReady(true)} onLoad={() => setPreviewReady(true)} src={preview.url} /> : null}
+  return <span className={`progressive-photo${src !== undefined ? ' progressive-photo--single' : ''}${fit === 'contain' ? ' progressive-photo--contain' : ''}${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={width && height ? { aspectRatio: `${width} / ${height}` } : undefined}>
+    {enabled && previewUrl && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} height={height} loading={immediate ? 'eager' : 'lazy'} onError={() => setPreviewReady(true)} onLoad={() => setPreviewReady(true)} src={previewUrl} width={width} /> : null}
     {revealOptimized ? <img
       alt=""
       aria-hidden="true"

@@ -9,5 +9,8 @@
   "/brand/service-family.webp": { "width": 1536, "height": 1024 },
   "/brand/service-maternity.webp": { "width": 1280, "height": 853 },
   "/brand/service-portrait.webp": { "width": 1280, "height": 853 },
-  "/brand/service-couples.webp": { "width": 1280, "height": 853 }
+  "/brand/service-couples.webp": { "width": 1280, "height": 853 },
+  "/demo/face-search/test-portrait-amelia.webp": { "width": 1086, "height": 1448 },
+  "/demo/face-search/test-portrait-daniel.webp": { "width": 1086, "height": 1448 },
+  "/demo/face-search/test-portrait-nora.webp": { "width": 1024, "height": 1536 }
 }

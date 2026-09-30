@@ -33,9 +33,9 @@
   gap: var(--space-3);
 }
 
-.public-brand span { text-transform: uppercase; }
+.public-brand__name { text-transform: uppercase; }
 
-.public-brand img {
+.public-brand__logo {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.75rem;
@@ -156,7 +156,7 @@
   gap: var(--space-1);
 }
 
-.public-footer__credit img {
+.public-footer__logo {
   width: 1.25rem;
   height: 1.25rem;
   object-fit: contain;
@@ -1589,7 +1589,7 @@
     padding: var(--space-3);
   }
 
-  .public-brand span {
+  .public-brand__name {
     display: none;
   }
 
@@ -1657,7 +1657,7 @@
     font-size: inherit;
   }
 
-  .public-footer__credit img {
+  .public-footer__logo {
     width: 1rem;
     height: 1rem;
   }
@@ -1832,7 +1832,7 @@
   color: var(--color-text);
 }
 
-.site-hero__ai-card img {
+.site-hero__accent-photo {
   width: 3rem;
   height: 3rem;
   flex: 0 0 auto;
@@ -1841,7 +1841,7 @@
 }
 
 .site-hero__ai-card div { display: grid; gap: 0.125rem; }
-.site-hero__ai-card span { color: var(--color-text-muted); font-size: 0.67rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.site-hero__ai-card div span { color: var(--color-text-muted); font-size: 0.67rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .site-hero__ai-card strong { font-size: 0.86rem; line-height: 1.15; }
 
 .demo-experience-grid {
@@ -1869,8 +1869,9 @@
 .demo-experience-card--admin { grid-column: span 2; }
 .demo-experience-card__visual { position: relative; align-self: stretch; min-height: 10rem; overflow: hidden; border-radius: var(--radius-md); }
 .demo-experience-card__visual::after { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgb(21 13 25 / 68%)); content: ''; }
+.demo-experience-card__photo { position: absolute; inset: 0; width: 100%; height: 100%; }
 .demo-experience-card__visual img { width: 100%; height: 100%; object-fit: cover; object-position: 48% center; }
-.demo-experience-card__visual span { position: absolute; z-index: 1; right: var(--space-3); bottom: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-round); background: rgb(25 20 30 / 82%); color: #fff; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.demo-experience-card__label { position: absolute; z-index: 1; right: var(--space-3); bottom: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-round); background: rgb(25 20 30 / 82%); color: #fff; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .demo-experience-card__copy { display: flex; height: 100%; flex-direction: column; }
 .demo-experience-card__copy .button { margin-top: auto; }
 .demo-experience-card h3 { font-size: clamp(1.35rem, 2.1vw, 1.85rem); }
@@ -2025,7 +2026,7 @@
   .site-hero { min-height: auto; padding-top: var(--space-6); }
   .site-hero__art, .site-hero__art > .progressive-photo { min-height: 19rem; height: 19rem; }
   .site-hero__ai-card { right: var(--space-3); bottom: var(--space-6); width: min(12rem, 68%); }
-  .site-hero__ai-card img { width: 3.5rem; height: 3.5rem; }
+  .site-hero__accent-photo { width: 3.5rem; height: 3.5rem; }
   .site-hero__art figcaption { top: var(--space-3); right: auto; bottom: auto; left: var(--space-3); }
   .demo-experience-grid { grid-template-columns: 1fr; }
   .featured-site-card { align-items: flex-start; }
@@ -2045,6 +2046,7 @@
 /* Full-height session panels selected by a site profile; Swiper owns the slide gesture. */
 .public-main--immersive { width: 100%; min-height: 0; padding: 0; }
 .session-story { position: relative; background: var(--color-text); }
+.session-story--loading { display: grid; min-height: 100svh; place-items: center; background: var(--color-background); }
 .session-story__panel { display: grid; height: 100%; overflow: hidden; place-items: center; isolation: isolate; }
 .session-story__visual { position: absolute; inset: 0; width: 100%; height: 100%; }
 .session-story__visual > .session-story__photo { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -2080,7 +2082,7 @@
 
 :root[data-site='atelier-giulia'] .public-header { width: 100%; min-height: 5.5rem; padding: 1rem clamp(1.25rem, 4vw, 4rem); border: 0; border-radius: 0; background: var(--color-background); box-shadow: none; backdrop-filter: none; }
 :root[data-site='atelier-giulia'] .public-brand { font-family: var(--font-display); font-size: clamp(1.4rem, 2.3vw, 2rem); font-weight: 400; letter-spacing: 0.02em; }
-:root[data-site='atelier-giulia'] .public-brand img { display: none; }
+:root[data-site='atelier-giulia'] .public-brand__logo { display: none; }
 :root[data-site='atelier-giulia'] .public-nav { gap: clamp(1rem, 2.5vw, 2.5rem); }
 :root[data-site='atelier-giulia'] .public-nav a { color: var(--color-text); font-family: var(--font-display); font-size: 1.1rem; font-weight: 400; }
 :root[data-site='atelier-giulia'] .public-nav a.active { text-decoration: underline; text-underline-offset: 0.45rem; }
@@ -2118,7 +2120,7 @@
 @media (max-width: 54rem) {
   :root[data-site='atelier-giulia'] .public-header { min-height: 4.75rem; }
   :root[data-site='atelier-giulia'] .public-brand { position: relative; z-index: 2; }
-  :root[data-site='atelier-giulia'] .public-brand span { display: inline; }
+  :root[data-site='atelier-giulia'] .public-brand__name { display: inline; }
   :root[data-site='atelier-giulia'] .public-header__controls { position: relative; z-index: 2; }
   :root[data-site='atelier-giulia'] .public-nav { position: fixed; z-index: 1; inset: 0; display: none; width: 100%; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; gap: 0; padding: 6rem 1.5rem 8rem; border: 0; border-radius: 0; background: var(--color-background); box-shadow: none; }
   :root[data-site='atelier-giulia'] .public-nav--open { display: flex; }

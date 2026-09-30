@@ -6,7 +6,8 @@ import { Link, useParams } from 'react-router-dom';
 
 import type { DetectedFace, FaceInference } from '../../browser/faces';
 import type { FaceSearchMatch } from '../../shared/schemas';
-import { BackLink, Button, Carousel, Spinner } from '../components';
+import { BackLink, Button, Carousel, ProgressivePhoto, Spinner } from '../components';
+import { BrandPhoto } from './BrandPhoto';
 import { getPublicEvent } from './api';
 import { readFaceSearchResults, saveFaceSearchResults } from './faceSearchSession';
 import { getRelatedPhotos, searchEventFaces } from './FindApi';
@@ -226,22 +227,24 @@ export function FindPage() {
           <p>{t('faceFind.testPortraitsHelp')}</p>
           <div className="face-find__test-links">
             <a className="face-find__test-card" download href="/demo/face-search/test-portrait-amelia.webp">
-              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-amelia.webp" />
+              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-amelia.webp" />
               <span>{t('faceFind.testPortraitAmelia')}</span>
             </a>
             <a className="face-find__test-card" download href="/demo/face-search/test-portrait-daniel.webp">
-              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-daniel.webp" />
+              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-daniel.webp" />
               <span>{t('faceFind.testPortraitDaniel')}</span>
             </a>
             <a className="face-find__test-card" download href="/demo/face-search/test-portrait-nora.webp">
-              <img alt="" loading="lazy" src="/demo/face-search/test-portrait-nora.webp" />
+              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-nora.webp" />
               <span>{t('faceFind.testPortraitNora')}</span>
             </a>
           </div>
         </aside> : null}
         {preview ? (
           <div className="face-find__preview-stage">
-            <img alt={t('faceFind.imageAlt')} className="face-find__preview" src={preview} />
+            <ProgressivePhoto alt={t('faceFind.imageAlt')} className="face-find__preview" fit="contain"
+              {...(image ? { height: image.height, width: image.width } : {})}
+              immediate sizes="(max-width: 48rem) 100vw, 60vw" src={preview} />
             {image && faces.length > 0 ? (
               <div aria-label={t('faceFind.detectedFaces')} className="face-find__face-overlay">
                 {faces.map((face, index) => (
@@ -292,8 +295,8 @@ export function FindPage() {
             <Carousel className="face-results-carousel" label={t('faceFind.possibleMatches')} nextLabel={t('faceFind.nextResult')} previousLabel={t('faceFind.previousResult')}>
               {matches.map((match) => (
                 <Link className="face-result" key={match.photoId} to={`/e/${slug}/photo/${match.photoId}?view=matches&return=find`}>
-                  <img alt={t('faceFind.matchAlt')} loading="lazy" src={match.thumbnailUrl} />
-                  <span>{t('faceFind.openMatch')}</span>
+                  <ProgressivePhoto alt={t('faceFind.matchAlt')} className="face-result__photo" sizes="(max-width: 38rem) 100vw, 33vw" src={match.thumbnailUrl} />
+                  <span className="face-result__label">{t('faceFind.openMatch')}</span>
                 </Link>
               ))}
             </Carousel>
@@ -308,8 +311,8 @@ export function FindPage() {
             <Carousel className="face-results-carousel" label={t('faceFind.nearby')} nextLabel={t('faceFind.nextNearby')} previousLabel={t('faceFind.previousNearby')}>
               {related.map((photo) => (
                 <Link className="face-result" key={photo.photoId} to={`/e/${slug}/photo/${photo.photoId}?view=matches&return=find`}>
-                  <img alt={t('faceFind.nearbyAlt')} loading="lazy" src={photo.thumbnailUrl} />
-                  <span>{t('faceFind.openNearby')}</span>
+                  <ProgressivePhoto alt={t('faceFind.nearbyAlt')} className="face-result__photo" sizes="(max-width: 38rem) 100vw, 33vw" src={photo.thumbnailUrl} />
+                  <span className="face-result__label">{t('faceFind.openNearby')}</span>
                 </Link>
               ))}
             </Carousel>

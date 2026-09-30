@@ -82,6 +82,7 @@ a:hover {
 .app-shell__logo {
   width: min(48vw, 12rem);
   height: auto;
+  margin: 0 auto;
   border-radius: 24%;
   box-shadow: var(--shadow-lg);
 }

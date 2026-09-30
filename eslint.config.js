@@ -29,6 +29,16 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/app/*.tsx', 'src/app/public/**/*.tsx', 'src/app/components/**/*.tsx', 'src/app/routes/**/*.tsx', 'sites/**/*.tsx'],
+    ignores: ['src/app/components/ProgressivePhoto.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error', {
+        selector: "JSXOpeningElement[name.type='JSXIdentifier'][name.name='img']",
+        message: 'Use ProgressivePhoto, or BrandPhoto for static assets, so public images share the optimized renderer.',
+      }],
+    },
+  },
+  {
     files: ['scripts/**/*.mjs', 'tests/**/*.mjs', 'eslint.config.js'],
     ...tseslint.configs.disableTypeChecked,
   },

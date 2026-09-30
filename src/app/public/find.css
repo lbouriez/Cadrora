@@ -71,6 +71,11 @@
 
 .face-find__preview {
   display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.face-find__preview > img {
   width: auto;
   max-width: 100%;
   max-height: 60vh;
@@ -178,7 +183,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.face-find__test-links img {
+.face-find__test-photo {
   width: 4rem;
   height: 4rem;
   flex: 0 0 auto;
@@ -275,14 +280,16 @@
   box-shadow: var(--shadow-md);
 }
 
-.face-result img {
-  display: block;
-  width: 100%;
+.face-result__photo {
   aspect-ratio: 4 / 3;
+}
+
+.face-result .face-result__photo > img {
+  height: 100%;
   object-fit: cover;
 }
 
-.face-result span {
+.face-result__label {
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
   font-weight: 800;

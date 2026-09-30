@@ -9,6 +9,7 @@ import { openPrivacyPreferences } from './consent';
 import { GoogleAnalytics } from './GoogleAnalytics';
 import { PrivacyConsent } from './PrivacyConsent';
 import { PublicConstructionNotice } from './PublicConstructionNotice';
+import { BrandPhoto } from './BrandPhoto';
 import { siteProfile } from './siteProfile';
 import { getPublicSiteSettings } from './api';
 import { useTheme } from '../useTheme';
@@ -115,8 +116,8 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
         <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
-          {siteProfile.logoUrl ? <img alt="" height="256" src={siteProfile.logoUrl} width="256" /> : null}
-          <span>{siteName}</span>
+          {siteProfile.logoUrl ? <BrandPhoto alt="" className="public-brand__logo" fit="contain" height={256} immediate sizes="40px" src={siteProfile.logoUrl} width={256} /> : null}
+          <span className="public-brand__name">{siteName}</span>
         </Link>
         <div className="public-header__actions">
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
@@ -165,7 +166,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
             {!siteProfile.demo.enabled ? (
               <a className="public-footer__credit" href="https://cadrora.com/">
                 <span>{t('gallery.footerCredit')} </span>
-                <img alt="" height="256" src="/brand/cadrora-logo.png" width="256" />
+                <BrandPhoto alt="" className="public-footer__logo" fit="contain" height={256} sizes="20px" src="/brand/cadrora-logo.png" width={256} />
                 <span>Cadrora</span>
               </a>
             ) : null}

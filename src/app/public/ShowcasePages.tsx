@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { Link, Navigate } from 'react-router-dom';
 
 import { Button, InfiniteLoadMore, Modal, MotionReveal, Spinner } from '../components';
-import { getPublicGalleryIndex, getPublicServices, getPublicSiteSettings } from './api';
+import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { PublicPageIntro } from './PublicPageIntro';
-import { fallbackServices, serviceText } from './serviceCatalog';
+import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { siteProfile } from './siteProfile';
+import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
 export function ServicesPage() {
   const Override = siteProfile.pages?.services;
@@ -21,16 +22,17 @@ export function DefaultServicesPage() {
   const { i18n, t } = useTranslation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
+  const services = usePublicServiceCatalog(settings);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  const visibleServices = (services.data ?? fallbackServices(settings.data?.enabledServices)).filter((card) => card.enabled);
+  const visibleServices = services.cards.filter((card) => card.enabled);
   const selectedCard = visibleServices.find((card) => card.id === selectedId);
   const selectedCopy = selectedCard ? serviceText(selectedCard, language, (key) => t(key)) : null;
   return (
     <PublicLayout>
       <PublicPageIntro eyebrow={t('gallery.servicesPage.eyebrow')}
         lead={t('gallery.servicesPage.lead')} title={t('gallery.servicesPage.title')} />
-      <div className="service-detail-grid">
+      <div aria-busy={services.isPending} className="service-detail-grid">
+        {services.isPending ? <Spinner label={t('gallery.servicesLoading')} /> : null}
         {visibleServices.map((card, index) => {
           const copy = serviceText(card, language, (key) => t(key));
           return <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>

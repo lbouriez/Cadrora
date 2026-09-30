@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { MotionReveal } from '../components';
 import type { FeaturedSite } from '../site/types';
+import { BrandPhoto } from './BrandPhoto';
 
 export function FeaturedSites({ sites }: { sites: readonly FeaturedSite[] }) {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export function FeaturedSites({ sites }: { sites: readonly FeaturedSite[] }) {
     </div>
     <div className="featured-sites__grid">
       {sites.map((site) => <a className="featured-site-card" href={site.href} key={site.href} rel="noopener" target="_blank">
-        {site.logoUrl ? <img alt="" className="featured-site-card__logo" height="80" loading="lazy" src={site.logoUrl} width="80" /> : null}
+        {site.logoUrl ? <BrandPhoto alt="" className="featured-site-card__logo" fit="contain" height={80} sizes="80px" src={site.logoUrl} width={80} /> : null}
         <div className="featured-site-card__copy">
           <h3>{site.name}</h3>
           <p>{t(site.descriptionKey)}</p>

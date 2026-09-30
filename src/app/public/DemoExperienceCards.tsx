@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { MotionReveal } from '../components';
 import { siteProfile } from './siteProfile';
+import { BrandPhoto } from './BrandPhoto';
 
 export function DemoExperienceCards() {
   const { t } = useTranslation();
@@ -10,8 +11,8 @@ export function DemoExperienceCards() {
     <div className="demo-experience-grid">
       <MotionReveal as="article" className="demo-experience-card demo-experience-card--ai demo-experience-card--feature" effect="scale">
         <div className="demo-experience-card__visual">
-          <img alt="" src="/demo/face-search/test-portrait-amelia.webp" />
-          <span>{t('gallery.demo.aiVisualLabel')}</span>
+          <BrandPhoto alt="" className="demo-experience-card__photo" sizes="(max-width: 48rem) 100vw, 240px" src="/demo/face-search/test-portrait-amelia.webp" />
+          <span className="demo-experience-card__label">{t('gallery.demo.aiVisualLabel')}</span>
         </div>
         <div className="demo-experience-card__copy">
           <p className="site-eyebrow">{t('gallery.demo.aiEyebrow')}</p>

@@ -3,16 +3,18 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { MotionReveal, Spinner } from '../components';
-import { getPublicEvents, getPublicServices, getPublicSiteSettings } from './api';
+import { MotionReveal, ProgressivePhoto, Spinner } from '../components';
+import { getPublicEvents, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
 import { FeaturedSites } from './FeaturedSites';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
-import { fallbackServices, serviceText } from './serviceCatalog';
+import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { SessionScrollStory } from './SessionScrollStory';
 import { siteProfile } from './siteProfile';
+import { usePublicServiceCatalog } from './usePublicServiceCatalog';
+import { BrandPhoto } from './BrandPhoto';
 import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
@@ -34,15 +36,16 @@ function SiteActionLink({ action, variant, label, href }: { action?: SiteAction;
 export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
+  const services = usePublicServiceCatalog(settings);
   const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
   const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
-  const featuredServices = (services.data ?? fallbackServices(settings.data?.enabledServices))
-    .filter((card) => card.enabled && card.showOnHome);
+  const featuredServices = services.cards.filter((card) => card.enabled && card.showOnHome);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const hero = settings.data?.homeHeroCopy;
   const heroText = hero?.[language];
+  const heroImagePath = settings.data?.homeHeroImageRevision
+    ? `/service-media/home-hero/${settings.data.homeHeroImageRevision}` : '/home-hero-image';
   const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
     && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
   const resolveAction = (href: string) => galleryActionHidden(href)
@@ -75,12 +78,17 @@ export function DefaultHomePage() {
           </div> : null}
         </MotionReveal>
         <figure className="site-hero__art">
-          <img alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} fetchPriority="high" height="853" loading="eager"
-            sizes="(max-width: 48rem) 100vw, 42vw" src="/home-hero-image/medium"
-            srcSet={`/home-hero-image/small 640w, /home-hero-image/medium ${settings.data?.homeHeroImageMediumWidth ?? 960}w, /home-hero-image/large ${settings.data?.homeHeroImageLargeWidth ?? 1280}w`} width="1280" />
+          <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
+            height={853} immediate priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
+            sources={[
+              { url: `${heroImagePath}/preview`, width: 320 },
+              { url: `${heroImagePath}/small`, width: 640 },
+              { url: `${heroImagePath}/medium`, width: settings.data?.homeHeroImageMediumWidth ?? 960 },
+              { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
+            ]} />
           {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
           {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
-            <img alt="" src={siteProfile.heroAccentImageUrl} />
+            <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />
             <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
           </div> : null}
         </figure>
@@ -112,7 +120,8 @@ export function DefaultHomePage() {
           <h2 id="services-title">{t('gallery.servicesTitle')}</h2>
           <p>{t('gallery.servicesLead')}</p>
         </div>
-        <div className="service-grid">
+        <div aria-busy={services.isPending} className="service-grid">
+          {services.isPending ? <Spinner label={t('gallery.servicesLoading')} /> : null}
           {featuredServices.map((card, index) => {
             const copy = serviceText(card, language, (key) => t(key));
             return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>

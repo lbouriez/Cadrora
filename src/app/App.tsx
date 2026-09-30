@@ -7,6 +7,7 @@ import { publicRouteObjects } from './routes/publicRoutes';
 import { RouteScrollReset } from './routes/RouteScrollReset';
 import { Spinner } from './components';
 import { siteProfile } from './public/siteProfile';
+import { BrandPhoto } from './public/BrandPhoto';
 
 const AdminGalleriesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminGalleriesRoute }));
 const AdminEventSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminEventSettingsRoute }));
@@ -28,12 +29,15 @@ function FoundationShell() {
   return (
     <main className="app-shell">
       <section className="app-shell__content">
-        {siteProfile.logoUrl ? <img
+        {siteProfile.logoUrl ? <BrandPhoto
           alt={t('app.brandAlt')}
           className="app-shell__logo"
-          height="1600"
+          fit="contain"
+          height={256}
+          immediate
+          sizes="160px"
           src={siteProfile.logoUrl}
-          width="1600"
+          width={256}
         /> : null}
         <p className="app-shell__eyebrow">{t('app.eyebrow')}</p>
         <h1 className="app-shell__title">{siteProfile.siteName}</h1>

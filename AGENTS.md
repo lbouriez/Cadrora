@@ -17,6 +17,7 @@ This file applies to the entire repository. Read it before changing code.
 - Keep UI strings in both FR and EN resources. Do not hardcode user-facing copy.
 - Preserve the public photographer website at `/` and `/contact`; it must not depend on gallery availability, authentication, a contact-form provider, trackers, or remote assets.
 - Reuse semantic tokens and typed components. Do not add page-local palettes or duplicate components.
+- Every public website image must use the shared `ProgressivePhoto` component, directly or through `BrandPhoto` for build-time assets. This includes all site profiles, Home, Sessions, About, Contact, galleries, portfolio, logos, face-search thumbnails, and local previews. Never add direct JSX `<img>` elements outside `src/app/components/ProgressivePhoto.tsx` in public pages, routes, profiles, or shared components; ESLint enforces this rule. Use the renderer's single-source `src` mode for assets without variants. For owner-managed photos, wait until settings/catalog queries settle before mounting any image source, so compiled defaults cannot flash or download ahead of an override. See [`docs/technical/public-website.md`](docs/technical/public-website.md).
 - Keep secrets in Cloudflare secrets/bindings only. Never log or commit a secret, selfie, raw biometric vector, or credential.
 - Authentication and authorization are enforced by the Worker for API and media routes on every hostname, including previews and `workers.dev`.
 - D1 is the reference state. Cross-service work is idempotent and repaired through `maintenance_jobs`.

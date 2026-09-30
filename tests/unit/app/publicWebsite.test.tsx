@@ -99,7 +99,7 @@ describe('public photographer website', () => {
     expect(screen.getByText('Je photographie les familles.')).toBeTruthy();
     fireEvent.load(screen.getByRole('img', { name: 'Anna au studio' }));
     await waitFor(() => expect(document.querySelector('.about-page__image img[srcset]')?.getAttribute('srcset'))
-      .toContain('/about-hero-image/large 2560w'));
+      .toContain('/service-media/about-hero/2/large 2560w'));
   });
 
   it('renders owner-edited name, bilingual footer, and browser description', async () => {
@@ -171,7 +171,7 @@ describe('public photographer website', () => {
     expect(screen.getByText('Résumé 0')).toBeTruthy();
   });
 
-  it('uses the Home introduction from the existing site response and keeps the photo URL available immediately', async () => {
+  it('waits for the Home introduction response before loading its published photo through the shared renderer', async () => {
     const homeHeroCopy = {
       fr: { label: 'Moments choisis', title: 'Votre lumière', description: 'Des images pour votre histoire.', caption: '', imageAlt: 'Portrait au soleil' },
       en: { label: 'Chosen moments', title: 'Your light', description: 'Images for your story.', caption: '', imageAlt: 'Sunlit portrait' },
@@ -188,10 +188,12 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage(<HomePage />);
 
-    expect(document.querySelector('.site-hero__art img')?.getAttribute('srcset')).toContain('/home-hero-image/medium 960w');
+    expect(document.querySelector('.site-hero__art .progressive-photo')).not.toBeNull();
+    expect(document.querySelector('.site-hero__art > .progressive-photo img')).toBeNull();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
-    expect(document.querySelector('.site-hero__art img')?.getAttribute('srcset'))
-      .toContain('/home-hero-image/medium 1280w, /home-hero-image/large 2560w');
+    fireEvent.load(screen.getByRole('img', { name: 'Portrait au soleil' }));
+    await waitFor(() => expect(document.querySelector('.site-hero__art img[srcset]')?.getAttribute('srcset'))
+      .toContain('/service-media/home-hero/2/medium 1280w, /service-media/home-hero/2/large 2560w'));
     expect(screen.getByRole('img', { name: 'Portrait au soleil' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/contact');
     expect(document.querySelector('.site-hero .site-actions a[href="/galleries"]')?.className).toContain('button--primary');
