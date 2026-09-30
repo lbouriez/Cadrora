@@ -9,8 +9,9 @@ import { PublicLayout } from './PublicLayout';
 import { ServicePhoto } from './ServicePhoto';
 import { fallbackServices, serviceText } from './serviceCatalog';
 import { siteProfile } from './siteProfile';
+import { useSessionStorySteps } from './useSessionStorySteps';
 
-/** Present the owner-managed Home sessions as full-height panels in native page scroll. */
+/** Present the owner-managed Home sessions as one full-height panel per scroll gesture. */
 export function SessionScrollStory() {
   const { i18n, t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
@@ -19,9 +20,10 @@ export function SessionScrollStory() {
     .filter((card) => card.enabled && card.showOnHome)
     .slice(0, settings.data?.homeServicesLimit ?? 3);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const storyRef = useSessionStorySteps(sessions.length);
 
   return <PublicLayout>
-    <section aria-label={t('gallery.services')} className="session-story">
+    <section aria-label={t('gallery.services')} className="session-story" ref={storyRef}>
       {sessions.length ? sessions.map((card, index) => {
         const copy = serviceText(card, language, (key) => t(key));
         const Heading = index === 0 ? 'h1' : 'h2';

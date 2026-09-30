@@ -180,7 +180,7 @@ test('owner sessions form full-height panels with their own booking action', asy
   await assertNoHorizontalOverflow(page);
 });
 
-test('wheel or finger scrolling reveals each session and reaches the footer', async ({ page }, testInfo) => {
+test('even strong wheel or finger gestures settle on exactly one session', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -193,31 +193,44 @@ test('wheel or finger scrolling reveals each session and reaches the footer', as
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
-  if (testInfo.project.name === 'mobile-chromium') {
-    const session = await page.context().newCDPSession(page);
-    const x = (viewport?.width ?? 390) / 2;
-    const startY = height * 0.8;
-    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
-    for (let step = 1; step <= 12; step += 1) {
-      await session.send('Input.dispatchTouchEvent', {
-        type: 'touchMove', touchPoints: [{ x, y: startY - height * 0.6 * step / 12, id: 0 }],
-      });
-      await page.waitForTimeout(16);
+  const gesture = async (direction: 1 | -1) => {
+    if (testInfo.project.name === 'mobile-chromium') {
+      const session = await page.context().newCDPSession(page);
+      const x = (viewport?.width ?? 390) / 2;
+      const startY = direction > 0 ? height * 0.82 : height * 0.18;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
+      for (let step = 1; step <= 5; step += 1) {
+        await session.send('Input.dispatchTouchEvent', {
+          type: 'touchMove', touchPoints: [{ x, y: startY - direction * height * 0.7 * step / 5, id: 0 }],
+        });
+        await page.waitForTimeout(12);
+      }
+      await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await session.detach();
+    } else {
+      await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
+      await page.mouse.wheel(0, direction * height * 3);
+      for (let pulse = 0; pulse < 3; pulse += 1) {
+        await page.mouse.wheel(0, direction * 150);
+        await page.waitForTimeout(40);
+      }
     }
-    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await session.detach();
-  } else {
-    await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
-    await page.mouse.wheel(0, height * 0.6);
-  }
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
-  await page.evaluate(() => window.scrollTo(0, innerHeight));
-  await expect.poll(async () => (await page.locator('.session-story__panel').nth(1).boundingBox())?.y ?? NaN).toBe(0);
+    await page.waitForTimeout(750);
+  };
+  const settledAt = async (index: number) => {
+    await expect.poll(() => page.evaluate((step) => Math.abs(scrollY - innerHeight * step), index)).toBeLessThan(3);
+  };
+  await gesture(1);
+  await settledAt(1);
   await expect(page.locator('.session-story__panel').nth(1).locator('.session-story__content'))
     .toHaveClass(/motion-reveal--visible/u);
-  await page.evaluate(() => window.scrollTo(0, 2 * innerHeight));
-  await expect.poll(async () => (await page.locator('.session-story__panel').nth(2).boundingBox())?.y ?? NaN).toBe(0);
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await gesture(1);
+  await settledAt(2);
+  await gesture(-1);
+  await settledAt(1);
+  await gesture(1);
+  await settledAt(2);
+  await gesture(1);
   await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
