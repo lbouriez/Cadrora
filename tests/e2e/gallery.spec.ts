@@ -108,7 +108,7 @@ test('la visionneuse montre la petite photo puis charge directement la taille ad
   await expect(selected.locator('.progressive-photo__preview')).toHaveCSS('filter', /blur/u);
   await expect(selected.locator('.progressive-photo__preview')).toHaveCSS('object-fit', 'contain');
   await expect(selected.locator('.progressive-photo__preview')).toHaveCSS('transform', 'none');
-  await expect(selected.locator('.photo-viewer__ambient')).toHaveAttribute('src', '/e2e/viewer/photo-40-480.svg');
+  await expect(selected.locator('.photo-viewer__ambient')).toHaveCount(0);
   await expect.poll(() => photoRequests.some((url) => url.includes('photo-40-1600.svg'))).toBe(true);
   expect(photoRequests.some((url) => url.includes('photo-40-960.svg'))).toBe(false);
   await expect(selected.locator('.progressive-photo__optimized')).toHaveCSS('opacity', '0');
@@ -142,6 +142,7 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   expect(desktopDialogBox?.y).toBeGreaterThan(16);
   expect(desktopDialogBox?.width).toBeLessThan(1_440);
   expect(desktopDialogBox?.height).toBeLessThan(900);
+  expect((desktopDialogBox?.width ?? 0) / (desktopDialogBox?.height ?? 1)).toBeCloseTo(1.5, 2);
   await expect(dialog).not.toHaveCSS('border-radius', '0px');
   await expect(page.locator('.modal-backdrop--photo-viewer')).not.toHaveCSS('backdrop-filter', 'none');
   await expect(dialog.locator('.photo-viewer__slide[aria-hidden="false"] .progressive-photo__preview')).toHaveCSS('object-fit', 'contain');
@@ -166,7 +167,14 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   await expect(page).toHaveURL(/\/photo\/photo-2$/);
   const portrait = dialog.locator('.photo-viewer__slide').filter({ has: page.locator('img[alt="portrait-au-jardin.jpg"]') });
   await expect(portrait.locator('.progressive-photo__preview')).toHaveCSS('object-fit', 'contain');
-  await expect(portrait.locator('.photo-viewer__ambient')).toHaveCSS('filter', /blur/);
+  await expect.poll(async () => {
+    const box = await dialog.boundingBox();
+    return (box?.width ?? 0) / (box?.height ?? 1);
+  }).toBeCloseTo(2 / 3, 2);
+  const portraitDialogBox = await dialog.boundingBox();
+  expect((portraitDialogBox?.width ?? 0) / (portraitDialogBox?.height ?? 1)).toBeCloseTo(2 / 3, 2);
+  expect(portraitDialogBox?.width).toBeLessThan(desktopDialogBox?.width ?? 0);
+  await expect(portrait.locator('.photo-viewer__image')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await page.screenshot({ path: testInfo.outputPath('viewer-portrait.png') });
   await page.getByRole('button', { name: /photo précédente|previous photo/i }).click();
   await expect(page).toHaveURL(/\/photo\/photo-1$/);
@@ -178,8 +186,16 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   await page.setViewportSize({ height: 844, width: 390 });
   await expect(dialog.locator('.photo-viewer__slide[aria-hidden="false"] .progressive-photo__preview')).toHaveCSS('object-fit', 'contain');
   const mobileDialogBox = await dialog.boundingBox();
-  expect(mobileDialogBox).toEqual({ height: 844, width: 390, x: 0, y: 0 });
+  expect(mobileDialogBox).toEqual({ height: 260, width: 390, x: 0, y: 292 });
   await expect(dialog).toHaveCSS('border-radius', '0px');
+  await page.keyboard.press('ArrowRight');
+  await expect(page).toHaveURL(/\/photo\/photo-2$/);
+  await expect.poll(async () => {
+    const box = await dialog.boundingBox();
+    return (box?.width ?? 0) / (box?.height ?? 1);
+  }).toBeCloseTo(2 / 3, 2);
+  await expect(page.getByRole('button', { name: /fermer la visionneuse|close viewer/i })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('viewer-mobile-portrait.png') });
   await page.keyboard.press('Escape');
   await expect(page).toHaveURL(/\/e\/mariage-lumiere$/);
   await expect(page.locator('.photo-grid .progressive-photo__preview').first()).toBeVisible();

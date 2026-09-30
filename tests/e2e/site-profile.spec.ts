@@ -23,6 +23,18 @@ async function openMenuForHiddenLanguage(page: Page) {
   if (await page.locator('.public-header__language').isHidden()) await page.locator('.public-header__menu').click();
 }
 
+test('the built-in Family session has its own cover when the catalog is unavailable', async ({ page }) => {
+  await page.route('**/api/v1/services', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.goto('/services');
+
+  const family = page.locator('.service-detail-card').filter({ has: page.getByRole('heading', { name: 'Famille', exact: true }) });
+  await expect(family).toHaveCount(1);
+  const preview = family.locator('.progressive-photo__preview');
+  await expect(preview).toHaveAttribute('src', '/brand/responsive/service-family-320.webp');
+  await family.scrollIntoViewIfNeeded();
+  await expect.poll(() => preview.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+});
+
 test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
@@ -60,7 +72,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await page.goto('/services');
   await expect(page.locator('.service-detail-card')).toHaveCount(8);
   await expect(page.locator('.service-detail-card h2')).toContainText([
-    'Mariages', 'Portraits et familles', 'Photos pour votre marque', 'Photos d’entreprise',
+    'Mariages et événements', 'Famille', 'Photos pour votre marque', 'Photos d’entreprise',
     'Portraits d’enfants', 'Maternité', 'Portraits', 'Couples',
   ]);
   await page.goto('/contact');
@@ -234,10 +246,11 @@ test('even strong wheel or finger gestures settle on exactly one session', async
         await page.waitForTimeout(40);
       }
     }
-    await page.waitForTimeout(750);
+    await page.waitForTimeout(1_300);
   };
   const settledAt = async (index: number) => {
-    await expect.poll(() => page.evaluate((step) => Math.abs(scrollY - innerHeight * step), index)).toBeLessThan(3);
+    await expect(page.locator('.session-story__panel').nth(index)).toHaveClass(/swiper-slide-active/u);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   };
   await gesture(1);
   await settledAt(1);
@@ -253,7 +266,7 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
-test('reduced motion keeps separate wheel ticks responsive and lets a photo follow a finger', async ({ page }, testInfo) => {
+test('reduced motion keeps session changes immediate for wheel, touch, and keyboard', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -277,27 +290,20 @@ test('reduced motion keeps separate wheel ticks responsive and lets a photo foll
       });
       await page.waitForTimeout(16);
     }
-    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(height * 0.3);
-    expect(await page.evaluate(() => scrollY)).toBeLessThan(height * 0.7);
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
     await session.detach();
   } else {
     await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
     await page.mouse.wheel(0, 120);
-    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
     await page.waitForTimeout(230);
     await page.mouse.wheel(0, 120);
-    await expect.poll(() => page.evaluate(() => scrollY)).toBe(2 * height);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(550);
-    await page.mouse.wheel(0, height * 3);
-    for (const trailingDelta of [150, 100]) {
-      await page.waitForTimeout(220);
-      await page.mouse.wheel(0, trailingDelta);
-    }
-    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+    await expect(page.locator('.session-story__panel').nth(2)).toHaveClass(/swiper-slide-active/u);
+    await page.keyboard.press('PageUp');
+    await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
   }
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
 });
 
 test('Atelier mobile menu covers the photo and returns to the ivory interior header', async ({ page }) => {

@@ -1215,9 +1215,9 @@
 }
 
 .modal.modal--photo-viewer {
-  width: 100vw;
+  --photo-viewer-max-width: 100vw;
+  --photo-viewer-max-height: 100dvh;
   max-width: none;
-  height: 100dvh;
   max-height: none;
   padding: 0;
   border-radius: 0;
@@ -1269,9 +1269,6 @@
   position: relative;
   height: 100%;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 50% 40%, rgb(255 255 255 / 6%), transparent 48%),
-    var(--color-overlay);
   overflow: hidden;
 }
 
@@ -1297,17 +1294,7 @@
   overflow: hidden;
 }
 
-.photo-viewer__ambient {
-  position: absolute;
-  inset: -2rem;
-  width: calc(100% + 4rem);
-  height: calc(100% + 4rem);
-  object-fit: cover;
-  filter: blur(2.5rem) brightness(0.8) saturate(0.9);
-  pointer-events: none;
-}
-
-.photo-viewer__image {
+.photo-viewer__image.progressive-photo {
   position: relative;
   display: block;
   width: 100%;
@@ -1466,8 +1453,8 @@
   }
 
   .modal.modal--photo-viewer {
-    width: min(97vw, 112rem);
-    height: min(94dvh, 68rem);
+    --photo-viewer-max-width: min(94vw, 112rem);
+    --photo-viewer-max-height: min(92dvh, 68rem);
     border: 0.0625rem solid rgb(255 255 255 / 16%);
     border-radius: clamp(1.5rem, 2.5vw, 2rem);
     box-shadow: 0 2rem 7rem rgb(11 6 15 / 58%), 0 0.25rem 1rem rgb(11 6 15 / 28%);
@@ -2055,13 +2042,16 @@
   .button:not(:disabled):hover, .icon-button:not(:disabled):hover, .public-header__theme:hover, .public-header__language:hover, .demo-experience-card:hover, .service-card:hover, .featured-site-card:hover, .event-card:hover { transform: none; }
 }
 
-/* Full-height session panels selected by a site profile; touch gestures advance one panel at a time. */
+/* Full-height session panels selected by a site profile; Swiper owns the slide gesture. */
 .public-main--immersive { width: 100%; min-height: 0; padding: 0; }
-.session-story { position: relative; background: var(--color-text); touch-action: pan-x pinch-zoom; }
-.session-story__panel { position: sticky; top: 0; display: grid; min-height: 100svh; overflow: hidden; place-items: center; isolation: isolate; }
-.session-story__panel > .session-story__photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.session-story { position: relative; background: var(--color-text); }
+.session-story__swiper { width: 100%; height: 100svh; }
+.session-story__panel { display: grid; height: 100%; overflow: hidden; place-items: center; isolation: isolate; }
+.session-story__visual { position: absolute; inset: 0; width: 100%; height: 100%; }
+.session-story__visual > .session-story__photo { position: absolute; inset: 0; width: 100%; height: 100%; }
 .session-story__photo > img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); }
 .session-story__shade { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(90deg, var(--color-overlay), transparent 75%), linear-gradient(0deg, var(--color-overlay), transparent 38%); }
+.session-story__copy { position: relative; z-index: 2; width: 100%; }
 .session-story__content { position: relative; z-index: 2; display: grid; width: min(100% - 2rem, 64rem); justify-items: center; padding-block: 6rem 3rem; color: var(--color-on-photo); text-align: center; }
 .session-story__eyebrow { margin: 0 0 1.5rem; font-size: var(--text-sm); letter-spacing: 0.25em; text-transform: uppercase; }
 .session-story h1, .session-story h2 { max-width: 17ch; margin: 0; font-family: var(--font-display); font-size: clamp(3.5rem, 7vw, 6.5rem); font-weight: 400; line-height: 0.95; text-wrap: balance; text-shadow: 0 0.15rem 1.2rem rgb(0 0 0 / 28%); }
@@ -2081,7 +2071,7 @@
 /* The same masthead stacks the notice and navigation on every page. */
 :root[data-site='atelier-giulia'] .public-shell--immersive { position: relative; overflow: clip; }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-masthead { position: absolute; top: 0; right: 0; left: 0; }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: var(--color-background); color: var(--color-text); }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: color-mix(in srgb, var(--color-background) 88%, transparent); color: var(--color-text); }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-construction-notice { background: var(--color-overlay); color: var(--color-on-photo); }
 
 @media (max-width: 54rem) {

@@ -51,6 +51,7 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
   const next = index >= 0 ? photos[index + 1] : undefined;
   const [carouselRef, carousel] = useEmblaCarousel({ align: 'center', loop: false });
   const capturedAt = formatCapturedAt(photo.capturedAt ?? null, i18n.language, timezone);
+  const aspectRatio = photo.width / photo.height;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -79,7 +80,12 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
   }, [carousel, onSelect, photo.id, photos]);
 
   return (
-    <Modal backdropClassName="modal-backdrop--photo-viewer" className="modal--photo-viewer" closeLabel={t('gallery.closeViewer')} onClose={onClose} open title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
+    <Modal backdropClassName="modal-backdrop--photo-viewer" className="modal--photo-viewer" closeLabel={t('gallery.closeViewer')} onClose={onClose} open
+      style={{
+        width: `min(var(--photo-viewer-max-width), calc(var(--photo-viewer-max-height) * ${aspectRatio}))`,
+        height: `min(var(--photo-viewer-max-height), calc(var(--photo-viewer-max-width) / ${aspectRatio}))`,
+      }}
+      title={t('gallery.photoOf', { current: index + 1, total: photos.length })}>
       <div className="photo-viewer">
         <div className="photo-viewer__viewport" ref={carouselRef}>
           <div className="photo-viewer__container">
@@ -88,7 +94,6 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
               const nearby = Math.abs(candidateIndex - index) <= 1;
               return (
                 <div aria-hidden={!selected} className="photo-viewer__slide" key={`${candidate.id}:${candidate.revision}`}>
-                  {nearby ? <img alt="" aria-hidden="true" className="photo-viewer__ambient" height={candidate.height} src={candidate.sources[0]?.url} width={candidate.width} /> : null}
                   <ProgressivePhoto alt={selected ? candidate.filename : ''} className="photo-viewer__image" enabled={nearby} height={candidate.height} immediate={nearby} maxQuality={selected ? 'full' : 'medium'} sizes="100vw" sources={candidate.sources} width={candidate.width} />
                 </div>
               );

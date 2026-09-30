@@ -8,6 +8,22 @@ import { defaultServiceImage, fallbackServices, serviceText } from '../../../src
 beforeAll(() => installPublicResources(i18n));
 
 describe('prefilled sessions', () => {
+  it('keeps Family distinct from Portraits with a family cover and bilingual copy', () => {
+    const family = fallbackServices().find((card) => card.id === 'family');
+    expect(family).toBeDefined();
+    if (!family) return;
+
+    expect(defaultServiceImage(family.id)).toBe('/brand/service-family.webp');
+    expect(serviceText(family, 'en', (key) => i18n.getFixedT('en')(key))).toMatchObject({
+      title: 'Family',
+      points: ['At home or outdoors, at your family’s pace', 'Time together across ages and generations', 'A private gallery to revisit and share'],
+    });
+    expect(serviceText(family, 'fr', (key) => i18n.getFixedT('fr')(key))).toMatchObject({
+      title: 'Famille',
+      points: ['À la maison ou dehors, au rythme de votre famille', 'Des moments ensemble, d’une génération à l’autre', 'Une galerie privée à revoir et à partager'],
+    });
+  });
+
   it('includes distinct Maternity, Portraits, and Couples examples in both languages', () => {
     const cards = fallbackServices();
     const additions = cards.slice(-3);

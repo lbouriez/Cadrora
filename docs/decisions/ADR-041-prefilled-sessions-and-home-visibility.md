@@ -16,3 +16,5 @@ The five built-in photography sessions omit distinct Maternity, Portraits, and C
 ## Consequences
 
 Owners can decide Home membership with one switch per session. Existing sites gain three visible examples when migration 040 runs, and can hide or replace each one in the Sessions editor. A site whose session catalog API is unavailable still has compiled bilingual examples and photos.
+
+The 2026-09-30 catalog copy cleanup gives the existing `family` session a distinct **Famille** / **Family** title, family-specific descriptions, and a dedicated compiled sample photo across site profiles. Its key, D1 row, ordering, and owner overrides are unchanged.

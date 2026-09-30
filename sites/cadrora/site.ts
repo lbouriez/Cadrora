@@ -15,7 +15,7 @@ export const cadroraSite = {
   privateGalleryCoverUrl: '/brand/private-gallery-cover.webp',
   serviceImages: {
     wedding: '/brand/demo-hero.webp',
-    family: '/brand/demo-services-triptych.webp',
+    family: '/brand/service-family.webp',
     brand: '/brand/service-brand.webp',
     corporate: '/brand/service-corporate.webp',
     children: '/brand/service-children.webp',
@@ -33,7 +33,7 @@ export const cadroraSite = {
         name: 'Atelier Giulia',
         href: 'https://ateliergiulia.com/',
         descriptionKey: 'gallery.featuredSites.atelierGiulia',
-        logoUrl: '/brand/atelier-giulia-icon.png',
+        logoUrl: '/brand/atelier-giulia-logo.png',
       },
     ],
   },

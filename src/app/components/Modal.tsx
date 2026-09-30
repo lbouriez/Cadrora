@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
-import type { KeyboardEvent, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 import { IconButton } from './IconButton';
@@ -16,12 +16,13 @@ export interface ModalProps {
   closeLabel: string;
   onClose: () => void;
   open: boolean;
+  style?: CSSProperties;
   title: string;
 }
 
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
 
-export function Modal({ backdropClassName = '', children, className = '', closeLabel, onClose, open, title }: ModalProps) {
+export function Modal({ backdropClassName = '', children, className = '', closeLabel, onClose, open, style, title }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +75,7 @@ export function Modal({ backdropClassName = '', children, className = '', closeL
         onKeyDown={trapFocus}
         ref={dialogRef}
         role="dialog"
+        style={style}
         tabIndex={-1}
       >
         <div className="modal__header">
