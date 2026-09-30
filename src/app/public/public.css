@@ -2060,6 +2060,27 @@
 .session-story__cta:hover { background: var(--color-surface); transform: translateY(-0.15rem); }
 .session-story__cta:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
 
+/* Apply framing to both the blurred preview and the responsive image. */
+.service-photo--left { --service-photo-x: 0%; }
+.service-photo--center { --service-photo-x: 50%; }
+.service-photo--right { --service-photo-x: 100%; }
+.service-photo > img, img.service-photo { object-position: var(--service-photo-x, 50%) center; }
+@media (max-width: 54rem) {
+  .service-photo--mobile-left { --service-photo-x: 0%; }
+  .service-photo--mobile-center { --service-photo-x: 50%; }
+  .service-photo--mobile-right { --service-photo-x: 100%; }
+}
+
+/* The admin preview uses a phone frame even on a desktop-sized browser. */
+.session-story--preview { width: min(100%, 20rem); aspect-ratio: 390 / 844; container-type: inline-size; border-radius: var(--radius-md); overflow: hidden; }
+.session-story--preview .session-story__panel { position: relative; }
+.session-story--preview .session-story__content { width: calc(100% - 8cqw); padding-block: 24.6cqw 12.3cqw; }
+.session-story--preview .session-story__eyebrow { margin-bottom: 6.15cqw; font-size: 2.87cqw; }
+.session-story--preview .session-story__content h2 { font-size: 12cqw; }
+.session-story--preview .session-story__subtitle { margin-top: 6.15cqw; font-size: 4.1cqw; }
+.session-story--preview .session-story__cta { min-height: 11.3cqw; margin-top: 8.2cqw; padding: 2.87cqw 6.97cqw; font-size: 4.3cqw; }
+.session-story--preview .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
+
 :root[data-site='atelier-giulia'] .public-header { width: 100%; min-height: 5.5rem; padding: 1rem clamp(1.25rem, 4vw, 4rem); border: 0; border-radius: 0; background: var(--color-background); box-shadow: none; backdrop-filter: none; }
 :root[data-site='atelier-giulia'] .public-brand { font-family: var(--font-display); font-size: clamp(1.4rem, 2.3vw, 2rem); font-weight: 400; letter-spacing: 0.02em; }
 :root[data-site='atelier-giulia'] .public-brand img { display: none; }

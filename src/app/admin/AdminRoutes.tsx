@@ -10,6 +10,7 @@ import { i18n } from '../i18n';
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { siteProfile } from '../public/siteProfile';
+import { installPublicResources } from '../public/i18n';
 import { ImportPage } from './Import';
 import { adminImportResources } from './ImportResources';
 import { AdminEventsPage, AdminEventSettingsPage } from './AdminEventsPage';
@@ -53,6 +54,9 @@ const diagnosticsResources = {
     objectKey: 'Clé de l’objet R2', uploaded: 'Téléversé', scanNext: 'Analyser les 100 suivants',
   } } },
 } as const;
+
+// Session previews use the same localized copy as the public Home slides.
+installPublicResources(i18n);
 
 for (const language of ['en', 'fr'] as const) {
   i18n.addResourceBundle(language, 'translation', adminResourceFragment[language], true, true);

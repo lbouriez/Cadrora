@@ -5,16 +5,16 @@ import { errorBoundary } from '../../../src/server/middleware/errorBoundary';
 import { requestId } from '../../../src/server/middleware/requestId';
 import { registerServiceRoutes } from '../../../src/server/routes/services';
 import type { AppEnv } from '../../../src/server/types';
-import { ServiceCardsSchema, ServiceImageUploadHeadersSchema } from '../../../src/shared/schemas/services';
+import { ServiceCardsSchema, ServiceCardUpdateSchema, ServiceImageUploadHeadersSchema } from '../../../src/shared/schemas/services';
 
-function testApp(withAnonymousAuth = false, withOwnerAuth = false) {
+function testApp(withAnonymousAuth = false, withOwnerAuth = false, access: 'manage' | 'read-only' = 'manage') {
   const app = new Hono<AppEnv>();
   app.use('*', requestId);
   app.onError(errorBoundary);
   if (withAnonymousAuth) app.use('*', async (context, next) => { context.set('auth', {}); await next(); });
   if (withOwnerAuth) app.use('*', async (context, next) => {
     context.set('auth', { admin: {
-      access: 'manage', authMode: 'password', createdAt: '2026-09-27T00:00:00.000Z',
+      access, authMode: 'password', createdAt: '2026-09-27T00:00:00.000Z',
       expiresAt: '2026-09-28T00:00:00.000Z', id: 'owner', revokedAt: null, subject: 'owner',
     } });
     await next();
@@ -24,6 +24,60 @@ function testApp(withAnonymousAuth = false, withOwnerAuth = false) {
 }
 
 describe('service catalog routes', () => {
+  it('validates alignment choices while accepting older clients without framing fields', () => {
+    const input = { enabled: true, showOnHome: true, sortOrder: 0, copy: null };
+    expect(ServiceCardUpdateSchema.parse(input)).toEqual(input);
+    expect(ServiceCardUpdateSchema.safeParse({ ...input, photoAlignment: 'top' }).success).toBe(false);
+    expect(ServiceCardUpdateSchema.safeParse({ ...input, mobilePhotoAlignment: 'javascript:bad' }).success).toBe(false);
+  });
+
+  it('persists framing, preserves it on reorder, and clears only an explicitly removed phone override', async () => {
+    const row = { id: 'maternity', is_builtin: 1, sort_order: 0, enabled: 1, show_on_home: 1,
+      copy_json: null, image_revision: 0, pending_image_revision: null,
+      photo_alignment: 'center', mobile_photo_alignment: null as string | null };
+    const updates: unknown[][] = [];
+    const database = { prepare: vi.fn((query: string) => ({
+      all: () => Promise.resolve({ results: query.includes('FROM site_services') ? [row] : [] }),
+      bind: (...values: unknown[]) => ({
+        first: () => Promise.resolve(row),
+        run: () => {
+          if (query.startsWith('UPDATE site_services')) {
+            updates.push(values);
+            row.photo_alignment = String(values[4]);
+            row.mobile_photo_alignment = typeof values[5] === 'string' ? values[5] : null;
+          }
+          return Promise.resolve({ success: true });
+        },
+      }),
+    })) } as unknown as D1Database;
+    const input = { enabled: true, showOnHome: true, sortOrder: 0, copy: null };
+    const patch = (body: unknown) => testApp(false, true).request('/api/v1/admin/services/maternity', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    }, { DB: database });
+    expect(await (await patch({ ...input, photoAlignment: 'left', mobilePhotoAlignment: 'right' })).json())
+      .toMatchObject({ photoAlignment: 'left', mobilePhotoAlignment: 'right' });
+    expect(await (await patch({ ...input, sortOrder: 1 })).json())
+      .toMatchObject({ photoAlignment: 'left', mobilePhotoAlignment: 'right' });
+    const publicCards = await testApp().request('/api/v1/services', undefined, { DB: database });
+    expect(await publicCards.json()).toMatchObject([{ photoAlignment: 'left', mobilePhotoAlignment: 'right' }]);
+    expect(await (await patch({ ...input, mobilePhotoAlignment: null })).json())
+      .toMatchObject({ photoAlignment: 'left', mobilePhotoAlignment: null });
+    expect(updates).toHaveLength(3);
+    expect((await patch({ ...input, photoAlignment: 'invalid' })).status).toBe(400);
+    expect(updates).toHaveLength(3);
+  });
+
+  it.each(['anonymous', 'read-only'] as const)('rejects %s framing writes before touching D1', async (role) => {
+    const prepare = vi.fn();
+    const app = role === 'anonymous' ? testApp(true) : testApp(false, true, 'read-only');
+    const response = await app.request('/api/v1/admin/services/maternity', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: true, showOnHome: true, sortOrder: 0, copy: null, photoAlignment: 'right' }),
+    }, { DB: { prepare } as unknown as D1Database });
+    expect(response.status).toBe(403);
+    expect(prepare).not.toHaveBeenCalled();
+  });
+
   it('accepts the dimensions of a 2560 px wide portrait marketing image', () => {
     expect(ServiceImageUploadHeadersSchema.safeParse({
       byteSize: 3_000_000, checksumSha256: 'a'.repeat(64), contentType: 'image/webp',
@@ -35,9 +89,9 @@ describe('service catalog routes', () => {
     const copy = { fr: { title: 'Mariages', shortDescription: 'Court', description: 'Long', points: [] },
       en: { title: 'Weddings', shortDescription: 'Short', description: 'Long', points: [] } };
     const row: { id: string; is_builtin: number; sort_order: number; enabled: number; show_on_home: number;
-      copy_json: string | null; image_revision: number; pending_image_revision: number | null } = {
+      copy_json: string | null; image_revision: number; pending_image_revision: number | null; photo_alignment: string; mobile_photo_alignment: string | null } = {
       id: 'wedding', is_builtin: 1, sort_order: 2, enabled: 1, show_on_home: 0,
-      copy_json: JSON.stringify(copy), image_revision: 3, pending_image_revision: 4 };
+      copy_json: JSON.stringify(copy), image_revision: 3, pending_image_revision: 4, photo_alignment: 'right', mobile_photo_alignment: 'left' };
     let variants = [3, 4].map((revision) => ({ service_id: 'wedding', revision,
       variant: 'preview', storage_key: `site/services/wedding/${revision}/preview.webp`,
       content_type: 'image/webp', byte_size: 100, width: 320, height: 213, checksum_sha256: 'a'.repeat(64) }));
@@ -59,6 +113,8 @@ describe('service catalog routes', () => {
         const reset = statements.find((statement) => statement.query.includes('copy_json = NULL'));
         if (reset) {
           row.copy_json = null;
+          row.photo_alignment = 'center';
+          row.mobile_photo_alignment = null;
           row.image_revision = Number(reset.values?.[0]);
           row.pending_image_revision = null;
           variants = [];
@@ -72,7 +128,7 @@ describe('service catalog routes', () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       id: 'wedding', enabled: true, showOnHome: false, sortOrder: 2, copy: null,
-      imageRevision: null, imageSources: [],
+      imageRevision: null, imageSources: [], photoAlignment: 'center', mobilePhotoAlignment: null,
     });
     expect(batched.filter((query) => query.includes("'delete_service_media'"))).toHaveLength(2);
     expect(batched.filter((query) => query.startsWith('DELETE FROM site_service_variants'))).toHaveLength(2);

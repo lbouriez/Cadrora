@@ -4,12 +4,13 @@ import type { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
-  LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema,
+  LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema, ServicePhotoAlignmentSchema,
 } from '../../shared/schemas';
 import { MAX_SITE_SERVICES } from '../../shared/constants';
-import type { Language, ServiceCard, ServiceCopy } from '../../shared/schemas';
-import { Button, Spinner } from '../components';
+import type { Language, ServiceCard, ServiceCopy, ServicePhotoAlignment } from '../../shared/schemas';
+import { Button, Select, Spinner } from '../components';
 import { ServicePhoto } from '../public/ServicePhoto';
+import { SessionStoryContent } from '../public/SessionStoryContent';
 import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 
@@ -45,6 +46,9 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
   const [copy, setCopy] = useState<ServiceCopy>(() => card?.copy ?? defaultCopy(card, translate));
   const [enabled, setEnabled] = useState(card?.enabled ?? false);
   const [showOnHome, setShowOnHome] = useState(card?.showOnHome ?? false);
+  const [photoAlignment, setPhotoAlignment] = useState<ServicePhotoAlignment>(card?.photoAlignment ?? 'center');
+  const [mobilePhotoAlignment, setMobilePhotoAlignment] = useState<ServicePhotoAlignment | null>(card?.mobilePhotoAlignment ?? null);
+  const previewCard = card ? { ...card, copy, photoAlignment, mobilePhotoAlignment } : null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -80,7 +84,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       if (card) {
         await apiJson(`/api/v1/admin/services/${card.id}`, ServiceCardSchema, {
           method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled, showOnHome, sortOrder: card.sortOrder, copy: parsed.data }),
+          body: JSON.stringify({ enabled, showOnHome, sortOrder: card.sortOrder, copy: parsed.data, photoAlignment, mobilePhotoAlignment }),
         });
       } else {
         await apiJson('/api/v1/admin/services', ServiceCardSchema, {
@@ -96,7 +100,9 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     if (!card?.isBuiltin || readOnly || busy) return;
     setBusy(true); setError(false); setSuccess(false);
     try {
-      await apiJson(`/api/v1/admin/services/${card.id}/reset`, ServiceCardSchema, { method: 'POST' });
+      const restored = await apiJson(`/api/v1/admin/services/${card.id}/reset`, ServiceCardSchema, { method: 'POST' });
+      setPhotoAlignment(restored.photoAlignment);
+      setMobilePhotoAlignment(restored.mobilePhotoAlignment);
       setCopy(defaultCopy(card, translate));
       await onChanged();
       setSuccess(true);
@@ -143,7 +149,31 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         <label className="field"><span className="field__label">{t('admin.serviceEditor.photo')}</span>
           <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
         </label>
-        <ServicePhoto card={card} className="admin-service-editor__preview" sizes="320px" />
+        <fieldset className="admin-service-framing" disabled={busy || readOnly}>
+          <legend>{t('admin.serviceEditor.framing')}</legend>
+          <p className="field__hint">{t('admin.serviceEditor.framingHint')}</p>
+          <Select label={t('admin.serviceEditor.desktopAlignment')} value={photoAlignment} onChange={(event) => {
+            setPhotoAlignment(ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
+          }}>
+            {ServicePhotoAlignmentSchema.options.map((alignment) => <option key={alignment} value={alignment}>{t(`admin.serviceEditor.alignment.${alignment}`)}</option>)}
+          </Select>
+          <Select label={t('admin.serviceEditor.mobileAlignment')} value={mobilePhotoAlignment ?? ''} onChange={(event) => {
+            setMobilePhotoAlignment(event.target.value === '' ? null : ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
+          }}>
+            <option value="">{t('admin.serviceEditor.sameAlignment')}</option>
+            {ServicePhotoAlignmentSchema.options.map((alignment) => <option key={alignment} value={alignment}>{t(`admin.serviceEditor.alignment.${alignment}`)}</option>)}
+          </Select>
+          {previewCard ? <div className="admin-service-framing__previews">
+            <figure><figcaption>{t('admin.serviceEditor.desktopPreview')}</figcaption>
+              <div className="admin-service-framing__default"><ServicePhoto card={previewCard} className="admin-service-editor__preview" sizes="320px" framing="desktop" immediate /></div>
+            </figure>
+            <figure><figcaption>{t('admin.serviceEditor.mobilePreview')}</figcaption>
+              <div className="session-story session-story--preview"><div className="session-story__panel">
+                <SessionStoryContent card={previewCard} immediate preview />
+              </div></div>
+            </figure>
+          </div> : null}
+        </fieldset>
         {!card.isBuiltin && !card.imageRevision ? <p className="field__hint">{t('admin.serviceEditor.photoRequired')}</p> : null}
       </> : null}
       <div className="admin-service-editor__actions">

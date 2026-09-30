@@ -24,6 +24,8 @@ interface ServiceRow {
   copy_json: string | null;
   image_revision: number;
   pending_image_revision: number | null;
+  photo_alignment: string;
+  mobile_photo_alignment: string | null;
 }
 
 interface VariantRow {
@@ -79,6 +81,8 @@ async function listServices(db: D1Database): Promise<ServiceCard[]> {
       showOnHome: row.show_on_home === 1,
       copy: row.copy_json ? ServiceCopySchema.parse(JSON.parse(row.copy_json) as unknown) : null,
       imageRevision: published.length ? row.image_revision : null,
+      photoAlignment: row.photo_alignment,
+      mobilePhotoAlignment: row.mobile_photo_alignment,
       imageSources: published.map((variant) => ({
         url: `/service-media/${row.id}/${row.image_revision}/${variant.variant}`,
         width: variant.width,
@@ -236,9 +240,12 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     }
     const now = new Date().toISOString();
     await context.env.DB.prepare(
-      'UPDATE site_services SET enabled = ?, show_on_home = ?, sort_order = ?, copy_json = ?, updated_at = ? WHERE id = ?',
+      'UPDATE site_services SET enabled = ?, show_on_home = ?, sort_order = ?, copy_json = ?, photo_alignment = ?, mobile_photo_alignment = ?, updated_at = ? WHERE id = ?',
     ).bind(Number(input.data.enabled), Number(input.data.showOnHome), input.data.sortOrder,
-      input.data.copy ? JSON.stringify(input.data.copy) : null, now, id.data).run();
+      input.data.copy ? JSON.stringify(input.data.copy) : null,
+      input.data.photoAlignment ?? previous.photo_alignment,
+      input.data.mobilePhotoAlignment === undefined ? previous.mobile_photo_alignment : input.data.mobilePhotoAlignment,
+      now, id.data).run();
     if (previous.is_builtin) await syncLegacyServices(context.env.DB);
     const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
     if (!card) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 500);
@@ -257,7 +264,8 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
       ...await oldImageCleanup(context.env.DB, id.data, row.image_revision, now),
       ...await oldImageCleanup(context.env.DB, id.data, row.pending_image_revision ?? 0, now),
       context.env.DB.prepare(`UPDATE site_services SET copy_json = NULL, image_revision = ?,
-        pending_image_revision = NULL, updated_at = ? WHERE id = ? AND is_builtin = 1`)
+        pending_image_revision = NULL, photo_alignment = 'center', mobile_photo_alignment = NULL,
+        updated_at = ? WHERE id = ? AND is_builtin = 1`)
         .bind(Math.max(row.image_revision, row.pending_image_revision ?? 0), now, id.data),
     ]);
     const card = (await listServices(context.env.DB)).find((item) => item.id === id.data);
