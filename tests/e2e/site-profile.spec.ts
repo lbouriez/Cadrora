@@ -25,6 +25,7 @@ async function openMenuForHiddenLanguage(page: Page) {
 
 test('Atelier Giulia inherits the shared site without demo journeys or invented contact details', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }) }));
   await page.goto('/');
 
@@ -57,7 +58,11 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await assertNoHorizontalOverflow(page);
 
   await page.goto('/services');
-  await expect(page.locator('.service-detail-card')).toHaveCount(5);
+  await expect(page.locator('.service-detail-card')).toHaveCount(8);
+  await expect(page.locator('.service-detail-card h2')).toContainText([
+    'Mariages', 'Portraits et familles', 'Photos pour votre marque', 'Photos d’entreprise',
+    'Portraits d’enfants', 'Maternité', 'Portraits', 'Couples',
+  ]);
   await page.goto('/contact');
   await expect(page.locator('.contact-page__unconfigured')).toBeVisible();
   await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
