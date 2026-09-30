@@ -300,6 +300,7 @@ test('reduced motion keeps session changes immediate for wheel, touch, and keybo
     await page.waitForTimeout(230);
     await page.mouse.wheel(0, 120);
     await expect(page.locator('.session-story__panel').nth(2)).toHaveClass(/swiper-slide-active/u);
+    await page.locator('.vertical-story-slider').focus();
     await page.keyboard.press('PageUp');
     await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
   }
