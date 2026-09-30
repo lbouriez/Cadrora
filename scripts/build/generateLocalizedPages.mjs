@@ -1,0 +1,70 @@
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
+import { loadSiteProfile } from '../sites/loadProfile.mjs';
+
+const site = loadSiteProfile(process.env.CADRORA_SITE?.trim() || 'cadrora');
+const output = 'dist/client';
+const shell = await readFile(join(output, 'index.html'), 'utf8');
+const pages = [
+  ['home', ''], ['services', 'services'], ['portfolio', 'portfolio'],
+  ['about', 'about'], ['contact', 'contact'], ['privacy', 'privacy'],
+];
+
+function escapeHtml(value) {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+}
+
+function pageUrl(language, path) {
+  return `${site.document.origin}/${language}/${path ? `${path}/` : ''}`;
+}
+
+function documentFor(language, page, path) {
+  const copy = site.document.pages?.[page]?.[language]
+    ?? { title: site.name, description: site.document.description };
+  const title = escapeHtml(copy.title);
+  const description = escapeHtml(copy.description);
+  const origin = site.document.origin;
+  const currentUrl = origin ? pageUrl(language, path) : null;
+  const shareImage = origin ? new URL(site.document.shareImage ?? site.heroImageUrl, origin).href : null;
+  const alternates = origin ? ['fr', 'en'].map((alternate) =>
+    `<link rel="alternate" hreflang="${alternate}" href="${escapeHtml(pageUrl(alternate, path))}">`).join('\n') : '';
+  const metadata = currentUrl ? `
+    <link rel="canonical" href="${escapeHtml(currentUrl)}">
+    ${alternates}
+    <link rel="alternate" hreflang="x-default" href="${escapeHtml(pageUrl(site.defaultLanguage ?? 'fr', path))}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="${escapeHtml(site.name)}">
+    ${site.document.locales ? `<meta property="og:locale" content="${escapeHtml(site.document.locales[language])}">
+    <meta property="og:locale:alternate" content="${escapeHtml(site.document.locales[language === 'fr' ? 'en' : 'fr'])}">` : ''}
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${escapeHtml(currentUrl)}">
+    <meta property="og:image" content="${escapeHtml(shareImage)}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${escapeHtml(shareImage)}">
+    <script id="site-organization" type="application/ld+json">${JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'Organization',
+      name: site.name, url: origin, image: shareImage,
+    }).replaceAll('<', '\\u003c')}</script>` : '';
+  const navigation = pages.map(([key, suffix]) =>
+    `<a href="/${language}/${suffix ? `${suffix}/` : ''}">${escapeHtml(site.document.pages?.[key]?.[language]?.title ?? key)}</a>`).join(' ');
+  const fallback = `<main><h1>${title}</h1><p>${description}</p><nav aria-label="${language === 'fr' ? 'Pages publiques' : 'Public pages'}">${navigation}</nav></main>`;
+  return shell.replace(/<html lang="[^"]*">/u, `<html lang="${language}">`)
+    .replace(/<title>[^<]*<\/title>/u, `<title>${title}</title>`)
+    .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${description}$2`)
+    .replace('</head>', `${metadata}\n  </head>`)
+    .replace('<div id="root"></div>', `<div id="root">${fallback}</div>`);
+}
+
+for (const language of ['fr', 'en']) {
+  for (const [page, path] of pages) {
+    const directory = join(output, language, path);
+    await mkdir(directory, { recursive: true });
+    await writeFile(join(directory, 'index.html'), documentFor(language, page, path));
+  }
+}
+await writeFile(join(output, 'index.html'), documentFor(site.defaultLanguage ?? 'fr', 'home', ''));

@@ -3,6 +3,31 @@ import { assertNoHorizontalOverflow, expect, test } from './fixtures';
 
 test.skip(process.env.CADRORA_SITE !== 'atelier-giulia', 'Run with CADRORA_SITE=atelier-giulia.');
 
+test('localized Home URLs use the selected language and owner Contact area in rendered metadata', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: 'Sample service area',
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['family'], analyticsMeasurementId: null, themeMode: 'light',
+    homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-09-27T00:00:00.000Z',
+  }) }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('family', 'Familles', 'Families', 0),
+  ]) }));
+  await page.goto('/en/');
+  await dismissConsent(page);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Families');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Service area: Sample service area/u);
+  await expect.poll(() => page.locator('#site-organization').textContent())
+    .toContain('"areaServed":"Sample service area"');
+  await openMenuForHiddenLanguage(page);
+  await page.locator('.public-header__language').click();
+  await expect(page).toHaveURL('/fr');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
+});
+
 function sessionCard(id: string, fr: string, en: string, sortOrder: number, showOnHome = true) {
   return {
     id, isBuiltin: true, sortOrder, enabled: true, showOnHome,
@@ -41,7 +66,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
   await page.route(/\/api\/v1\/galleries(?:\?.*)?$/u, (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }) }));
   await page.goto('/');
 
-  await expect(page).toHaveTitle('Atelier Giulia');
+  await expect(page).toHaveTitle('Photographie de famille, maternité et portraits | Atelier Giulia');
   await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
   await expect(page.locator('.session-story')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/mariages|weddings/i);
@@ -208,6 +233,7 @@ test('owner sessions form full-height panels with their own booking action', asy
     sessionCard('brand', 'Portraits', 'Portraits', 2),
   ]) }));
   await page.goto('/');
+  await dismissConsent(page);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
   const panels = page.locator('.session-story__panel');
   await expect(panels).toHaveCount(3);
@@ -219,10 +245,21 @@ test('owner sessions form full-height panels with their own booking action', asy
   expect(Math.abs((copy?.y ?? 0) + (copy?.height ?? 0) / 2 - (hero?.height ?? 0) / 2)).toBeLessThan(2);
   expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
   await expect(page.locator('.session-story__cta')).toHaveCount(3);
-  await expect(page.locator('.session-story__cta').first()).toHaveAttribute('href', '/contact');
+  await expect(page.locator('.session-story__cta').first()).toHaveAttribute('href', '/fr/contact');
   await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
   await expect(page.locator('.session-story__panel').nth(2).getByRole('heading', { level: 2 })).toHaveText('Portraits');
   await expect(page.locator('.session-story__arrow')).toHaveCount(0);
+  const slideDots = page.locator('.vertical-story-slider__pagination button');
+  await expect(slideDots).toHaveCount(3);
+  await expect(slideDots.first()).toHaveAttribute('aria-current', 'step');
+  await slideDots.nth(2).click();
+  await expect(panels.nth(2)).toHaveClass(/swiper-slide-active/u);
+  await expect(slideDots.nth(2)).toHaveAttribute('aria-current', 'step');
+  await expect.poll(() => page.locator('.vertical-story-slider').evaluate((element) =>
+    (element as HTMLElement & { swiper?: { animating: boolean } }).swiper?.animating)).toBe(false);
+  await slideDots.nth(1).focus();
+  await page.keyboard.press('Enter');
+  await expect(panels.nth(1)).toHaveClass(/swiper-slide-active/u);
   await assertNoHorizontalOverflow(page);
 });
 

@@ -12,7 +12,7 @@ export default defineConfig({
     __CADRORA_SITE_DEFAULT_LANG__: JSON.stringify('fr'),
   },
   test: {
-    exclude: [...configDefaults.exclude, 'tests/e2e/**'],
+    exclude: [...configDefaults.exclude, 'tests/e2e/**', '.artifacts/**'],
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],
     coverage: {

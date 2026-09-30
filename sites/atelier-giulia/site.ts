@@ -5,6 +5,10 @@ import profile from './profile.json';
 export const atelierGiuliaSite = {
   id: 'atelier-giulia',
   name: 'Atelier Giulia',
+  seoOrigin: profile.document.origin,
+  shareImageUrl: profile.document.shareImage,
+  seoLocales: profile.document.locales,
+  seoPages: profile.document.pages,
   description: {
     fr: 'Atelier Giulia, portraits, célébrations et galeries photo.',
     en: 'Portrait and celebration photography by Atelier Giulia. Explore our photo galleries.',

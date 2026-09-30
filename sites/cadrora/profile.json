@@ -4,8 +4,37 @@
   "heroImageUrl": "/brand/demo-hero.webp",
   "document": {
     "description": "Cadrora, photographie d’événements et galeries privées élégantes.",
+    "origin": "https://cadrora.com",
+    "shareImage": "/home-hero-image/large",
+    "locales": { "fr": "fr_CA", "en": "en_CA" },
     "themeColor": "#17111f",
-    "icon": "/brand/cadrora-logo.png"
+    "icon": "/brand/cadrora-logo.png",
+    "pages": {
+      "home": {
+        "fr": { "title": "Galeries photo privées et site photographe | Cadrora", "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images." },
+        "en": { "title": "Private photo galleries and photographer website | Cadrora", "description": "Cadrora brings together a photographer website, private photo galleries and optional search to help guests find their pictures." }
+      },
+      "services": {
+        "fr": { "title": "Séances et services photo | Cadrora", "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques." },
+        "en": { "title": "Photography sessions and services | Cadrora", "description": "Explore example photo sessions and services for families, portraits, events and brands." }
+      },
+      "portfolio": {
+        "fr": { "title": "Portfolio photo | Cadrora", "description": "Parcourez des collections de démonstration pour découvrir le portfolio photo de Cadrora." },
+        "en": { "title": "Photography portfolio | Cadrora", "description": "Browse sample collections in the Cadrora photography portfolio." }
+      },
+      "about": {
+        "fr": { "title": "À propos | Cadrora", "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora." },
+        "en": { "title": "About | Cadrora", "description": "Discover the photography approach presented on the Cadrora demonstration website." }
+      },
+      "contact": {
+        "fr": { "title": "Contact | Cadrora", "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora." },
+        "en": { "title": "Contact | Cadrora", "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website." }
+      },
+      "privacy": {
+        "fr": { "title": "Confidentialité | Cadrora", "description": "Comprenez le traitement des données lors d’une visite, dans une galerie photo et avec la recherche facultative." },
+        "en": { "title": "Privacy | Cadrora", "description": "Learn how data is handled during a site visit, in a photo gallery and with optional photo search." }
+      }
+    }
   },
   "defaultLanguage": "fr",
   "allowShowcase": true

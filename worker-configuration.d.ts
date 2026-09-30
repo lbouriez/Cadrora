@@ -25,4 +25,5 @@ interface CloudflareBindings {
   SITE_NAME: string;
   SITE_DESCRIPTION: string;
   SITE_HERO_IMAGE_URL: string;
+  SITE_ORIGIN?: string;
 }

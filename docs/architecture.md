@@ -23,6 +23,8 @@ flowchart LR
 
 The React SPA is static. It contains a public photographer website at `/` and `/contact`, event galleries under `/e/*`, and the browser-operated admin surface under `/admin/*`. Cloudflare invokes the Worker first for `/api/*`, `/media/*`, authenticated admin pages, model artifacts, and event pages under `/e/*`. Event pages pass through the Worker only so recognized crawlers can receive a narrow metadata shell; ordinary navigation delegates to the static-assets binding and its SPA fallback. The public landing and contact pages retain compiled fallback content and no mandatory external runtime dependency, so they stay useful if D1/gallery API, analytics, or the optional click-to-load map is unavailable.
 
+Marketing pages also have static `/fr/` and `/en/` variants for Home, Sessions, Portfolio, About, Contact, and Privacy. Their build-time HTML carries localized canonical, `hreflang`, and share metadata without moving public marketing routes behind the Worker. The client reads owner Contact settings to add the configured service area to rendered metadata. Demo gallery translations are optional D1 JSON; legacy gallery title and description columns remain the fallback. See ADR-045.
+
 ## Runtime responsibilities
 
 ### Browser

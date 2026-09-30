@@ -4,6 +4,10 @@ import profile from './profile.json';
 export const cadroraSite = {
   id: 'cadrora',
   name: 'Cadrora',
+  seoOrigin: profile.document.origin,
+  shareImageUrl: profile.document.shareImage,
+  seoLocales: profile.document.locales,
+  seoPages: profile.document.pages,
   description: {
     fr: 'Cadrora, photographie d’événements et galeries privées élégantes.',
     en: 'Cadrora, event photography and elegant private galleries.',

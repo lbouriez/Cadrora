@@ -19,18 +19,26 @@ installFaceFindResources();
 const GalleryPage = lazy(async () => ({ default: (await import('../public/GalleryPage')).GalleryPage }));
 const galleryElement = <Suspense fallback={<PublicRouteFallback />}><GalleryPage /></Suspense>;
 
-export const publicRouteObjects: RouteObject[] = [
+const marketingRouteObjects: RouteObject[] = [
   { path: '/', element: <HomePage /> },
   { path: '/about', element: <AboutPage /> },
   { path: '/services', element: <ServicesPage /> },
   { path: '/portfolio', element: <PortfolioPage /> },
   { path: '/portfolio/:slug', element: <PortfolioDetailPage /> },
+  { path: '/privacy', element: <PrivacyPage /> },
+  { path: '/contact', element: <ContactPage /> },
+];
+
+export const publicRouteObjects: RouteObject[] = [
+  ...marketingRouteObjects,
+  ...(['fr', 'en'] as const).flatMap((language) => marketingRouteObjects.map((route) => ({
+    ...route,
+    path: `/${language}${route.path === '/' ? '' : route.path}`,
+  }))),
   { path: '/galleries', element: <GalleriesPage /> },
   { path: '/e/:slug', element: galleryElement },
   { path: '/e/:slug/photo/:photoId', element: galleryElement },
   faceFindRouteObject,
-  { path: '/privacy', element: <PrivacyPage /> },
-  { path: '/contact', element: <ContactPage /> },
 ];
 
 export { ContactPage, GalleriesPage, HomePage, PrivacyPage, ServicesPage };

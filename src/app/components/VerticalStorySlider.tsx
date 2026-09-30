@@ -8,6 +8,7 @@ import 'swiper/css';
 export interface VerticalStorySlide {
   id: string;
   content: ReactNode;
+  label?: string;
 }
 
 export interface VerticalStorySliderProps {
@@ -18,6 +19,7 @@ export interface VerticalStorySliderProps {
   motionPreference?: 'system' | 'always';
   allowDocumentScrollAtEdges?: boolean;
   onActiveIndexChange?: (index: number) => void;
+  showPagination?: boolean;
 }
 
 function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean, allowDocumentScrollAtEdges: boolean) {
@@ -31,7 +33,7 @@ const EDGE_SCROLL_MS = 700;
 
 /** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
-  motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange }: VerticalStorySliderProps) {
+  motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false }: VerticalStorySliderProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -150,5 +152,12 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       {slides.map((slide, index) => <SwiperSlide className={slideClassName} inert={index !== currentIndex}
         key={slide.id} tag="article">{slide.content}</SwiperSlide>)}
     </Swiper>
+    {showPagination && slides.length > 1 ? <nav aria-label={label} className="vertical-story-slider__pagination">
+      {slides.map((slide, index) => <button aria-current={index === currentIndex ? 'step' : undefined}
+        aria-label={slide.label ?? `${label} ${index + 1}`} className="vertical-story-slider__page"
+        key={slide.id} onClick={() => swiperRef.current?.slideTo(index)} type="button">
+        <span aria-hidden="true" />
+      </button>)}
+    </nav> : null}
   </section>;
 }

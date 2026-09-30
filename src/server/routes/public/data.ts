@@ -1,4 +1,5 @@
 import type { Event, PhotoVariant } from '../../../shared/schemas';
+import { EventLocalizedCopySchema } from '../../../shared/schemas/event';
 import type { PublicEvent, PublicPhoto } from '../../../shared/schemas/gallery';
 
 export interface EventRow {
@@ -6,6 +7,7 @@ export interface EventRow {
   slug: string;
   title: string;
   description: string | null;
+  localized_copy?: string | null;
   service?: Event['service'];
   starts_at: string;
   timezone: string;
@@ -28,11 +30,20 @@ export interface EventRow {
 }
 
 export function eventFromRow(row: EventRow): Event {
+  let localizedCopy: Event['localizedCopy'] = null;
+  if (row.localized_copy) {
+    try {
+      localizedCopy = EventLocalizedCopySchema.parse(JSON.parse(row.localized_copy) as unknown);
+    } catch {
+      // Malformed optional copy must not prevent access to the gallery's legacy text.
+    }
+  }
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
     description: row.description,
+    localizedCopy,
     service: row.service ?? null,
     startsAt: row.starts_at,
     timezone: row.timezone,
@@ -65,6 +76,7 @@ export function toPublicEvent(event: Event, coverRevision: number | null = null)
     slug: event.slug,
     title: event.title,
     description: event.description,
+    localizedCopy: event.localizedCopy ?? null,
     service: event.service,
     startsAt: event.startsAt,
     timezone: event.timezone,

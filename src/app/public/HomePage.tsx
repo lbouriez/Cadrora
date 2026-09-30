@@ -15,6 +15,7 @@ import { SessionScrollStory } from './SessionScrollStory';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
+import { localizedMarketingPath } from './localizedMarketingPath';
 import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
@@ -24,10 +25,10 @@ export function HomePage() {
 }
 
 function SiteActionLink({ action, variant, label, href }: { action?: SiteAction; variant: 'primary' | 'secondary'; label: string; href: string }) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const content = <><span className="site-actions__full">{label}</span><span aria-hidden="true" className="site-actions__short">{action ? t(action.shortLabelKey) : label}</span></>;
   const className = `button button--${variant}`;
-  const destination = href;
+  const destination = localizedMarketingPath(href, i18n.resolvedLanguage ?? i18n.language);
   return destination.startsWith('#')
     ? <a aria-label={label} className={className} href={destination}>{content}</a>
     : <Link aria-label={label} className={className} to={destination}>{content}</Link>;
@@ -131,7 +132,7 @@ export function DefaultHomePage() {
             </MotionReveal>;
           })}
         </div>
-        <Link className="button button--secondary" to="/portfolio">{t('gallery.portfolioPage.homeAction')}</Link>
+        <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
       </MotionReveal> : null}
 
       {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
@@ -161,7 +162,7 @@ export function DefaultHomePage() {
           <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
           <h2>{t('gallery.contactCalloutTitle')}</h2>
         </div>
-        <Link className="button button--primary" to="/contact">{t('gallery.contactCalloutAction')}</Link>
+        <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
       </MotionReveal> : null}</Fragment>)}
     </PublicLayout>
   );

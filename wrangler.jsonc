@@ -30,7 +30,8 @@
     "SITE_DEFAULT_LANG": "fr",
     "SITE_NAME": "Cadrora",
     "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
-    "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp"
+    "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp",
+    "SITE_ORIGIN": "https://cadrora.com"
   },
   "secrets": {
     "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
@@ -83,7 +84,8 @@
         "SITE_DEFAULT_LANG": "fr",
         "SITE_NAME": "Cadrora",
         "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
-        "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp"
+        "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp",
+        "SITE_ORIGIN": "https://cadrora.com"
       },
       "secrets": {
         "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]

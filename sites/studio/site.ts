@@ -5,6 +5,10 @@ import profile from './profile.json';
 export const studioSite = {
   id: 'studio',
   name: 'Studio photo',
+  seoOrigin: null,
+  shareImageUrl: '/home-hero-image/large',
+  seoLocales: null,
+  seoPages: null,
   description: {
     fr: 'Studio photo, portraits et galeries privées.',
     en: 'Photo studio, portraits and private galleries.',

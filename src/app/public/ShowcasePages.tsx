@@ -12,6 +12,7 @@ import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 export function ServicesPage() {
   const Override = siteProfile.pages?.services;
@@ -61,7 +62,7 @@ export function DefaultServicesPage() {
       </MotionReveal>
       <MotionReveal as="section" className="site-contact-callout">
         <div><p className="site-eyebrow">{t('gallery.contactEyebrow')}</p><h2>{t('gallery.servicesPage.cta')}</h2></div>
-        <Link className="button button--primary" to="/contact">{t('gallery.contactCalloutAction')}</Link>
+        <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
       </MotionReveal>
       <Modal className="service-details-modal" closeLabel={t('gallery.servicesPage.closeDetails')}
         onClose={() => setSelectedId(null)} open={Boolean(selectedCopy)} title={selectedCopy?.title ?? ''}>
@@ -73,7 +74,7 @@ export function DefaultServicesPage() {
           {selectedCopy.details ? <p className="service-details-modal__details">{selectedCopy.details}</p> : null}
           {selectedCopy.points.length ? <><h3>{t('gallery.servicesPage.includedLabel')}</h3>
             <ul>{selectedCopy.points.map((point, index) => <li key={index}>{point}</li>)}</ul></> : null}
-          <Link className="button button--primary" onClick={() => setSelectedId(null)} to="/contact">{t('gallery.contactCalloutAction')}</Link>
+          <Link className="button button--primary" onClick={() => setSelectedId(null)} to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
         </div> : null}
       </Modal>
     </PublicLayout>
@@ -81,8 +82,9 @@ export function DefaultServicesPage() {
 }
 
 export function GalleriesPage() {
+  const { i18n } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  if (settings.data?.galleryDirectoryEnabled === false) return <Navigate replace to="/portfolio" />;
+  if (settings.data?.galleryDirectoryEnabled === false) return <Navigate replace to={localizedMarketingPath('/portfolio', i18n.language)} />;
   const Override = siteProfile.pages?.galleries;
   return Override ? <Override /> : <DefaultGalleriesPage />;
 }

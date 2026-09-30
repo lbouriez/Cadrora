@@ -2073,6 +2073,12 @@
 .session-story__eyebrow { margin: 0 0 1.5rem; font-size: var(--text-sm); letter-spacing: 0.25em; text-transform: uppercase; }
 .session-story h1, .session-story h2 { max-width: 17ch; margin: 0; font-family: var(--font-display); font-size: clamp(3.5rem, 7vw, 6.5rem); font-weight: 400; line-height: 0.95; text-wrap: balance; text-shadow: 0 0.15rem 1.2rem rgb(0 0 0 / 28%); }
 .session-story__subtitle { max-width: 35rem; margin: 1.5rem 0 0; font-size: clamp(1rem, 1.5vw, 1.3rem); line-height: 1.6; text-shadow: 0 0.15rem 1rem rgb(0 0 0 / 50%); }
+.session-story__introduction { max-width: 42ch; margin: 0.8rem 0 0; font-size: clamp(0.82rem, 1.1vw, 0.98rem); line-height: 1.5; text-shadow: 0 0.15rem 1rem rgb(0 0 0 / 60%); }
+.session-story .vertical-story-slider__pagination { position: absolute; z-index: 5; top: 50%; right: clamp(0.25rem, 1.5vw, 1.5rem); display: grid; transform: translateY(-50%); }
+.session-story .vertical-story-slider__page { display: grid; width: var(--control-min-size); height: var(--control-min-size); place-items: center; border: 0; background: transparent; cursor: pointer; }
+.session-story .vertical-story-slider__page span { width: 0.34rem; height: 0.34rem; border-radius: var(--radius-round); background: var(--color-on-photo); opacity: 0.65; box-shadow: 0 0 0.35rem var(--color-overlay); transition: width var(--motion-standard) ease, height var(--motion-standard) ease, opacity var(--motion-standard) ease; }
+.session-story .vertical-story-slider__page[aria-current="step"] span { width: 0.58rem; height: 0.58rem; opacity: 1; }
+.session-story .vertical-story-slider__page:focus-visible { outline: 0.15rem solid var(--color-on-photo); outline-offset: -0.25rem; border-radius: var(--radius-round); }
 .session-story__cta { display: inline-flex; min-height: var(--control-min-size); align-items: center; justify-content: center; margin-top: 2rem; padding: 0.7rem 1.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-background); color: var(--color-text); font-family: var(--font-display); font-size: 1.05rem; text-decoration: none; transition: background var(--motion-standard) ease, transform var(--motion-standard) ease; }
 .session-story__cta:hover { background: var(--color-surface); transform: translateY(-0.15rem); }
 .session-story__cta:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }

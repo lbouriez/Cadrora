@@ -17,7 +17,7 @@ describe('search index routes', () => {
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('text/markdown');
     expect(body).toMatch(/^# Atelier Giulia\n/u);
-    expect(body).toContain('[Portfolio](https://example.test/portfolio)');
+    expect(body).toContain('[Portfolio](https://example.test/fr/portfolio/)');
     expect(body).not.toContain('/galleries');
     expect(body).toContain('[Plan du site](https://example.test/sitemap.xml)');
   });
@@ -53,11 +53,34 @@ describe('search index routes', () => {
       { DB: { prepare } as unknown as D1Database });
     const body = await response.text();
     expect(response.headers.get('Content-Type')).toContain('application/xml');
-    expect(body).toContain('<loc>https://example.test/portfolio</loc>');
+    expect(body).toContain('<loc>https://example.test/fr/portfolio/</loc>');
+    expect(body).toContain('<loc>https://example.test/en/portfolio/</loc>');
+    expect(body).toContain('hreflang="en" href="https://example.test/en/contact/"');
     expect(body).toContain('<loc>https://example.test/portfolio/familles</loc>');
-    expect(body).toContain('<loc>https://example.test/contact</loc>');
+    expect(body).toContain('<loc>https://example.test/fr/contact/</loc>');
     expect(body).not.toContain('/e/');
     expect(body).not.toContain('/galleries');
     expect(prepare).toHaveBeenCalledWith(expect.stringContaining('FROM portfolio_collections'));
+  });
+
+  it('uses the configured public origin when requested through a preview hostname', async () => {
+    const response = await app.request('https://preview.example.test/sitemap.xml', undefined, {
+      SITE_ORIGIN: 'https://ateliergiulia.com',
+      DB: { prepare: () => ({ all: () => Promise.resolve({ results: [] }) }) } as unknown as D1Database,
+    });
+    const body = await response.text();
+    expect(body).toContain('<loc>https://ateliergiulia.com/en/</loc>');
+    expect(body).not.toContain('preview.example.test');
+  });
+
+  it('omits About from the sitemap when the owner disables that page', async () => {
+    const response = await app.request('https://example.test/sitemap.xml', undefined, {
+      DB: { prepare: (sql: string) => sql.includes('about_enabled')
+        ? { first: () => Promise.resolve({ about_enabled: 0 }) }
+        : { all: () => Promise.resolve({ results: [] }) } } as unknown as D1Database,
+    });
+    const body = await response.text();
+    expect(body).not.toContain('/about/');
+    expect(body).toContain('/contact/');
   });
 });

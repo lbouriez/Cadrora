@@ -192,6 +192,8 @@ The same owner settings include public contact fields, a legacy non-empty unique
 
 As updated by ADR-022, the public directory API returns a bounded combined page (`limit` 1–48, default 24) plus `nextCursor`; the cursor binds the access filter and `startsAt DESC, id ASC` position. The home page requests at most 12 public entries. The directory loads further pages near the viewport and has a manual button. `events.service` is nullable and constrained to the shared wedding, family, portrait, maternity, brand, work, kids, events, or other key set. A selected key adds a localized text tag to public and protected cards without relaxing protected media access.
 
+ADR-045 adds static `/fr/` and `/en/` marketing documents with reciprocal language annotations and keeps the unprefixed routes available. `events.localized_copy` is optional validated bilingual JSON; public gallery responses carry it when present, while `title` and `description` remain required legacy fields. Gallery access, media fencing, and `noindex,nofollow` behavior are unchanged. The owner-entered Contact service area or address may augment client-rendered SEO metadata, but no location is inferred in the static shell.
+
 ## Import and facial-search privacy
 
 - The browser accepts decodable JPEG, PNG, and WebP only in v1. For JPEG it retains a normalized capture instant from `DateTimeOriginal` plus optional `OffsetTimeOriginal`, using the gallery timezone only when the camera omitted its offset. It corrects all eight EXIF orientations and strips the source EXIF/XMP payload—including GPS, serial numbers, and private comments—from every derived variant. When enabled for a new import, the untouched source is also stored as `original` and retains that metadata.

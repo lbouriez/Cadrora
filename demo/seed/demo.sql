@@ -84,6 +84,28 @@ ON CONFLICT(id) DO UPDATE SET
   revision = excluded.revision,
   updated_at = excluded.updated_at;
 
+-- Localized gallery copy is demo data. The legacy fields remain the FR fallback for older clients.
+UPDATE events SET localized_copy = json_object(
+  'fr', json_object('title', 'Lumière et promesses',
+    'description', 'Une célébration d’été racontée avec naturel, de la cérémonie jusqu’aux éclats de rire sur la piste de danse. Photos fictives créées pour la démonstration Cadrora.'),
+  'en', json_object('title', 'Light and promises',
+    'description', 'A summer celebration told naturally, from the ceremony to the laughter on the dance floor. Fictional photos created for the Cadrora demonstration.')
+) WHERE id = 'demo-public';
+
+UPDATE events SET localized_copy = json_object(
+  'fr', json_object('title', 'Instants en famille',
+    'description', 'Galerie privée de démonstration. Mot de passe : cadrora-demo. Les personnes représentées sont fictives et ne sont pas de vrais clients.'),
+  'en', json_object('title', 'Family moments',
+    'description', 'Private demonstration gallery. Password: cadrora-demo. The people shown are fictional and are not real clients.')
+) WHERE id = 'demo-private';
+
+UPDATE events SET localized_copy = json_object(
+  'fr', json_object('title', 'Retrouvez vos photos',
+    'description', 'Démonstration de recherche de photos : dix-neuf images fictives avec plusieurs invités. Essayez « Trouver mes photos » pour voir les correspondances possibles et les images prises au même moment.'),
+  'en', json_object('title', 'Find your photos',
+    'description', 'Photo search demonstration: nineteen fictional images with several guests. Try “Find my photos” to see possible matches and pictures taken around the same time.')
+) WHERE id = 'demo-ai-face-search';
+
 INSERT INTO event_credentials (event_id, password_hash, access_version, updated_at)
 VALUES (
   'demo-private',

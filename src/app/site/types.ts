@@ -23,6 +23,11 @@ export interface SiteAction {
 export interface SiteDefinition {
   id: string;
   name: string;
+  seoOrigin: string | null;
+  shareImageUrl: string;
+  seoLocales: Readonly<Record<'fr' | 'en', string>> | null;
+  seoPages: Partial<Record<'home' | 'services' | 'portfolio' | 'about' | 'contact' | 'privacy',
+    Record<'fr' | 'en', { title: string; description: string }>>> | null;
   description: Readonly<Record<'fr' | 'en', string>>;
   logoUrl: string | null;
   heroImageUrl: string;

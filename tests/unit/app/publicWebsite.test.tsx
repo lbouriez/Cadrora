@@ -195,7 +195,7 @@ describe('public photographer website', () => {
     await waitFor(() => expect(document.querySelector('.site-hero__art img[srcset]')?.getAttribute('srcset'))
       .toContain('/service-media/home-hero/2/medium 1280w, /service-media/home-hero/2/large 2560w'));
     expect(screen.getByRole('img', { name: 'Portrait au soleil' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/contact');
+    expect(screen.getByRole('link', { name: 'Parlons-en' }).getAttribute('href')).toBe('/fr/contact');
     expect(document.querySelector('.site-hero .site-actions a[href="/galleries"]')?.className).toContain('button--primary');
     expect(document.querySelectorAll('.site-hero .site-actions .button')).toHaveLength(3);
     expect(document.querySelector('.site-hero__art figcaption')).toBeNull();
@@ -244,7 +244,7 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Galeries' })).toBeNull());
     expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
-    expect(screen.getAllByRole('link', { name: 'Découvrir le portfolio' }).some((link) => link.getAttribute('href') === '/portfolio')).toBe(true);
+    expect(screen.getAllByRole('link', { name: 'Découvrir le portfolio' }).some((link) => link.getAttribute('href') === '/fr/portfolio')).toBe(true);
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
   });
 

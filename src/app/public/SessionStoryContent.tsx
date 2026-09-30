@@ -5,10 +5,11 @@ import { MotionReveal } from '../components';
 import type { ServiceCard } from '../../shared/schemas';
 import { ServicePhoto } from './ServicePhoto';
 import { serviceText } from './serviceCatalog';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 /** The live session slide and admin phone preview share the photo and text layout. */
-export function SessionStoryContent({ card, heading = 'h2', immediate = false, priority = false, preview = false }: {
-  card: ServiceCard; heading?: 'h1' | 'h2'; immediate?: boolean; priority?: boolean; preview?: boolean;
+export function SessionStoryContent({ card, heading = 'h2', immediate = false, priority = false, preview = false, introduction = false }: {
+  card: ServiceCard; heading?: 'h1' | 'h2'; immediate?: boolean; priority?: boolean; preview?: boolean; introduction?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
@@ -26,8 +27,9 @@ export function SessionStoryContent({ card, heading = 'h2', immediate = false, p
         <p className="session-story__eyebrow">{t('gallery.servicesEyebrow')}</p>
         <Heading>{copy.title}</Heading>
         {copy.shortDescription ? <p className="session-story__subtitle">{copy.shortDescription}</p> : null}
+        {introduction && !preview ? <p className="session-story__introduction">{t('gallery.heroLead')}</p> : null}
         {preview ? <span className="session-story__cta">{t('gallery.bookSession')}</span>
-          : <Link className="session-story__cta" to="/contact">{t('gallery.bookSession')}</Link>}
+          : <Link className="session-story__cta" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>}
       </Content>
     </div>
   </>;

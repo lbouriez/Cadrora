@@ -24,6 +24,7 @@ describe('public gallery contracts', () => {
       bind: vi.fn().mockReturnThis(),
       all: vi.fn().mockResolvedValue({ results: [{
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
+        localizedCopy: null,
         starts_at: '2026-09-21T15:00:00.000Z', created_at: '2026-09-18T10:00:00.000Z',
         access: 'protected', service: 'family',
       }] }),
@@ -39,6 +40,7 @@ describe('public gallery contracts', () => {
     expect(await response.json()).toEqual({
       events: [], protectedGalleries: [{
         id: 'private-family', slug: 'family-afternoon', title: 'Family afternoon', description: 'A quiet celebration',
+        localizedCopy: null,
         startsAt: '2026-09-21T15:00:00.000Z',
         createdAt: '2026-09-18T10:00:00.000Z',
         service: 'family',

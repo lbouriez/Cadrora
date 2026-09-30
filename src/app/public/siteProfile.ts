@@ -13,6 +13,10 @@ function optionalValue(value: string | undefined): string | null {
 export const siteProfile = {
   id: activeSite.id,
   siteName: optionalValue(import.meta.env.VITE_APP_NAME) ?? activeSite.name,
+  seoOrigin: activeSite.seoOrigin,
+  shareImageUrl: activeSite.shareImageUrl,
+  seoLocales: activeSite.seoLocales,
+  seoPages: activeSite.seoPages,
   siteDescription: activeSite.description,
   photographerName: optionalValue(import.meta.env.VITE_PHOTOGRAPHER_NAME),
   logoUrl: activeSite.logoUrl,

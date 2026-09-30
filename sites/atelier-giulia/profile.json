@@ -4,9 +4,38 @@
   "heroImageUrl": "/brand/demo-hero.webp",
   "document": {
     "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
+    "origin": "https://ateliergiulia.com",
+    "shareImage": "/home-hero-image/large",
+    "locales": { "fr": "fr_CA", "en": "en_CA" },
     "themeColor": "#F6F1E7",
     "icon": "/brand/atelier-giulia-logo.png",
-    "fonts": ["/sites/atelier-giulia/fonts/PlayfairDisplay-latin.woff2"]
+    "fonts": ["/sites/atelier-giulia/fonts/PlayfairDisplay-latin.woff2"],
+    "pages": {
+      "home": {
+        "fr": { "title": "Photographie de famille, maternité et portraits | Atelier Giulia", "description": "Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet." },
+        "en": { "title": "Family, maternity and portrait photography | Atelier Giulia", "description": "Atelier Giulia creates gentle family, maternity and couples portraits. Explore the sessions and tell us about your plans." }
+      },
+      "services": {
+        "fr": { "title": "Séances photo | Atelier Giulia", "description": "Découvrez les séances famille, maternité, portraits et couple d’Atelier Giulia, pensées pour des images naturelles qui vous ressemblent." },
+        "en": { "title": "Photography sessions | Atelier Giulia", "description": "Explore Atelier Giulia’s family, maternity, portrait and couples sessions, created for natural photographs that feel like you." }
+      },
+      "portfolio": {
+        "fr": { "title": "Portfolio photo | Atelier Giulia", "description": "Parcourez le portfolio d’Atelier Giulia et découvrez des histoires racontées avec lumière, présence et émotion." },
+        "en": { "title": "Photography portfolio | Atelier Giulia", "description": "Explore Atelier Giulia’s portfolio and discover stories told through light, presence and feeling." }
+      },
+      "about": {
+        "fr": { "title": "Rencontrez Giulia | Atelier Giulia", "description": "Découvrez le regard de Giulia sur la photographie de famille et sa façon de mettre chacun à l’aise devant l’objectif." },
+        "en": { "title": "Meet Giulia | Atelier Giulia", "description": "Meet Giulia and learn about her approach to family photography and helping everyone feel at ease in front of the camera." }
+      },
+      "contact": {
+        "fr": { "title": "Contact et réservation | Atelier Giulia", "description": "Parlez de votre projet photo à Atelier Giulia. Retrouvez les coordonnées et la région desservie sur la page Contact." },
+        "en": { "title": "Contact and bookings | Atelier Giulia", "description": "Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page." }
+      },
+      "privacy": {
+        "fr": { "title": "Confidentialité | Atelier Giulia", "description": "Découvrez comment Atelier Giulia traite les données liées aux visites, aux galeries et à la recherche de photos." },
+        "en": { "title": "Privacy | Atelier Giulia", "description": "Learn how Atelier Giulia handles data related to site visits, galleries and photo search." }
+      }
+    }
   },
   "defaultLanguage": "fr",
   "deployment": {

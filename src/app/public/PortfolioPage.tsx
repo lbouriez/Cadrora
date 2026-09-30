@@ -11,6 +11,7 @@ import type { ViewerPhoto } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
 import { PublicPageIntro } from './PublicPageIntro';
 import { usePhotoColumns } from './usePhotoColumns';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 const PhotoViewer = lazy(async () => ({ default: (await import('./PhotoViewer')).PhotoViewer }));
 
@@ -88,7 +89,7 @@ export function PortfolioDetailPage() {
       pageDescription: collection.data.copy[language].description,
       pageTitle: collection.data.copy[language].title,
     } : {})}>
-    <BackLink to="/portfolio">{t('gallery.backPortfolio')}</BackLink>
+    <BackLink to={localizedMarketingPath('/portfolio', language)}>{t('gallery.backPortfolio')}</BackLink>
     {collection.isPending ? <Spinner label={t('gallery.loading')} /> : null}
     {collection.isError ? <p className="gallery-notice" role="alert">{t('gallery.portfolioPage.unavailable')}</p> : null}
     {collection.data ? <>

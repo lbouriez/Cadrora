@@ -8,6 +8,7 @@ import { BackLink, Button, FavoriteButton, IconButton, InfiniteLoadMore, InfoIco
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, getPublicSiteSettings, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
+import { galleryText } from './galleryText';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
@@ -361,6 +362,8 @@ export function GalleryPage() {
     void fetchNextPage();
   }, [fetchNextPage, foundPhotoIds.length, hasNextPage, isFetchingNextPage, matchesView, visiblePhotos.length]);
 
+  const lockedCopy = lockedPreview ? galleryText(lockedPreview, i18n.language) : null;
+  const eventCopy = event.data ? galleryText(event.data, i18n.language) : null;
   if (event.isPending) return <PublicLayout wide><Spinner label={t('gallery.loading')} /></PublicLayout>;
   if (accessRequired && !event.data) return <PublicLayout wide>
     {lockedPreview ? <header className="gallery-heading">
@@ -368,9 +371,9 @@ export function GalleryPage() {
       <div className="gallery-heading__hero gallery-heading__hero--compact">
         <div className="gallery-heading__copy">
           <p className="gallery-heading__eyebrow">{t('gallery.headingPrivate')}</p>
-          <h1>{lockedPreview.title}</h1>
+           <h1>{lockedCopy?.title}</h1>
           <p className="gallery-heading__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(lockedPreview.startsAt))}</p>
-          {lockedPreview.description ? <p className="gallery-heading__description">{lockedPreview.description}</p> : null}
+           {lockedCopy?.description ? <p className="gallery-heading__description">{lockedCopy.description}</p> : null}
         </div>
       </div>
     </header> : null}
@@ -385,9 +388,9 @@ export function GalleryPage() {
         <div className="gallery-heading__hero gallery-heading__hero--compact">
           <div className="gallery-heading__copy">
             <p className="gallery-heading__eyebrow">{t(event.data.access === 'protected' ? 'gallery.headingPrivate' : 'gallery.headingEyebrow')}</p>
-            <h1>{event.data.title}</h1>
+             <h1>{eventCopy?.title}</h1>
             <p className="gallery-heading__date">{new Intl.DateTimeFormat(i18n.language, { dateStyle: 'long' }).format(new Date(event.data.startsAt))}</p>
-            {event.data.description ? <p className="gallery-heading__description">{event.data.description}</p> : null}
+             {eventCopy?.description ? <p className="gallery-heading__description">{eventCopy.description}</p> : null}
             <div className="gallery-heading__actions">
               <a className="button button--primary" href="#gallery-photos">{t('gallery.browsePhotos')}</a>
               {event.data.faceSearchEnabled ? <Link className="button button--secondary" to={`/e/${event.data.slug}/find`}>{t('faceFind.open')}</Link> : null}

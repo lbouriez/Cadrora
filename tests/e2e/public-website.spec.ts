@@ -141,19 +141,19 @@ test.describe('site vitrine statique', () => {
   test('ouvre les nouvelles pages en haut après une navigation depuis le bas', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');
-    const contactCta = page.locator('.site-contact-callout a[href="/contact"]');
+    const contactCta = page.locator('.site-contact-callout a[href="/fr/contact"]');
     await contactCta.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await contactCta.click();
-    await expect(page).toHaveURL('/contact');
+    await expect(page).toHaveURL('/fr/contact');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
-    await page.locator('.public-footer a[href="/contact"]').click();
+    await page.locator('.public-footer a[href="/fr/contact"]').click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 
-    await page.locator('.public-footer a[href="/privacy"]').click();
-    await expect(page).toHaveURL('/privacy');
+    await page.locator('.public-footer a[href="/fr/privacy"]').click();
+    await expect(page).toHaveURL('/fr/privacy');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   });

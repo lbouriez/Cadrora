@@ -5,12 +5,17 @@ import { IdSchema, IsoDateTimeSchema, SlugSchema } from './primitives';
 export const EventVisibilitySchema = z.enum(['draft', 'published', 'unlisted']);
 export const EventAccessSchema = z.enum(['public', 'protected']);
 export const GalleryServiceSchema = z.enum(['wedding', 'family', 'portrait', 'maternity', 'brand', 'work', 'kids', 'events', 'other']);
+export const EventLocalizedCopySchema = z.object({
+  fr: z.object({ title: z.string().min(1).max(160), description: z.string().max(5_000).nullable() }).strict(),
+  en: z.object({ title: z.string().min(1).max(160), description: z.string().max(5_000).nullable() }).strict(),
+}).strict();
 
 export const EventSchema = z.object({
   id: IdSchema,
   slug: SlugSchema,
   title: z.string().min(1).max(160),
   description: z.string().max(5_000).nullable(),
+  localizedCopy: EventLocalizedCopySchema.nullable().optional(),
   service: GalleryServiceSchema.nullable(),
   startsAt: IsoDateTimeSchema,
   timezone: z.string().min(1).max(100),

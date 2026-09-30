@@ -8,9 +8,10 @@ import {
   savePrivacyConsent,
 } from './consent';
 import type { PrivacyConsent as PrivacyConsentValue } from './consent';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvailable?: boolean }) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(() => readPrivacyConsent() === null);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvaila
         <p className="privacy-consent__eyebrow">{t('gallery.consent.eyebrow')}</p>
         <h2 id="privacy-consent-title">{t('gallery.consent.title')}</h2>
         <p>{t(analyticsAvailable ? 'gallery.consent.body' : 'gallery.consent.bodyNoAnalytics')}</p>
-        <Link to="/privacy">{t('gallery.consent.learnMore')}</Link>
+        <Link to={localizedMarketingPath('/privacy', i18n.language)}>{t('gallery.consent.learnMore')}</Link>
       </div>
       <div className="privacy-consent__actions">
         <button className="button button--secondary" onClick={() => choose('necessary')} type="button">

@@ -17,7 +17,8 @@ try {
 } catch {
   // A blocked preference store must not block the static website.
 }
-const initialLanguage = supportedLanguage(savedLanguage)
+const initialLanguage = supportedLanguage(/^\/(fr|en)(?:\/|$)/u.exec(window.location.pathname)?.[1])
+  ?? supportedLanguage(savedLanguage)
   ?? supportedLanguage(import.meta.env.VITE_SITE_DEFAULT_LANG)
   ?? __CADRORA_SITE_DEFAULT_LANG__;
 

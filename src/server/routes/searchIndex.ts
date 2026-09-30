@@ -9,6 +9,7 @@ const publicPages = [
   { path: '/', fr: 'Accueil', en: 'Home' },
   { path: '/services', fr: 'Services', en: 'Services' },
   { path: '/portfolio', fr: 'Portfolio', en: 'Portfolio' },
+  { path: '/about', fr: 'À propos', en: 'About' },
   { path: '/contact', fr: 'Contact', en: 'Contact' },
   { path: '/privacy', fr: 'Confidentialité', en: 'Privacy' },
 ] as const;
@@ -21,7 +22,7 @@ function escapeXml(value: string): string {
 /** Marketing pages are discoverable; customer galleries are never indexed here. */
 export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
   app.get('/llms.txt', async (context) => {
-    const origin = new URL(context.req.url).origin;
+    const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     // Keep the compiled profile usable when D1 is unavailable.
     let settings = null;
     try {
@@ -35,7 +36,8 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     const siteName = (settings?.siteName ?? context.env.SITE_NAME).replace(/[\r\n]+/gu, ' ');
     const description = (settings?.siteCopy?.[language].description ?? context.env.SITE_DESCRIPTION).replace(/[\r\n]+/gu, ' ');
     const links = [
-      ...publicPages.map((page) => `- [${english ? page.en : page.fr}](${origin}${page.path})`),
+      ...publicPages.filter((page) => page.path !== '/about' || settings?.aboutEnabled !== false)
+        .map((page) => `- [${english ? page.en : page.fr}](${origin}/${language}${page.path === '/' ? '/' : `${page.path}/`})`),
       `- [${english ? 'Sitemap' : 'Plan du site'}](${origin}/sitemap.xml)`,
     ].join('\n');
     context.header('Cache-Control', 'public, max-age=3600');
@@ -45,22 +47,32 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
   });
 
   app.get('/robots.txt', (context) => {
-    const origin = new URL(context.req.url).origin;
+    const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     context.header('Cache-Control', 'public, max-age=3600');
     return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
   });
 
   app.get('/sitemap.xml', async (context) => {
-    const origin = new URL(context.req.url).origin;
+    const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     let portfolioPaths: string[] = [];
+    let aboutEnabled = true;
     try {
       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
         WHERE c.published = 1
         ORDER BY c.sort_order, c.id LIMIT 100`).all<unknown>();
       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
-    const paths = [...publicPages.map((page) => page.path), ...portfolioPaths];
+    try {
+      const row = await context.env.DB.prepare('SELECT about_enabled FROM site_settings WHERE id = 1').first<{ about_enabled: number }>();
+      aboutEnabled = row?.about_enabled !== 0;
+    } catch { /* Use the compiled page set when D1 is unavailable. */ }
     context.header('Cache-Control', 'public, max-age=300');
-    return context.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map((path) => `  <url><loc>${escapeXml(origin + path)}</loc></url>`).join('\n')}\n</urlset>\n`, 200, { 'Content-Type': 'application/xml; charset=utf-8' });
+    const marketingUrls = publicPages.filter((page) => page.path !== '/about' || aboutEnabled)
+      .flatMap((page) => (['fr', 'en'] as const).map((language) => {
+      const localized = (lang: 'fr' | 'en') => `${origin}/${lang}${page.path === '/' ? '/' : `${page.path}/`}`;
+      return `  <url><loc>${escapeXml(localized(language))}</loc>${(['fr', 'en'] as const).map((lang) =>
+        `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(localized(lang))}"/>`).join('')}</url>`;
+      }));
+    return context.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${[...marketingUrls, ...portfolioPaths.map((path) => `  <url><loc>${escapeXml(origin + path)}</loc></url>`)].join('\n')}\n</urlset>\n`, 200, { 'Content-Type': 'application/xml; charset=utf-8' });
   });
 }

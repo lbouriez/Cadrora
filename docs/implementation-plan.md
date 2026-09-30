@@ -30,6 +30,8 @@ This versioned plan is the coordination source for coding agents. Frozen details
 
 Post-plan extension (2026-09-30): ADR-044 adds owner-managed default and phone session-photo framing across PB, the admin session editor, shared schemas, service routes, and D1 migration 041. Acceptance includes centered existing photos, nullable phone inheritance, retained framing on reorder, example reset, unchanged image revisions, FR/EN save/reload and desktop/phone preview review, and both profile builds.
 
+Post-plan extension (2026-09-30): ADR-045 adds static localized marketing documents and sitemap alternates across PB and the build profile, optional bilingual demo-gallery copy through PB/PD and migration 042, and accessible session dots in the shared slider. Acceptance includes both profile builds, FR/EN metadata and share preview checks, keyboard/phone slide selection, localized demo gallery headings, and unchanged private-gallery access.
+
 ## Wave 1: P0 foundation
 
 One implementation only. Deliver repository/tooling configuration, shared schemas/constants/errors, the complete middleware chain, auth test context, core D1 migration, minimal design system, FR/EN wiring, SPA/Worker routing, setup/diagnostic scripts, architecture, ADR, and quick start.

@@ -130,7 +130,8 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
     return validatedJson(context, PublicEventListSchema, {
       events: rows.filter((row) => row.access === 'public').map((row) => toPublicEvent(eventFromRow(row), row.cover_revision)),
       protectedGalleries: rows.filter((row) => row.access === 'protected').map((row) => ({
-        id: row.id, slug: row.slug, title: row.title, description: row.description, startsAt: row.starts_at,
+        id: row.id, slug: row.slug, title: row.title, description: row.description,
+        localizedCopy: eventFromRow(row).localizedCopy ?? null, startsAt: row.starts_at,
         createdAt: row.created_at, service: row.service ?? null,
       })),
       nextCursor: result.results.length > limit && last
@@ -150,6 +151,7 @@ export function createPublicEventRoutes(services: PublicRouteServices = {}): Hon
       slug: event.slug,
       title: event.title,
       description: event.description,
+      localizedCopy: event.localizedCopy ?? null,
       service: event.service,
       startsAt: event.startsAt,
       createdAt: event.createdAt,

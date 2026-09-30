@@ -8,6 +8,8 @@ import { getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicLayout } from './PublicLayout';
 import { SessionStoryContent } from './SessionStoryContent';
+import { serviceText } from './serviceCatalog';
+import { localizedMarketingPath } from './localizedMarketingPath';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
@@ -16,11 +18,12 @@ const VerticalStorySlider = lazy(loadSlider);
 
 /** Present owner-managed Home sessions through the shared vertical slider. */
 export function SessionScrollStory() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const sessions = services.cards.filter((card) => card.enabled && card.showOnHome);
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   useEffect(() => {
     // The lazy boundary still handles a failed chunk; speculative warming must not reject unhandled.
     void loadSlider().catch(() => undefined);
@@ -32,9 +35,10 @@ export function SessionScrollStory() {
   </PublicLayout>;
   const slides = sessions.length ? sessions.map((card, index) => ({
     id: card.id,
+    label: serviceText(card, language, (key) => t(key)).title,
     content: <SessionStoryContent card={card} heading={index === 0 ? 'h1' : 'h2'}
-      immediate={index === 0} priority={index === 0} />,
-  })) : [{ id: 'fallback', content: <>
+      immediate={index === 0} introduction={index === 0} priority={index === 0} />,
+  })) : [{ id: 'fallback', label: t('gallery.heroTitle'), content: <>
     <div className="session-story__visual" data-swiper-parallax-scale="1.1">
       <BrandPhoto alt="" className="session-story__photo" immediate priority sizes="100vw" src={siteProfile.heroImageUrl} />
     </div>
@@ -43,7 +47,7 @@ export function SessionScrollStory() {
       <div className="session-story__content">
         <p className="session-story__eyebrow">{t('gallery.servicesEyebrow')}</p>
         <h1>{t('gallery.heroTitle')}</h1>
-        <Link className="session-story__cta" to="/contact">{t('gallery.bookSession')}</Link>
+        <Link className="session-story__cta" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
       </div>
     </div>
   </> }];
@@ -51,7 +55,8 @@ export function SessionScrollStory() {
   return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
     <Suspense fallback={<section className="session-story session-story--fallback"><div className="session-story__panel">{slides[0]?.content}</div></section>}>
       <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
-        motionPreference="always" onActiveIndexChange={setActiveSlideIndex} slideClassName="session-story__panel" slides={slides} />
+        motionPreference="always" onActiveIndexChange={setActiveSlideIndex} showPagination
+        slideClassName="session-story__panel" slides={slides} />
     </Suspense>
   </PublicLayout>;
 }

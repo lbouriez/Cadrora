@@ -85,6 +85,7 @@ describe('protected gallery metadata', () => {
       slug: protectedEvent.slug,
       title: protectedEvent.title,
       description: protectedEvent.description,
+      localizedCopy: null,
       service: null,
       startsAt: protectedEvent.starts_at,
       createdAt: protectedEvent.created_at,

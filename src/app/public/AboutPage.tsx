@@ -6,12 +6,13 @@ import { ProgressivePhoto } from '../components';
 import { getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 /** One owner-managed About page with presentation selected by the site profile. */
 export function AboutPage() {
   const { i18n, t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  if (settings.data?.aboutEnabled === false) return <Navigate replace to="/" />;
+  if (settings.data?.aboutEnabled === false) return <Navigate replace to={localizedMarketingPath('/', i18n.language)} />;
 
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const copy = settings.data?.aboutCopy?.[language];
@@ -34,7 +35,7 @@ export function AboutPage() {
         <ProgressivePhoto alt={alt} className="about-page__image" enabled={!settings.isPending} height={853} immediate priority sizes={immersive ? '100vw' : '(max-width: 48rem) 100vw, 48vw'} sources={sources} width={1280} />
         <div className="about-page__hero-copy">
           <h1>{title}</h1>
-          <Link className="about-page__action" to="/contact">{t('gallery.bookSession')}</Link>
+          <Link className="about-page__action" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
         </div>
       </div>
       <section aria-label={title} className="about-page__story">

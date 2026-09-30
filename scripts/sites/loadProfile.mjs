@@ -24,6 +24,24 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
         || !existsSync(resolve(workspace, font.slice(1)))))) {
     throw new Error(`Invalid document fonts for site profile: ${siteId}`);
   }
+  if (profile.document.origin !== undefined) {
+    const origin = new URL(profile.document.origin);
+    if (origin.protocol !== 'https:' || origin.origin !== profile.document.origin
+      || typeof profile.document.shareImage !== 'string'
+      || !/^\/(?:brand\/[a-z0-9-]+\.(?:png|jpg|webp)|home-hero-image\/large)$/u.test(profile.document.shareImage)) {
+      throw new Error(`Invalid SEO origin or share image for site profile: ${siteId}`);
+    }
+    const pages = ['home', 'services', 'portfolio', 'about', 'contact', 'privacy'];
+    if (pages.some((page) => ['fr', 'en'].some((language) => {
+      const copy = profile.document.pages?.[page]?.[language];
+      return typeof copy?.title !== 'string' || !copy.title.trim()
+        || typeof copy?.description !== 'string' || !copy.description.trim();
+    }))) throw new Error(`Missing bilingual SEO copy for site profile: ${siteId}`);
+    if (profile.document.locales !== undefined && ['fr', 'en'].some((language) =>
+      !new RegExp(`^${language}_[A-Z]{2}$`, 'u').test(profile.document.locales[language] ?? ''))) {
+      throw new Error(`Invalid social locale for site profile: ${siteId}`);
+    }
+  }
   return profile;
 }
 
@@ -33,6 +51,7 @@ export function profileWorkerVars(profile) {
     SITE_DESCRIPTION: profile.document.description,
     SITE_HERO_IMAGE_URL: profile.heroImageUrl,
     SITE_DEFAULT_LANG: profile.defaultLanguage ?? 'fr',
+    SITE_ORIGIN: profile.document.origin ?? '',
   };
 }
 

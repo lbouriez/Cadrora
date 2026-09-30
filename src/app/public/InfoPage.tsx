@@ -8,6 +8,7 @@ import { PublicLayout } from './PublicLayout';
 import { PublicPageIntro } from './PublicPageIntro';
 import { ServiceAreaMap } from './ServiceAreaMap';
 import { siteProfile } from './siteProfile';
+import { localizedMarketingPath } from './localizedMarketingPath';
 
 export function PrivacyPage() {
   const Override = siteProfile.pages?.privacy;
@@ -15,7 +16,7 @@ export function PrivacyPage() {
 }
 
 export function DefaultPrivacyPage() {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const sections = ['operator', 'overview', 'gallery', 'security', 'ai', 'analytics', 'retention', 'rights'] as const;
   return (
@@ -48,7 +49,7 @@ export function DefaultPrivacyPage() {
         <div className="privacy-page__contact">
           <h2>{t('gallery.privacyPage.questionsTitle')}</h2>
           <p>{t('gallery.privacyPage.questionsBody')}</p>
-          <Link className="button button--primary" to="/contact">{t('gallery.contact')}</Link>
+          <Link className="button button--primary" to={localizedMarketingPath('/contact', i18n.language)}>{t('gallery.contact')}</Link>
         </div>
       </article>
     </PublicLayout>
