@@ -33,6 +33,8 @@
   gap: var(--space-3);
 }
 
+.public-brand span { text-transform: uppercase; }
+
 .public-brand img {
   width: 2.5rem;
   height: 2.5rem;
@@ -2083,18 +2085,7 @@
 /* The same masthead stacks the notice and navigation on every page. */
 :root[data-site='atelier-giulia'] .public-shell--immersive { position: relative; overflow: clip; }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-masthead { position: absolute; top: 0; right: 0; left: 0; }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: transparent; color: var(--color-on-photo); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-brand,
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-nav a { color: var(--color-on-photo); text-shadow: 0 0.1rem 0.8rem var(--color-overlay); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__controls { border-color: color-mix(in srgb, var(--color-on-photo) 35%, transparent); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__theme { border-color: color-mix(in srgb, var(--color-on-photo) 40%, transparent); background: color-mix(in srgb, var(--color-overlay) 35%, transparent); color: var(--color-on-photo); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__language.icon-button { color: var(--color-on-photo); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__theme:hover,
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__language.icon-button:hover { background: color-mix(in srgb, var(--color-overlay) 65%, transparent); color: var(--color-on-photo); }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-brand:focus-visible,
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-nav a:focus-visible,
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__theme:focus-visible,
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header__language:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: var(--color-background); color: var(--color-text); }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-construction-notice { background: var(--color-overlay); color: var(--color-on-photo); }
 
 @media (max-width: 54rem) {
@@ -2115,7 +2106,6 @@
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language { right: calc(50% - 3.5rem); }
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__controls:not(:has(.public-header__theme)) .public-header__language,
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__controls:not(:has(.public-header__language)) .public-header__theme { right: auto; left: 50%; transform: translateX(-50%); }
-  :root[data-site='atelier-giulia'] .public-shell--immersive .public-header__menu { border-color: color-mix(in srgb, var(--color-on-photo) 60%, transparent); background: color-mix(in srgb, var(--color-overlay) 35%, transparent); color: var(--color-on-photo); }
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-brand,
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-nav a,
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language.icon-button { color: var(--color-text); text-shadow: none; }

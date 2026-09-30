@@ -1,4 +1,12 @@
 /* Site-only semantic tokens. Components, layout, and motion stay in the shared core. */
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./fonts/PlayfairDisplay-latin.woff2') format('woff2');
+}
+
 :root[data-site='atelier-giulia'] {
   --color-background: #F6F1E7;
   --color-surface: #FBF8F1;
@@ -13,7 +21,7 @@
   --color-overlay: rgb(25 22 19 / 48%);
   --gradient-brand: linear-gradient(135deg, #FBF8F1 0%, #E7DCC8 55%, #A79B8D 100%);
   --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, sans-serif;
-  --font-display: "Iowan Old Style", Baskerville, Georgia, serif;
+  --font-display: "Playfair Display", "Iowan Old Style", Baskerville, Georgia, serif;
 }
 
 :root[data-site='atelier-giulia'][data-theme='dark'] {
