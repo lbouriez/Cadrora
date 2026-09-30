@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +14,7 @@ import { siteProfile } from './siteProfile';
 /** Present owner-managed Home sessions through the shared vertical slider. */
 export function SessionScrollStory() {
   const { i18n, t } = useTranslation();
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], retry: false, staleTime: 60_000 });
   const sessions = (services.data ?? fallbackServices(settings.data?.enabledServices))
@@ -51,8 +53,8 @@ export function SessionScrollStory() {
     </div>
   </> }];
 
-  return <PublicLayout>
-    <VerticalStorySlider className="session-story" label={t('gallery.services')} motionPreference="always"
-      slideClassName="session-story__panel" slides={slides} />
+  return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
+    <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
+      motionPreference="always" onActiveIndexChange={setActiveSlideIndex} slideClassName="session-story__panel" slides={slides} />
   </PublicLayout>;
 }

@@ -16,20 +16,22 @@ export interface VerticalStorySliderProps {
   className?: string;
   slideClassName?: string;
   motionPreference?: 'system' | 'always';
+  allowDocumentScrollAtEdges?: boolean;
+  onActiveIndexChange?: (index: number) => void;
 }
 
-function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean) {
+function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean, allowDocumentScrollAtEdges: boolean) {
   const mousewheel = swiper.params.mousewheel;
   if (typeof mousewheel === 'object' && mousewheel) {
-    mousewheel.releaseOnEdges = settled && (swiper.isBeginning || swiper.isEnd);
+    mousewheel.releaseOnEdges = allowDocumentScrollAtEdges && settled && (swiper.isBeginning || swiper.isEnd);
   }
 }
 
 const EDGE_SCROLL_MS = 700;
 
-/** Full-viewport vertical slides with parallax, accessible focus, and document scroll at the edges. */
+/** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
-  motionPreference = 'system' }: VerticalStorySliderProps) {
+  motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange }: VerticalStorySliderProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -46,7 +48,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || !animate) return;
+    if (!section || !animate || !allowDocumentScrollAtEdges) return;
     let frame = 0;
     let exiting = false;
     const onWheel = (event: WheelEvent) => {
@@ -83,7 +85,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       window.cancelAnimationFrame(frame);
       section.removeEventListener('wheel', onWheel, true);
     };
-  }, [animate]);
+  }, [allowDocumentScrollAtEdges, animate]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -99,7 +101,11 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
         || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey)
         ? 1 : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
           || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey) ? -1 : 0;
-      if (!direction || (direction > 0 && swiper.isEnd) || (direction < 0 && swiper.isBeginning)) return;
+      if (!direction) return;
+      if ((direction > 0 && swiper.isEnd) || (direction < 0 && swiper.isBeginning)) {
+        if (!allowDocumentScrollAtEdges) event.preventDefault();
+        return;
+      }
       event.preventDefault();
       if (!event.repeat) {
         window.scrollTo({ top: Math.max(0, swiper.el.getBoundingClientRect().top + window.scrollY), behavior: 'instant' });
@@ -109,7 +115,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [allowDocumentScrollAtEdges]);
 
   const currentIndex = Math.min(activeIndex, Math.max(0, slides.length - 1));
   return <section aria-label={label} className={className} ref={sectionRef}>
@@ -125,20 +131,21 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       observer
       onSlideChange={(swiper) => {
         setActiveIndex(swiper.activeIndex);
-        releaseWheelAtSettledEdge(swiper, false);
+        onActiveIndexChange?.(swiper.activeIndex);
+        releaseWheelAtSettledEdge(swiper, false, allowDocumentScrollAtEdges);
         const top = swiper.el.getBoundingClientRect().top + window.scrollY;
         if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: 'smooth' });
       }}
-      onSlideChangeTransitionEnd={(swiper) => releaseWheelAtSettledEdge(swiper, true)}
+      onSlideChangeTransitionEnd={(swiper) => releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges)}
       onSwiper={(swiper) => {
         swiperRef.current = swiper;
-        releaseWheelAtSettledEdge(swiper, true);
+        releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges);
       }}
       parallax={animate}
       preventInteractionOnTransition
       speed={animate ? 1200 : 0}
       tabIndex={0}
-      touchReleaseOnEdges
+      touchReleaseOnEdges={allowDocumentScrollAtEdges}
     >
       {slides.map((slide, index) => <SwiperSlide className={slideClassName} inert={index !== currentIndex}
         key={slide.id} tag="article">{slide.content}</SwiperSlide>)}

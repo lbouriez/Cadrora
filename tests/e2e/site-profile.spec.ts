@@ -222,6 +222,9 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await page.waitForTimeout(100);
   releaseServices();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
+  const footer = page.locator('.public-footer');
+  await expect(footer).toBeHidden();
+  await expect(footer).toHaveAttribute('inert', '');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
@@ -258,23 +261,25 @@ test('even strong wheel or finger gestures settle on exactly one session', async
     .toHaveClass(/motion-reveal--visible/u);
   await gesture(1);
   await settledAt(2);
+  await expect(footer).toBeVisible();
+  await expect(footer).not.toHaveAttribute('inert');
   await gesture(-1);
   await settledAt(1);
+  await expect(footer).toBeHidden();
   await gesture(1);
   await settledAt(2);
+  await gesture(1);
+  await settledAt(2);
+  await expect(footer).toBeVisible();
+  await expect(footer).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
   if (testInfo.project.name === 'mobile-chromium') {
-    await gesture(1);
-  } else {
-    await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
-    await page.mouse.wheel(0, height * 3);
-    const firstPosition = await page.evaluate(() => scrollY);
-    await page.waitForTimeout(300);
-    const middlePosition = await page.evaluate(() => scrollY);
-    const footerPosition = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
-    expect(middlePosition).toBeGreaterThan(firstPosition);
-    expect(middlePosition).toBeLessThan(footerPosition);
+    await page.setViewportSize({ width: 390, height: 600 });
+    const footerBox = await footer.boundingBox();
+    const bookingBox = await page.locator('.swiper-slide-active .session-story__cta').boundingBox();
+    expect(footerBox && bookingBox ? footerBox.y - bookingBox.y - bookingBox.height : 0).toBeGreaterThan(16);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
   }
-  await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
 test('Atelier keeps the reference slide animation for wheel and touch in a reduced-motion browser', async ({ page }, testInfo) => {

@@ -2068,10 +2068,33 @@
 :root[data-site='atelier-giulia'] .public-footer { border-color: var(--color-border); }
 
 /* The same masthead stacks the notice and navigation on every page. */
-:root[data-site='atelier-giulia'] .public-shell--immersive { position: relative; overflow: clip; }
+:root[data-site='atelier-giulia'] .public-shell--immersive { position: relative; height: 100svh; min-height: 100svh; overflow: clip; }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-masthead { position: absolute; top: 0; right: 0; left: 0; }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: color-mix(in srgb, var(--color-background) 50%, transparent); color: var(--color-text); }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-construction-notice { background: var(--color-overlay); color: var(--color-on-photo); }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-footer {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: var(--space-3) clamp(var(--space-4), 4vw, 4rem) max(var(--space-3), env(safe-area-inset-bottom));
+  border: 0;
+  background: color-mix(in srgb, var(--color-background) 50%, transparent);
+  color: var(--color-text);
+  backdrop-filter: blur(1rem);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 400ms ease, visibility 400ms ease;
+}
+:root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--footer-visible .public-footer {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 600ms;
+}
 
 @media (max-width: 54rem) {
   :root[data-site='atelier-giulia'] .public-header { min-height: 4.75rem; }
@@ -2107,8 +2130,10 @@
 @media (max-width: 34rem) {
   :root[data-site='atelier-giulia'] .public-header { border-radius: 0; padding-inline: 1rem; }
   :root[data-site='atelier-giulia'] .public-brand { font-size: 1.3rem; }
+  :root[data-site='atelier-giulia'] .public-shell--immersive .public-footer { gap: var(--space-1); padding-top: var(--space-2); padding-bottom: max(var(--space-2), env(safe-area-inset-bottom)); }
   .session-story h1, .session-story h2 { font-size: clamp(2.75rem, 12vw, 4rem); }
   .session-story__eyebrow { font-size: 0.7rem; }
+  .session-story__panel:last-child .session-story__content { padding-block: 3rem 5rem; }
   .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
 }
 @media (prefers-reduced-motion: reduce) {

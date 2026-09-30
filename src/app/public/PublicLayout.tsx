@@ -15,8 +15,8 @@ import { useTheme } from '../useTheme';
 import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 import type { NavigationItem } from '../site/types';
 
-export function PublicLayout({ children, fullBleed = false, pageDescription, pageTitle, wide = false }: {
-  children: ReactNode; fullBleed?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
+export function PublicLayout({ children, fullBleed = false, immersiveFooterVisible = false, pageDescription, pageTitle, wide = false }: {
+  children: ReactNode; fullBleed?: boolean; immersiveFooterVisible?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -110,7 +110,7 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
   }, [menuOpen]);
 
   return (
-    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${pathname === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${pathname === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
         <header className="public-header">
@@ -158,7 +158,7 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
         </header>
       </div>
       <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || immersiveHome ? ' public-main--immersive' : ''}`}>{children}</main>
-      <footer className="public-footer">
+      <footer className="public-footer" inert={immersiveHome && !immersiveFooterVisible}>
         <div className="public-footer__identity">
           <div className="public-footer__signature">
             <p>© {siteName}{footerTagline ? ` · ${footerTagline}` : ''}</p>
