@@ -19,7 +19,7 @@
   --color-primary-contrast: #FBF8F1;
   --color-focus: #7f6e58;
   --color-overlay: rgb(25 22 19 / 48%);
-  --gradient-brand: linear-gradient(135deg, #FBF8F1 0%, #E7DCC8 55%, #A79B8D 100%);
+  --gradient-brand: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   --font-sans: "Avenir Next", "Segoe UI", ui-sans-serif, sans-serif;
   --font-display: "Playfair Display", "Iowan Old Style", Baskerville, Georgia, serif;
 }
