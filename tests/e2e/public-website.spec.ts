@@ -22,6 +22,32 @@ test.describe('site vitrine statique', () => {
     });
   });
 
+  test('the Home copy waits for its photo during a slow load', async ({ page }) => {
+    let releaseImage = () => {};
+    const imageReady = new Promise<void>((resolve) => { releaseImage = resolve; });
+    await page.route('**/home-hero-image/**', async (route) => {
+      await imageReady;
+      await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="853"><rect width="1280" height="853" fill="#a65"/></svg>' });
+    });
+    try {
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
+      const hero = page.locator('.site-hero');
+      await expect(hero).toBeVisible();
+      await expect(hero.locator('.site-hero__copy')).toBeHidden();
+      await expect(hero.locator('.site-hero__art')).toBeVisible();
+      releaseImage();
+      await expect(hero.locator('.site-hero__copy')).toBeVisible();
+      await expect(hero).not.toHaveClass(/site-hero--photo-loading/u);
+    } finally { releaseImage(); }
+  });
+
+  test('the Home copy remains available when its photo fails', async ({ page }) => {
+    await page.route('**/home-hero-image/**', (route) => route.fulfill({ status: 404 }));
+    await page.goto('/');
+    await expect(page.locator('.site-hero__copy')).toBeVisible();
+    await expect(page.locator('.site-hero')).not.toHaveClass(/site-hero--photo-loading/u);
+  });
+
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
     await page.goto('/');
 

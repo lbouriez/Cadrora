@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -20,6 +20,8 @@ const VerticalStorySlider = lazy(loadSlider);
 export function SessionScrollStory() {
   const { i18n, t } = useTranslation();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [firstPhotoReady, setFirstPhotoReady] = useState(false);
+  const markFirstPhotoReady = useCallback(() => setFirstPhotoReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const sessions = services.cards.filter((card) => card.enabled && card.showOnHome);
@@ -37,10 +39,11 @@ export function SessionScrollStory() {
     id: card.id,
     label: serviceText(card, language, (key) => t(key)).title,
     content: <SessionStoryContent card={card} heading={index === 0 ? 'h1' : 'h2'}
-      immediate={index === 0} introduction={index === 0} priority={index === 0} />,
+      immediate={index === 0} introduction={index === 0} onVisualReady={index === 0 ? markFirstPhotoReady : undefined}
+      priority={index === 0} />,
   })) : [{ id: 'fallback', label: t('gallery.heroTitle'), content: <>
     <div className="session-story__visual" data-swiper-parallax-scale="1.1">
-      <BrandPhoto alt="" className="session-story__photo" immediate priority sizes="100vw" src={siteProfile.heroImageUrl} />
+      <BrandPhoto alt="" className="session-story__photo" immediate onVisualReady={markFirstPhotoReady} priority sizes="100vw" src={siteProfile.heroImageUrl} />
     </div>
     <div className="session-story__shade" />
     <div className="session-story__copy" data-swiper-parallax="-200">
@@ -53,8 +56,8 @@ export function SessionScrollStory() {
   </> }];
 
   return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
-    <Suspense fallback={<section className="session-story session-story--fallback"><div className="session-story__panel">{slides[0]?.content}</div></section>}>
-      <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
+    <Suspense fallback={<section className={`session-story session-story--fallback${firstPhotoReady ? '' : ' session-story--photo-loading'}`}><div className="session-story__panel">{slides[0]?.content}</div></section>}>
+      <VerticalStorySlider allowDocumentScrollAtEdges={false} className={`session-story${firstPhotoReady ? '' : ' session-story--photo-loading'}`} label={t('gallery.services')}
         motionPreference="always" onActiveIndexChange={setActiveSlideIndex} showPagination
         slideClassName="session-story__panel" slides={slides} />
     </Suspense>

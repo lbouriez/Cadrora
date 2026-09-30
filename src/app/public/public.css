@@ -192,6 +192,8 @@
   gap: clamp(2rem, 7vw, 6rem);
 }
 
+.site-hero--photo-loading .site-hero__copy { visibility: hidden; }
+
 .site-hero::before {
   position: absolute;
   z-index: -1;
@@ -2066,6 +2068,8 @@
 .session-story .swiper-slide.session-story__panel { display: grid; }
 .session-story__visual { position: absolute; inset: 0; width: 100%; height: 100%; }
 .session-story__visual > .session-story__photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.session-story__photo { background: var(--color-text); }
+.session-story--photo-loading .session-story__copy { visibility: hidden; }
 /* Both progressive layers keep the same monochrome framing through ready state and slider mount. */
 .session-story .session-story__photo > img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1); transform: none; }
 .session-story__shade { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(90deg, var(--color-overlay), transparent 75%), linear-gradient(0deg, var(--color-overlay), transparent 38%); }

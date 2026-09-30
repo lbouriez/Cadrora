@@ -263,9 +263,13 @@ test('Home owner photo keeps its monochrome framing through image load and slide
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     const fallback = page.locator('.session-story--fallback');
     await expect(fallback).toBeVisible();
+    await expect(fallback.locator('.session-story__copy')).toBeHidden();
+    expect(await fallback.locator('.session-story__photo').evaluate((element) => getComputedStyle(element).backgroundColor))
+      .toBe(await fallback.evaluate((element) => getComputedStyle(element).backgroundColor));
     await expectStablePhoto('.session-story--fallback');
     releaseImages();
     await expect(fallback.locator('.progressive-photo--ready')).toBeVisible();
+    await expect(fallback.locator('.session-story__copy')).toBeVisible();
     await expectStablePhoto('.session-story--fallback');
   } finally {
     releaseImages();
@@ -273,7 +277,18 @@ test('Home owner photo keeps its monochrome framing through image load and slide
   }
   const slide = page.locator('.swiper-slide-active.session-story__panel');
   await expect(slide.locator('.progressive-photo--ready')).toBeVisible();
+  await expect(slide.locator('.session-story__copy')).toBeVisible();
   await expectStablePhoto('.swiper-slide-active.session-story__panel');
+});
+
+test('Home session copy stays available when a custom session has no photo', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('custom-no-photo', 'Ma séance', 'My session', 0),
+  ]) }));
+  await page.goto('/');
+  await expect(page.locator('.session-story__copy').first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Ma séance' })).toBeVisible();
 });
 
 test('owner sessions form full-height panels with their own booking action', async ({ page }) => {

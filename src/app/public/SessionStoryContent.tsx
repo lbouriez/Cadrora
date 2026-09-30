@@ -8,8 +8,9 @@ import { serviceText } from './serviceCatalog';
 import { localizedMarketingPath } from './localizedMarketingPath';
 
 /** The live session slide and admin phone preview share the photo and text layout. */
-export function SessionStoryContent({ card, heading = 'h2', immediate = false, priority = false, preview = false, introduction = false }: {
-  card: ServiceCard; heading?: 'h1' | 'h2'; immediate?: boolean; priority?: boolean; preview?: boolean; introduction?: boolean;
+export function SessionStoryContent({ card, heading = 'h2', immediate = false, onVisualReady, priority = false, preview = false, introduction = false }: {
+  card: ServiceCard; heading?: 'h1' | 'h2'; immediate?: boolean; onVisualReady?: (() => void) | undefined;
+  priority?: boolean; preview?: boolean; introduction?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
@@ -19,7 +20,7 @@ export function SessionStoryContent({ card, heading = 'h2', immediate = false, p
   return <>
     <div className="session-story__visual" {...(preview ? {} : { 'data-swiper-parallax-scale': '1.1' })}>
       <ServicePhoto card={card} className="session-story__photo" immediate={immediate}
-        priority={priority} sizes={preview ? '320px' : '100vw'} {...(preview ? { framing: 'mobile' as const } : {})} />
+        onVisualReady={onVisualReady} priority={priority} sizes={preview ? '320px' : '100vw'} {...(preview ? { framing: 'mobile' as const } : {})} />
     </div>
     <div className="session-story__shade" />
     <div className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-200' })}>

@@ -14,6 +14,8 @@ interface CommonPhotoProps {
   immediate?: boolean;
   lazyPreview?: boolean;
   maxQuality?: 'preview' | 'medium' | 'full';
+  /** Notify a photo-backed hero after its first image decodes, or after every source fails. */
+  onVisualReady?: (() => void) | undefined;
   priority?: boolean;
   sizes: string;
 }
@@ -24,8 +26,11 @@ export type ProgressivePhotoProps = CommonPhotoProps & (
 );
 
 /** Select a display-sized source after the preview, or render one unblurred local/static source. */
-export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
+export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
   const frame = useRef<HTMLSpanElement>(null);
+  const previewFailed = useRef(false);
+  const optimizedFailed = useRef(false);
+  const visualReported = useRef(false);
   const [nearby, setNearby] = useState(() => typeof window !== 'undefined' && !('IntersectionObserver' in window));
   const [previewReady, setPreviewReady] = useState(false);
   const [optimizedReady, setOptimizedReady] = useState(false);
@@ -78,9 +83,23 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
   const revealOptimized = enabled && displayWidth !== null && (nearby || immediate || priority)
     && (previewReady || priority) && responsiveSources.length > 1;
   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
+  const reportVisualReady = () => {
+    if (!onVisualReady || visualReported.current) return;
+    visualReported.current = true;
+    onVisualReady?.();
+  };
+  const reportDecoded = (image: HTMLImageElement) => {
+    if (!onVisualReady || visualReported.current) return;
+    if (typeof image.decode !== 'function') { reportVisualReady(); return; }
+    void image.decode().catch(() => undefined).then(reportVisualReady);
+  };
 
   return <span className={`progressive-photo${src !== undefined ? ' progressive-photo--single' : ''}${priority ? ' progressive-photo--priority' : ''}${fit === 'contain' ? ' progressive-photo--contain' : ''}${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={width && height ? { aspectRatio: `${width} / ${height}` } : undefined}>
-    {enabled && previewUrl && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} height={height} loading={immediate ? 'eager' : 'lazy'} onError={() => setPreviewReady(true)} onLoad={() => setPreviewReady(true)} src={previewUrl} width={width} /> : null}
+    {enabled && previewUrl && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} height={height} loading={immediate ? 'eager' : 'lazy'} onError={() => {
+      previewFailed.current = true;
+      setPreviewReady(true);
+      if (responsiveSources.length <= 1 || optimizedFailed.current) reportVisualReady();
+    }} onLoad={(event) => { setPreviewReady(true); reportDecoded(event.currentTarget); }} src={previewUrl} width={width} /> : null}
     {revealOptimized ? <img
       alt=""
       aria-hidden="true"
@@ -88,8 +107,12 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
       decoding="async"
       fetchPriority={priority ? 'high' : undefined}
       loading="eager"
-      onError={() => setOptimizedReady(true)}
-      onLoad={() => setOptimizedReady(true)}
+      onError={() => {
+        optimizedFailed.current = true;
+        setOptimizedReady(true);
+        if (previewFailed.current) reportVisualReady();
+      }}
+      onLoad={(event) => { setOptimizedReady(true); reportDecoded(event.currentTarget); }}
       sizes={displayWidth ? `${displayWidth}px` : sizes}
       src={displaySources.at(-1)?.url}
       srcSet={displaySources.map((source) => `${source.url} ${source.width}w`).join(', ')}

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Fragment } from 'react';
+import { Fragment, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -36,6 +36,8 @@ function SiteActionLink({ action, variant, label, href }: { action?: SiteAction;
 
 export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
+  const [heroPhotoReady, setHeroPhotoReady] = useState(false);
+  const markHeroPhotoReady = useCallback(() => setHeroPhotoReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
@@ -64,7 +66,7 @@ export function DefaultHomePage() {
       || actions.findIndex((candidate) => candidate.href === '/portfolio') === index);
   return (
     <PublicLayout>
-      <section className="site-hero">
+      <section className={`site-hero${heroPhotoReady ? '' : ' site-hero--photo-loading'}`}>
         <MotionReveal className="site-hero__copy">
           <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
           <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
@@ -80,7 +82,7 @@ export function DefaultHomePage() {
         </MotionReveal>
         <figure className="site-hero__art">
           <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
-            height={853} immediate priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
+            height={853} immediate onVisualReady={markHeroPhotoReady} priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
             sources={[
               { url: `${heroImagePath}/preview`, width: 320 },
               { url: `${heroImagePath}/small`, width: 640 },
