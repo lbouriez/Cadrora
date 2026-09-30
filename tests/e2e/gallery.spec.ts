@@ -183,6 +183,7 @@ test('ouvre une galerie publique et sa visionneuse', async ({ page }, testInfo) 
   const capturedAt = dialog.locator('dt', { hasText: /prise de vue|captured/i }).locator('..').locator('dd');
   await expect(capturedAt).toContainText(/20.*2026.*12:00:00.*(?:UTC.?4|EDT)/i);
   await expect(page.getByText('1800 × 1200 px')).toBeVisible();
+  await dialog.locator('.photo-viewer__rail button').first().click();
   await page.setViewportSize({ height: 844, width: 390 });
   await expect(dialog.locator('.photo-viewer__slide[aria-hidden="false"] .progressive-photo__preview')).toHaveCSS('object-fit', 'contain');
   const mobileDialogBox = await dialog.boundingBox();

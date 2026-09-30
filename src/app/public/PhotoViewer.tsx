@@ -55,12 +55,16 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        event.preventDefault();
+        onClose();
+      }
       if (event.key === 'ArrowLeft' && previous) onSelect(previous);
       if (event.key === 'ArrowRight' && next) onSelect(next);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [next, onSelect, previous]);
+  }, [next, onClose, onSelect, previous]);
 
   useEffect(() => {
     if (!carousel || index < 0) return;
