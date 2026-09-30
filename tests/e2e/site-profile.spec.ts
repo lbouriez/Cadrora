@@ -190,6 +190,9 @@ test('owner sessions form full-height panels with their own booking action', asy
   const hero = await panels.first().boundingBox();
   expect(hero?.y).toBe(0);
   expect(hero?.height).toBe(page.viewportSize()?.height);
+  await expect(panels.first()).toHaveCSS('display', 'grid');
+  const copy = await panels.first().locator('.session-story__copy').boundingBox();
+  expect(Math.abs((copy?.y ?? 0) + (copy?.height ?? 0) / 2 - (hero?.height ?? 0) / 2)).toBeLessThan(2);
   expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
   await expect(page.locator('.session-story__cta')).toHaveCount(3);
   await expect(page.locator('.session-story__cta').first()).toHaveAttribute('href', '/contact');
