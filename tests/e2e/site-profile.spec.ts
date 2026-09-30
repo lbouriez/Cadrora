@@ -241,6 +241,53 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
+test('reduced motion keeps separate wheel ticks responsive and lets a photo follow a finger', async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('wedding', 'Mariages', 'Weddings', 0),
+    sessionCard('family', 'Familles', 'Families', 1),
+    sessionCard('brand', 'Portraits', 'Portraits', 2),
+  ]) }));
+  await page.goto('/');
+  await dismissConsent(page);
+  await expect(page.locator('.session-story__panel')).toHaveCount(3);
+  const viewport = page.viewportSize();
+  const height = viewport?.height ?? 844;
+  if (testInfo.project.name === 'mobile-chromium') {
+    const session = await page.context().newCDPSession(page);
+    const x = (viewport?.width ?? 390) / 2;
+    const startY = height * 0.82;
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
+    for (let step = 1; step <= 5; step += 1) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove', touchPoints: [{ x, y: startY - height * 0.5 * step / 5, id: 0 }],
+      });
+      await page.waitForTimeout(16);
+    }
+    expect(await page.evaluate(() => scrollY)).toBeGreaterThan(height * 0.3);
+    expect(await page.evaluate(() => scrollY)).toBeLessThan(height * 0.7);
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+    await session.detach();
+  } else {
+    await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+    await page.waitForTimeout(230);
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(2 * height);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(550);
+    await page.mouse.wheel(0, height * 3);
+    for (const trailingDelta of [150, 100]) {
+      await page.waitForTimeout(220);
+      await page.mouse.wheel(0, trailingDelta);
+    }
+    await expect.poll(() => page.evaluate(() => scrollY)).toBe(height);
+  }
+});
+
 test('Atelier mobile menu covers the photo and returns to the ivory interior header', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
