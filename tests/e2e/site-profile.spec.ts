@@ -169,6 +169,30 @@ test('the shared masthead and page introductions align across routes', async ({ 
   expect(narrowPositions[0]?.y).toBeCloseTo(narrowPositions[1]?.y ?? NaN, 0);
 });
 
+test('Home photo fills the viewport while the slider chunk loads', async ({ page }) => {
+  let releaseSlider = () => {};
+  const sliderReady = new Promise<void>((resolve) => { releaseSlider = resolve; });
+  await page.route('**/*VerticalStorySlider*', async (route) => {
+    await sliderReady;
+    await route.continue();
+  });
+  await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
+    sessionCard('wedding', 'Mariages', 'Weddings', 0),
+  ]) }));
+  try {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const fallback = page.locator('.session-story--fallback');
+    await expect(fallback).toBeVisible();
+    const viewportHeight = page.viewportSize()?.height;
+    expect((await fallback.boundingBox())?.height).toBe(viewportHeight);
+    expect((await fallback.locator('.session-story__photo').boundingBox())?.height).toBe(viewportHeight);
+    const copy = await fallback.locator('.session-story__copy').boundingBox();
+    expect((copy?.y ?? 0) + (copy?.height ?? 0) / 2).toBeCloseTo((viewportHeight ?? 0) / 2, 0);
+  } finally { releaseSlider(); }
+  await expect(page.locator('.swiper-slide-active.session-story__panel')).toBeVisible();
+});
+
 test('owner sessions form full-height panels with their own booking action', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],

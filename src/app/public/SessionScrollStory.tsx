@@ -49,7 +49,7 @@ export function SessionScrollStory() {
   </> }];
 
   return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
-    <Suspense fallback={<section className="session-story"><div className="session-story__panel">{slides[0]?.content}</div></section>}>
+    <Suspense fallback={<section className="session-story session-story--fallback"><div className="session-story__panel">{slides[0]?.content}</div></section>}>
       <VerticalStorySlider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
         motionPreference="always" onActiveIndexChange={setActiveSlideIndex} slideClassName="session-story__panel" slides={slides} />
     </Suspense>
