@@ -30,7 +30,7 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
 
   await expect(page).toHaveTitle('Atelier Giulia');
   await expect(page.locator('html')).toHaveAttribute('data-site', 'atelier-giulia');
-  await expect(page.locator('.session-slideshow')).toBeVisible();
+  await expect(page.locator('.session-story')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/mariages|weddings/i);
   await expect(page.locator('.public-brand')).toContainText('Atelier Giulia');
   await expect(page.locator('.public-footer')).toContainText('Des images pleines de vie.');
@@ -113,7 +113,7 @@ test('owner-edited brand copy updates both languages without changing the design
   await assertNoHorizontalOverflow(page);
 });
 
-test('owner sessions fill the screen with one booking action and discreet side arrows', async ({ page }) => {
+test('owner sessions form full-height panels with their own booking action', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
@@ -129,27 +129,21 @@ test('owner sessions fill the screen with one booking action and discreet side a
   ]) }));
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  const hero = await page.locator('.session-slideshow').boundingBox();
+  const panels = page.locator('.session-story__panel');
+  await expect(panels).toHaveCount(3);
+  const hero = await panels.first().boundingBox();
   expect(hero?.y).toBe(0);
   expect(hero?.height).toBe(page.viewportSize()?.height);
-  await expect(page.locator('.public-shell--immersive .public-header')).toHaveCSS('position', 'absolute');
-  await expect(page.locator('.session-slideshow__cta')).toHaveAttribute('href', '/contact');
-  await expect(page.locator('.session-slideshow__arrow')).toHaveCount(2);
-  await expect(page.locator('.session-slideshow__controls')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Séance suivante' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
-  const left = await page.getByRole('button', { name: 'Séance précédente' }).boundingBox();
-  const right = await page.getByRole('button', { name: 'Séance suivante' }).boundingBox();
-  expect(Math.abs((left?.y ?? 0) - (right?.y ?? 0))).toBeLessThan(2);
-  await page.setViewportSize({ width: 390, height: 844 });
+  expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
+  await expect(page.locator('.session-story__cta')).toHaveCount(3);
+  await expect(page.locator('.session-story__cta').first()).toHaveAttribute('href', '/contact');
+  await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
+  await expect(page.locator('.session-story__panel').nth(2).getByRole('heading', { level: 2 })).toHaveText('Portraits');
+  await expect(page.locator('.session-story__arrow')).toHaveCount(0);
   await assertNoHorizontalOverflow(page);
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  const mobileHero = await page.locator('.session-slideshow').boundingBox();
-  expect((mobileHero?.y ?? NaN) + await page.evaluate(() => scrollY)).toBe(0);
-  expect(mobileHero?.height).toBe(844);
 });
 
-test('keyboard arrows and horizontal wheel move one Home session at a time', async ({ page }, testInfo) => {
+test('wheel or finger scrolling reveals each session and reaches the footer', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -160,22 +154,32 @@ test('keyboard arrows and horizontal wheel move one Home session at a time', asy
   await page.goto('/');
   await dismissConsent(page);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
-  await page.keyboard.press('ArrowLeft');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  if (testInfo.project.name === 'mobile-chromium') return;
   const viewport = page.viewportSize();
-  await page.mouse.move((viewport?.width ?? 390) / 2, (viewport?.height ?? 844) / 2);
-  await page.mouse.wheel(0, 120);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  for (let index = 0; index < 3; index += 1) await page.mouse.wheel(25, 0);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
-  await page.mouse.wheel(120, 0);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
-  await page.waitForTimeout(260);
-  await page.mouse.wheel(120, 0);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Portraits');
+  const height = viewport?.height ?? 844;
+  if (testInfo.project.name === 'mobile-chromium') {
+    const session = await page.context().newCDPSession(page);
+    const x = (viewport?.width ?? 390) / 2;
+    const startY = height * 0.8;
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
+    for (let step = 1; step <= 12; step += 1) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove', touchPoints: [{ x, y: startY - height * 0.6 * step / 12, id: 0 }],
+      });
+      await page.waitForTimeout(16);
+    }
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await session.detach();
+  } else {
+    await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
+    await page.mouse.wheel(0, height * 0.6);
+  }
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
+  await page.evaluate(() => window.scrollTo(0, innerHeight));
+  await expect.poll(async () => (await page.locator('.session-story__panel').nth(1).boundingBox())?.y ?? NaN).toBe(0);
+  await page.evaluate(() => window.scrollTo(0, 2 * innerHeight));
+  await expect.poll(async () => (await page.locator('.session-story__panel').nth(2).boundingBox())?.y ?? NaN).toBe(0);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(page.locator('.public-footer')).toBeInViewport();
 });
 
 test('Atelier mobile menu covers the photo and returns to the ivory interior header', async ({ page }) => {
@@ -261,10 +265,9 @@ test('Home obeys session eligibility and limit while the Sessions page stays com
   await page.goto('/');
   await expect(page.locator('#galleries')).toHaveCount(0);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
-  await page.getByRole('button', { name: 'Séance suivante' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Familles');
-  await page.getByRole('button', { name: 'Séance suivante' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mariages');
+  await expect(page.locator('.session-story__panel')).toHaveCount(2);
+  await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
+  await expect(page.getByRole('heading', { name: 'Portraits' })).toHaveCount(0);
   await page.goto('/services');
   await expect(page.locator('.service-detail-card')).toHaveCount(4);
 });

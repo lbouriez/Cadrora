@@ -11,14 +11,14 @@ import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { fallbackServices, serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
-import { SessionSlideShow } from './SessionSlideShow';
+import { SessionScrollStory } from './SessionScrollStory';
 import { siteProfile } from './siteProfile';
 import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
   const Override = siteProfile.pages?.home;
   return Override ? <Override /> : siteProfile.home.presentation === 'session-slides'
-    ? <SessionSlideShow /> : <DefaultHomePage />;
+    ? <SessionScrollStory /> : <DefaultHomePage />;
 }
 
 function SiteActionLink({ action, variant, label, href }: { action?: SiteAction; variant: 'primary' | 'secondary'; label: string; href: string }) {
