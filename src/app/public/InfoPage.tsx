@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Spinner } from '../components';
 import { getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
+import { PublicPageIntro } from './PublicPageIntro';
 import { ServiceAreaMap } from './ServiceAreaMap';
 import { siteProfile } from './siteProfile';
 
@@ -20,14 +21,12 @@ export function DefaultPrivacyPage() {
   return (
     <PublicLayout>
       <article className="privacy-page">
-        <header className="editorial-heading editorial-heading--privacy">
-          <p className="site-eyebrow">{t('gallery.privacyPage.eyebrow')}</p>
-          <h1>{t('gallery.privacyPage.title')}</h1>
-          <p>{t('gallery.privacyPage.lead')}</p>
+        <PublicPageIntro eyebrow={t('gallery.privacyPage.eyebrow')}
+          lead={t('gallery.privacyPage.lead')} title={t('gallery.privacyPage.title')}>
           <p className="privacy-page__updated">{t(siteProfile.demo.enabled
             ? 'gallery.privacyPage.updatedDemo'
             : 'gallery.privacyPage.updated')}</p>
-        </header>
+        </PublicPageIntro>
         <div className="privacy-page__layout">
           <nav aria-label={t('gallery.privacyPage.onThisPage')} className="privacy-page__nav">
             <strong>{t('gallery.privacyPage.onThisPage')}</strong>
@@ -101,11 +100,8 @@ export function DefaultContactPage() {
   return (
     <PublicLayout>
       <article className="contact-page">
-        <header className="contact-page__heading">
-          <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
-          <h1>{t('gallery.contactTitle')}</h1>
-          <p>{t('gallery.contactBody')}</p>
-        </header>
+        <PublicPageIntro eyebrow={t('gallery.contactEyebrow')}
+          lead={t('gallery.contactBody')} title={t('gallery.contactTitle')} />
         {contactItems.length > 0 ? (
           <dl className="contact-list">
             {contactItems.map((item) => (

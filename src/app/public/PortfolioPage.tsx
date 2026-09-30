@@ -5,11 +5,12 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { PortfolioCategoriesSchema, PortfolioCollectionDetailSchema, PortfolioCollectionsSchema } from '../../shared/schemas/portfolio';
 import type { PortfolioCollection, PortfolioItem } from '../../shared/schemas/portfolio';
-import { BackLink, MotionReveal, ProgressivePhoto, Spinner } from '../components';
+import { BackLink, ProgressivePhoto, Spinner } from '../components';
 import { EditorialGalleryCard } from './EditorialGalleryCard';
 import { PhotoViewer } from './PhotoViewer';
 import type { ViewerPhoto } from './PhotoViewer';
 import { PublicLayout } from './PublicLayout';
+import { PublicPageIntro } from './PublicPageIntro';
 import { usePhotoColumns } from './usePhotoColumns';
 
 async function getCollections(): Promise<PortfolioCollection[]> {
@@ -45,11 +46,8 @@ export function PortfolioPage() {
   const collections = useQuery({ queryFn: getCollections, queryKey: ['public-portfolio'], retry: false, staleTime: 60_000 });
   const categories = useQuery({ queryFn: getCategories, queryKey: ['portfolio-categories'], retry: false, staleTime: 60_000 });
   return <PublicLayout pageTitle={t('gallery.portfolio')}>
-    <MotionReveal as="header" className="editorial-heading">
-      <p className="site-eyebrow">{t('gallery.portfolio')}</p>
-      <h1>{t('gallery.portfolioPage.title')}</h1>
-      <p>{t('gallery.portfolioPage.lead')}</p>
-    </MotionReveal>
+    <PublicPageIntro eyebrow={t('gallery.portfolio')}
+      lead={t('gallery.portfolioPage.lead')} title={t('gallery.portfolioPage.title')} />
     {collections.isPending ? <Spinner label={t('gallery.loading')} /> : null}
     {collections.isError ? <p className="gallery-notice" role="status">{t('gallery.portfolioPage.unavailable')}</p> : null}
     {collections.data?.length === 0 ? <p className="gallery-notice">{t('gallery.portfolioPage.emptyCollections')}</p> : null}
@@ -93,11 +91,8 @@ export function PortfolioDetailPage() {
     {collection.isPending ? <Spinner label={t('gallery.loading')} /> : null}
     {collection.isError ? <p className="gallery-notice" role="alert">{t('gallery.portfolioPage.unavailable')}</p> : null}
     {collection.data ? <>
-      <MotionReveal as="header" className="editorial-heading">
-        <p className="site-eyebrow">{category?.copy[language] ?? collection.data.copy[language].title}</p>
-        <h1>{collection.data.copy[language].title}</h1>
-        {collection.data.copy[language].description ? <p>{collection.data.copy[language].description}</p> : null}
-      </MotionReveal>
+      <PublicPageIntro eyebrow={category?.copy[language] ?? collection.data.copy[language].title}
+        lead={collection.data.copy[language].description} title={collection.data.copy[language].title} />
       <div className="photo-grid" ref={gridRef}
         style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
         {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>

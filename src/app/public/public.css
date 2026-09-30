@@ -3,6 +3,8 @@
   overflow: hidden;
 }
 
+.public-masthead { position: relative; z-index: 10; }
+
 .public-header {
   position: relative;
   z-index: 10;
@@ -301,8 +303,7 @@
   line-height: 1;
 }
 
-.site-section__heading > p:last-child,
-.contact-page__heading > p:last-child {
+.site-section__heading > p:last-child {
   color: var(--color-text-muted);
   font-size: var(--text-lg);
   line-height: 1.7;
@@ -594,13 +595,13 @@
 
 .editorial-heading {
   max-width: 59rem;
-  padding: clamp(4rem, 9vw, 8rem) 0 clamp(2rem, 5vw, 4rem);
+  padding: clamp(3rem, 7vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
 }
 
 .editorial-heading h1 {
   max-width: 15ch;
   margin: 0;
-  font-size: clamp(3rem, 7vw, 6.25rem);
+  font-size: clamp(3rem, 6vw, 5.2rem);
   letter-spacing: -0.065em;
   line-height: 0.92;
 }
@@ -611,9 +612,6 @@
   font-size: var(--text-lg);
   line-height: 1.7;
 }
-
-.editorial-heading--services { padding-block: clamp(3rem, 7vw, 5rem) clamp(2rem, 4vw, 3rem); }
-.editorial-heading--services h1 { font-size: clamp(3rem, 6vw, 5.2rem); }
 
 .service-detail-grid {
   display: grid;
@@ -771,10 +769,6 @@
 
 .privacy-page {
   padding-bottom: var(--space-7);
-}
-
-.editorial-heading--privacy h1 {
-  max-width: 13ch;
 }
 
 .privacy-page__updated {
@@ -941,11 +935,7 @@
 }
 
 .contact-page {
-  padding: clamp(3rem, 8vw, 7rem) 0 var(--space-6);
-}
-
-.contact-page__heading {
-  max-width: 47rem;
+  padding: 0 0 var(--space-6);
 }
 
 .contact-list {
@@ -2090,9 +2080,10 @@
 :root[data-site='atelier-giulia'] .public-nav a.active { text-decoration: underline; text-underline-offset: 0.45rem; }
 :root[data-site='atelier-giulia'] .public-footer { border-color: var(--color-border); }
 
-/* The shared header overlays only the Atelier Home photo; interior pages keep its ivory surface. */
+/* The same masthead stacks the notice and navigation on every page. */
 :root[data-site='atelier-giulia'] .public-shell--immersive { position: relative; overflow: clip; }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: absolute; top: 0; right: 0; left: 0; z-index: 10; background: transparent; color: var(--color-on-photo); }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-masthead { position: absolute; top: 0; right: 0; left: 0; }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-header { position: relative; top: auto; background: transparent; color: var(--color-on-photo); }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-brand,
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-nav a { color: var(--color-on-photo); text-shadow: 0 0.1rem 0.8rem var(--color-overlay); }
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-header__controls { border-color: color-mix(in srgb, var(--color-on-photo) 35%, transparent); }
@@ -2104,8 +2095,7 @@
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-nav a:focus-visible,
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-header__theme:focus-visible,
 :root[data-site='atelier-giulia'] .public-shell--immersive .public-header__language:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
-:root[data-site='atelier-giulia'] .public-shell--immersive .public-construction-notice { position: absolute; z-index: 11; top: 0; right: 0; left: 0; background: var(--color-overlay); color: var(--color-on-photo); }
-:root[data-site='atelier-giulia'] .public-shell--immersive:has(.public-construction-notice) .public-header { top: 3.5rem; }
+:root[data-site='atelier-giulia'] .public-shell--immersive .public-construction-notice { background: var(--color-overlay); color: var(--color-on-photo); }
 
 @media (max-width: 54rem) {
   :root[data-site='atelier-giulia'] .public-header { min-height: 4.75rem; }
@@ -2137,22 +2127,17 @@
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-nav a:focus-visible,
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__theme:focus-visible,
   :root[data-site='atelier-giulia'] .public-shell--menu-open .public-header__language:focus-visible { outline-color: var(--color-focus); }
-  :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-header { top: 0; }
-  :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-construction-notice { visibility: hidden; }
+  :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-construction-notice { display: none; }
 }
 @media (max-width: 34rem) {
   :root[data-site='atelier-giulia'] .public-header { border-radius: 0; padding-inline: 1rem; }
   :root[data-site='atelier-giulia'] .public-brand { font-size: 1.3rem; }
-  .session-slideshow__content { width: calc(100% - 5rem); }
-  .session-slideshow h1 { font-size: clamp(2.75rem, 12vw, 4rem); }
-  .session-slideshow__eyebrow { font-size: 0.7rem; }
-  .session-slideshow__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
-  :root[data-site='atelier-giulia'] .public-shell--immersive:has(.public-construction-notice) .public-header { top: 4rem; }
-  :root[data-site='atelier-giulia'] .public-shell--immersive.public-shell--menu-open .public-header { top: 0; }
+  .session-story h1, .session-story h2 { font-size: clamp(2.75rem, 12vw, 4rem); }
+  .session-story__eyebrow { font-size: 0.7rem; }
+  .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .session-slideshow__slide, .session-slideshow__cta { transition: none; }
-  .session-slideshow__content { animation: none; }
+  .session-story__cta { transition: none; }
 }
 
 /* The About page shares its data and image pipeline across the two presentations. */

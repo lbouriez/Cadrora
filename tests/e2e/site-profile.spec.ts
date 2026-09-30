@@ -113,6 +113,43 @@ test('owner-edited brand copy updates both languages without changing the design
   await assertNoHorizontalOverflow(page);
 });
 
+test('the shared masthead and page introductions align across routes', async ({ page }) => {
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+    enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+    constructionNoticeEnabled: true, homeGalleries: { enabled: false, limit: 6 }, homeServicesLimit: 3,
+    updatedAt: '2026-09-27T00:00:00.000Z',
+  }) }));
+  const positions = [];
+  for (const path of ['/', '/services', '/contact', '/portfolio']) {
+    await page.goto(path);
+    await expect(page.locator('.public-construction-notice')).toBeVisible();
+    await page.evaluate(() => document.fonts.ready);
+    if (path !== '/') await expect(page.locator('.public-page-intro')).toHaveCSS('transform', 'none');
+    positions.push(await page.evaluate(() => {
+      const top = (selector: string) => document.querySelector(selector)?.getBoundingClientRect().top;
+      return { brand: top('.public-brand'), menu: top('.public-header__actions'),
+        intro: top('.public-page-intro .site-eyebrow') };
+    }));
+  }
+  for (const position of positions.slice(1)) {
+    expect(position.brand).toBeCloseTo(positions[0]?.brand ?? NaN, 0);
+    expect(position.menu).toBeCloseTo(positions[0]?.menu ?? NaN, 0);
+  }
+  expect(positions[1]?.intro).toBeCloseTo(positions[2]?.intro ?? NaN, 0);
+  expect(positions[1]?.intro).toBeCloseTo(positions[3]?.intro ?? NaN, 0);
+  await page.setViewportSize({ width: 320, height: 700 });
+  const narrowPositions = [];
+  for (const path of ['/', '/services']) {
+    await page.goto(path);
+    await expect(page.locator('.public-construction-notice')).toBeVisible();
+    narrowPositions.push(await page.locator('.public-brand').boundingBox());
+  }
+  expect(narrowPositions[0]?.y).toBeCloseTo(narrowPositions[1]?.y ?? NaN, 0);
+});
+
 test('owner sessions form full-height panels with their own booking action', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
@@ -176,6 +213,8 @@ test('wheel or finger scrolling reveals each session and reaches the footer', as
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(100);
   await page.evaluate(() => window.scrollTo(0, innerHeight));
   await expect.poll(async () => (await page.locator('.session-story__panel').nth(1).boundingBox())?.y ?? NaN).toBe(0);
+  await expect(page.locator('.session-story__panel').nth(1).locator('.session-story__content'))
+    .toHaveClass(/motion-reveal--visible/u);
   await page.evaluate(() => window.scrollTo(0, 2 * innerHeight));
   await expect.poll(async () => (await page.locator('.session-story__panel').nth(2).boundingBox())?.y ?? NaN).toBe(0);
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));

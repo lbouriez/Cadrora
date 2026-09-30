@@ -7,6 +7,7 @@ import { Button, InfiniteLoadMore, Modal, MotionReveal, Spinner } from '../compo
 import { getPublicGalleryIndex, getPublicServices, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
+import { PublicPageIntro } from './PublicPageIntro';
 import { fallbackServices, serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { siteProfile } from './siteProfile';
@@ -27,11 +28,8 @@ export function DefaultServicesPage() {
   const selectedCopy = selectedCard ? serviceText(selectedCard, language, (key) => t(key)) : null;
   return (
     <PublicLayout>
-      <MotionReveal as="header" className="editorial-heading editorial-heading--services">
-        <p className="site-eyebrow">{t('gallery.servicesPage.eyebrow')}</p>
-        <h1>{t('gallery.servicesPage.title')}</h1>
-        <p>{t('gallery.servicesPage.lead')}</p>
-      </MotionReveal>
+      <PublicPageIntro eyebrow={t('gallery.servicesPage.eyebrow')}
+        lead={t('gallery.servicesPage.lead')} title={t('gallery.servicesPage.title')} />
       <div className="service-detail-grid">
         {visibleServices.map((card, index) => {
           const copy = serviceText(card, language, (key) => t(key));
@@ -99,11 +97,8 @@ export function DefaultGalleriesPage() {
   const protectedGalleries = events.data?.pages.flatMap((page) => page.protectedGalleries) ?? [];
   return (
     <PublicLayout>
-      <MotionReveal as="header" className="editorial-heading">
-        <p className="site-eyebrow">{t('gallery.eventsPage.eyebrow')}</p>
-        <h1>{t('gallery.eventsPage.title')}</h1>
-        <p>{t('gallery.eventsPage.lead')}</p>
-      </MotionReveal>
+      <PublicPageIntro eyebrow={t('gallery.eventsPage.eyebrow')}
+        lead={t('gallery.eventsPage.lead')} title={t('gallery.eventsPage.title')} />
       <section aria-labelledby="published-events-title" className="site-section site-section--compact">
         <div className="site-section__heading">
           <p className="site-eyebrow">{t('gallery.galleryListEyebrow')}</p>

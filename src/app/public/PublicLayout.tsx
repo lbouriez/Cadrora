@@ -111,8 +111,9 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
 
   return (
     <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${pathname === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
-      {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
-      <header className="public-header">
+      <div className="public-masthead">
+        {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
+        <header className="public-header">
         <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to="/">
           {siteProfile.logoUrl ? <img alt="" height="256" src={siteProfile.logoUrl} width="256" /> : null}
           <span>{siteName}</span>
@@ -154,7 +155,8 @@ export function PublicLayout({ children, fullBleed = false, pageDescription, pag
           </IconButton> : null}
           </div>
         </div>
-      </header>
+        </header>
+      </div>
       <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || immersiveHome ? ' public-main--immersive' : ''}`}>{children}</main>
       <footer className="public-footer">
         <div className="public-footer__identity">
