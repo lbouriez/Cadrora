@@ -1312,11 +1312,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
   background: transparent;
 }
 
-.photo-viewer__image > img { object-fit: inherit; }
+.photo-viewer__image.progressive-photo > img { object-fit: contain; }
+.photo-viewer__image .progressive-photo__preview { transform: none; }
 
 .photo-viewer__arrow {
   position: absolute;
@@ -1459,10 +1459,6 @@
 .photo-viewer__rail .progressive-photo { width: 100%; height: 100%; }
 
 @media (min-width: 64rem) {
-  .photo-viewer__slide--fills-desktop .photo-viewer__image {
-    object-fit: cover;
-  }
-
   .modal-backdrop.modal-backdrop--photo-viewer {
     padding: clamp(0.75rem, 2vw, 2rem);
     background: rgb(18 12 22 / 44%);

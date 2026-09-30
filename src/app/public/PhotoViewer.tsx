@@ -85,10 +85,9 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
           <div className="photo-viewer__container">
             {photos.map((candidate, candidateIndex) => {
               const selected = candidate.id === photo.id;
-              const fillsDesktop = candidate.width > candidate.height && candidate.width / candidate.height < 2;
               const nearby = Math.abs(candidateIndex - index) <= 1;
               return (
-                <div aria-hidden={!selected} className={`photo-viewer__slide${fillsDesktop ? ' photo-viewer__slide--fills-desktop' : ''}`} key={`${candidate.id}:${candidate.revision}`}>
+                <div aria-hidden={!selected} className="photo-viewer__slide" key={`${candidate.id}:${candidate.revision}`}>
                   {nearby ? <img alt="" aria-hidden="true" className="photo-viewer__ambient" height={candidate.height} src={candidate.sources[0]?.url} width={candidate.width} /> : null}
                   <ProgressivePhoto alt={selected ? candidate.filename : ''} className="photo-viewer__image" enabled={nearby} height={candidate.height} immediate={nearby} maxQuality={selected ? 'full' : 'medium'} sizes="100vw" sources={candidate.sources} width={candidate.width} />
                 </div>
