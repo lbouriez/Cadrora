@@ -5,7 +5,8 @@ import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
 const ANALYTICS_ROUTES = new Set(['/', '/about', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
 function isAnalyticsRoute(pathname: string): boolean {
-  return ANALYTICS_ROUTES.has(pathname) || /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(pathname);
+  const marketingPath = pathname.replace(/^\/(?:fr|en)(?=\/|$)/u, '') || '/';
+  return ANALYTICS_ROUTES.has(marketingPath) || /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
 }
 let pendingDisable: ReturnType<typeof setTimeout> | null = null;
 

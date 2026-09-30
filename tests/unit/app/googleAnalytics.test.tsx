@@ -44,6 +44,21 @@ describe('consented Google Analytics loader', () => {
     expect(document.querySelector('script[data-cadrora-analytics]')).toBeNull();
   });
 
+  it('includes localized marketing pages without enabling localized gallery routes', () => {
+    localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
+    renderAnalytics('/fr');
+    expect(document.querySelector('script[data-cadrora-analytics]')).not.toBeNull();
+    expect((window as unknown as { dataLayer?: IArguments[] }).dataLayer?.some((entry) =>
+      entry[0] === 'event' && entry[1] === 'page_view'
+      && (entry[2] as { page_path?: string }).page_path === '/fr',
+    )).toBe(true);
+
+    cleanup();
+    document.querySelectorAll('script[data-cadrora-analytics]').forEach((script) => script.remove());
+    renderAnalytics('/en/e/private-gallery');
+    expect(document.querySelector('script[data-cadrora-analytics]')).toBeNull();
+  });
+
   it('records the current marketing page when consent is granted without navigation', () => {
     renderAnalytics('/contact');
     act(() => savePrivacyConsent('analytics'));

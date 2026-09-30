@@ -234,8 +234,8 @@ test.describe('site vitrine statique', () => {
     expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/contact' && Object.prototype.toString.call(entry) === '[object Arguments]'))).toBe(true);
 
     await page.getByRole('link', { name: /accueil|home/i }).first().click();
-    await expect(page).toHaveURL('/');
-    await expect.poll(() => page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/'))).toBe(true);
+    await expect(page).toHaveURL('/fr');
+    await expect.poll(() => page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/fr'))).toBe(true);
     expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'consent' && entry[1] === 'update' && (entry[2] as { analytics_storage?: string }).analytics_storage === 'denied'))).toBe(false);
     expect(tagRequests).toHaveLength(1);
   });
@@ -275,7 +275,7 @@ test.describe('site vitrine statique', () => {
     });
     expect(gap).toBeLessThan(120);
     await page.locator('.public-brand').click();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/fr');
   });
 
   test('garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés', async ({ page }) => {
