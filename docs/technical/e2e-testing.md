@@ -42,3 +42,7 @@ Le test unitaire `tests/unit/app/importPipeline.test.ts` complete cette couvertu
 - verifier les resultats visibles, pas seulement les appels reseau;
 - ne pas inclure de secret, de portrait reel ou de donnee biometrique dans les fixtures;
 - ajouter un projet ou un test cible plutot que ralentir toute la matrice pour une seule capacite optionnelle.
+
+Session HTML is now Worker-gated by the D1 page-availability flag. Before starting browser tests on a fresh checkout, run `npx wrangler d1 migrations apply cadrora --local`. Browser API mocks do not initialize or bypass that Worker-side D1 read. The Atelier production verification job applies these local migrations before its desktop/phone suite and includes the public-page visibility regressions. During a mocked settings outage, optional page links must remain hidden; restore an enabled response before testing menu navigation.
+
+The Sessions route and shared public shell disable automatic retry-on-mount for a failed settings query. Mounting the compiled fallback must not restart the same failed query and cycle back to the loading shell; explicit query invalidation still permits a refresh. The profile outage test covers this fallback on desktop and phone.

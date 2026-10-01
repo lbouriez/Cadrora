@@ -33,6 +33,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
     queryFn: getPublicSiteSettings,
     queryKey: ['public-site-settings'],
     retry: false,
+    retryOnMount: false,
     staleTime: 60_000,
   });
   // Until D1 resolves, keep the static light shell and hide controls whose policy is unknown.

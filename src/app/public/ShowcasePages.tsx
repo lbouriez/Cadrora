@@ -17,7 +17,7 @@ import { SessionDetailsModal } from './SessionDetailsModal';
 
 export function ServicesPage() {
   const { t, i18n } = useTranslation();
-  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, retryOnMount: false, staleTime: 60_000 });
   if (settings.isPending) return <PublicLayout><Spinner label={t('gallery.servicesLoading')} /></PublicLayout>;
   if (settings.data?.sessionsPageEnabled === false) return <PublicLayout pageTitle={t('gallery.pageNotFound')}>
     <PublicPageIntro eyebrow="404" title={t('gallery.pageNotFound')} lead={t('gallery.pageNotFoundLead')} />
@@ -30,7 +30,7 @@ export function ServicesPage() {
 export function DefaultServicesPage() {
   const { i18n, t } = useTranslation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, retryOnMount: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const visibleServices = services.cards.filter((card) => card.enabled);

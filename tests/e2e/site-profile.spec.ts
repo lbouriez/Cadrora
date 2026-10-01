@@ -493,6 +493,19 @@ test('Atelier mobile menu covers the photo and returns to the ivory interior hea
   await expect(menu).toHaveAttribute('aria-expanded', 'false');
   expect(await page.locator('main').evaluate((main) => (main as HTMLElement).inert)).toBe(false);
   await menu.click();
+  await expect(page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /séances|sessions/i })).toHaveCount(0);
+  // A settings outage keeps optional navigation hidden. Restore an enabled response before navigating.
+  await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+    siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+    contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+    map: { centerLatitude: null, centerLongitude: null, radiusKm: null }, enabledServices: ['family'],
+    sessionsPageEnabled: true, aboutEnabled: true, galleryDirectoryEnabled: true,
+    analyticsMeasurementId: null, themeMode: 'light', homeGalleries: { enabled: false, limit: 6 },
+    updatedAt: '2026-10-01T00:00:00.000Z',
+  } }));
+  await page.goto('/');
+  await dismissConsent(page);
+  await menu.click();
   await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /séances|sessions/i }).click();
   await expect(page).toHaveURL(/\/services$/u);
   await expect(page.locator('.public-shell--immersive')).toHaveCount(0);
