@@ -3,7 +3,7 @@ import { Fragment, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { MotionReveal, ProgressivePhoto, Spinner } from '../components';
+import { Button, MotionReveal, ProgressivePhoto, Spinner } from '../components';
 import { getPublicEvents, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
 import { FeaturedSites } from './FeaturedSites';
@@ -12,6 +12,7 @@ import { PublicLayout } from './PublicLayout';
 import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { SessionScrollStory } from './SessionScrollStory';
+import { SessionDetailsModal } from './SessionDetailsModal';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
@@ -37,6 +38,7 @@ function SiteActionLink({ action, variant, label, href }: { action?: SiteAction;
 export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
   const [heroPhotoReady, setHeroPhotoReady] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const markHeroPhotoReady = useCallback(() => setHeroPhotoReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
@@ -44,6 +46,7 @@ export function DefaultHomePage() {
   const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
   const featuredServices = services.cards.filter((card) => card.enabled && card.showOnHome);
+  const selectedCard = featuredServices.find((card) => card.id === selectedId);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const hero = settings.data?.homeHeroCopy;
   const heroText = hero?.[language];
@@ -130,11 +133,16 @@ export function DefaultHomePage() {
             return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
               <ServicePhotoHeader card={card} className="service-card__visual" heading="h3"
                 sizes="(max-width: 48rem) 100vw, 33vw" title={copy.title} />
-              <div className="service-card__copy"><p>{copy.shortDescription}</p></div>
+              <div className="service-card__copy"><p>{copy.shortDescription}</p>
+                <Button aria-haspopup="dialog" onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
+              </div>
             </MotionReveal>;
           })}
         </div>
-        <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
+        <div className="site-actions">
+          <Link className="button button--secondary" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link>
+          <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
+        </div>
       </MotionReveal> : null}
 
       {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
@@ -166,6 +174,7 @@ export function DefaultHomePage() {
         </div>
         <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
       </MotionReveal> : null}</Fragment>)}
+      <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
     </PublicLayout>
   );
 }

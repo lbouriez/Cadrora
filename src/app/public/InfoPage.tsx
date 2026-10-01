@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 import { Spinner } from '../components';
 import { getPublicSiteSettings } from './api';
@@ -9,6 +9,9 @@ import { PublicPageIntro } from './PublicPageIntro';
 import { ServiceAreaMap } from './ServiceAreaMap';
 import { siteProfile } from './siteProfile';
 import { localizedMarketingPath } from './localizedMarketingPath';
+import { ServiceIdSchema } from '../../shared/schemas/services';
+import { serviceText } from './serviceCatalog';
+import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
 export function PrivacyPage() {
   const Override = siteProfile.pages?.privacy;
@@ -61,8 +64,22 @@ export function ContactPage() {
   return Override ? <Override /> : <DefaultContactPage />;
 }
 
+/** Resolve optional session context without making direct contact depend on the catalog. */
+function ContactSessionContext({ sessionId }: { sessionId: string }) {
+  const { i18n, t } = useTranslation();
+  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  const services = usePublicServiceCatalog(settings);
+  const card = services.cards.find((item) => item.enabled && item.id === sessionId);
+  if (!card) return null;
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const copy = serviceText(card, language, (key) => t(key));
+  return <p className="contact-page__session">{t('gallery.servicesPage.contactContext', { session: copy.title })}</p>;
+}
+
 export function DefaultContactPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
+  const selectedSession = ServiceIdSchema.safeParse(searchParams.get('session'));
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const contact = {
     address: settings.data?.contactAddress ?? siteProfile.contact.address,
@@ -103,6 +120,7 @@ export function DefaultContactPage() {
       <article className="contact-page">
         <PublicPageIntro eyebrow={t('gallery.contactEyebrow')}
           lead={t('gallery.contactBody')} title={t('gallery.contactTitle')} />
+        {selectedSession.success ? <ContactSessionContext sessionId={selectedSession.data} /> : null}
         <div className={settings.isPending ? 'public-data-region--pending' : undefined}>
         {contactItems.length > 0 ? (
           <dl className="contact-list">

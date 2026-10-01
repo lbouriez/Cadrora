@@ -105,7 +105,7 @@ test.describe('site vitrine statique', () => {
       .getByRole('link', { name: /galeries|galleries/i })).toHaveCount(0);
     await expect(page.locator('.service-detail-card')).not.toContainText('2 000 $ à 3 000 $');
     await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
-    await page.getByRole('button', { name: 'Plus d’infos' }).click();
+    await page.getByRole('button', { name: 'Découvrir cette séance' }).click();
     const dialog = page.getByRole('dialog', { name: 'Mariages' });
     await expect(dialog).toContainText('2 000 $ à 3 000 $');
     await expect(dialog).toContainText('8 heures');
@@ -382,9 +382,9 @@ test.describe('site vitrine statique', () => {
 
     const header = page.locator('.public-header');
     expect((await header.boundingBox())?.height).toBeLessThan(85);
-    const actions = await page.locator('.site-actions .button').all();
+    const actions = await page.locator('.site-hero .site-actions .button').all();
     expect(actions).toHaveLength(2);
-    const actionRows = await page.locator('.site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
+    const actionRows = await page.locator('.site-hero .site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
     expect(Math.abs((actionRows[0] ?? 0) - (actionRows[1] ?? 0))).toBeLessThan(1);
     const portrait = await page.locator('.site-hero__ai-card .progressive-photo').boundingBox();
     expect(portrait?.height).toBeLessThan(80);

@@ -291,7 +291,7 @@ test('Home session copy stays available when a custom session has no photo', asy
   await expect(page.getByRole('heading', { level: 1, name: 'Ma séance' })).toBeVisible();
 });
 
-test('owner sessions form full-height panels with their own booking action', async ({ page }) => {
+test('owner sessions form full-height panels with their own details action', async ({ page }) => {
   await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
     contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
@@ -318,7 +318,8 @@ test('owner sessions form full-height panels with their own booking action', asy
   expect(Math.abs((copy?.y ?? 0) + (copy?.height ?? 0) / 2 - (hero?.height ?? 0) / 2)).toBeLessThan(2);
   expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
   await expect(page.locator('.session-story__cta')).toHaveCount(3);
-  await expect(page.locator('.session-story__cta').first()).toHaveAttribute('href', '/fr/contact');
+  await expect(page.locator('.session-story__cta').first()).toHaveAttribute('aria-haspopup', 'dialog');
+  await expect(page.locator('.session-story__cta').first()).toHaveText('Découvrir cette séance');
   await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
   await expect(page.locator('.session-story__panel').nth(2).getByRole('heading', { level: 2 })).toHaveText('Portraits');
   await expect(page.locator('.session-story__arrow')).toHaveCount(0);

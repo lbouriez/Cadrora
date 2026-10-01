@@ -725,6 +725,25 @@
   width: min(42rem, calc(100vw - 2rem));
   max-height: min(85vh, 52rem);
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 40rem) {
+  .modal-backdrop.modal-backdrop--session-details { padding: 0; }
+  .modal.service-details-modal {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+  }
+  .service-details-modal .modal__header {
+    position: sticky;
+    z-index: 1;
+    top: calc(-1 * var(--space-5));
+    padding-block: var(--space-3);
+    background: var(--color-surface);
+  }
 }
 
 .service-details-modal__body {
@@ -1953,6 +1972,7 @@
 .service-card:hover { box-shadow: var(--shadow-float); transform: translateY(-0.2rem); }
 .service-card .service-photo-header__title { margin: 0; font-size: 1.5rem; }
 .service-card__copy { padding: var(--space-5); }
+.contact-page__session { padding: var(--space-4); border-left: 0.2rem solid var(--color-primary); background: var(--color-surface); }
 
 .service-area-map {
   display: grid;
@@ -2084,9 +2104,12 @@
 .session-story .vertical-story-slider__page span { width: 0.34rem; height: 0.34rem; border-radius: var(--radius-round); background: var(--color-on-photo); opacity: 0.65; box-shadow: 0 0 0.35rem var(--color-overlay); transition: width var(--motion-standard) ease, height var(--motion-standard) ease, opacity var(--motion-standard) ease; }
 .session-story .vertical-story-slider__page[aria-current="step"] span { width: 0.58rem; height: 0.58rem; opacity: 1; }
 .session-story .vertical-story-slider__page:focus-visible { outline: 0.15rem solid var(--color-on-photo); outline-offset: -0.25rem; border-radius: var(--radius-round); }
-.session-story__cta { display: inline-flex; min-height: var(--control-min-size); align-items: center; justify-content: center; margin-top: 2rem; padding: 0.7rem 1.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-background); color: var(--color-text); font-family: var(--font-display); font-size: 1.05rem; text-decoration: none; transition: background var(--motion-standard) ease, transform var(--motion-standard) ease; }
+.session-story__cta { display: inline-flex; min-height: var(--control-min-size); align-items: center; justify-content: center; margin-top: 2rem; padding: 0.7rem 1.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-background); color: var(--color-text); font-family: var(--font-display); font-size: 1.05rem; text-decoration: none; cursor: pointer; transition: background var(--motion-standard) ease, transform var(--motion-standard) ease; }
 .session-story__cta:hover { background: var(--color-surface); transform: translateY(-0.15rem); }
 .session-story__cta:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
+.session-story__all { display: block; width: fit-content; margin: var(--space-3) auto 0; padding: var(--space-2); min-height: var(--control-min-size); color: var(--color-on-photo); text-underline-offset: 0.2em; }
+.session-story__all:hover { color: var(--color-on-photo); }
+.session-story__all:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
 
 /* Apply framing to both the blurred preview and the responsive image. */
 .service-photo--left > img, img.service-photo--left { object-position: 0% center; }
@@ -2105,6 +2128,7 @@
 .session-story--preview .session-story__content h2 { font-size: 12cqw; }
 .session-story--preview .session-story__subtitle { margin-top: 6.15cqw; font-size: 4.1cqw; }
 .session-story--preview .session-story__cta { min-height: 11.3cqw; margin-top: 8.2cqw; padding: 2.87cqw 6.97cqw; font-size: 4.3cqw; }
+.session-story--preview .session-story__all { min-height: 11.3cqw; font-size: 3.5cqw; margin-top: 3.3cqw; padding: 2cqw; }
 .session-story--preview .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
 
 @media (max-width: 34rem) {

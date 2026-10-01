@@ -22,7 +22,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
   const routeLanguage = /^\/(fr|en)(?:\/|$)/u.exec(pathname)?.[1] as 'fr' | 'en' | undefined;
   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
@@ -226,7 +226,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
             onClick={() => {
               rememberVisitorLanguage(nextLanguage);
               void i18n.changeLanguage(nextLanguage);
-              if (pageKey) void navigate(localizedTarget(marketingPath, nextLanguage));
+              if (pageKey) void navigate(`${localizedTarget(marketingPath, nextLanguage)}${search}${hash}`);
             }}
             title={t('gallery.changeLanguage', { language: nextLanguage.toUpperCase() })}
           >

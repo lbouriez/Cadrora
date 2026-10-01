@@ -20,6 +20,7 @@ export interface VerticalStorySliderProps {
   allowDocumentScrollAtEdges?: boolean;
   onActiveIndexChange?: (index: number) => void;
   showPagination?: boolean;
+  interactionDisabled?: boolean;
 }
 
 function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean, allowDocumentScrollAtEdges: boolean) {
@@ -33,13 +34,21 @@ const EDGE_SCROLL_MS = 700;
 
 /** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
-  motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false }: VerticalStorySliderProps) {
+  motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false,
+  interactionDisabled = false }: VerticalStorySliderProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const animate = motionPreference === 'always' || !reducedMotion;
+
+  useEffect(() => {
+    const swiper = swiperRef.current;
+    if (!swiper || swiper.destroyed) return;
+    if (interactionDisabled) swiper.disable();
+    else swiper.enable();
+  }, [interactionDisabled]);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -50,7 +59,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || !animate || !allowDocumentScrollAtEdges) return;
+    if (!section || !animate || !allowDocumentScrollAtEdges || interactionDisabled) return;
     let frame = 0;
     let exiting = false;
     const onWheel = (event: WheelEvent) => {
@@ -87,10 +96,11 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       window.cancelAnimationFrame(frame);
       section.removeEventListener('wheel', onWheel, true);
     };
-  }, [allowDocumentScrollAtEdges, animate]);
+  }, [allowDocumentScrollAtEdges, animate, interactionDisabled]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (interactionDisabled) return;
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable
@@ -117,14 +127,15 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [allowDocumentScrollAtEdges]);
+  }, [allowDocumentScrollAtEdges, interactionDisabled]);
 
   const currentIndex = Math.min(activeIndex, Math.max(0, slides.length - 1));
-  return <section aria-label={label} className={className} ref={sectionRef}>
+  return <section aria-label={label} className={className} inert={interactionDisabled} ref={sectionRef}>
     <Swiper
       aria-label={label}
       className="vertical-story-slider"
       direction="vertical"
+      enabled={!interactionDisabled}
       followFinger={false}
       longSwipes={false}
       modules={[Mousewheel, Parallax]}
@@ -141,6 +152,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       onSlideChangeTransitionEnd={(swiper) => releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges)}
       onSwiper={(swiper) => {
         swiperRef.current = swiper;
+        if (interactionDisabled) swiper.disable();
         releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges);
       }}
       parallax={animate}

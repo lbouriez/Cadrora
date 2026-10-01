@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate } from 'react-router-dom';
 
-import { Button, InfiniteLoadMore, Modal, MotionReveal, Spinner } from '../components';
+import { Button, InfiniteLoadMore, MotionReveal, Spinner } from '../components';
 import { getPublicGalleryIndex, getPublicSiteSettings } from './api';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
@@ -13,6 +13,7 @@ import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { localizedMarketingPath } from './localizedMarketingPath';
+import { SessionDetailsModal } from './SessionDetailsModal';
 
 export function ServicesPage() {
   const Override = siteProfile.pages?.services;
@@ -27,7 +28,6 @@ export function DefaultServicesPage() {
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const visibleServices = services.cards.filter((card) => card.enabled);
   const selectedCard = visibleServices.find((card) => card.id === selectedId);
-  const selectedCopy = selectedCard ? serviceText(selectedCard, language, (key) => t(key)) : null;
   return (
     <PublicLayout>
       <PublicPageIntro eyebrow={t('gallery.servicesPage.eyebrow')}
@@ -40,11 +40,8 @@ export function DefaultServicesPage() {
             <ServicePhotoHeader card={card} className="service-detail-card__visual" heading="h2"
               immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" title={copy.title} />
             <div className="service-detail-card__copy">
-              <p>{copy.description}</p>
-              <ul>
-                {copy.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}
-              </ul>
-              <Button onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
+              <p>{copy.shortDescription}</p>
+              <Button aria-haspopup="dialog" onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
             </div>
           </MotionReveal>;
         })}
@@ -64,19 +61,7 @@ export function DefaultServicesPage() {
         <div><p className="site-eyebrow">{t('gallery.contactEyebrow')}</p><h2>{t('gallery.servicesPage.cta')}</h2></div>
         <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
       </MotionReveal>
-      <Modal className="service-details-modal" closeLabel={t('gallery.servicesPage.closeDetails')}
-        onClose={() => setSelectedId(null)} open={Boolean(selectedCopy)} title={selectedCopy?.title ?? ''}>
-        {selectedCopy ? <div className="service-details-modal__body">
-          <p>{selectedCopy.description}</p>
-          {selectedCopy.duration ? <p><strong>{t('gallery.servicesPage.durationLabel')}</strong> {selectedCopy.duration}</p> : null}
-          {selectedCopy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {selectedCopy.priceRange}</p> : null}
-          {selectedCopy.illustrativeExample ? <p className="service-details-modal__example-note">{t('gallery.servicesPage.exampleNotice')}</p> : null}
-          {selectedCopy.details ? <p className="service-details-modal__details">{selectedCopy.details}</p> : null}
-          {selectedCopy.points.length ? <><h3>{t('gallery.servicesPage.includedLabel')}</h3>
-            <ul>{selectedCopy.points.map((point, index) => <li key={index}>{point}</li>)}</ul></> : null}
-          <Link className="button button--primary" onClick={() => setSelectedId(null)} to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
-        </div> : null}
-      </Modal>
+      <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
     </PublicLayout>
   );
 }

@@ -256,7 +256,9 @@ export const publicResources = {
         imageAlt: '',
       },
       servicesPage: {
-        moreInfo: 'More information', closeDetails: 'Close service details',
+        moreInfo: 'Explore this session', closeDetails: 'Close session details',
+        viewAll: 'View all sessions', contactAction: 'Let’s talk about your session',
+        contactContext: 'Interested in: {{session}}',
         priceLabel: 'Price:', durationLabel: 'Duration:', includedLabel: 'What is included',
         exampleNotice: 'These are examples. We confirm the duration and price for your project before booking.',
         brand: {
@@ -629,7 +631,9 @@ export const publicResources = {
         imageAlt: '',
       },
       servicesPage: {
-        moreInfo: 'Plus d’infos', closeDetails: 'Fermer les détails du service',
+        moreInfo: 'Découvrir cette séance', closeDetails: 'Fermer les détails de la séance',
+        viewAll: 'Voir toutes les séances', contactAction: 'Parlons de votre séance',
+        contactContext: 'Séance qui vous intéresse : {{session}}',
         priceLabel: 'Tarif :', durationLabel: 'Durée :', includedLabel: 'Ce qui est inclus',
         exampleNotice: 'Ces données sont des exemples. Nous confirmons la durée et le tarif de votre projet avant la réservation.',
         brand: {
