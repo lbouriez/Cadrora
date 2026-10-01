@@ -51,7 +51,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   const siteName = settings.data?.siteName ?? siteProfile.siteName;
   const description = settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
   const footerTagline = settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
-  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
+  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled === true;
   const navigation: readonly NavigationItem[] = siteProfile.navigation ?? ['home', 'services', 'portfolio', 'galleries', 'about', 'contact'];
   const navigationTarget: Record<NavigationItem, { href: string; label: string }> = {
     home: { href: `/${language}`, label: t('gallery.home') },
@@ -153,8 +153,9 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       document.head.append(robots);
     }
     robots.content = marketingPath === '/galleries' || marketingPath.startsWith('/e/')
+      || (marketingPath === '/services' && settings.data?.sessionsPageEnabled === false)
       || (marketingPath === '/about' && settings.data?.aboutEnabled === false) ? 'noindex,nofollow' : 'index,follow';
-  }, [marketingPath, settings.data?.aboutEnabled]);
+  }, [marketingPath, settings.data?.aboutEnabled, settings.data?.sessionsPageEnabled]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -198,7 +199,8 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
         <div className="public-header__actions">
           <nav aria-label={t('gallery.primaryNavigation')} className={`public-nav${menuOpen ? ' public-nav--open' : ''}`} id="public-navigation">
             {navigation.filter((item) => (item !== 'galleries' || galleryDirectoryEnabled)
-              && (item !== 'about' || (settings.data?.aboutEnabled ?? true))).map((item) => (
+              && (item !== 'services' || settings.data?.sessionsPageEnabled === true)
+              && (item !== 'about' || settings.data?.aboutEnabled === true)).map((item) => (
               <NavLink end={item === 'home'} key={item} onClick={() => setMenuOpen(false)}
                 to={navigationTarget[item].href}>{navigationTarget[item].label}</NavLink>
             ))}

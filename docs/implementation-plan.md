@@ -86,3 +86,5 @@ Local implementation and browser coverage are complete. The import suite verifie
 10. Product copy does not promise unlimited free use, perfect matching, or instant physical deletion.
 11. Normal photographer operation is browser-only.
 12. The public photographer website has no contact form, tracker, remote font, map, or other external runtime dependency by default. ADR-008 permits optional consented GA4 and a click-to-load OpenStreetMap map (or Google map with an optional key) while preserving static fallbacks.
+
+Post-plan extension (2026-10-01): ADR-046 adds an optional public Sessions page across PB, admin Website settings, shared schemas, Worker HTML routing and migration 043. Acceptance includes default-on compatibility, omitted PATCH preservation, FR/EN controls, all session URLs returning 404 when disabled, sitemap/llms omission, retained Home sessions, and both profile builds.

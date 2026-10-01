@@ -27,6 +27,8 @@ async function updateAdminSiteSettings(input: {
   enabledServices: ServiceKey[];
   constructionNoticeEnabled: boolean;
   galleryDirectoryEnabled: boolean;
+  sessionsPageEnabled: boolean;
+  aboutEnabled: boolean;
   homeGalleries: { enabled: boolean; limit: number };
   map: { centerLatitude: number | null; centerLongitude: number | null; radiusKm: number | null };
   quotas: QuotaLimits;
@@ -158,6 +160,8 @@ export function AdminSiteSettingsPage() {
       enabledServices,
       constructionNoticeEnabled: values.get('constructionNoticeEnabled') === 'on',
       galleryDirectoryEnabled,
+      sessionsPageEnabled: values.get('sessionsPageEnabled') === 'on',
+      aboutEnabled: values.get('aboutEnabled') === 'on',
       homeGalleries: {
         enabled: galleryDirectoryEnabled ? values.get('homeGalleriesEnabled') === 'on' : settings.data.homeGalleries.enabled,
         limit: homeGalleryLimit,
@@ -235,12 +239,24 @@ export function AdminSiteSettingsPage() {
           <option value="dark">{t('admin.settings.themeDark')}</option>
           <option value="system">{t('admin.settings.themeSystem')}</option>
         </Select>
-        <label className="admin-settings-services__option">
-          <input checked={galleryDirectoryEnabled} name="galleryDirectoryEnabled"
-            onChange={(event) => setGalleryDirectoryEnabled(event.target.checked)} type="checkbox" />
-          <span>{t('admin.settings.galleryDirectoryEnabled')}</span>
-        </label>
-        <p className="field__hint">{t('admin.settings.galleryDirectoryHint')}</p>
+        <fieldset className="admin-public-pages">
+          <legend>{t('admin.settings.publicPagesTitle')}</legend>
+          <p className="admin-card__description">{t('admin.settings.publicPagesHint')}</p>
+          {([
+            { name: 'galleryDirectoryEnabled', enabled: galleryDirectoryEnabled, label: 'galleryDirectoryEnabled', hint: 'galleryDirectoryHint' },
+            { name: 'sessionsPageEnabled', enabled: settings.data.sessionsPageEnabled, label: 'sessionsPageEnabled', hint: 'sessionsPageHint' },
+            { name: 'aboutEnabled', enabled: settings.data.aboutEnabled, label: 'aboutPageEnabled', hint: 'aboutPageHint' },
+          ] as const).map((page) => <div className="admin-public-pages__row" key={page.name}>
+            <label className="admin-settings-services__option">
+              {page.name === 'galleryDirectoryEnabled'
+                ? <input aria-describedby={`hint-${page.name}`} checked={galleryDirectoryEnabled} name={page.name}
+                    onChange={(event) => setGalleryDirectoryEnabled(event.target.checked)} type="checkbox" />
+                : <input aria-describedby={`hint-${page.name}`} defaultChecked={page.enabled} name={page.name} type="checkbox" />}
+              <span>{t(`admin.settings.${page.label}`)}</span>
+            </label>
+            <p className="field__hint" id={`hint-${page.name}`}>{t(`admin.settings.${page.hint}`)}</p>
+          </div>)}
+        </fieldset>
         <Input
           autoComplete="off"
           defaultValue={settings.data.analyticsMeasurementId ?? ''}

@@ -77,7 +77,7 @@ ${alternates}
 
 /** Collection HTML is the only indexable marketing page whose copy is created after build time. */
 export function registerPortfolioSeoRoutes(app: Hono<AppEnv>): void {
-  for (const path of ['/services', '/portfolio', '/about', '/contact', '/privacy']) {
+  for (const path of ['/portfolio', '/about', '/contact', '/privacy']) {
     for (const legacy of [path, `${path}/`]) {
       app.get(legacy, async (context) => {
         const language = defaultLanguage(await siteSeoRow(context.env.DB), context.env.SITE_DEFAULT_LANG);
@@ -85,6 +85,25 @@ export function registerPortfolioSeoRoutes(app: Hono<AppEnv>): void {
         return context.redirect(`/${language}${path}/${query}`, 302);
       });
     }
+  }
+  for (const path of ['/services', '/services/', '/fr/services', '/fr/services/', '/en/services', '/en/services/']) {
+    app.get(path, async (context) => {
+      let row: { sessions_page_enabled: number; default_language: string } | null;
+      try {
+        row = await context.env.DB.prepare('SELECT sessions_page_enabled, default_language FROM site_settings WHERE id = 1')
+          .first<{ sessions_page_enabled: number; default_language: string }>();
+      } catch {
+        // Do not expose a possibly disabled page when its availability is unknown.
+        return unavailableDocument(context, 503);
+      }
+      if (row?.sessions_page_enabled === 0) return unavailableDocument(context, 404);
+      if (path === '/services' || path === '/services/') {
+        const language = (row?.default_language ?? context.env.SITE_DEFAULT_LANG) === 'en' ? 'en' : 'fr';
+        return context.redirect(`/${language}/services/${new URL(context.req.url).search}`, 302);
+      }
+      context.header('Cache-Control', 'no-store, no-transform');
+      return context.env.ASSETS.fetch(context.req.raw);
+    });
   }
   for (const legacy of ['/portfolio/:slug', '/portfolio/:slug/']) {
     app.get(legacy, async (context) => {

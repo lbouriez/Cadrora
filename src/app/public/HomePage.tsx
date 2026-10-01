@@ -42,7 +42,7 @@ export function DefaultHomePage() {
   const markHeroPhotoReady = useCallback(() => setHeroPhotoReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
-  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled ?? true;
+  const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled === true;
   const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
   const events = useQuery({ queryKey: ['public-events'], queryFn: getPublicEvents, enabled: !settings.isPending && showHomeGalleries });
   const featuredServices = services.cards.filter((card) => card.enabled && card.showOnHome);
@@ -55,7 +55,8 @@ export function DefaultHomePage() {
   const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
     && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
   const resolveAction = (href: string) => galleryActionHidden(href)
-    ? '/portfolio' : !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
+    ? '/portfolio' : settings.data?.sessionsPageEnabled !== true && href === '/services'
+      ? '#services' : !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
   const portfolioLabel = t('gallery.portfolioPage.homeAction');
   const heroActions: { action?: SiteAction; href: string; label: string; variant: 'primary' | 'secondary' }[] = (hero
     ? hero.buttons.map((button) => ({ href: resolveAction(button.href),
@@ -140,7 +141,8 @@ export function DefaultHomePage() {
           })}
         </div>
         <div className="site-actions">
-          <Link className="button button--secondary" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link>
+          {settings.data?.sessionsPageEnabled === true
+            ? <Link className="button button--secondary" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link> : null}
           <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
         </div>
       </MotionReveal> : null}

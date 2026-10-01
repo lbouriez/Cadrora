@@ -51,6 +51,33 @@ describe('localized portfolio documents', () => {
     expect(contact.headers.get('Location')).toBe('/fr/contact/?session=family');
   });
 
+  it.each(['/services', '/services/', '/fr/services', '/fr/services/', '/en/services', '/en/services/'])('returns an unindexable 404 for disabled sessions at %s', async (path) => {
+    const env = bindings();
+    env.DB = { prepare: () => ({ first: () => Promise.resolve({ sessions_page_enabled: 0, default_language: 'fr' }) }) } as unknown as D1Database;
+    const response = await app().request(`https://cadrora.com${path}`, undefined, env);
+    expect(response.status).toBe(404);
+    expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(await response.text()).not.toContain('Portfolio | Cadrora');
+  });
+
+  it('serves static localized sessions when enabled and preserves legacy redirects', async () => {
+    const env = bindings();
+    env.DB = { prepare: () => ({ first: () => Promise.resolve({ sessions_page_enabled: 1, default_language: 'en' }) }) } as unknown as D1Database;
+    const response = await app().request('https://cadrora.com/en/services/', undefined, env);
+    expect(response.status).toBe(200);
+    const legacy = await app().request('https://cadrora.com/services?session=family', undefined, env);
+    expect(legacy.headers.get('Location')).toBe('/en/services/?session=family');
+  });
+
+  it('returns 503 rather than exposing sessions when D1 is unavailable', async () => {
+    const env = bindings();
+    env.DB = { prepare: () => { throw new Error('Unavailable'); } } as unknown as D1Database;
+    const response = await app().request('https://cadrora.com/fr/services/', undefined, env);
+    expect(response.status).toBe(503);
+    expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+  });
+
   it('serves bilingual collection metadata, reciprocal alternates, and its cover', async () => {
     const server = app();
     const response = await server.request('https://preview.example.test/en/portfolio/marques/', undefined, bindings());

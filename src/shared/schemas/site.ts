@@ -29,7 +29,7 @@ export const AboutCopyLanguageSchema = z.object({
   imageAlt: z.string().max(180),
 }).strict();
 export const AboutCopySchema = z.object({ fr: AboutCopyLanguageSchema, en: AboutCopyLanguageSchema }).strict();
-export const UpdateAboutSchema = z.object({ enabled: z.boolean(), copy: AboutCopySchema }).strict();
+export const UpdateAboutSchema = z.object({ enabled: z.boolean().optional(), copy: AboutCopySchema }).strict();
 
 export const HomeHeroDestinationSchema = z.enum([
   '/contact', '/services', '/portfolio', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
@@ -110,6 +110,7 @@ export const SiteSettingsSchema = z.object({
   enabledServices: EnabledServicesSchema,
   constructionNoticeEnabled: z.boolean().default(false),
   galleryDirectoryEnabled: z.boolean().default(true),
+  sessionsPageEnabled: z.boolean().default(true),
   homeGalleries: HomeGalleriesSchema,
   homeHeroCopy: HomeHeroCopySchema.nullable().default(null),
   homeHeroImageRevision: z.number().int().positive().nullable().default(null),
@@ -140,6 +141,8 @@ export const UpdateSiteSettingsSchema = z.object({
   enabledServices: EnabledServicesSchema,
   constructionNoticeEnabled: z.boolean().optional(),
   galleryDirectoryEnabled: z.boolean().optional(),
+  sessionsPageEnabled: z.boolean().optional(),
+  aboutEnabled: z.boolean().optional(),
   homeGalleries: HomeGalleriesSchema,
   defaultLanguage: LanguageSchema,
   enabledLanguages: z.array(LanguageSchema).min(1).max(2).refine(

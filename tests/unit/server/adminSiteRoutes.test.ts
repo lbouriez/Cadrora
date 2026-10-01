@@ -64,8 +64,8 @@ describe('admin site settings routes', () => {
     const prepare = vi.fn((query: string) => ({
       bind: (...values: unknown[]) => ({
         run: () => {
-          directoryEnabled = Number(values.at(-2));
-          noticeEnabled = Number(values.at(-1));
+          directoryEnabled = Number(values[19]);
+          noticeEnabled = Number(values[20]);
           return Promise.resolve({ meta: { changes: 1 } });
         },
       }),
@@ -99,6 +99,38 @@ describe('admin site settings routes', () => {
     const reread = await appWith().request('/api/v1/admin/site', undefined, { DB: database, ...quotaBindings });
     expect(AdminSiteSettingsSchema.parse(await reread.json()).constructionNoticeEnabled).toBe(true);
     expect(prepare).toHaveBeenCalledWith(expect.stringContaining("visibility = 'published' AND offline_at IS NULL"));
+  });
+
+  it('persists the Sessions page switch and preserves it for an older PATCH client', async () => {
+    let sessionsEnabled = 1;
+    let aboutEnabled = 1;
+    const database = { prepare: (sql: string) => ({
+      first: () => Promise.resolve(sql.startsWith('SELECT site_name')
+        ? { ...row, sessions_page_enabled: sessionsEnabled, about_enabled: aboutEnabled } : { value: 0 }),
+      bind: (...values: unknown[]) => ({ run: () => {
+        if (values[21] !== null) sessionsEnabled = Number(values[21]);
+        if (values[22] !== null) aboutEnabled = Number(values[22]);
+        return Promise.resolve({ meta: { changes: 1 } });
+      } }),
+    }) } as unknown as D1Database;
+    const input = {
+      analyticsMeasurementId: null, contactAddress: null, contactEmail: null, contactPhone: null,
+      defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'], enabledServices: ['wedding'],
+      galleryDirectoryEnabled: true, homeGalleries: { enabled: true, limit: 6 },
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      quotas: { faceLimit: 39000, storageLimitBytes: 9900000000 }, serviceArea: null,
+      siteName: 'Studio', themeMode: 'both',
+    };
+    const save = (extra: object) => appWith().request('/api/v1/admin/site', {
+      body: JSON.stringify({ ...input, ...extra }), headers: { 'Content-Type': 'application/json' }, method: 'PATCH',
+    }, { DB: database, ...quotaBindings });
+    const disabled = await save({ sessionsPageEnabled: false, aboutEnabled: false });
+    expect(disabled.status).toBe(200);
+    expect(AdminSiteSettingsSchema.parse(await disabled.json()).sessionsPageEnabled).toBe(false);
+    const legacy = await save({});
+    expect(AdminSiteSettingsSchema.parse(await legacy.json())).toMatchObject({ sessionsPageEnabled: false, aboutEnabled: false });
+    const enabled = await save({ sessionsPageEnabled: true });
+    expect(AdminSiteSettingsSchema.parse(await enabled.json()).sessionsPageEnabled).toBe(true);
   });
 
   it('saves bilingual Home introduction and resets its copy and photo selection', async () => {
@@ -199,6 +231,8 @@ describe('admin site settings routes', () => {
       JSON.stringify({ fr: { description: 'Studio du Nord.', footerTagline: 'Des souvenirs durables.' }, en: { description: 'Northern studio.', footerTagline: 'Memories that last.' } }),
       expect.any(String),
       1,
+      null,
+      null,
       null,
     );
   });

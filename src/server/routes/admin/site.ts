@@ -75,8 +75,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
     applyCachePolicy(context, 'admin');
     const input = UpdateAboutSchema.safeParse(await context.req.json().catch(() => null));
     if (!input.success) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    await context.env.DB.prepare('UPDATE site_settings SET about_enabled = ?, about_copy = ?, updated_at = ? WHERE id = 1')
-      .bind(Number(input.data.enabled), JSON.stringify(input.data.copy), new Date().toISOString()).run();
+    await context.env.DB.prepare('UPDATE site_settings SET about_enabled = COALESCE(?, about_enabled), about_copy = ?, updated_at = ? WHERE id = 1')
+      .bind(input.data.enabled === undefined ? null : Number(input.data.enabled), JSON.stringify(input.data.copy), new Date().toISOString()).run();
     const settings = await findSettings(context.env.DB);
     if (!settings) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     return context.json(await adminSettings(context, settings));
@@ -135,7 +135,9 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
               home_galleries_limit = ?17,
               site_copy = COALESCE(?18, site_copy), updated_at = ?19,
               gallery_directory_enabled = ?20,
-              construction_notice_enabled = COALESCE(?21, construction_notice_enabled)
+              construction_notice_enabled = COALESCE(?21, construction_notice_enabled),
+              sessions_page_enabled = COALESCE(?22, sessions_page_enabled),
+              about_enabled = COALESCE(?23, about_enabled)
         WHERE id = 1`,
     ).bind(
       input.data.defaultLanguage,
@@ -159,6 +161,8 @@ export function createAdminSiteRoutes(): Hono<AppEnv> {
       updatedAt,
       Number(galleryDirectoryEnabled),
       input.data.constructionNoticeEnabled === undefined ? null : Number(input.data.constructionNoticeEnabled),
+      input.data.sessionsPageEnabled === undefined ? null : Number(input.data.sessionsPageEnabled),
+      input.data.aboutEnabled === undefined ? null : Number(input.data.aboutEnabled),
     ).run();
     if (!result.meta.changes) throw new ApiException('SITE_SETTINGS_NOT_FOUND', 'errors.siteSettingsNotFound', 404);
     const settings = await findSettings(context.env.DB);

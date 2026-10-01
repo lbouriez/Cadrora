@@ -158,3 +158,9 @@ Text placed on photos uses the shared `--color-on-photo` and overlay tokens; nev
 ## Validation
 
 After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/portfolio`, `/galleries` when enabled, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.
+
+The global Sessions page checkbox lives beside Galleries visibility in Settings > Website. Disabling it removes navigation and sitemap/llms discovery and returns 404 for all session HTML URLs; Home sessions still follow their existing per-session selection. Configured Home buttons targeting the page point to the Home sessions section. See [ADR-046](../decisions/ADR-046-optional-sessions-page.md).
+
+The shared **Public pages** block in Admin Settings > Website groups Galleries, Sessions and About. About visibility now saves through an optional `aboutEnabled` field on the main settings PATCH. The About editor retains text/photo controls and omits visibility on its PATCH; omitted `enabled` preserves the stored About availability, while older clients can still provide it. No additional migration is required.
+
+Public Galleries, Sessions and About links stay hidden until the settings response confirms enablement, including on settings failure. Home gallery promotions follow the same gate. Sitemap and llms omit optional Sessions/About entries when D1 settings are unknown and return no-store to avoid caching obsolete enabled entries; customer galleries remain absent from both documents in every state.

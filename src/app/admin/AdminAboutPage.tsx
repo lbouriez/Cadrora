@@ -28,7 +28,6 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     imageAlt: i18n.getFixedT(language)('gallery.aboutPage.imageAlt'),
   });
   const [copy, setCopy] = useState<AboutCopy>(() => settings.aboutCopy ?? { fr: fallback('fr'), en: fallback('en') });
-  const [enabled, setEnabled] = useState(settings.aboutEnabled);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -44,7 +43,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
   };
   const save = async () => {
     if (busy || readOnly) return;
-    const normalized = { enabled, copy: {
+    const normalized = { copy: {
       fr: { title: copy.fr.title.trim(), body: copy.fr.body.trim(), imageAlt: copy.fr.imageAlt.trim() },
       en: { title: copy.en.title.trim(), body: copy.en.body.trim(), imageAlt: copy.en.imageAlt.trim() },
     } };
@@ -89,9 +88,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     <section className="admin-card admin-about">
       <h1 className="admin-card__title">{t('admin.about.title')}</h1>
       <p className="admin-card__description">{t('admin.about.hint')}</p>
-      <label className="admin-settings-switch"><input checked={enabled} disabled={busy || readOnly}
-        onChange={(event) => { setEnabled(event.target.checked); setSaved(false); }} type="checkbox" />
-        <span>{t('admin.about.enabled')}</span></label>
+      <p className="field__hint">{t('admin.settings.aboutVisibilityLocation')}</p>
       {([{ field: 'title', label: 'pageTitle', maxLength: 120 },
         { field: 'body', label: 'body', maxLength: 2000, multiline: true },
         { field: 'imageAlt', label: 'imageAlt', maxLength: 180 }] as const).map(({ field, label, maxLength, ...rest }) => (

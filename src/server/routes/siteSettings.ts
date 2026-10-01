@@ -10,6 +10,7 @@ export interface SiteSettingsRow {
   enabled_services: string;
   construction_notice_enabled: number | null;
   gallery_directory_enabled: number;
+  sessions_page_enabled: number;
   home_galleries_enabled: number;
   home_galleries_limit: number;
   home_hero_copy: string | null;
@@ -32,7 +33,7 @@ export interface SiteSettingsRow {
 }
 
 export const SITE_SETTINGS_SELECT = `SELECT site_name, site_copy, default_language, enabled_languages,
-  enabled_services, construction_notice_enabled, gallery_directory_enabled, home_galleries_enabled, home_galleries_limit,
+  enabled_services, construction_notice_enabled, gallery_directory_enabled, sessions_page_enabled, home_galleries_enabled, home_galleries_limit,
   home_hero_copy, (SELECT NULLIF(image_revision, 0) FROM site_services WHERE id = 'home-hero' AND site_settings.home_hero_image_enabled = 1) AS home_hero_image_revision,
   (SELECT v.width FROM site_service_variants v JOIN site_services s ON s.id = v.service_id
     WHERE v.service_id = 'home-hero' AND v.variant = 'medium' AND v.revision = s.image_revision
@@ -64,6 +65,7 @@ export function siteSettingsFromRow(row: SiteSettingsRow) {
     enabledServices: JSON.parse(row.enabled_services) as unknown,
     constructionNoticeEnabled: row.construction_notice_enabled === 1,
     galleryDirectoryEnabled: row.gallery_directory_enabled !== 0,
+    sessionsPageEnabled: row.sessions_page_enabled !== 0,
     homeGalleries: {
       enabled: row.home_galleries_enabled === 1,
       limit: row.home_galleries_limit,

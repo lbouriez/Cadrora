@@ -36,11 +36,12 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     const siteName = (settings?.siteName ?? context.env.SITE_NAME).replace(/[\r\n]+/gu, ' ');
     const description = (settings?.siteCopy?.[language].description ?? context.env.SITE_DESCRIPTION).replace(/[\r\n]+/gu, ' ');
     const links = [
-      ...publicPages.filter((page) => page.path !== '/about' || settings?.aboutEnabled !== false)
+      ...publicPages.filter((page) => (page.path !== '/about' || settings?.aboutEnabled === true)
+        && (page.path !== '/services' || settings?.sessionsPageEnabled === true))
         .map((page) => `- [${english ? page.en : page.fr}](${origin}/${language}${page.path === '/' ? '/' : `${page.path}/`})`),
       `- [${english ? 'Sitemap' : 'Plan du site'}](${origin}/sitemap.xml)`,
     ].join('\n');
-    context.header('Cache-Control', 'public, max-age=3600');
+    context.header('Cache-Control', 'no-store');
     return context.text(`# ${siteName}\n\n> ${description}\n\n## ${english ? 'Public pages' : 'Pages publiques'}\n\n${links}\n`, 200, {
       'Content-Type': 'text/markdown; charset=utf-8',
     });
@@ -55,7 +56,8 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
   app.get('/sitemap.xml', async (context) => {
     const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     let portfolioPaths: string[] = [];
-    let aboutEnabled = true;
+    let aboutEnabled = false;
+    let sessionsPageEnabled = false;
     let defaultLanguage: 'fr' | 'en' = context.env.SITE_DEFAULT_LANG === 'en' ? 'en' : 'fr';
     try {
       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
@@ -64,14 +66,16 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
     try {
-      const row = await context.env.DB.prepare('SELECT about_enabled, default_language FROM site_settings WHERE id = 1')
-        .first<{ about_enabled: number; default_language: string }>();
-      aboutEnabled = row?.about_enabled !== 0;
+      const row = await context.env.DB.prepare('SELECT about_enabled, sessions_page_enabled, default_language FROM site_settings WHERE id = 1')
+        .first<{ about_enabled: number; sessions_page_enabled: number; default_language: string }>();
+      aboutEnabled = row?.about_enabled === 1;
+      sessionsPageEnabled = row?.sessions_page_enabled === 1;
       if (row?.default_language === 'fr' || row?.default_language === 'en') defaultLanguage = row.default_language;
-    } catch { /* Use the compiled page set when D1 is unavailable. */ }
-    context.header('Cache-Control', 'public, max-age=300');
+    } catch { /* Keep optional pages hidden while their availability is unknown. */ }
+    context.header('Cache-Control', 'no-store');
     const paths = [
-      ...publicPages.filter((page) => page.path !== '/about' || aboutEnabled).map((page) => page.path),
+      ...publicPages.filter((page) => (page.path !== '/about' || aboutEnabled)
+        && (page.path !== '/services' || sessionsPageEnabled)).map((page) => page.path),
       ...portfolioPaths,
     ];
     const marketingUrls = paths.flatMap((path) => (['fr', 'en'] as const).map((language) => {

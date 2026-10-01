@@ -35,6 +35,24 @@ beforeAll(() => {
 afterEach(async () => { cleanup(); vi.unstubAllGlobals(); await i18n.changeLanguage('fr'); });
 
 describe('admin site copy', () => {
+  it.each(['fr', 'en'] as const)('groups the three page switches and saves About availability in %s', async (language) => {
+    await i18n.changeLanguage(language);
+    let saved: Record<string, unknown> | null = null;
+    vi.stubGlobal('fetch', vi.fn((_url: string, options?: RequestInit) => {
+      if (options?.method === 'PATCH' && typeof options.body === 'string') saved = JSON.parse(options.body) as Record<string, unknown>;
+      return Promise.resolve(Response.json(settings));
+    }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={client}><AdminSiteSettingsPage /></QueryClientProvider>);
+    const group = await screen.findByRole('group', { name: language === 'fr' ? 'Pages publiques' : 'Public pages' });
+    expect(within(group).getAllByRole('checkbox')).toHaveLength(3);
+    const about = within(group).getByRole('checkbox', { name: language === 'fr' ? 'Afficher À propos sur le site public' : 'Show About on the public site' });
+    expect(about).toHaveProperty('checked', true);
+    fireEvent.click(about);
+    fireEvent.click(screen.getByRole('button', { name: language === 'fr' ? 'Enregistrer les réglages publics' : 'Save public settings' }));
+    await waitFor(() => expect(saved).toMatchObject({ aboutEnabled: false, sessionsPageEnabled: true, galleryDirectoryEnabled: true }));
+  });
+
   it('shows a prominent alert when an accessible public gallery blocks hiding Galleries', async () => {
     vi.stubGlobal('fetch', vi.fn((_url: string, options?: RequestInit) => Promise.resolve(new Response(
       options?.method === 'PATCH'
@@ -75,7 +93,7 @@ describe('admin site copy', () => {
     expect(screen.getByRole('textbox', { name: 'Description du site · Français' })).toHaveProperty('value', 'Portraits et célébrations.');
     expect(screen.getByRole('textbox', { name: 'Texte après le nom du site · Français' })).toHaveProperty('value', 'Des images pleines de vie.');
     expect(screen.queryByRole('textbox', { name: 'Description du site · Anglais' })).toBeNull();
-    expect(document.querySelector('fieldset:last-of-type')?.id).toBe('admin-settings-footer');
+    expect(Array.from(document.querySelectorAll('fieldset.admin-settings-section')).at(-1)?.id).toBe('admin-settings-footer');
     expect(screen.queryByRole('textbox', { name: 'Titre principal · Français' })).toBeNull();
 
     fireEvent.change(name, { target: { value: 'Studio Boréal' } });

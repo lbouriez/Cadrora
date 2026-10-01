@@ -26,7 +26,7 @@ describe('search index routes', () => {
     const row = {
       analytics_measurement_id: null, contact_address: null, contact_email: null, contact_phone: null,
       default_language: 'fr', enabled_languages: '["fr","en"]', enabled_services: '["wedding"]',
-      home_galleries_enabled: 1, home_galleries_limit: 6,
+      sessions_page_enabled: 0, home_galleries_enabled: 1, home_galleries_limit: 6,
       map_center_latitude: null, map_center_longitude: null, map_radius_km: null,
       service_area: null, site_name: 'Studio Boréal',
       site_copy: JSON.stringify({ fr: { description: 'Portraits du Québec.' }, en: { description: 'Portraits from Québec.' } }),
@@ -39,6 +39,48 @@ describe('search index routes', () => {
     const body = await response.text();
     expect(body).toMatch(/^# Studio Boréal\n/u);
     expect(body).toContain('> Portraits du Québec.');
+    expect(body).not.toContain('/services');
+  });
+
+  it('omits both session languages and their alternates from the sitemap when disabled', async () => {
+    const response = await app.request('https://example.test/sitemap.xml', undefined, {
+      DB: { prepare: (sql: string) => sql.includes('sessions_page_enabled')
+        ? { first: () => Promise.resolve({ about_enabled: 1, sessions_page_enabled: 0, default_language: 'fr' }) }
+        : { all: () => Promise.resolve({ results: [] }) } } as unknown as D1Database,
+    });
+    const body = await response.text();
+    expect(body).not.toContain('/services');
+    expect(body).toContain('/fr/contact/');
+    expect(body).toContain('/en/contact/');
+  });
+
+  it.each([0, 1])('includes optional sitemap pages only when enabled=%s', async (enabled) => {
+    const response = await app.request('https://example.test/sitemap.xml', undefined, {
+      DB: { prepare: (sql: string) => sql.includes('sessions_page_enabled')
+        ? { first: () => Promise.resolve({ about_enabled: enabled, sessions_page_enabled: enabled, default_language: 'fr' }) }
+        : { all: () => Promise.resolve({ results: [] }) } } as unknown as D1Database,
+    });
+    const body = await response.text();
+    for (const language of ['fr', 'en']) {
+      expect(body.includes(`/${language}/services/`)).toBe(enabled === 1);
+      expect(body.includes(`/${language}/about/`)).toBe(enabled === 1);
+    }
+    expect(body).not.toContain('/galleries');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+  });
+
+  it('does not rediscover optional pages when settings cannot be read', async () => {
+    const env = { SITE_NAME: 'Studio', SITE_DESCRIPTION: 'Photos', SITE_DEFAULT_LANG: 'fr',
+      DB: { prepare: () => { throw new Error('Unavailable'); } } as unknown as D1Database };
+    for (const path of ['/sitemap.xml', '/llms.txt']) {
+      const response = await app.request(`https://example.test${path}`, undefined, env);
+      const body = await response.text();
+      expect(body).not.toContain('/services');
+      expect(body).not.toContain('/about');
+      expect(body).not.toContain('/galleries');
+      expect(body).toContain('/contact/');
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+    }
   });
 
   it('serves a text robots file pointing at this hostname', async () => {

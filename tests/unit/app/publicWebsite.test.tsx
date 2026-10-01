@@ -9,6 +9,7 @@ import { i18n } from '../../../src/app/i18n';
 import { ContactPage } from '../../../src/app/public/InfoPage';
 import { PrivacyPage } from '../../../src/app/public/InfoPage';
 import { HomePage } from '../../../src/app/public/HomePage';
+import { ServicesPage } from '../../../src/app/public/ShowcasePages';
 import { AboutPage } from '../../../src/app/public/AboutPage';
 import { PublicEventCards } from '../../../src/app/public/PublicEventCards';
 import { installFindResources } from '../../../src/app/public/FindI18n';
@@ -55,6 +56,22 @@ function renderPage(page: ReactNode) {
 }
 
 describe('public photographer website', () => {
+  it('keeps Home sessions while removing disabled page links', async () => {
+    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(url === '/api/v1/site'
+      ? Response.json({ ...runtimeSettings, sessionsPageEnabled: false })
+      : new Response(null, { status: 503 }))));
+    const view = renderPage(<HomePage />);
+    await waitFor(() => expect(view.container.querySelector('#services .service-card')).toBeTruthy());
+    expect(view.container.querySelector('a[href$="/services"]')).toBeNull();
+  });
+
+  it('renders an unavailable page for client navigation to disabled Sessions', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve(Response.json({ ...runtimeSettings, sessionsPageEnabled: false }))));
+    renderPage(<ServicesPage />);
+    await screen.findByRole('heading', { name: 'Page introuvable' });
+    expect(document.querySelector('.service-detail-card')).toBeNull();
+  });
+
   it('speaks to visitors in the site owner’s voice in both languages', async () => {
     expect(i18n.t('gallery.protectedHelp')).toBe('Entrez le mot de passe qui vous a été transmis.');
     expect(i18n.t('gallery.privacyPage.operator.body', { siteName: 'Studio Exemple' })).toContain('Studio Exemple');
@@ -71,11 +88,12 @@ describe('public photographer website', () => {
 
     expect(screen.getByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Retrouver des photos avec l’IA' }).getAttribute('href')).toBe('/e/find-your-photos/find');
+    expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
     const atelierLink = screen.getByRole('link', { name: /Atelier Giulia.*Visiter le site/u });
     expect(atelierLink.getAttribute('href')).toBe('https://ateliergiulia.com/');
     expect(atelierLink.getAttribute('rel')).toBe('noopener');
-    await waitFor(() => expect(screen.getByText(/galeries ne sont pas disponibles pour le moment/i)).toBeTruthy());
+    await waitFor(() => expect(document.querySelector('#services .service-card')).toBeTruthy());
+    expect(document.querySelector('a[href$="/services"], a[href$="/about"], a[href="/galleries"]')).toBeNull();
   });
 
   it('hides About from shared navigation when the owner disables the page', async () => {
@@ -229,7 +247,7 @@ describe('public photographer website', () => {
 
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
-    expect(screen.getByRole('link', { name: 'Explorer les galeries en ligne' }).getAttribute('href')).toBe('/galleries');
+    expect((await screen.findByRole('link', { name: 'Explorer les galeries en ligne' })).getAttribute('href')).toBe('/galleries');
   });
 
   it('uses the portfolio as the public destination when the gallery directory is hidden', async () => {

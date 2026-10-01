@@ -456,6 +456,11 @@
 }
 
 .admin-settings-section > legend { padding: 0 var(--space-2); font-size: var(--text-lg); font-weight: 800; }
+.admin-public-pages { margin: var(--space-3) 0; min-width: 0; padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-raised); }
+.admin-public-pages > legend { padding: 0 var(--space-2); font-size: var(--text-lg); font-weight: 800; }
+.admin-public-pages__row { padding: var(--space-3) 0; }
+.admin-public-pages__row + .admin-public-pages__row { border-top: 1px solid var(--color-border); }
+.admin-public-pages__row .field__hint { margin: var(--space-1) 0 0; }
 .admin-settings-section__subheading { margin: var(--space-3) 0 0; font-size: var(--text-lg); }
 .admin-settings-contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
 .admin-localized-field { min-width: 0; }

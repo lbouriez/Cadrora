@@ -59,6 +59,7 @@ describe('public site settings route', () => {
       enabledServices: ['wedding', 'family', 'brand', 'corporate', 'children'],
       constructionNoticeEnabled: true,
       galleryDirectoryEnabled: true,
+      sessionsPageEnabled: true,
       homeGalleries: { enabled: true, limit: 6 },
       homeHeroCopy: null,
       homeHeroImageRevision: 4,
