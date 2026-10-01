@@ -32,7 +32,6 @@ test.beforeEach(async ({ page }) => {
 for (const language of ['fr', 'en'] as const) {
   test(`${language}: Home and Sessions share details, restore focus, and carry the session to Contact`, async ({ page }, testInfo) => {
     const label = language === 'fr' ? 'Découvrir cette séance' : 'Explore this session';
-    const viewAll = language === 'fr' ? 'Voir toutes les séances' : 'View all sessions';
     const contactLabel = language === 'fr' ? 'Parlons de votre séance' : 'Let’s talk about your session';
     const title = session.copy[language].title;
     await page.goto(`/${language}/`);
@@ -83,9 +82,8 @@ for (const language of ['fr', 'en'] as const) {
       await next.click();
       await expect(homeCards.first()).toHaveClass(/swiper-slide-active/u);
     }
-    const catalogLink = immersive ? page.locator('.swiper-slide-active').getByRole('link', { name: viewAll })
-      : page.getByRole('link', { name: viewAll });
-    await catalogLink.click();
+    if (immersive) await expect(page.locator('.session-story__all')).toHaveCount(0);
+    await page.goto(`/${language}/services`);
     await expect(page).toHaveURL(`/${language}/services`);
     const cards = page.locator('.service-detail-card');
     await expect(cards).toHaveCount(3);

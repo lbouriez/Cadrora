@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
 
 import { MotionReveal } from '../components';
 import type { ServiceCard } from '../../shared/schemas';
 import { ServicePhoto } from './ServicePhoto';
 import { serviceText } from './serviceCatalog';
-import { localizedMarketingPath } from './localizedMarketingPath';
 
 /** The live session slide and admin phone preview share the photo and text layout. */
 export function SessionStoryContent({ card, heading = 'h2', immediate = false, onVisualReady, onExplore, priority = false, preview = false, introduction = false }: {
@@ -26,14 +24,11 @@ export function SessionStoryContent({ card, heading = 'h2', immediate = false, o
     <div className="session-story__shade" />
     <div className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-200' })}>
       <Content className="session-story__content">
-        <p className="session-story__eyebrow">{t('gallery.servicesEyebrow')}</p>
         <Heading>{copy.title}</Heading>
         {copy.shortDescription ? <p className="session-story__subtitle">{copy.shortDescription}</p> : null}
         {introduction && !preview ? <p className="session-story__introduction">{t('gallery.heroLead')}</p> : null}
         {preview ? <span className="session-story__cta">{t('gallery.servicesPage.moreInfo')}</span>
           : <button aria-haspopup="dialog" className="session-story__cta" onClick={() => onExplore?.(card.id)} type="button">{t('gallery.servicesPage.moreInfo')}</button>}
-        {preview ? <span className="session-story__all">{t('gallery.servicesPage.viewAll')}</span>
-          : <Link className="session-story__all" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link>}
       </Content>
     </div>
   </>;

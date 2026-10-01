@@ -2095,7 +2095,6 @@
 .session-story__shade { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(90deg, var(--color-overlay), transparent 75%), linear-gradient(0deg, var(--color-overlay), transparent 38%); }
 .session-story__copy { position: relative; z-index: 2; width: 100%; }
 .session-story__content { position: relative; z-index: 2; display: grid; width: min(100% - 2rem, 64rem); margin-inline: auto; justify-items: center; padding-block: 6rem 3rem; color: var(--color-on-photo); text-align: center; }
-.session-story__eyebrow { margin: 0 0 1.5rem; font-size: var(--text-sm); letter-spacing: 0.25em; text-transform: uppercase; }
 .session-story h1, .session-story h2 { max-width: 17ch; margin: 0; font-family: var(--font-display); font-size: clamp(3.5rem, 7vw, 6.5rem); font-weight: 400; line-height: 0.95; text-wrap: balance; text-shadow: 0 0.15rem 1.2rem rgb(0 0 0 / 28%); }
 .session-story__subtitle { max-width: 35rem; margin: 1.5rem 0 0; font-size: clamp(1rem, 1.5vw, 1.3rem); line-height: 1.6; text-shadow: 0 0.15rem 1rem rgb(0 0 0 / 50%); }
 .session-story__introduction { max-width: 42ch; margin: 0.8rem 0 0; font-size: clamp(0.82rem, 1.1vw, 0.98rem); line-height: 1.5; text-shadow: 0 0.15rem 1rem rgb(0 0 0 / 60%); }
@@ -2104,12 +2103,9 @@
 .session-story .vertical-story-slider__page span { width: 0.34rem; height: 0.34rem; border-radius: var(--radius-round); background: var(--color-on-photo); opacity: 0.65; box-shadow: 0 0 0.35rem var(--color-overlay); transition: width var(--motion-standard) ease, height var(--motion-standard) ease, opacity var(--motion-standard) ease; }
 .session-story .vertical-story-slider__page[aria-current="step"] span { width: 0.58rem; height: 0.58rem; opacity: 1; }
 .session-story .vertical-story-slider__page:focus-visible { outline: 0.15rem solid var(--color-on-photo); outline-offset: -0.25rem; border-radius: var(--radius-round); }
-.session-story__cta { display: inline-flex; min-height: var(--control-min-size); align-items: center; justify-content: center; margin-top: 2rem; padding: 0.7rem 1.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-background); color: var(--color-text); font-family: var(--font-display); font-size: 1.05rem; text-decoration: none; cursor: pointer; transition: background var(--motion-standard) ease, transform var(--motion-standard) ease; }
-.session-story__cta:hover { background: var(--color-surface); transform: translateY(-0.15rem); }
+.session-story__cta { display: inline-flex; min-height: var(--control-min-size); align-items: center; justify-content: center; margin-top: 2rem; padding: 0.7rem 1.7rem; border: 1px solid var(--color-border); border-radius: var(--radius-round); background: var(--color-background); color: var(--color-text); font-family: var(--font-display); font-size: 1.05rem; text-decoration: none; cursor: pointer; transition: background var(--motion-standard) ease; }
+.session-story__cta:hover { background: var(--color-surface); }
 .session-story__cta:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
-.session-story__all { display: block; width: fit-content; margin: var(--space-3) auto 0; padding: var(--space-2); min-height: var(--control-min-size); color: var(--color-on-photo); text-underline-offset: 0.2em; }
-.session-story__all:hover { color: var(--color-on-photo); }
-.session-story__all:focus-visible { outline: 0.2rem solid var(--color-on-photo); outline-offset: 0.2rem; }
 
 /* Apply framing to both the blurred preview and the responsive image. */
 .service-photo--left > img, img.service-photo--left { object-position: 0% center; }
@@ -2124,16 +2120,13 @@
 .session-story--preview { width: min(100%, 20rem); aspect-ratio: 390 / 844; container-type: inline-size; border-radius: var(--radius-md); overflow: hidden; }
 .session-story--preview .session-story__panel { position: relative; }
 .session-story--preview .session-story__content { width: calc(100% - 8cqw); padding-block: 24.6cqw 12.3cqw; }
-.session-story--preview .session-story__eyebrow { margin-bottom: 6.15cqw; font-size: 2.87cqw; }
 .session-story--preview .session-story__content h2 { font-size: 12cqw; }
 .session-story--preview .session-story__subtitle { margin-top: 6.15cqw; font-size: 4.1cqw; }
 .session-story--preview .session-story__cta { min-height: 11.3cqw; margin-top: 8.2cqw; padding: 2.87cqw 6.97cqw; font-size: 4.3cqw; }
-.session-story--preview .session-story__all { min-height: 11.3cqw; font-size: 3.5cqw; margin-top: 3.3cqw; padding: 2cqw; }
 .session-story--preview .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
 
 @media (max-width: 34rem) {
   .session-story h1, .session-story h2 { font-size: clamp(2.75rem, 12vw, 4rem); }
-  .session-story__eyebrow { font-size: 0.7rem; }
   .session-story__panel:last-child .session-story__content { padding-block: 3rem 5rem; }
   .session-story__shade { background: linear-gradient(180deg, var(--color-overlay), transparent 30%), linear-gradient(0deg, var(--color-overlay), transparent 65%); }
 }

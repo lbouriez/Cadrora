@@ -51,7 +51,6 @@ export function SessionScrollStory() {
     <div className="session-story__shade" />
     <div className="session-story__copy" data-swiper-parallax="-200">
       <div className="session-story__content">
-        <p className="session-story__eyebrow">{t('gallery.servicesEyebrow')}</p>
         <h1>{t('gallery.heroTitle')}</h1>
         <Link className="session-story__cta" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
       </div>
