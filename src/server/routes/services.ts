@@ -198,7 +198,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
   app.get('/api/v1/services', async (context) => {
     applyCachePolicy(context, 'event-public');
     const cards = await listServices(context.env.DB);
-    return context.json(ServiceCardsSchema.parse(cards.filter((card) => card.enabled &&
+    return context.json(ServiceCardsSchema.parse(cards.filter((card) => (card.enabled || card.showOnHome) &&
       (card.isBuiltin || (card.copy && card.imageSources.length === requiredVariants.length)))));
   });
 
@@ -235,7 +235,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
     const previous = await serviceRow(context.env.DB, id.data);
     if (!previous) throw new ApiException('SERVICE_NOT_FOUND', 'errors.routeNotFound', 404);
     if (isReservedOwner(id.data)) throw new ApiException('INVALID_REQUEST', 'errors.invalidRequest', 400);
-    if (input.data.enabled && !previous.is_builtin && (!input.data.copy || previous.image_revision === 0)) {
+    if ((input.data.enabled || input.data.showOnHome) && !previous.is_builtin && (!input.data.copy || previous.image_revision === 0)) {
       throw new ApiException('SERVICE_INCOMPLETE', 'errors.invalidRequest', 409);
     }
     const now = new Date().toISOString();

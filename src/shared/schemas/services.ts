@@ -3,7 +3,7 @@ import { MAX_SITE_SERVICES } from '../constants';
 
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
-export const ServicePhotoAlignmentSchema = z.enum(['left', 'center', 'right']);
+export const ServicePhotoAlignmentSchema = z.enum(['left', 'center', 'right', 'top', 'bottom']);
 export const ServiceCopyLanguageSchema = z.object({
   title: z.string().min(1).max(120),
   shortDescription: z.string().min(1).max(180),

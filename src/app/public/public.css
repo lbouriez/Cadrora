@@ -2110,7 +2110,11 @@
 /* Apply framing to both the blurred preview and the responsive image. */
 .service-photo--left > img, img.service-photo--left { object-position: 0% center; }
 .service-photo--right > img, img.service-photo--right { object-position: 100% center; }
+.service-photo--top > img, img.service-photo--top { object-position: center 0%; }
+.service-photo--bottom > img, img.service-photo--bottom { object-position: center 100%; }
 @media (max-width: 54rem) {
+  .service-photo--mobile-top > img, img.service-photo--mobile-top { object-position: center 0%; }
+  .service-photo--mobile-bottom > img, img.service-photo--mobile-bottom { object-position: center 100%; }
   .service-photo--mobile-left > img, img.service-photo--mobile-left { object-position: 0% center; }
   .service-photo--mobile-center > img, img.service-photo--mobile-center { object-position: 50% center; }
   .service-photo--mobile-right > img, img.service-photo--mobile-right { object-position: 100% center; }

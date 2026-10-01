@@ -127,7 +127,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     ? translate(primaryLanguage, `gallery.servicesPage.${card.id}.title`)
     : copy[primaryLanguage].title || t('admin.serviceEditor.newService'));
   return <details className="admin-service-editor" open={!card}>
-    <summary>{label}{card && !card.enabled ? ` · ${t('admin.serviceEditor.hidden')}` : ''}</summary>
+    <summary>{label}{card && !card.enabled && !card.showOnHome ? ` · ${t('admin.serviceEditor.hidden')}` : ''}</summary>
     <div className="admin-service-editor__fields">
       {(['title', 'shortDescription', 'description'] as const).map((field) => <LocalizedTextField
         enabledLanguages={enabledLanguages} key={field} label={t(`admin.serviceEditor.${field}`)}
@@ -205,7 +205,7 @@ export function ServiceCatalogEditor({ enabledLanguages, primaryLanguage, readOn
   if (services.isPending) return <Spinner label={t('admin.serviceEditor.loading')} />;
   if (services.isError || !services.data) return <p role="alert">{t('admin.serviceEditor.error')}</p>;
   const ordered = [...services.data].sort((left, right) => left.sortOrder - right.sortOrder || left.id.localeCompare(right.id));
-  const eligible = ordered.filter((card) => card.enabled && card.showOnHome);
+  const eligible = ordered.filter((card) => card.showOnHome);
   const move = async (index: number, direction: -1 | 1) => {
     const first = ordered[index];
     const second = ordered[index + direction];
@@ -224,7 +224,7 @@ export function ServiceCatalogEditor({ enabledLanguages, primaryLanguage, readOn
     <ol className="admin-service-catalog__list">
       {ordered.map((card, index) => <li key={card.id}>
         <div className="admin-service-catalog__order">
-          <span>{card.enabled && card.showOnHome ? t('admin.serviceEditor.onHome') : ''}</span>
+          <span>{card.showOnHome ? t('admin.serviceEditor.onHome') : ''}</span>
           <Button aria-label={t('admin.serviceEditor.moveUp', { name: card.copy?.[primaryLanguage].title ?? t(`gallery.servicesPage.${card.id}.title`) })}
             disabled={index === 0 || readOnly} onClick={() => { void move(index, -1); }} variant="secondary">↑</Button>
           <Button aria-label={t('admin.serviceEditor.moveDown', { name: card.copy?.[primaryLanguage].title ?? t(`gallery.servicesPage.${card.id}.title`) })}

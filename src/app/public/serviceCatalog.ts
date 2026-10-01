@@ -18,7 +18,7 @@ export const serviceVisuals = [
 export function fallbackServices(enabled?: readonly ServiceKey[]): ServiceCard[] {
   return serviceVisuals.map(({ key }, sortOrder) => ({
     id: key, isBuiltin: true, sortOrder, enabled: enabled?.includes(key) ?? true,
-    showOnHome: true, copy: null, imageRevision: null, imageSources: [],
+    showOnHome: enabled?.includes(key) ?? true, copy: null, imageRevision: null, imageSources: [],
     photoAlignment: 'center', mobilePhotoAlignment: null,
   }));
 }

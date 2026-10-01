@@ -16,8 +16,8 @@ function session() {
     }, imageRevision: 1,
     imageSources: [{ url: '/service-media/maternity/1/preview', width: 320, height: 320 },
       { url: '/service-media/maternity/1/large', width: 1280, height: 1280 }],
-    photoAlignment: 'center' as 'left' | 'center' | 'right',
-    mobilePhotoAlignment: null as 'left' | 'center' | 'right' | null,
+    photoAlignment: 'center' as 'left' | 'center' | 'right' | 'top' | 'bottom',
+    mobilePhotoAlignment: null as 'left' | 'center' | 'right' | 'top' | 'bottom' | null,
   };
 }
 
@@ -47,7 +47,14 @@ test('session framing follows the phone override and uses the same crop for both
   await page.setViewportSize({ width: 390, height: 844 });
   for (const image of await photos.all()) await expect(image).toHaveCSS('object-position', '100% 50%');
   await assertNoHorizontalOverflow(page);
-  card = { ...card, mobilePhotoAlignment: null };
+  card = { ...card, photoAlignment: 'top', mobilePhotoAlignment: 'bottom' };
+  await page.reload();
+  await expect(photos).toHaveCount(2);
+  for (const image of await photos.all()) await expect(image).toHaveCSS('object-position', '50% 100%');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const image of await photos.all()) await expect(image).toHaveCSS('object-position', '50% 0%');
+  await page.setViewportSize({ width: 390, height: 844 });
+  card = { ...card, photoAlignment: 'left', mobilePhotoAlignment: null };
   await page.reload();
   await expect(photos).toHaveCount(2);
   for (const image of await photos.all()) await expect(image).toHaveCSS('object-position', '0% 50%');
@@ -101,10 +108,11 @@ test('owner can preview and save a phone focal point without another image uploa
   await expect(editor).toHaveAttribute('open', '');
   const mobile = page.getByLabel(english ? 'Phone focal point' : 'Point d’ancrage sur téléphone', { exact: true });
   await expect(mobile).toHaveValue('');
-  await mobile.selectOption('right');
+  await page.getByLabel(english ? 'Default focal point' : 'Point d’ancrage par défaut', { exact: true }).selectOption('top');
+  await mobile.selectOption('bottom');
   const preview = page.locator('.session-story--preview');
   await expect(preview.locator('img')).toHaveCount(2);
-  for (const image of await preview.locator('img').all()) await expect(image).toHaveCSS('object-position', '100% 50%');
+  for (const image of await preview.locator('img').all()) await expect(image).toHaveCSS('object-position', '50% 100%');
   await expect(preview.getByRole('heading')).toHaveText(english ? 'Maternity' : 'Maternité');
   await preview.scrollIntoViewIfNeeded();
   const box = await preview.boundingBox();
@@ -116,12 +124,30 @@ test('owner can preview and save a phone focal point without another image uploa
   await assertNoHorizontalOverflow(page);
   await preview.screenshot({ path: testInfo.outputPath('phone-preview.png') });
   await page.getByRole('button', { name: english ? 'Save session' : 'Enregistrer la séance', exact: true }).click();
-  await expect.poll(() => card.mobilePhotoAlignment).toBe('right');
+  await expect.poll(() => card.mobilePhotoAlignment).toBe('bottom');
+  expect(card.photoAlignment).toBe('top');
   expect(writes).toEqual(['/api/v1/admin/services/maternity']);
   await page.goto('/admin/login');
   await page.evaluate(() => { history.pushState({}, '', '/admin/settings'); dispatchEvent(new PopStateEvent('popstate')); });
   await editor.locator('summary').focus();
   await page.keyboard.press('Space');
   await expect(editor).toHaveAttribute('open', '');
-  await expect(mobile).toHaveValue('right');
+  await expect(mobile).toHaveValue('bottom');
+});
+
+
+test('Home-only session stays public on Home and Contact and is absent from Sessions', async ({ page }) => {
+  const card = { ...session(), enabled: false };
+  await page.route('**/api/v1/site', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ...siteSettings, sessionsPageEnabled: true }) }));
+  await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([card]) }));
+  await page.route('**/service-media/**', (route) => route.fulfill({ contentType: 'image/svg+xml',
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="853"><rect width="1280" height="853" fill="#aaa"/></svg>',
+  }));
+  await page.goto('/fr/');
+  await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
+  await expect(page.getByRole('heading', { name: 'Maternité', exact: true })).toBeVisible();
+  await page.goto('/fr/contact?session=maternity');
+  await expect(page.locator('.contact-page__session')).toContainText('Maternité');
+  await page.goto('/fr/services');
+  await expect(page.locator('.service-detail-card')).toHaveCount(0);
 });

@@ -554,7 +554,7 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
 test('Home obeys session eligibility while the Sessions page stays complete', async ({ page }) => {
   const sessions = [
     sessionCard('wedding', 'Mariages', 'Weddings', 0),
-    sessionCard('family', 'Familles', 'Families', 1),
+    { ...sessionCard('family', 'Familles', 'Families', 1), enabled: false },
     sessionCard('brand', 'Portraits', 'Portraits', 2),
     sessionCard('children', 'Enfants', 'Children', 3, false),
   ];
@@ -574,7 +574,8 @@ test('Home obeys session eligibility while the Sessions page stays complete', as
   await expect(page.locator('.session-story__panel').nth(1).getByRole('heading', { level: 2 })).toHaveText('Familles');
   await expect(page.locator('.session-story__panel').nth(2).getByRole('heading', { level: 2 })).toHaveText('Portraits');
   await page.goto('/services');
-  await expect(page.locator('.service-detail-card')).toHaveCount(4);
+  await expect(page.locator('.service-detail-card')).toHaveCount(3);
+  await expect(page.locator('.service-detail-card').filter({ hasText: 'Familles' })).toHaveCount(0);
 });
 
 test('gallery directory fetches one bounded page and loads more on scroll', async ({ page }) => {

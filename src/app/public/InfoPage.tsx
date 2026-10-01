@@ -69,7 +69,7 @@ function ContactSessionContext({ sessionId }: { sessionId: string }) {
   const { i18n, t } = useTranslation();
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
-  const card = services.cards.find((item) => item.enabled && item.id === sessionId);
+  const card = services.cards.find((item) => (item.enabled || item.showOnHome) && item.id === sessionId);
   if (!card) return null;
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const copy = serviceText(card, language, (key) => t(key));

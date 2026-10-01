@@ -26,7 +26,7 @@ export function SessionScrollStory() {
   const markFirstPhotoReady = useCallback(() => setFirstPhotoReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
-  const sessions = services.cards.filter((card) => card.enabled && card.showOnHome);
+  const sessions = services.cards.filter((card) => card.showOnHome);
   const selectedCard = sessions.find((card) => card.id === selectedId);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   useEffect(() => {

@@ -27,7 +27,7 @@ describe('service catalog routes', () => {
   it('validates alignment choices while accepting older clients without framing fields', () => {
     const input = { enabled: true, showOnHome: true, sortOrder: 0, copy: null };
     expect(ServiceCardUpdateSchema.parse(input)).toEqual(input);
-    expect(ServiceCardUpdateSchema.safeParse({ ...input, photoAlignment: 'top' }).success).toBe(false);
+    expect(ServiceCardUpdateSchema.safeParse({ ...input, photoAlignment: 'top', mobilePhotoAlignment: 'bottom' }).success).toBe(true);
     expect(ServiceCardUpdateSchema.safeParse({ ...input, mobilePhotoAlignment: 'javascript:bad' }).success).toBe(false);
   });
 
@@ -183,16 +183,17 @@ describe('service catalog routes', () => {
     expect(get).not.toHaveBeenCalled();
   });
 
-  it('publishes only enabled complete cards and emits versioned D1-derived image URLs', async () => {
+  it('publishes complete cards visible on either page and emits versioned D1-derived image URLs', async () => {
     const rows = [
       { id: 'wedding', is_builtin: 1, sort_order: 0, enabled: 1, show_on_home: 1, copy_json: null, image_revision: 0 },
-      { id: 'custom', is_builtin: 0, sort_order: 1, enabled: 1, show_on_home: 1,
+      { id: 'custom', is_builtin: 0, sort_order: 1, enabled: 0, show_on_home: 1,
         copy_json: JSON.stringify({ fr: { title: 'Studio', shortDescription: 'Court', description: 'Long', points: [] }, en: { title: 'Studio', shortDescription: 'Short', description: 'Long', points: [] } }),
         image_revision: 1 },
       { id: 'draft', is_builtin: 0, sort_order: 2, enabled: 1, show_on_home: 1,
         copy_json: JSON.stringify({ fr: { title: 'Brouillon', shortDescription: 'Court', description: 'Long', points: [] }, en: { title: 'Draft', shortDescription: 'Short', description: 'Long', points: [] } }),
         image_revision: 0 },
     ];
+    rows.push({ ...rows[0]!, id: 'hidden', enabled: 0, show_on_home: 0 });
     const variants = ['preview', 'small', 'medium', 'large'].map((variant, index) => ({
       service_id: 'custom', revision: 1, variant, storage_key: `site/services/custom/1/${variant}.webp`,
       content_type: 'image/webp', byte_size: 100, width: [320, 640, 960, 1280][index], height: [213, 427, 640, 853][index],
@@ -211,6 +212,18 @@ describe('service catalog routes', () => {
       '/service-media/custom/1/preview', '/service-media/custom/1/small',
       '/service-media/custom/1/medium', '/service-media/custom/1/large',
     ]);
+  });
+
+  it.each([true, false])('rejects incomplete custom publication with Sessions selected=%s and Home selected', async (enabled) => {
+    const run = vi.fn();
+    const row = { id: 'custom', is_builtin: 0, image_revision: 0 };
+    const database = { prepare: vi.fn(() => ({ bind: () => ({ first: () => Promise.resolve(row), run }) })) } as unknown as D1Database;
+    const response = await testApp(false, true).request('/api/v1/admin/services/custom', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled, showOnHome: true, sortOrder: 0, copy: null }),
+    }, { DB: database });
+    expect(response.status).toBe(409);
+    expect(run).not.toHaveBeenCalled();
   });
 
   it('rejects admin service writes without a verified owner before touching D1', async () => {

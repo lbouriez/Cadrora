@@ -22,7 +22,7 @@ afterEach(async () => { cleanup(); vi.unstubAllGlobals(); await i18n.changeLangu
 describe('service catalog editor', () => {
   it.each(['fr', 'en'] as const)('previews, saves, and reloads the phone override in %s without uploading again', async (language) => {
     await i18n.changeLanguage(language);
-    let card = ServiceCardSchema.parse({ id: 'maternity', isBuiltin: true, sortOrder: 0, enabled: true, showOnHome: true,
+    let card = ServiceCardSchema.parse({ id: 'maternity', isBuiltin: true, sortOrder: 0, enabled: false, showOnHome: true,
       copy: { fr: { title: 'Maternité', shortDescription: 'Court', description: 'Long', points: [] },
         en: { title: 'Maternity', shortDescription: 'Short', description: 'Long', points: [] } },
       imageRevision: null, imageSources: [],
