@@ -68,6 +68,12 @@ for (const language of ['fr', 'en'] as const) {
     await expect(group).toHaveCount(0);
     await page.evaluate(() => { history.pushState({}, '', '/admin/settings'); dispatchEvent(new PopStateEvent('popstate')); });
     for (const checkbox of await group.getByRole('checkbox').all()) await expect(checkbox).not.toBeChecked();
+    const sessionsLink = page.locator('.admin-shell__nav').getByRole('link', { name: language === 'fr' ? 'Séances' : 'Sessions', exact: true });
+    await expect(sessionsLink).toBeVisible();
+    await expect(sessionsLink).toHaveAttribute('href', '/admin/settings#admin-settings-services');
+    await sessionsLink.click();
+    await expect(page.getByRole('group', { name: language === 'fr' ? 'Séances' : 'Sessions', exact: true })).toBeInViewport();
+    await expect(page.locator('#admin-settings-services').getByRole('button', { name: language === 'fr' ? 'Ajouter une séance' : 'Add a session', exact: true })).toBeVisible();
   });
 }
 

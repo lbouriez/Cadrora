@@ -179,6 +179,7 @@ export const adminResourceFragment = {
         label: 'Administration',
         galleries: 'Galleries',
         settings: 'Site settings',
+        sessions: 'Sessions',
         diagnostics: 'Diagnostics',
       },
       settings: {
@@ -192,7 +193,7 @@ export const adminResourceFragment = {
         sectionsLabel: 'Site setting sections',
         servicesSection: 'Sessions',
         sessionsPageEnabled: 'Show Sessions on the public site',
-        sessionsPageHint: 'When disabled, the Sessions page and its navigation link are removed. Sessions selected for Home remain visible there. Save with the site settings.',
+        sessionsPageHint: 'When disabled, the Sessions page and its navigation link are removed. Sessions selected for Home remain visible there. You can always edit the cards through the Sessions admin menu. Save with the site settings.',
         homeGalleriesSection: 'Home',
         homeGalleriesTitle: 'Recent stories',
         homeGalleriesHint: 'Choose whether to show recent public galleries on the home page and how many to display. These controls are available when Galleries is shown on the public website.',
@@ -456,6 +457,7 @@ export const adminResourceFragment = {
         label: 'Administration',
         galleries: 'Galeries',
         settings: 'Réglages du site',
+        sessions: 'Séances',
         diagnostics: 'Diagnostic',
       },
       settings: {
@@ -469,7 +471,7 @@ export const adminResourceFragment = {
         sectionsLabel: 'Sections des réglages du site',
         servicesSection: 'Séances',
         sessionsPageEnabled: 'Afficher Séances sur le site public',
-        sessionsPageHint: 'Si désactivé, la page Séances et son lien de navigation sont supprimés. Les séances sélectionnées pour l’accueil restent visibles. Enregistrez avec les réglages du site.',
+        sessionsPageHint: 'Si désactivé, la page Séances et son lien de navigation sont supprimés. Les séances sélectionnées pour l’accueil restent visibles. Le menu Séances de l’administration permet toujours de modifier les cartes. Enregistrez avec les réglages du site.',
         homeGalleriesSection: 'Accueil',
         homeGalleriesTitle: 'Histoires récentes',
         homeGalleriesHint: 'Choisissez si les galeries publiques récentes apparaissent sur l’accueil et combien en afficher. Ces réglages sont disponibles lorsque Galeries est affiché sur le site public.',
