@@ -174,12 +174,13 @@ describe('protected gallery metadata', () => {
     app.use('*', ogMetadata);
     const publicGallery: EventRow = { ...protectedEvent, slug: 'public-wedding', title: 'Public wedding title', access: 'public' };
     const response = await app.request('/e/public-wedding', { headers: { 'User-Agent': 'ExampleBot/1.0' } },
-      bindings(databaseReturning(publicGallery)));
+      { ...bindings(databaseReturning(publicGallery)), SITE_ORIGIN: 'https://cadrora.com' });
     const html = await response.text();
 
     expect(response.status).toBe(200);
     expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
     expect(html).toContain('<meta name="robots" content="noindex,nofollow">');
     expect(html).toContain('Public wedding title');
+    expect(html).toContain('<meta property="og:url" content="https://cadrora.com/e/public-wedding">');
   });
 });

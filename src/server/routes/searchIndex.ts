@@ -56,6 +56,7 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     let portfolioPaths: string[] = [];
     let aboutEnabled = true;
+    let defaultLanguage: 'fr' | 'en' = context.env.SITE_DEFAULT_LANG === 'en' ? 'en' : 'fr';
     try {
       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
         WHERE c.published = 1
@@ -63,16 +64,23 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
     try {
-      const row = await context.env.DB.prepare('SELECT about_enabled FROM site_settings WHERE id = 1').first<{ about_enabled: number }>();
+      const row = await context.env.DB.prepare('SELECT about_enabled, default_language FROM site_settings WHERE id = 1')
+        .first<{ about_enabled: number; default_language: string }>();
       aboutEnabled = row?.about_enabled !== 0;
+      if (row?.default_language === 'fr' || row?.default_language === 'en') defaultLanguage = row.default_language;
     } catch { /* Use the compiled page set when D1 is unavailable. */ }
     context.header('Cache-Control', 'public, max-age=300');
-    const marketingUrls = publicPages.filter((page) => page.path !== '/about' || aboutEnabled)
-      .flatMap((page) => (['fr', 'en'] as const).map((language) => {
-      const localized = (lang: 'fr' | 'en') => `${origin}/${lang}${page.path === '/' ? '/' : `${page.path}/`}`;
-      return `  <url><loc>${escapeXml(localized(language))}</loc>${(['fr', 'en'] as const).map((lang) =>
-        `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(localized(lang))}"/>`).join('')}</url>`;
-      }));
-    return context.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${[...marketingUrls, ...portfolioPaths.map((path) => `  <url><loc>${escapeXml(origin + path)}</loc></url>`)].join('\n')}\n</urlset>\n`, 200, { 'Content-Type': 'application/xml; charset=utf-8' });
+    const paths = [
+      ...publicPages.filter((page) => page.path !== '/about' || aboutEnabled).map((page) => page.path),
+      ...portfolioPaths,
+    ];
+    const marketingUrls = paths.flatMap((path) => (['fr', 'en'] as const).map((language) => {
+      const localized = (lang: 'fr' | 'en') => `${origin}/${lang}${path === '/' ? '/' : `${path}/`}`;
+      const alternates = (['fr', 'en', 'x-default'] as const).map((lang) =>
+        `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(localized(lang === 'x-default'
+          ? defaultLanguage : lang))}"/>`).join('');
+      return `  <url><loc>${escapeXml(localized(language))}</loc>${alternates}</url>`;
+    }));
+    return context.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${marketingUrls.join('\n')}\n</urlset>\n`, 200, { 'Content-Type': 'application/xml; charset=utf-8' });
   });
 }

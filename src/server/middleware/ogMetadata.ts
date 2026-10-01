@@ -36,7 +36,8 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
   const title = publicPreview ? event.title : 'Cadrora';
   const description = publicPreview ? (event.description ?? '') : '';
   const robots = 'noindex,nofollow';
-  const canonical = new URL(`/e/${encodeURIComponent(event.slug)}`, context.req.url).toString();
+  const publicOrigin = context.env.SITE_ORIGIN || new URL(context.req.url).origin;
+  const canonical = new URL(`/e/${encodeURIComponent(event.slug)}`, publicOrigin).toString();
   const cover = publicPreview && event.coverPhotoId
     ? await context.env.DB.prepare(
         "SELECT revision FROM photos WHERE id = ?1 AND event_id = ?2 AND state = 'published' LIMIT 1",
@@ -45,7 +46,7 @@ export const ogMetadata = createMiddleware<AppEnv>(async (context, next) => {
   const image = cover && event.coverPhotoId
     ? new URL(
         `/media/${encodeURIComponent(event.id)}/${encodeURIComponent(event.coverPhotoId)}/${cover.revision}/large`,
-        context.req.url,
+        publicOrigin,
       ).toString()
     : null;
   applyCachePolicy(context, event.access === 'public' ? 'event-public' : 'event-protected');

@@ -316,7 +316,7 @@ function CollectionFields({ collection, categories, language, readOnly, busy, er
         </div>
         {error ? <p role="alert">{t('admin.portfolio.error')}</p> : null}
       </form>
-      {collection.published ? <Link className="button button--secondary" to={`/portfolio/${collection.slug}`}>{t('admin.portfolio.viewPublic')}</Link> : null}
+      {collection.published ? <Link className="button button--secondary" to={`/${language}/portfolio/${collection.slug}`}>{t('admin.portfolio.viewPublic')}</Link> : null}
     </section>
     <section className="admin-card">
       <h2 className="admin-card__title">{t('admin.portfolio.photos')}</h2>

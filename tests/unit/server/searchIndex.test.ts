@@ -56,7 +56,10 @@ describe('search index routes', () => {
     expect(body).toContain('<loc>https://example.test/fr/portfolio/</loc>');
     expect(body).toContain('<loc>https://example.test/en/portfolio/</loc>');
     expect(body).toContain('hreflang="en" href="https://example.test/en/contact/"');
-    expect(body).toContain('<loc>https://example.test/portfolio/familles</loc>');
+    expect(body).toContain('<loc>https://example.test/fr/portfolio/familles/</loc>');
+    expect(body).toContain('<loc>https://example.test/en/portfolio/familles/</loc>');
+    expect(body).toContain('hreflang="x-default" href="https://example.test/fr/portfolio/familles/"');
+    expect(body).not.toContain('<loc>https://example.test/portfolio/familles</loc>');
     expect(body).toContain('<loc>https://example.test/fr/contact/</loc>');
     expect(body).not.toContain('/e/');
     expect(body).not.toContain('/galleries');
@@ -76,11 +79,12 @@ describe('search index routes', () => {
   it('omits About from the sitemap when the owner disables that page', async () => {
     const response = await app.request('https://example.test/sitemap.xml', undefined, {
       DB: { prepare: (sql: string) => sql.includes('about_enabled')
-        ? { first: () => Promise.resolve({ about_enabled: 0 }) }
+        ? { first: () => Promise.resolve({ about_enabled: 0, default_language: 'en' }) }
         : { all: () => Promise.resolve({ results: [] }) } } as unknown as D1Database,
     });
     const body = await response.text();
     expect(body).not.toContain('/about/');
     expect(body).toContain('/contact/');
+    expect(body).toContain('hreflang="x-default" href="https://example.test/en/contact/"');
   });
 });

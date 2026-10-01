@@ -30,6 +30,7 @@ import { enqueueExpiredFacePurges } from './routes/faceSearch';
 import { registerMediaRoutes } from './routes/media';
 import { registerServiceRoutes } from './routes/services';
 import { registerPortfolioRoutes } from './routes/portfolio';
+import { registerPortfolioSeoRoutes } from './routes/portfolioSeo';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
 import { purgeOldWorkerErrors } from './services/workerErrorLog';
@@ -61,6 +62,7 @@ app.use('/api/v1/admin/*', demoReadOnly);
 // Feature routes are registered centrally so middleware and authorization order stay reviewable.
 app.route('/api/v1/admin', adminAuthRouter);
 registerSearchIndexRoutes(app);
+registerPortfolioSeoRoutes(app);
 registerPublicRoutes(app, {
   issueEventGrant: async (context, grant) => {
     const secret = eventGrantSigningSecret(context.env);

@@ -62,7 +62,7 @@ export function PortfolioPage() {
           sources={collection.coverSources} width={cover.width} /> : <span aria-hidden="true" className="event-card__placeholder" />}
           description={collection.copy[language].description}
           eyebrow={category?.copy[language] ?? collection.copy[language].title}
-          href={`/portfolio/${collection.slug}`} index={index} key={collection.id}
+          href={localizedMarketingPath(`/portfolio/${collection.slug}`, language)} index={index} key={collection.id}
           title={collection.copy[language].title} />;
       })}
     </div>

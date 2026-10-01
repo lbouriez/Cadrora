@@ -8,6 +8,7 @@ import { BackLink, Button, FavoriteButton, IconButton, InfiniteLoadMore, InfoIco
 import { TurnstileChallenge } from '../security';
 import type { TurnstileChallengeHandle } from '../security';
 import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicPhotos, getPublicSiteSettings, setPhotoFavorite, setPhotoRetouchSelection, unlockEvent } from './api';
+import { localizedMarketingPath } from './localizedMarketingPath';
 import { galleryText } from './galleryText';
 import { getPublicGalleryConfiguration } from './config';
 import { galleryUnlockErrorKey } from './galleryErrors';
@@ -121,7 +122,8 @@ export function GalleryPage() {
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
   const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const backDestination = siteSettings.data?.galleryDirectoryEnabled === false ? '/portfolio' : '/galleries';
+  const backDestination = siteSettings.data?.galleryDirectoryEnabled === false
+    ? localizedMarketingPath('/portfolio', i18n.language) : '/galleries';
   const backLabel = t(siteSettings.data?.galleryDirectoryEnabled === false ? 'gallery.backPortfolio' : 'gallery.backGalleries');
   const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
   const lockedGalleryPreview = useQuery({

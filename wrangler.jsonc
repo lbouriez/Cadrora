@@ -14,7 +14,7 @@
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/portfolio-media/*", "/home-hero-image/*", "/about-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt"]
+    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/portfolio-media/*", "/home-hero-image/*", "/about-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt", "/services", "/services/", "/portfolio", "/portfolio/*", "/about", "/about/", "/contact", "/contact/", "/privacy", "/privacy/", "/fr/portfolio/*", "/en/portfolio/*", "!/fr/portfolio/", "!/en/portfolio/"]
   },
   "vars": {
     "ADMIN_AUTH_MODE": "password",

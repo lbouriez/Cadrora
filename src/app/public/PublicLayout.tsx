@@ -26,6 +26,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   const navigate = useNavigate();
   const routeLanguage = /^\/(fr|en)(?:\/|$)/u.exec(pathname)?.[1] as 'fr' | 'en' | undefined;
   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
+  const isPortfolioDetail = /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
   const immersiveHome = siteProfile.home.presentation === 'session-slides' && marketingPath === '/';
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
@@ -40,7 +41,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   const enabledLanguages = settings.data?.enabledLanguages ?? ['fr', 'en'];
   const canChooseLanguage = enabledLanguages.length > 1;
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  const pageKey = marketingPath === '/' ? 'home'
+  const pageKey = marketingPath === '/' ? 'home' : isPortfolioDetail ? 'portfolio'
     : (['services', 'portfolio', 'about', 'contact', 'privacy'] as const)
       .find((key) => marketingPath === `/${key}`);
   const seoCopy = pageKey ? siteProfile.seoPages?.[pageKey]?.[language] : null;
@@ -123,7 +124,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       meta('meta[name="twitter:description"]', 'name', 'twitter:description', summary);
       meta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
       if (pageKey) {
-        const path = pageKey === 'home' ? '' : `${pageKey}/`;
+        const path = marketingPath === '/' ? '' : `${marketingPath.slice(1)}/`;
         const url = `${siteProfile.seoOrigin}/${language}/${path}`;
         const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]') ?? document.createElement('link');
         canonical.rel = 'canonical';
@@ -140,9 +141,10 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       } else {
         document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.remove();
         document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((link) => link.remove());
+        document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.remove();
       }
     }
-  }, [description, language, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
+  }, [description, language, marketingPath, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
 
   useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');

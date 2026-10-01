@@ -116,11 +116,20 @@ test.describe('site vitrine statique', () => {
     await page.goto('/portfolio');
     await expect(page.locator('.event-card__tap')).toContainText('Mariages');
     await page.locator('.event-card__tap').click();
-    await expect(page).toHaveURL(/\/portfolio\/mariages$/u);
+    await expect(page).toHaveURL(/\/fr\/portfolio\/mariages\/?$/u);
     await expect(page.getByRole('heading', { level: 1, name: 'Mariages' })).toBeVisible();
     await expect(page).toHaveTitle(/Mariages/u);
     await page.reload();
     await expect(page.getByRole('heading', { level: 1, name: 'Mariages' })).toBeVisible();
+    await expect(page.locator('link[rel="canonical"]'))
+      .toHaveAttribute('href', 'https://cadrora.com/fr/portfolio/mariages/');
+    if (await page.locator('.public-header__language').isHidden()) await page.locator('.public-header__menu').click();
+    await page.locator('.public-header__language').click();
+    await expect(page).toHaveURL(/\/en\/portfolio\/mariages\/?$/u);
+    if (await page.locator('.public-nav--open').count()) await page.locator('.public-header__menu').click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Weddings' })).toBeVisible();
+    await expect(page.locator('link[rel="alternate"][hreflang="fr"]'))
+      .toHaveAttribute('href', 'https://cadrora.com/fr/portfolio/mariages/');
     const portfolioPhoto = page.locator('.photo-grid .progressive-photo');
     await expect(portfolioPhoto).toHaveCount(1);
     await portfolioPhoto.scrollIntoViewIfNeeded();
@@ -257,7 +266,7 @@ test.describe('site vitrine statique', () => {
     await page.getByRole('button', { name: /autoriser l'analyse|allow analytics/i }).click();
     await expect(page.locator('script[data-cadrora-analytics]')).toHaveAttribute('src', `https://www.googletagmanager.com/gtag/js?id=${measurementId}`);
     await expect.poll(() => tagRequests.length).toBe(1);
-    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/contact' && Object.prototype.toString.call(entry) === '[object Arguments]'))).toBe(true);
+    expect(await page.evaluate(() => (window as Window & { dataLayer?: unknown[][] }).dataLayer?.some((entry) => entry[0] === 'event' && entry[1] === 'page_view' && (entry[2] as { page_path?: string }).page_path === '/fr/contact/' && Object.prototype.toString.call(entry) === '[object Arguments]'))).toBe(true);
 
     await page.getByRole('link', { name: /accueil|home/i }).first().click();
     await expect(page).toHaveURL('/fr');
