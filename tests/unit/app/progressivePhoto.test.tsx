@@ -63,6 +63,45 @@ describe('ProgressivePhoto', () => {
     expect(onVisualReady).toHaveBeenCalledOnce();
   });
 
+  it('can hold the first frame until the display image has decoded, even with a ready preview', async () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800);
+    const onVisualReady = vi.fn();
+    let finishDecode = () => {};
+    const decoding = new Promise<void>((resolve) => { finishDecode = resolve; });
+    const { container } = render(<ProgressivePhoto alt="Hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} visualReadyAt="display" sizes="100vw"
+      sources={[{ url: '/preview.webp', width: 320 }, { url: '/large.webp', width: 1280 }]} />);
+    const preview = screen.getByRole('img');
+    Object.defineProperty(preview, 'decode', { value: () => Promise.resolve() });
+    await act(() => { fireEvent.load(preview); return Promise.resolve(); });
+    expect(onVisualReady).not.toHaveBeenCalled();
+    const display = container.querySelector('.progressive-photo__optimized') as HTMLImageElement;
+    Object.defineProperty(display, 'decode', { value: () => decoding });
+    fireEvent.load(display);
+    expect(onVisualReady).not.toHaveBeenCalled();
+    await act(() => { finishDecode(); return decoding; });
+    expect(onVisualReady).toHaveBeenCalledOnce();
+  });
+
+  it.each(['preview-first', 'display-fails-first'])('falls back to a decoded preview when the display image fails: %s', async (order) => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800);
+    const onVisualReady = vi.fn();
+    const { container } = render(<ProgressivePhoto alt="Hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} visualReadyAt="display" sizes="100vw"
+      sources={[{ url: '/preview.webp', width: 320 }, { url: '/large.webp', width: 1280 }]} />);
+    const preview = screen.getByRole('img');
+    const display = container.querySelector('.progressive-photo__optimized') as HTMLImageElement;
+    Object.defineProperty(preview, 'decode', { value: () => Promise.resolve() });
+    if (order === 'display-fails-first') fireEvent.error(display);
+    await act(() => { fireEvent.load(preview); return Promise.resolve(); });
+    if (order === 'preview-first') {
+      expect(onVisualReady).not.toHaveBeenCalled();
+      fireEvent.error(display);
+    }
+    expect(onVisualReady).toHaveBeenCalledOnce();
+    expect(container.firstElementChild).not.toHaveClass('progressive-photo--ready');
+  });
+
   it('updates the responsive size when its frame changes without a window resize', () => {
     let frameWidth = 350;
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => frameWidth);

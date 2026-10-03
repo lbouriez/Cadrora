@@ -23,6 +23,8 @@ Pour executer plusieurs validations locales en parallele, definir `CADRORA_E2E_P
 
 Le serveur de developpement ne contient pas le HTML localise genere apres le build. La suite ciblee `startup-build.spec.ts` utilise donc `vite preview` pour verifier le premier affichage : JavaScript retarde puis libere, couleurs du profil, FR/EN, bureau/mobile, API indisponible et navigation au clavier sans JavaScript.
 
+Sur Atelier Giulia, elle retarde separement le JavaScript et le CSS du slider, les parametres, la grande photo et la police. Des mesures a chaque frame verifient que la photo conserve le meme noeud DOM et que sa premiere apparition comprend le texte et les points de navigation. Elle couvre aussi les echecs de photos et de chargement du slider. Les seuls etats finaux et captures apres stabilisation ne suffisent pas a detecter un remontage du premier slide.
+
 ```powershell
 $env:CADRORA_SITE = 'atelier-giulia'
 $env:VITE_APP_NAME = 'Atelier Giulia'

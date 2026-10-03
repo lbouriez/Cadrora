@@ -16,6 +16,8 @@ interface CommonPhotoProps {
   maxQuality?: 'preview' | 'medium' | 'full';
   /** Notify a photo-backed hero after its first image decodes, or after every source fails. */
   onVisualReady?: (() => void) | undefined;
+  /** An immersive first frame can wait for the display-sized image instead of the preview. */
+  visualReadyAt?: 'preview' | 'display';
   priority?: boolean;
   sizes: string;
 }
@@ -26,10 +28,11 @@ export type ProgressivePhotoProps = CommonPhotoProps & (
 );
 
 /** Select a display-sized source after the preview, or render one unblurred local/static source. */
-export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
+export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, visualReadyAt = 'preview', priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
   const frame = useRef<HTMLSpanElement>(null);
   const previewFailed = useRef(false);
   const optimizedFailed = useRef(false);
+  const previewDecoded = useRef(false);
   const visualReported = useRef(false);
   const [nearby, setNearby] = useState(() => typeof window !== 'undefined' && !('IntersectionObserver' in window));
   const [previewReady, setPreviewReady] = useState(false);
@@ -88,10 +91,14 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
     visualReported.current = true;
     onVisualReady?.();
   };
-  const reportDecoded = (image: HTMLImageElement) => {
+  const reportDecoded = (image: HTMLImageElement, optimized = false) => {
     if (!onVisualReady || visualReported.current) return;
-    if (typeof image.decode !== 'function') { reportVisualReady(); return; }
-    void image.decode().catch(() => undefined).then(reportVisualReady);
+    const decoded = () => {
+      if (!optimized) previewDecoded.current = true;
+      if (visualReadyAt === 'preview' || optimized || responsiveSources.length <= 1 || optimizedFailed.current) reportVisualReady();
+    };
+    if (typeof image.decode !== 'function') { decoded(); return; }
+    void image.decode().catch(() => undefined).then(decoded);
   };
 
   return <span className={`progressive-photo${src !== undefined ? ' progressive-photo--single' : ''}${priority ? ' progressive-photo--priority' : ''}${fit === 'contain' ? ' progressive-photo--contain' : ''}${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={width && height ? { aspectRatio: `${width} / ${height}` } : undefined}>
@@ -109,10 +116,10 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
       loading="eager"
       onError={() => {
         optimizedFailed.current = true;
-        setOptimizedReady(true);
-        if (previewFailed.current) reportVisualReady();
+        // Keep a successfully loaded preview visible when the larger source fails.
+        if (previewFailed.current || previewDecoded.current) reportVisualReady();
       }}
-      onLoad={(event) => { setOptimizedReady(true); reportDecoded(event.currentTarget); }}
+      onLoad={(event) => { setOptimizedReady(true); reportDecoded(event.currentTarget, true); }}
       sizes={displayWidth ? `${displayWidth}px` : sizes}
       src={displaySources.at(-1)?.url}
       srcSet={displaySources.map((source) => `${source.url} ${source.width}w`).join(', ')}

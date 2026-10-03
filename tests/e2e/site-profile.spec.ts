@@ -40,6 +40,9 @@ function sessionCard(id: string, fr: string, en: string, sortOrder: number, show
 }
 
 async function dismissConsent(page: Page) {
+  if (await page.locator('.session-home__stage--pending').count()) {
+    await expect(page.locator('.session-home__stage--pending')).toHaveCount(0);
+  }
   const necessary = page.getByRole('button', { name: /nécessaire seulement|necessary only/i });
   if (await necessary.isVisible()) await necessary.click();
 }
@@ -194,7 +197,7 @@ test('the shared masthead and page introductions align across routes', async ({ 
   expect(narrowPositions[0]?.y).toBeCloseTo(narrowPositions[1]?.y ?? NaN, 0);
 });
 
-test('Home photo fills the viewport while the slider chunk loads', async ({ page }) => {
+test('Home keeps its branded screen while the slider chunk loads', async ({ page }) => {
   let releaseSlider = () => {};
   const sliderReady = new Promise<void>((resolve) => { releaseSlider = resolve; });
   await page.route('**/*VerticalStorySlider*', async (route) => {
@@ -207,15 +210,9 @@ test('Home photo fills the viewport while the slider chunk loads', async ({ page
   ]) }));
   try {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    const fallback = page.locator('.session-story--fallback');
-    await expect(fallback).toBeVisible();
-    const viewportHeight = page.viewportSize()?.height;
-    expect((await fallback.boundingBox())?.height).toBe(viewportHeight);
-    expect((await fallback.locator('.session-story__photo').boundingBox())?.height).toBe(viewportHeight);
-    const copy = await fallback.locator('.session-story__copy').boundingBox();
-    expect((copy?.y ?? 0) + (copy?.height ?? 0) / 2).toBeCloseTo((viewportHeight ?? 0) / 2, 0);
-    const content = await fallback.locator('.session-story__content').boundingBox();
-    expect((content?.x ?? 0) + (content?.width ?? 0) / 2).toBeCloseTo((page.viewportSize()?.width ?? 0) / 2, 0);
+    await expect(page.locator('.site-startup--overlay')).toBeVisible();
+    await expect(page.locator('.session-story__photo')).toHaveCount(0);
+    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
   } finally { releaseSlider(); }
   const slide = page.locator('.swiper-slide-active.session-story__panel');
   await expect(slide).toBeVisible();
@@ -261,16 +258,18 @@ test('Home owner photo keeps its monochrome framing through image load and slide
 
   try {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    const fallback = page.locator('.session-story--fallback');
-    await expect(fallback).toBeVisible();
-    await expect(fallback.locator('.session-story__copy')).toBeHidden();
+    const fallback = page.locator('.session-story');
+    releaseSlider();
+    await expect(fallback).toBeAttached();
+    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
     expect(await fallback.locator('.session-story__photo').evaluate((element) => getComputedStyle(element).backgroundColor))
       .toBe(await fallback.evaluate((element) => getComputedStyle(element).backgroundColor));
-    await expectStablePhoto('.session-story--fallback');
+    await expectStablePhoto('.session-story');
     releaseImages();
     await expect(fallback.locator('.progressive-photo--ready')).toBeVisible();
+    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
     await expect(fallback.locator('.session-story__copy')).toBeVisible();
-    await expectStablePhoto('.session-story--fallback');
+    await expectStablePhoto('.session-story');
   } finally {
     releaseImages();
     releaseSlider();
@@ -363,12 +362,12 @@ test('even strong wheel or finger gestures settle on exactly one session', async
     ]) });
   });
   await page.goto('/');
-  await dismissConsent(page);
-  await expect(page.locator('.session-story--loading')).toBeVisible();
+  await expect(page.locator('.site-startup--overlay')).toBeVisible();
   await expect(page.locator('.session-story__panel')).toHaveCount(0);
   releaseServices();
   await expect(page.locator('.session-story__panel')).toHaveCount(3);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
+  await dismissConsent(page);
   const footer = page.locator('.public-footer');
   await expect(footer).toBeHidden();
   await expect(footer).toHaveAttribute('inert', '');
@@ -405,7 +404,7 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await gesture(1);
   await settledAt(1);
   await expect(page.locator('.session-story__panel').nth(1).locator('.session-story__content'))
-    .toHaveClass(/motion-reveal--visible/u);
+    .toHaveCSS('opacity', '1');
   await gesture(1);
   await settledAt(2);
   await expect(footer).toBeVisible();

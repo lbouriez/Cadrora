@@ -6,9 +6,10 @@ import { BrandPhoto } from './BrandPhoto';
 import { defaultServiceImage } from './serviceCatalog';
 
 /** Shared service-card image selection for Home and Services. */
-export function ServicePhoto({ card, className, sizes, immediate = false, onVisualReady, priority = false, framing }: {
+export function ServicePhoto({ card, className, sizes, immediate = false, onVisualReady, visualReadyAt = 'preview', priority = false, framing }: {
   card: ServiceCard; className: string; sizes: string; immediate?: boolean; priority?: boolean;
   framing?: 'desktop' | 'mobile'; onVisualReady?: (() => void) | undefined;
+  visualReadyAt?: 'preview' | 'display';
 }) {
   const desktop = card.photoAlignment;
   const mobile = card.mobilePhotoAlignment ?? desktop;
@@ -20,6 +21,6 @@ export function ServicePhoto({ card, className, sizes, immediate = false, onVisu
     if (!first && !source) onVisualReady?.();
   }, [first, onVisualReady, source]);
   if (first) return <ProgressivePhoto alt="" className={photoClass} height={first.height} immediate={immediate}
-    lazyPreview onVisualReady={onVisualReady} priority={priority} sizes={sizes} sources={card.imageSources} width={first.width} />;
-  return source ? <BrandPhoto alt="" className={photoClass} immediate={immediate} onVisualReady={onVisualReady} priority={priority} sizes={sizes} src={source} /> : null;
+    lazyPreview onVisualReady={onVisualReady} visualReadyAt={visualReadyAt} priority={priority} sizes={sizes} sources={card.imageSources} width={first.width} />;
+  return source ? <BrandPhoto alt="" className={photoClass} immediate={immediate} onVisualReady={onVisualReady} visualReadyAt={visualReadyAt} priority={priority} sizes={sizes} src={source} /> : null;
 }

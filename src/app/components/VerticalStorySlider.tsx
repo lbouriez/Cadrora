@@ -21,6 +21,7 @@ export interface VerticalStorySliderProps {
   onActiveIndexChange?: (index: number) => void;
   showPagination?: boolean;
   interactionDisabled?: boolean;
+  onReady?: () => void;
 }
 
 function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean, allowDocumentScrollAtEdges: boolean) {
@@ -35,7 +36,7 @@ const EDGE_SCROLL_MS = 700;
 /** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
   motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false,
-  interactionDisabled = false }: VerticalStorySliderProps) {
+  interactionDisabled = false, onReady }: VerticalStorySliderProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -154,6 +155,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
         swiperRef.current = swiper;
         if (interactionDisabled) swiper.disable();
         releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges);
+        onReady?.();
       }}
       parallax={animate}
       preventInteractionOnTransition

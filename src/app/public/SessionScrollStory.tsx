@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Spinner } from '../components';
+import type { VerticalStorySlider } from '../components/VerticalStorySlider';
 import { getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
 import { PublicLayout } from './PublicLayout';
@@ -12,10 +12,8 @@ import { SessionDetailsModal } from './SessionDetailsModal';
 import { serviceText } from './serviceCatalog';
 import { localizedMarketingPath } from './localizedMarketingPath';
 import { siteProfile } from './siteProfile';
+import { SiteStartup } from './SiteStartup';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
-
-const loadSlider = async () => ({ default: (await import('../components/VerticalStorySlider')).VerticalStorySlider });
-const VerticalStorySlider = lazy(loadSlider);
 
 /** Present owner-managed Home sessions through the shared vertical slider. */
 export function SessionScrollStory() {
@@ -23,21 +21,30 @@ export function SessionScrollStory() {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [firstPhotoReady, setFirstPhotoReady] = useState(false);
+  const [Slider, setSlider] = useState<typeof VerticalStorySlider | null>(null);
+  const [sliderReady, setSliderReady] = useState(false);
+  const [sliderFailed, setSliderFailed] = useState(false);
+  const [fontReady, setFontReady] = useState(false);
   const markFirstPhotoReady = useCallback(() => setFirstPhotoReady(true), []);
+  const markSliderReady = useCallback(() => setSliderReady(true), []);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const sessions = services.cards.filter((card) => card.showOnHome);
   const selectedCard = sessions.find((card) => card.id === selectedId);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   useEffect(() => {
-    // The lazy boundary still handles a failed chunk; speculative warming must not reject unhandled.
-    void loadSlider().catch(() => undefined);
+    let active = true;
+    // Fetch code/CSS alongside the catalog. Mount photos only in the final slider,
+    // never in a temporary Suspense tree that would restart decoding and animation.
+    void import('../components/VerticalStorySlider').then((module) => {
+      if (active) setSlider(() => module.VerticalStorySlider);
+    }).catch(() => { if (active) setSliderFailed(true); });
+    const displayFont = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim();
+    void (document.fonts && displayFont ? document.fonts.load(`400 1em ${displayFont}`) : Promise.resolve())
+      .catch(() => undefined).then(() => { if (active) setFontReady(true); });
+    return () => { active = false; };
   }, []);
-  if (services.isPending) return <PublicLayout immersiveFooterVisible={false}>
-    <section aria-busy="true" aria-label={t('gallery.services')} className="session-story session-story--loading">
-      <Spinner label={t('gallery.servicesLoading')} />
-    </section>
-  </PublicLayout>;
+  const ready = !settings.isPending && !services.isPending && sliderReady && firstPhotoReady && fontReady;
   const slides = sessions.length ? sessions.map((card, index) => ({
     id: card.id,
     label: serviceText(card, language, (key) => t(key)).title,
@@ -46,7 +53,7 @@ export function SessionScrollStory() {
       priority={index === 0} />,
   })) : [{ id: 'fallback', label: t('gallery.heroTitle'), content: <>
     <div className="session-story__visual" data-swiper-parallax-scale="1.1">
-      <BrandPhoto alt="" className="session-story__photo" immediate onVisualReady={markFirstPhotoReady} priority sizes="100vw" src={siteProfile.heroImageUrl} />
+      <BrandPhoto alt="" className="session-story__photo" immediate onVisualReady={markFirstPhotoReady} visualReadyAt="display" priority sizes="100vw" src={siteProfile.heroImageUrl} />
     </div>
     <div className="session-story__shade" />
     <div className="session-story__copy" data-swiper-parallax="-200">
@@ -57,12 +64,15 @@ export function SessionScrollStory() {
     </div>
   </> }];
 
-  return <PublicLayout immersiveFooterVisible={activeSlideIndex >= slides.length - 1}>
-    <Suspense fallback={<section className={`session-story session-story--fallback${firstPhotoReady ? '' : ' session-story--photo-loading'}`}><div className="session-story__panel">{slides[0]?.content}</div></section>}>
-      <VerticalStorySlider allowDocumentScrollAtEdges={false} className={`session-story${firstPhotoReady ? '' : ' session-story--photo-loading'}`} label={t('gallery.services')}
-        interactionDisabled={Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex} showPagination
-        slideClassName="session-story__panel" slides={slides} />
-    </Suspense>
-    <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
-  </PublicLayout>;
+  return <div className="session-home">
+    {!ready ? <SiteStartup failed={sliderFailed} /> : null}
+    <div aria-hidden={!ready || undefined} className={`session-home__stage${ready ? '' : ' session-home__stage--pending'}`} inert={!ready}>
+      <PublicLayout immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
+        {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
+          interactionDisabled={!ready || Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex}
+          onReady={markSliderReady} showPagination slideClassName="session-story__panel" slides={slides} /> : null}
+        <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
+      </PublicLayout>
+    </div>
+  </div>;
 }

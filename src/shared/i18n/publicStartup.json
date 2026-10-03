@@ -1,10 +1,14 @@
 {
   "fr": {
     "loading": "Chargement du site",
-    "navigation": "Accéder aux pages"
+    "navigation": "Accéder aux pages",
+    "unavailable": "Le chargement a été interrompu.",
+    "retry": "Réessayer"
   },
   "en": {
     "loading": "Loading the website",
-    "navigation": "Browse pages"
+    "navigation": "Browse pages",
+    "unavailable": "Loading was interrupted.",
+    "retry": "Try again"
   }
 }

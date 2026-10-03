@@ -24,6 +24,8 @@ const ownerSession = {
 
 for (const path of ['/', '/services']) {
   test(`${path} waits for owner photos without requesting default session images`, async ({ page }, testInfo) => {
+    const immersive = path === '/' && process.env.CADRORA_SITE === 'atelier-giulia';
+    if (immersive) await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     const english = testInfo.project.name === 'mobile-chromium';
     if (english) await page.addInitScript(() => localStorage.setItem('cadrora-language', 'en'));
     const defaults: string[] = [];
@@ -43,9 +45,10 @@ for (const path of ['/', '/services']) {
     }));
     try {
       await page.goto(path);
-      await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
-      await expect(page.getByRole('status', { name: /chargement des séances|loading sessions/i })).toBeVisible();
-      await page.locator('.session-story, .service-grid, .service-detail-grid').scrollIntoViewIfNeeded();
+      if (!immersive) await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
+      await expect(immersive ? page.locator('.site-startup--overlay')
+        : page.getByRole('status', { name: /chargement des séances|loading sessions/i })).toBeVisible();
+      await page.locator('.site-startup--overlay, .service-grid, .service-detail-grid').scrollIntoViewIfNeeded();
       await expect(page.locator('.service-photo')).toHaveCount(0);
       expect(defaults).toEqual([]);
       await assertNoHorizontalOverflow(page);
@@ -56,6 +59,7 @@ for (const path of ['/', '/services']) {
         await expect(image).toHaveAttribute('src', /^\/service-media\/maternity\/1\//u);
       }
       await expect(page.getByRole('heading', { name: english ? 'My custom session' : 'Ma séance personnalisée' })).toBeVisible();
+      if (immersive) await expect(page.locator('.session-home__stage--pending')).toHaveCount(0);
       expect(defaults).toEqual([]);
       await assertNoHorizontalOverflow(page);
       await page.screenshot({ path: testInfo.outputPath('catalog-resolved.png') });
@@ -71,6 +75,7 @@ for (const path of ['/', '/services']) {
   });
 
   test(`${path} uses enabled defaults only after a failed catalog and pending settings settle`, async ({ page }) => {
+    const immersive = path === '/' && process.env.CADRORA_SITE === 'atelier-giulia';
     let releaseSettings = () => {};
     const pendingSettings = new Promise<void>((resolve) => { releaseSettings = resolve; });
     await page.route('**/api/v1/site', async (route) => {
@@ -82,8 +87,9 @@ for (const path of ['/', '/services']) {
       const failed = page.waitForResponse('**/api/v1/services');
       await page.goto(path);
       await failed;
-      await expect(page.getByRole('status', { name: /chargement des séances|loading sessions/i })).toBeVisible();
-      await page.locator('.session-story, .service-grid, .service-detail-grid').scrollIntoViewIfNeeded();
+      await expect(immersive ? page.locator('.site-startup--overlay')
+        : page.getByRole('status', { name: /chargement des séances|loading sessions/i })).toBeVisible();
+      await page.locator('.site-startup--overlay, .service-grid, .service-detail-grid').scrollIntoViewIfNeeded();
       await expect(page.locator('.service-photo')).toHaveCount(0);
       releaseSettings();
       await expect(page.locator('.service-photo')).toHaveCount(1);
