@@ -51,7 +51,7 @@ test.describe('immersive first frame', () => {
             const photo = document.querySelector<HTMLImageElement>('.session-story__photo .progressive-photo__optimized');
             const title = document.querySelector('.session-story__content');
             if (photo && !photos.has(photo)) photos.set(photo, ++nextId);
-            if (stage && getComputedStyle(stage).opacity === '1') window.startupFrames.push({
+            if (stage && Number(getComputedStyle(stage).opacity) > 0) window.startupFrames.push({
               photoId: photo ? photos.get(photo) ?? 0 : 0,
               displayDecoded: Boolean(photo?.complete && photo.naturalWidth),
               titleOpacity: title ? getComputedStyle(title).opacity : '0',
