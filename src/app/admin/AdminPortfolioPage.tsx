@@ -13,6 +13,8 @@ import { BackLink, Button, ConfirmDialog, Dropzone, Input, Select, Spinner, Text
 import { useAdminAccess } from './AdminAccessContext';
 import { AdminCoverPhotoPicker } from './AdminCoverPhotoPicker';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
+import { PhotoCompressionField } from './PhotoCompressionField';
+import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -67,8 +69,8 @@ function PortfolioCategoryField({ categories, value, onChange, language, disable
   </div>;
 }
 
-async function uploadPhoto(id: string, file: File): Promise<void> {
-  await uploadMarketingPhoto(file, { kind: 'portfolio', id });
+async function uploadPhoto(id: string, file: File, compression: MarketingPhotoCompression): Promise<void> {
+  await uploadMarketingPhoto(file, { kind: 'portfolio', id }, compression);
 }
 
 function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () => Promise<void> }) {
@@ -78,6 +80,7 @@ function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () =
   const [altFr, setAltFr] = useState(item.alt.fr);
   const [altEn, setAltEn] = useState(item.alt.en);
   const [sortOrder, setSortOrder] = useState(item.sortOrder);
+  const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -96,7 +99,7 @@ function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () =
     const file = event.target.files?.[0]; event.target.value = '';
     if (!file || busy || readOnly) return;
     setBusy(true); setError(false);
-    try { await uploadPhoto(item.id, file); await onChanged(); }
+    try { await uploadPhoto(item.id, file, compression); await onChanged(); }
     catch { setError(true); } finally { setBusy(false); }
   };
   const remove = async () => {
@@ -116,11 +119,13 @@ function PhotoEditor({ item, onChanged }: { item: PortfolioItem; onChanged: () =
       <Input label={t('admin.portfolio.altFr')} maxLength={200} onChange={(event) => setAltFr(event.target.value)} required value={altFr} />
       <Input label={t('admin.portfolio.altEn')} maxLength={200} onChange={(event) => setAltEn(event.target.value)} required value={altEn} />
       <Input label={t('admin.portfolio.order')} min="0" onChange={(event) => setSortOrder(Number(event.target.value))} required type="number" value={sortOrder} />
-      {item.state === 'pending' ? <label className="field"><span className="field__label">{t('admin.portfolio.upload')}</span>
+      {item.state === 'pending' ? <>
+        <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
+        <label className="field"><span className="field__label">{t('admin.portfolio.upload')}</span>
         <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly}
           onChange={(event) => { void retryUpload(event); }} type="file" />
         <span className="field__hint">{t('admin.portfolio.uploadHint')}</span>
-      </label> : null}
+      </label></> : null}
       <div className="admin-portfolio-item__actions">
         <Button disabled={busy || readOnly} onClick={() => { void save(); }}>{t('admin.portfolio.save')}</Button>
         <Button disabled={busy || readOnly} onClick={() => setConfirmDelete(true)} variant="danger">{t('admin.portfolio.remove')}</Button>
@@ -231,7 +236,7 @@ function CollectionEditor({ id, categories }: { id: string; categories: Portfoli
           method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated),
         }); await refresh();
       } catch { setError(true); } finally { setBusy(false); }
-    }} onUpload={async (files) => {
+    }} onUpload={async (files, compression) => {
       if (!files.length || busy || readOnly) return;
       setBusy(true); setError(false); setProgress({ done: 0, total: files.length });
       try {
@@ -241,7 +246,7 @@ function CollectionEditor({ id, categories }: { id: string; categories: Portfoli
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ collectionId: id, alt: { fr: alt.slice(0, 200), en: alt.slice(0, 200) } }),
           });
-          await uploadPhoto(photo.id, file);
+          await uploadPhoto(photo.id, file, compression);
           setProgress({ done: index + 1, total: files.length });
         }
         await refresh();
@@ -262,7 +267,7 @@ function CollectionFields({ collection, categories, language, readOnly, busy, er
   onConfirmDelete: (open: boolean) => void;
   onSave: (value: { slug: string; categoryId: string; copy: PortfolioCollectionDetail['copy']; sortOrder: number;
     published: boolean; coverPhotoId: string | null }) => Promise<void>;
-  onUpload: (files: File[]) => Promise<void>; onDelete: () => Promise<void>;
+  onUpload: (files: File[], compression: MarketingPhotoCompression) => Promise<void>; onDelete: () => Promise<void>;
   refresh: () => Promise<void>;
 }) {
   const { t } = useTranslation();
@@ -275,6 +280,7 @@ function CollectionFields({ collection, categories, language, readOnly, busy, er
   const [sortOrder, setSortOrder] = useState(collection.sortOrder);
   const [published, setPublished] = useState(collection.published);
   const [coverPhotoId, setCoverPhotoId] = useState(collection.coverPhotoId ?? '');
+  const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
   const save = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void onSave({ slug, categoryId, sortOrder, published, coverPhotoId: coverPhotoId || null,
@@ -320,8 +326,9 @@ function CollectionFields({ collection, categories, language, readOnly, busy, er
     </section>
     <section className="admin-card">
       <h2 className="admin-card__title">{t('admin.portfolio.photos')}</h2>
+      <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
       <Dropzone accept="image/jpeg,image/png,image/webp" description={t('admin.portfolio.uploadHint')}
-        disabled={busy || readOnly} label={t('admin.portfolio.addPhotos')} onFiles={(files) => { void onUpload(files); }} />
+        disabled={busy || readOnly} label={t('admin.portfolio.addPhotos')} onFiles={(files) => { void onUpload(files, compression); }} />
       {progress ? <p role="status">{t('admin.portfolio.uploadProgress', progress)}</p> : null}
       {!collection.photos.length ? <p>{t('admin.portfolio.emptyPhotos')}</p> : null}
       <div className="admin-portfolio-list">{collection.photos.map((photo) => <PhotoEditor item={photo} key={photo.id} onChanged={refresh} />)}</div>

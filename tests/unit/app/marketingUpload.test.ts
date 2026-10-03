@@ -38,10 +38,12 @@ describe('shared marketing photo upload', () => {
     }));
     const file = new File(['image'], 'source.jpg', { type: 'image/jpeg' });
     await uploadMarketingPhoto(file, { kind: 'service', id: 'wedding' });
-    await uploadMarketingPhoto(file, { kind: 'home-hero' });
-    await uploadMarketingPhoto(file, { kind: 'about-hero' });
-    await uploadMarketingPhoto(file, { kind: 'portfolio', id: photoId });
+    await uploadMarketingPhoto(file, { kind: 'home-hero' }, 'lighter');
+    await uploadMarketingPhoto(file, { kind: 'about-hero' }, 'lighter');
+    await uploadMarketingPhoto(file, { kind: 'portfolio', id: photoId }, 'lighter');
 
+    expect(encoder.encodeService).toHaveBeenNthCalledWith(1, file, 'balanced');
+    for (const call of [2, 3, 4]) expect(encoder.encodeService).toHaveBeenNthCalledWith(call, file, 'lighter');
     expect(encoder.dispose).toHaveBeenCalledTimes(4);
     expect(requests.filter(({ init }) => init.method === 'PUT')).toHaveLength(16);
     expect(requests.map(({ url }) => url)).toContain('/api/v1/admin/services/wedding/image/2/large');

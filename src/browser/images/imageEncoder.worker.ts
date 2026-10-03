@@ -1,8 +1,10 @@
 import { encodePhoto, encodeServicePhoto } from './encoder';
 import type { ServiceVariantName } from '../../shared/constants';
 import type { EncodedPhoto } from './types';
+import type { MarketingPhotoCompression } from './marketingCompression';
 
 interface EncodeRequest {
+  compression?: MarketingPhotoCompression;
   file: File;
   id: string;
   recipe: 'gallery' | 'service';
@@ -43,7 +45,7 @@ self.addEventListener('message', (event: MessageEvent<unknown>) => {
 async function encode(request: EncodeRequest): Promise<void> {
   try {
     const response: GalleryEncodeSuccess | ServiceEncodeSuccess = request.recipe === 'service'
-      ? { id: request.id, photo: await encodeServicePhoto(request.file), recipe: 'service', type: 'success' }
+      ? { id: request.id, photo: await encodeServicePhoto(request.file, request.compression), recipe: 'service', type: 'success' }
       : { id: request.id, photo: await encodePhoto(request.file), recipe: 'gallery', type: 'success' };
     self.postMessage(response);
   } catch (error) {

@@ -5,6 +5,13 @@
 export const adminResourceFragment = {
   en: {
     admin: {
+      photoCompression: {
+        label: 'Photo optimization',
+        balanced: 'Balanced (recommended)',
+        lighter: 'Lighter files',
+        balancedHint: 'A balance of detail and loading speed. Applies to the next photos you upload.',
+        lighterHint: 'Smaller files for faster loading, with a greater reduction in fine detail. Applies to the next photos you upload.',
+      },
       demo: {
         dashboardBody: 'Open a gallery to explore its settings, or try the new-gallery options below. Nothing you change in this demo will be saved.',
         dashboardTitle: 'Explore the gallery workspace.',
@@ -283,6 +290,13 @@ export const adminResourceFragment = {
   },
   fr: {
     admin: {
+      photoCompression: {
+        label: 'Optimisation des photos',
+        balanced: 'Équilibrée (recommandée)',
+        lighter: 'Fichiers plus légers',
+        balancedHint: 'Un équilibre entre les détails et la rapidité d’affichage. S’applique aux prochaines photos envoyées.',
+        lighterHint: 'Des fichiers plus petits pour un affichage plus rapide, avec une réduction plus marquée des détails fins. S’applique aux prochaines photos envoyées.',
+      },
       demo: {
         dashboardBody: 'Ouvrez une galerie pour explorer ses réglages ou essayez les options de création ci-dessous. Rien de ce que vous modifiez dans cette démo ne sera enregistré.',
         dashboardTitle: 'Explorez la gestion des galeries.',

@@ -2,6 +2,7 @@ import { encodePhoto, encodeServicePhoto } from './encoder';
 import type { ServiceVariantName } from '../../shared/constants';
 import type { EncodedPhoto } from './types';
 import { ImageProcessingError } from './types';
+import type { MarketingPhotoCompression } from './marketingCompression';
 
 export interface ImageEncoder {
   encode(file: File): Promise<EncodedPhoto>;
@@ -9,7 +10,7 @@ export interface ImageEncoder {
 }
 
 export interface ServiceImageEncoder extends ImageEncoder {
-  encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>>;
+  encodeService(file: File, compression?: MarketingPhotoCompression): Promise<EncodedPhoto<ServiceVariantName>>;
 }
 
 interface GalleryWorkerSuccess {
@@ -39,8 +40,8 @@ class MainThreadImageEncoder implements ServiceImageEncoder {
     return encodePhoto(file);
   }
 
-  async encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
-    return encodeServicePhoto(file);
+  async encodeService(file: File, compression?: MarketingPhotoCompression): Promise<EncodedPhoto<ServiceVariantName>> {
+    return encodeServicePhoto(file, compression);
   }
 
   dispose(): void {}
@@ -65,11 +66,11 @@ class WebWorkerImageEncoder implements ServiceImageEncoder {
     });
   }
 
-  encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
+  encodeService(file: File, compression?: MarketingPhotoCompression): Promise<EncodedPhoto<ServiceVariantName>> {
     const id = crypto.randomUUID();
     return new Promise((resolve, reject) => {
       this.servicePending.set(id, { reject, resolve });
-      this.worker.postMessage({ file, id, recipe: 'service', type: 'encode' });
+      this.worker.postMessage({ file, id, recipe: 'service', type: 'encode', compression });
     });
   }
 
@@ -129,15 +130,15 @@ class FallbackImageEncoder implements ServiceImageEncoder {
     }
   }
 
-  async encodeService(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
-    if (!this.worker) return this.mainThread.encodeService(file);
+  async encodeService(file: File, compression?: MarketingPhotoCompression): Promise<EncodedPhoto<ServiceVariantName>> {
+    if (!this.worker) return this.mainThread.encodeService(file, compression);
     try {
-      return await this.worker.encodeService(file);
+      return await this.worker.encodeService(file, compression);
     } catch (error) {
       if (error instanceof ImageProcessingError && (error.code === 'CORRUPT_IMAGE' || error.code === 'UNSUPPORTED_IMAGE')) throw error;
       this.worker.dispose();
       this.worker = undefined;
-      return this.mainThread.encodeService(file);
+      return this.mainThread.encodeService(file, compression);
     }
   }
 

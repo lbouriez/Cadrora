@@ -106,6 +106,10 @@ test('owner can preview and save a phone focal point without another image uploa
   await editor.locator('summary').focus();
   await page.keyboard.press('Space');
   await expect(editor).toHaveAttribute('open', '');
+  const compression = editor.getByLabel(english ? 'Photo optimization' : 'Optimisation des photos', { exact: true });
+  await expect(compression).toHaveValue('balanced');
+  await compression.selectOption('lighter');
+  await expect(compression).toHaveValue('lighter');
   const mobile = page.getByLabel(english ? 'Phone focal point' : 'Point d’ancrage sur téléphone', { exact: true });
   await expect(mobile).toHaveValue('');
   await page.getByLabel(english ? 'Default focal point' : 'Point d’ancrage par défaut', { exact: true }).selectOption('top');

@@ -1,5 +1,6 @@
 import { createImageEncoder, variantUploadHeaders } from '../../browser/images';
 import { SERVICE_VARIANT_WIDTHS } from '../../shared/constants';
+import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
 import {
   PortfolioItemSchema, ServiceCardSchema, ServiceImageRevisionSchema, ServiceImageUploadResponseSchema,
 } from '../../shared/schemas';
@@ -14,10 +15,10 @@ async function requestJson<T>(url: string, schema: { parse(value: unknown): T },
 }
 
 /** One encode/upload sequence; only the destination revision and publish contracts differ. */
-export async function uploadMarketingPhoto(file: File, destination: MarketingPhotoDestination): Promise<void> {
+export async function uploadMarketingPhoto(file: File, destination: MarketingPhotoDestination, compression: MarketingPhotoCompression = 'balanced'): Promise<void> {
   const encoder = createImageEncoder();
   try {
-    const encoded = await encoder.encodeService(file);
+    const encoded = await encoder.encodeService(file, compression);
     if ((destination.kind === 'home-hero' || destination.kind === 'about-hero') && encoded.width < SERVICE_VARIANT_WIDTHS.large) {
       throw new Error('HOME_HERO_IMAGE_TOO_SMALL');
     }

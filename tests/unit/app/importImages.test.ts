@@ -95,12 +95,17 @@ describe('browser import image guards', () => {
       const file = new File([source], 'private.jpg', { type: 'image/jpeg' });
       const encoded = await encodePhoto(file);
       const serviceEncoded = await encodeServicePhoto(file);
+      const lighterEncoded = await encodeServicePhoto(file, 'lighter');
 
       expect(imageOrientation).toHaveBeenCalledWith('none');
       expect(encoded.variants).toHaveLength(5);
       expect(serviceEncoded.variants).toHaveLength(4);
       expect(qualities.filter((quality) => quality === 0.9)).toHaveLength(9);
-      expect(qualities.filter((quality) => quality === 0.78)).toHaveLength(8);
+      expect(qualities.slice(9)).toEqual([0.45, 0.45, 0.65, 0.65, 0.72, 0.72, 0.78, 0.78,
+        0.35, 0.35, 0.5, 0.5, 0.58, 0.58, 0.65, 0.65]);
+      expect(lighterEncoded.variants.map(({ width, height }) => ({ width, height })))
+        .toEqual(serviceEncoded.variants.map(({ width, height }) => ({ width, height })));
+      expect(lighterEncoded.variants.every((variant) => variant.contentType === 'image/jpeg')).toBe(true);
       expect(encoded.variants.every((variant) => variant.contentType === 'image/jpeg')).toBe(true);
       const output = (await Promise.all(encoded.variants.map((variant) => variant.blob.text()))).join('');
       expect(output).not.toContain('GPS');

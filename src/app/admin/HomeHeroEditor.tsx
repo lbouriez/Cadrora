@@ -9,6 +9,8 @@ import { Button, Select } from '../components';
 import { siteProfile } from '../public/siteProfile';
 import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
+import { PhotoCompressionField } from './PhotoCompressionField';
+import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -55,6 +57,7 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
   const destinations = HomeHeroDestinationSchema.options.filter((destination) =>
     destination !== '/e/find-your-photos/find' || siteProfile.home.primaryAction.href === destination);
   const updateField = (language: Language, field: HeroField, value: string) => {
@@ -117,7 +120,7 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
     if (!file || busy || readOnly) return;
     setBusy(true); setError(false); setSaved(false);
     try {
-      await uploadMarketingPhoto(file, { kind: 'home-hero' });
+      await uploadMarketingPhoto(file, { kind: 'home-hero' }, compression);
       await refresh();
       setSaved(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -152,6 +155,7 @@ export function HomeHeroEditor({ settings, enabledLanguages, primaryLanguage, re
         </div>)}
         <Button disabled={busy || readOnly || copy.buttons.length >= 6} onClick={addButton} variant="secondary">{t('admin.homeHero.addButton')}</Button>
       </div>
+      <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
       <label className="field"><span className="field__label">{t('admin.homeHero.photo')}</span>
         <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
       </label>

@@ -10,6 +10,8 @@ import { useAdminAccess } from './AdminAccessContext';
 import { getAdminSiteSettings } from './adminSiteApi';
 import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
+import { PhotoCompressionField } from './PhotoCompressionField';
+import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
 
 async function updateAbout(input: unknown) {
   const response = await fetch('/api/v1/admin/site/about', {
@@ -32,6 +34,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
   const currentLanguage = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const primaryLanguage = settings.enabledLanguages.includes(currentLanguage) ? currentLanguage : settings.defaultLanguage;
   const refresh = async (result?: AdminSiteSettings) => {
@@ -64,7 +67,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     if (!file || busy || readOnly) return;
     setBusy(true); setUploading(true); setError(false); setSaved(false);
     try {
-      await uploadMarketingPhoto(file, { kind: 'about-hero' });
+      await uploadMarketingPhoto(file, { kind: 'about-hero' }, compression);
       await refresh();
       setSaved(true);
     } catch { setError(true); } finally { setBusy(false); setUploading(false); }
@@ -97,6 +100,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
           onChange={(language, value) => changeField(language, field, value)} primaryLanguage={primaryLanguage}
           required={field !== 'imageAlt'} values={{ fr: copy.fr[field], en: copy.en[field] }} />
       ))}
+      <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
       <label className="field"><span className="field__label">{t('admin.about.photo')}</span>
         <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly}
           onChange={(event) => { void upload(event); }} type="file" />

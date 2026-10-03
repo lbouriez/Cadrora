@@ -13,6 +13,8 @@ import { ServicePhoto } from '../public/ServicePhoto';
 import { SessionStoryContent } from '../public/SessionStoryContent';
 import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
+import { PhotoCompressionField } from './PhotoCompressionField';
+import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -52,6 +54,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
 
   const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | 'duration' | 'priceRange' | 'details' | number, value: string) => {
     const nextLanguage = { ...copy[language] };
@@ -117,7 +120,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     setError(false);
     setSuccess(false);
     try {
-      await uploadMarketingPhoto(file, { kind: 'service', id: card.id });
+      await uploadMarketingPhoto(file, { kind: 'service', id: card.id }, compression);
       await onChanged();
       setSuccess(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -146,6 +149,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       {card ? <>
         <label className="admin-settings-services__option"><input checked={enabled} disabled={readOnly} onChange={(event) => setEnabled(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.enabled')}</span></label>
         <label className="admin-settings-services__option"><input checked={showOnHome} disabled={readOnly} onChange={(event) => setShowOnHome(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.showOnHome')}</span></label>
+        <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
         <label className="field"><span className="field__label">{t('admin.serviceEditor.photo')}</span>
           <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
         </label>

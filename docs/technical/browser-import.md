@@ -37,6 +37,14 @@ An unsuccessful Cancel shows a distinct localized message and retains the journa
 
 The production `FetchImportApi` uses a wrapper around the browser's global `fetch`. Do not store native `fetch` directly and invoke it as a class method: some browsers reject the foreign receiver with a `TypeError` before a request reaches the Worker. This affects both import creation and cancellation.
 
+## Public website photo compression
+
+Home, About, session cards and portfolio uploads share `uploadMarketingPhoto` and the browser service-image encoder. Each editor offers **Balanced** (default) and **Lighter files** in both languages. The selection applies to the next uploads, including an entire portfolio selection and individual retries; it does not rewrite already published photos. Prefer the original source when replacing a photo to avoid repeated lossy encoding.
+
+`marketingCompression.ts` owns the recipes for every instance: preview/small/medium/large use qualities 0.45/0.65/0.72/0.78 in Balanced and 0.35/0.50/0.58/0.65 in Lighter. Width limits remain 320/640/1280/2560 with no upscaling. WebP is verified by MIME and byte signature, with the same quality passed to JPEG fallback. Worker encoding and main-thread recovery preserve the selected recipe. Fresh canvases still remove private metadata and normalize orientation; checksums and publication validation are unchanged. File size depends on image content and the browser encoder; the presets are not byte-size guarantees.
+
+These presets affect public website photos only. Gallery display/download encoding and optional unchanged originals retain their existing quality policy. Nothing is recompressed by the Cloudflare Worker.
+
 ## Acceptance coverage
 
 `tests/unit/app/importPipeline.test.ts` exercises the real `ImportPipeline` orchestration with deterministic browser/provider fakes. It processes a 200-file journal as exactly four ordered declarations of 50 photos. A second scenario imports the tracked fictional `nearby-amelia-exif.jpg` fixture and verifies its `DateTimeOriginal`/`OffsetTimeOriginal` becomes `2026-08-30T18:02:00.000Z` in the server declaration. A resume scenario interrupts declaration of chunk 2 after 100 finalized photos, constructs a fresh pipeline over the same durable journal, and verifies that only chunks 2 and 3 are encoded and declared during resume.

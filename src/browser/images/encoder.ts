@@ -2,6 +2,8 @@ import { PHOTO_VARIANT_WIDTHS, SERVICE_VARIANT_WIDTHS, type PhotoVariantName, ty
 import { readExifOrientation, sniffImageType } from './format';
 import type { EncodedImageType, EncodedPhoto, EncodedVariant, ExifOrientation } from './types';
 import { ImageProcessingError } from './types';
+import { isMarketingPhotoCompression, MARKETING_PHOTO_QUALITY } from './marketingCompression';
+import type { MarketingPhotoCompression } from './marketingCompression';
 
 type EncodableCanvas = HTMLCanvasElement | OffscreenCanvas;
 type CanvasContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
@@ -11,11 +13,12 @@ export async function encodePhoto(file: File): Promise<EncodedPhoto<PhotoVariant
 }
 
 /** Service cards share the gallery decoder, orientation, metadata removal, and verified encoder. */
-export async function encodeServicePhoto(file: File): Promise<EncodedPhoto<ServiceVariantName>> {
-  return encodeImage(file, SERVICE_VARIANT_WIDTHS, 0.78);
+export async function encodeServicePhoto(file: File, compression: MarketingPhotoCompression = 'balanced'): Promise<EncodedPhoto<ServiceVariantName>> {
+  if (!isMarketingPhotoCompression(compression)) throw new ImageProcessingError('ENCODE_FAILED', 'Unknown marketing compression recipe.');
+  return encodeImage(file, SERVICE_VARIANT_WIDTHS, MARKETING_PHOTO_QUALITY[compression]);
 }
 
-async function encodeImage<Name extends string>(file: File, widths: Record<Name, number>, quality: number, jpegVariant?: Name): Promise<EncodedPhoto<Name>> {
+async function encodeImage<Name extends string>(file: File, widths: Record<Name, number>, quality: number | Record<Name, number>, jpegVariant?: Name): Promise<EncodedPhoto<Name>> {
   const header = new Uint8Array(await file.slice(0, 128 * 1024).arrayBuffer());
   const sourceContentType = sniffImageType(header);
   if (!sourceContentType) {
@@ -37,7 +40,7 @@ async function encodeImage<Name extends string>(file: File, widths: Record<Name,
     for (const [name, maximumWidth] of Object.entries(widths) as [Name, number][]) {
       const dimensions = constrainedDimensions(normalized.width, normalized.height, maximumWidth);
       const scaled = renderScaledCanvas(normalized, dimensions.width, dimensions.height);
-      const encoded = await encodeVariant(scaled, name === jpegVariant, quality);
+      const encoded = await encodeVariant(scaled, name === jpegVariant, typeof quality === 'number' ? quality : quality[name]);
       variants.push({ ...encoded, ...dimensions, name });
     }
 
