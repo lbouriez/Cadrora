@@ -7,6 +7,18 @@ const bootstrap = readFileSync(new URL('../../../public/public-requests.js', imp
 afterEach(() => vi.unstubAllGlobals());
 
 describe('early public metadata', () => {
+  it('starts localized Home and Sessions metadata before the application without requesting photos', () => {
+    for (const pathname of ['/fr', '/fr/', '/en/', '/en/services/', '/fr/services']) {
+      const fetch = vi.fn().mockResolvedValue(new Response('[]'));
+      runInNewContext(bootstrap, { window: { location: { pathname } }, fetch, Map, Response });
+      expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/site', '/api/v1/services']);
+    }
+    for (const pathname of ['/en/about/', '/fr/portfolio/mariages/']) {
+      const fetch = vi.fn().mockResolvedValue(new Response('{}'));
+      runInNewContext(bootstrap, { window: { location: { pathname } }, fetch, Map, Response });
+      expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/site']);
+    }
+  });
   it('requests only optional public metadata and stays absent on admin/private routes', () => {
     for (const pathname of ['/services', '/about', '/admin/login', '/e/private-gallery']) {
       const fetch = vi.fn().mockResolvedValue(new Response('[]'));

@@ -9,7 +9,7 @@ const site = loadSiteProfile(siteId);
 const showcaseDemo = process.env.CADRORA_SEED_DEMO?.trim().toLowerCase() === 'true';
 if (showcaseDemo && site.allowShowcase !== true) throw new Error('This site profile does not allow the showcase demo.');
 
-export default defineConfig({
+export default defineConfig(({ command, isPreview }) => ({
   build: { sourcemap: true },
   resolve: {
     alias: {
@@ -41,9 +41,12 @@ export default defineConfig({
         })) };
       } },
     },
-    cloudflare(),
+    cloudflare(command === 'serve' && !isPreview ? {
+      // Localized documents and 404 files are generated only after a build.
+      config: { assets: { not_found_handling: 'single-page-application' } },
+    } : {}),
   ],
   server: {
     cors: false,
   },
-});
+}));

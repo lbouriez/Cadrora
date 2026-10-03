@@ -401,7 +401,7 @@
   flex-direction: column;
 }
 
-.event-card h3 {
+.event-card h2, .event-card h3 {
   margin: var(--space-3) 0;
   font-size: 1.6rem;
 }
@@ -2021,7 +2021,7 @@
 .event-card__visual--ai img { object-position: center 8%; }
 .event-card__visual--wedding img { object-position: center top; }
 .event-card__body { display: flex; min-height: 12rem; flex: 1; flex-direction: column; padding: var(--space-5); gap: var(--space-2); }
-.event-card h3 { margin-top: var(--space-2); }
+.event-card h2, .event-card h3 { margin-top: var(--space-2); }
 .event-card__body > p:not(.event-card__date) { margin: 0; color: var(--color-text-muted); line-height: 1.58; }
 .event-card__body .event-card__arrow { margin-top: auto; }
 

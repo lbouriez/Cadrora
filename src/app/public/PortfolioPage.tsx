@@ -60,7 +60,7 @@ export function PortfolioPage() {
         return <EditorialGalleryCard cover={cover ? <ProgressivePhoto alt="" height={cover.height}
           immediate={index < 2} priority={index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw"
           sources={collection.coverSources} width={cover.width} /> : <span aria-hidden="true" className="event-card__placeholder" />}
-          description={collection.copy[language].description}
+          description={collection.copy[language].description} heading="h2"
           eyebrow={category?.copy[language] ?? collection.copy[language].title}
           href={localizedMarketingPath(`/portfolio/${collection.slug}`, language)} index={index} key={collection.id}
           title={collection.copy[language].title} />;

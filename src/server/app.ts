@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { eventGrantCookie, eventGrantSigningSecret } from './auth';
 import { ApiException } from '../shared/errors/ApiError';
 import { apiErrorResponse } from './http/apiErrorResponse';
+import { clientDocumentPath } from './http/clientDocument';
 import {
   adminCsrf,
   abuseRateLimit,
@@ -89,10 +90,14 @@ app.notFound(async (context) => {
     return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
   }
   if (context.env?.ASSETS) {
-    const response = await context.env.ASSETS.fetch(context.req.raw);
+    const shell = clientDocumentPath(context.req.path);
+    const response = await context.env.ASSETS.fetch(shell
+      ? new Request(new URL(shell, context.req.url), { method: context.req.method }) : context.req.raw);
     if (!response.headers.get('Content-Type')?.includes('text/html')) return response;
     const headers = new Headers(response.headers);
-    headers.set('Cache-Control', 'public, max-age=0, must-revalidate, no-transform');
+    headers.set('Cache-Control', context.req.path === '/admin' || context.req.path.startsWith('/admin/') ? 'no-store'
+      : 'public, max-age=0, must-revalidate, no-transform');
+    if (response.status === 404) headers.set('X-Robots-Tag', 'noindex, nofollow');
     if (context.req.path.startsWith('/e/')) headers.set('X-Robots-Tag', 'noindex, nofollow');
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   }

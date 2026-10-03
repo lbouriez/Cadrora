@@ -3,12 +3,20 @@
     "loading": "Chargement du site",
     "navigation": "Accéder aux pages",
     "unavailable": "Le chargement a été interrompu.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "notFound": "Page introuvable",
+    "notFoundLead": "Cette page n’existe pas ou n’est plus disponible.",
+    "home": "Accueil",
+    "galleries": "Galeries"
   },
   "en": {
     "loading": "Loading the website",
     "navigation": "Browse pages",
     "unavailable": "Loading was interrupted.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "notFound": "Page not found",
+    "notFoundLead": "This page does not exist or is no longer available.",
+    "home": "Home",
+    "galleries": "Galleries"
   }
 }

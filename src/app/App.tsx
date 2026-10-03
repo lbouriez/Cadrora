@@ -1,13 +1,12 @@
 import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Navigate, useRoutes } from 'react-router-dom';
 
 import { publicRouteObjects } from './routes/publicRoutes';
 import { RouteScrollReset } from './routes/RouteScrollReset';
 import { Spinner } from './components';
 import { siteProfile } from './public/siteProfile';
-import { BrandPhoto } from './public/BrandPhoto';
+import { NotFoundPage } from './public/NotFoundPage';
 
 const AdminGalleriesRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminGalleriesRoute }));
 const AdminEventSettingsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminEventSettingsRoute }));
@@ -21,30 +20,6 @@ const AdminWorkerErrorsRoute = lazy(async () => ({ default: (await import('./adm
 
 function adminElement(element: ReactNode) {
   return <Suspense fallback={<main className="admin-login"><Spinner label={siteProfile.siteName} /></main>}>{element}</Suspense>;
-}
-
-function FoundationShell() {
-  const { t } = useTranslation();
-
-  return (
-    <main className="app-shell">
-      <section className="app-shell__content">
-        {siteProfile.logoUrl ? <BrandPhoto
-          alt={t('app.brandAlt')}
-          className="app-shell__logo"
-          fit="contain"
-          height={256}
-          immediate
-          sizes="160px"
-          src={siteProfile.logoUrl}
-          width={256}
-        /> : null}
-        <p className="app-shell__eyebrow">{t('app.eyebrow')}</p>
-        <h1 className="app-shell__title">{siteProfile.siteName}</h1>
-        <p className="app-shell__status">{t('app.foundationReady')}</p>
-      </section>
-    </main>
-  );
 }
 
 export function App() {
@@ -61,7 +36,7 @@ export function App() {
     { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },
     { path: '/admin/galleries/:eventId/selections', element: adminElement(<AdminFavoritesRoute />) },
     ...publicRouteObjects,
-    { path: '*', element: <FoundationShell /> },
+    { path: '*', element: <NotFoundPage /> },
   ]);
   return <><RouteScrollReset />{routes}</>;
 }

@@ -11,6 +11,50 @@ test.skip(process.env.CADRORA_E2E_BUILD !== 'true', 'Requires npm run build and 
 const siteId = process.env.CADRORA_SITE || 'cadrora';
 const atelier = siteId === 'atelier-giulia';
 
+test('unknown documents are real localized 404s and marketing stays static', async ({ request }) => {
+  for (const language of ['fr', 'en']) {
+    const missing = await request.get(`/${language}/does-not-exist/`);
+    expect(missing.status()).toBe(404);
+    expect(await missing.text()).toContain('name="robots" content="noindex,nofollow"');
+    expect(await missing.text()).toContain(`<html lang="${language}"`);
+    const home = await request.get(`/${language}/`);
+    expect(home.status()).toBe(200);
+    expect(home.headers()['cache-control']).toContain('no-transform');
+    const contact = await request.get(`/${language}/contact/`);
+    expect(contact.status()).toBe(200);
+    expect(contact.headers()['cache-control']).toContain('no-transform');
+  }
+  const directory = await request.get('/galleries');
+  expect(directory.status()).toBe(200);
+  expect(await directory.text()).toContain('name="robots" content="noindex,nofollow"');
+});
+
+test('Cadrora resolves the optional demo before exposing the sections below it', async ({ page }) => {
+  test.skip(atelier, 'Cadrora optional showcase section.');
+  await installOwnerHome(page);
+  let release = () => {};
+  const settings = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/api/v1/site', async (route) => {
+    await settings;
+    await route.fulfill({ json: {
+      siteName: 'Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+      contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      enabledServices: ['wedding', 'family'], analyticsMeasurementId: null, themeMode: 'light',
+      galleryDirectoryEnabled: true, homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-10-03T00:00:00.000Z',
+    } });
+  });
+  try {
+    await page.goto('/en/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.site-startup')).toBeVisible();
+    await expect(page.locator('#stack-title')).toHaveCount(0);
+  } finally { release(); }
+  await expect(page.locator('#stack-title')).toBeAttached();
+  await expect(page.locator('#demo-title')).toBeAttached();
+  await expect(page.locator('.site-startup')).toHaveCount(0);
+  await expect(page.locator('.public-brand')).toHaveAccessibleName('Cadrora — Home');
+});
+
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
 declare global { interface Window { startupFrames: StartupFrame[] } }
 

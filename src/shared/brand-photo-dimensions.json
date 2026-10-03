@@ -1,4 +1,6 @@
 {
+  "/brand/cadrora-logo.png": { "width": 256, "height": 256 },
+  "/brand/atelier-giulia-logo.png": { "width": 256, "height": 256 },
   "/brand/cadrora-credit.webp": { "width": 64, "height": 64 },
   "/brand/demo-ai-cover.webp": { "width": 960, "height": 640 },
   "/brand/demo-hero.webp": { "width": 1536, "height": 1024 },

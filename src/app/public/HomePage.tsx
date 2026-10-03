@@ -13,6 +13,7 @@ import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { SessionScrollStory } from './SessionScrollStory';
 import { SessionDetailsModal } from './SessionDetailsModal';
+import { SiteStartup } from './SiteStartup';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
@@ -68,6 +69,9 @@ export function DefaultHomePage() {
       variant: index === 0 ? 'primary' as const : 'secondary' as const,
     }))).filter((action, index, actions) => action.href !== '/portfolio'
       || actions.findIndex((candidate) => candidate.href === '/portfolio') === index);
+  // Resolve optional section visibility before exposing the layout. Inserting the
+  // demo above an already painted stack section caused a reproducible layout shift.
+  if (settings.isPending) return <div className="session-home"><SiteStartup /></div>;
   return (
     <PublicLayout>
       <section className={`site-hero${heroPhotoReady ? '' : ' site-hero--photo-loading'}`}>

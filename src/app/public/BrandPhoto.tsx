@@ -22,8 +22,8 @@ export function BrandPhoto({ alt, className, fit = 'cover', height, immediate = 
   if (!photo) return <ProgressivePhoto alt={alt} {...frame} fit={fit}
     {...(height === undefined ? {} : { height })} {...(width === undefined ? {} : { width })}
     immediate={immediate} onVisualReady={onVisualReady} visualReadyAt={visualReadyAt} priority={priority} sizes={sizes} src={src} />;
-  const basename = src.slice(src.startsWith('/brand/') ? '/brand/'.length : 1, -'.webp'.length).replaceAll('/', '-');
-  const widths = src.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
+  const basename = src.slice(src.startsWith('/brand/') ? '/brand/'.length : 1).replace(/\.(?:webp|png)$/u, '').replaceAll('/', '-');
+  const widths = src.endsWith('-logo.png') ? [32, 64, 128] : src.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
   const sources = widths.filter((width) => width < photo.width).map((width) => ({
     url: `/brand/responsive/${basename}-${width}.webp`, width,
   }));

@@ -88,7 +88,8 @@ test('Atelier Giulia inherits the shared site without demo journeys or invented 
     return Math.abs(labelBox.top + labelBox.height / 2 - linkBox.top - linkBox.height / 2) < 2;
   });
   expect(await signatureAlignment()).toBe(true);
-  await expect(page.locator('.public-brand img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
+  await expect(page.locator('.public-brand .progressive-photo__preview')).toHaveAttribute('src', '/brand/responsive/atelier-giulia-logo-32.webp');
+  await expect(page.locator('.public-brand .progressive-photo__optimized')).toHaveAttribute('srcset', /atelier-giulia-logo-64\.webp/u);
   await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/brand/atelier-giulia-logo.png');
   await expect(page.locator('.site-section--demo')).toHaveCount(0);

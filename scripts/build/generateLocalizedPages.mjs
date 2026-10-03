@@ -80,3 +80,20 @@ for (const language of ['fr', 'en']) {
   }
 }
 await writeFile(join(output, 'index.html'), documentFor(site.defaultLanguage ?? 'fr', 'home', ''));
+
+// Keep public HTML asset-first while unknown URLs receive a real 404 from the edge.
+for (const language of ['fr', 'en']) {
+  const copy = startupCopy[language];
+  const html = shell.replace(/(<html\b[^>]*\blang=")[^"]*(")/u, `$1${language}$2`)
+    .replace(/<title>[^<]*<\/title>/u, `<title>${escapeHtml(copy.notFound)} | ${escapeHtml(site.name)}</title>`)
+    .replace('</head>', '<meta name="robots" content="noindex,nofollow"></head>')
+    .replace('<div id="root"></div>', `<div id="root"><main class="site-startup"><section class="site-startup__identity"><p class="site-startup__brand">${escapeHtml(site.name)}</p><h1>${escapeHtml(copy.notFound)}</h1><p>${escapeHtml(copy.notFoundLead)}</p><a href="/${language}/">${escapeHtml(copy.home)}</a></section></main></div>`);
+  await writeFile(join(output, language, '404.html'), html);
+  if (language === (site.defaultLanguage ?? 'fr')) await writeFile(join(output, '404.html'), html);
+}
+const language = site.defaultLanguage ?? 'fr';
+const directoryHtml = documentFor(language, 'home', '')
+  .replace(/<link rel="(?:canonical|alternate)"[^>]*>/gu, '')
+  .replace(/<title>[^<]*<\/title>/u, `<title>${escapeHtml(startupCopy[language].galleries)} | ${escapeHtml(site.name)}</title>`)
+  .replace('</head>', '<meta name="robots" content="noindex,nofollow"></head>');
+await writeFile(join(output, 'galleries.html'), directoryHtml);

@@ -3,14 +3,11 @@ import type { RouteObject } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 
 import { i18n } from '../i18n';
-import { ContactPage, PrivacyPage } from '../public/InfoPage';
 import { faceFindRouteObject, installFaceFindResources } from '../public/FindRoute';
 import { HomePage } from '../public/HomePage';
-import { AboutPage } from '../public/AboutPage';
-import { PortfolioDetailPage, PortfolioPage } from '../public/PortfolioPage';
 import { PublicRouteFallback } from '../public/PublicRouteFallback';
 import { installPublicResources } from '../public/i18n';
-import { GalleriesPage, ServicesPage } from '../public/ShowcasePages';
+import { SiteStartup } from '../public/SiteStartup';
 import '../public/public.css';
 
 installPublicResources(i18n);
@@ -18,15 +15,26 @@ installFaceFindResources();
 
 const GalleryPage = lazy(async () => ({ default: (await import('../public/GalleryPage')).GalleryPage }));
 const galleryElement = <Suspense fallback={<PublicRouteFallback />}><GalleryPage /></Suspense>;
+const AboutPage = lazy(async () => ({ default: (await import('../public/AboutPage')).AboutPage }));
+const ContactPage = lazy(async () => ({ default: (await import('../public/InfoPage')).ContactPage }));
+const PrivacyPage = lazy(async () => ({ default: (await import('../public/InfoPage')).PrivacyPage }));
+const PortfolioPage = lazy(async () => ({ default: (await import('../public/PortfolioPage')).PortfolioPage }));
+const PortfolioDetailPage = lazy(async () => ({ default: (await import('../public/PortfolioPage')).PortfolioDetailPage }));
+const GalleriesPage = lazy(async () => ({ default: (await import('../public/ShowcasePages')).GalleriesPage }));
+const ServicesPage = lazy(async () => ({ default: (await import('../public/ShowcasePages')).ServicesPage }));
+
+function marketingElement(element: React.ReactNode) {
+  return <Suspense fallback={<SiteStartup />}>{element}</Suspense>;
+}
 
 const marketingRouteObjects: RouteObject[] = [
   { path: '/', element: <HomePage /> },
-  { path: '/about', element: <AboutPage /> },
-  { path: '/services', element: <ServicesPage /> },
-  { path: '/portfolio', element: <PortfolioPage /> },
-  { path: '/portfolio/:slug', element: <PortfolioDetailPage /> },
-  { path: '/privacy', element: <PrivacyPage /> },
-  { path: '/contact', element: <ContactPage /> },
+  { path: '/about', element: marketingElement(<AboutPage />) },
+  { path: '/services', element: marketingElement(<ServicesPage />) },
+  { path: '/portfolio', element: marketingElement(<PortfolioPage />) },
+  { path: '/portfolio/:slug', element: marketingElement(<PortfolioDetailPage />) },
+  { path: '/privacy', element: marketingElement(<PrivacyPage />) },
+  { path: '/contact', element: marketingElement(<ContactPage />) },
 ];
 
 export const publicRouteObjects: RouteObject[] = [
@@ -35,7 +43,7 @@ export const publicRouteObjects: RouteObject[] = [
     ...route,
     path: `/${language}${route.path === '/' ? '' : route.path}`,
   }))),
-  { path: '/galleries', element: <GalleriesPage /> },
+  { path: '/galleries', element: marketingElement(<GalleriesPage />) },
   { path: '/e/:slug', element: galleryElement },
   { path: '/e/:slug/photo/:photoId', element: galleryElement },
   faceFindRouteObject,

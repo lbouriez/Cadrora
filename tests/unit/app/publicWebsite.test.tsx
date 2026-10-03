@@ -86,7 +86,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
     renderPage(<HomePage />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
     const atelierLink = screen.getByRole('link', { name: /Atelier Giulia.*Visiter le site/u });
@@ -206,7 +206,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage(<HomePage />);
 
-    expect(document.querySelector('.site-hero__art .progressive-photo')).not.toBeNull();
+    expect(document.querySelector('.site-startup')).not.toBeNull();
     expect(document.querySelector('.site-hero__art > .progressive-photo img')).toBeNull();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
     fireEvent.load(screen.getByRole('img', { name: 'Portrait au soleil' }));
@@ -262,7 +262,7 @@ describe('public photographer website', () => {
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Galeries' })).toBeNull());
     expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
-    expect(screen.getAllByRole('link', { name: 'Découvrir le portfolio' }).some((link) => link.getAttribute('href') === '/fr/portfolio')).toBe(true);
+    expect((await screen.findAllByRole('link', { name: 'Découvrir le portfolio' })).some((link) => link.getAttribute('href') === '/fr/portfolio')).toBe(true);
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
   });
 

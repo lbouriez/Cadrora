@@ -16,8 +16,8 @@ import { useTheme } from '../useTheme';
 import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 import type { NavigationItem } from '../site/types';
 
-export function PublicLayout({ children, fullBleed = false, immersiveFooterVisible = false, pageDescription, pageTitle, wide = false }: {
-  children: ReactNode; fullBleed?: boolean; immersiveFooterVisible?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
+export function PublicLayout({ children, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, wide = false }: {
+  children: ReactNode; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,10 +153,10 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       robots.name = 'robots';
       document.head.append(robots);
     }
-    robots.content = marketingPath === '/galleries' || marketingPath.startsWith('/e/')
+    robots.content = noIndex || marketingPath === '/galleries' || marketingPath.startsWith('/e/')
       || (marketingPath === '/services' && settings.data?.sessionsPageEnabled === false)
       || (marketingPath === '/about' && settings.data?.aboutEnabled === false) ? 'noindex,nofollow' : 'index,follow';
-  }, [marketingPath, settings.data?.aboutEnabled, settings.data?.sessionsPageEnabled]);
+  }, [marketingPath, noIndex, settings.data?.aboutEnabled, settings.data?.sessionsPageEnabled]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -193,7 +193,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
         <header className="public-header">
-        <Link aria-label={t('gallery.home')} className="public-brand" onClick={() => setMenuOpen(false)} to={`/${language}`}>
+        <Link aria-label={`${siteName} — ${t('gallery.home')}`} className="public-brand" onClick={() => setMenuOpen(false)} to={`/${language}`}>
           {siteProfile.logoUrl ? <BrandPhoto alt="" className="public-brand__logo" fit="contain" height={256} immediate sizes="40px" src={siteProfile.logoUrl} width={256} /> : null}
           <span className="public-brand__name">{siteName}</span>
         </Link>
