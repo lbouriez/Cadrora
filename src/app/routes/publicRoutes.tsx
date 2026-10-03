@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 import { i18n } from '../i18n';
 import { faceFindRouteObject, installFaceFindResources } from '../public/FindRoute';
 import { HomePage } from '../public/HomePage';
+import { AboutPage } from '../public/AboutPage';
 import { PublicRouteFallback } from '../public/PublicRouteFallback';
 import { installPublicResources } from '../public/i18n';
 import { SiteStartup } from '../public/SiteStartup';
@@ -15,7 +16,6 @@ installFaceFindResources();
 
 const GalleryPage = lazy(async () => ({ default: (await import('../public/GalleryPage')).GalleryPage }));
 const galleryElement = <Suspense fallback={<PublicRouteFallback />}><GalleryPage /></Suspense>;
-const AboutPage = lazy(async () => ({ default: (await import('../public/AboutPage')).AboutPage }));
 const ContactPage = lazy(async () => ({ default: (await import('../public/InfoPage')).ContactPage }));
 const PrivacyPage = lazy(async () => ({ default: (await import('../public/InfoPage')).PrivacyPage }));
 const PortfolioPage = lazy(async () => ({ default: (await import('../public/PortfolioPage')).PortfolioPage }));
@@ -29,7 +29,7 @@ function marketingElement(element: React.ReactNode) {
 
 const marketingRouteObjects: RouteObject[] = [
   { path: '/', element: <HomePage /> },
-  { path: '/about', element: marketingElement(<AboutPage />) },
+  { path: '/about', element: <AboutPage /> },
   { path: '/services', element: marketingElement(<ServicesPage />) },
   { path: '/portfolio', element: marketingElement(<PortfolioPage />) },
   { path: '/portfolio/:slug', element: marketingElement(<PortfolioDetailPage />) },
