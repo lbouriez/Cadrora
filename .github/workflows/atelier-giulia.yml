@@ -25,19 +25,26 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run test
-      - name: Build Cadrora showcase
-        run: npm run build
-        env:
-          CADRORA_SITE: cadrora
-      - name: Build Atelier Giulia
-        run: npm run build
-        env:
-          CADRORA_SITE: atelier-giulia
       - name: Install browser for profile smoke test
         run: npx playwright install --with-deps chromium
       - name: Apply local D1 migrations for Worker HTML checks
         run: npx wrangler d1 migrations apply cadrora --local
-      - name: Check the built first frame before deployment
+      - name: Build Cadrora showcase
+        run: npm run build
+        env:
+          CADRORA_SITE: cadrora
+          CADRORA_SEED_DEMO: 'true'
+      - name: Check the built Cadrora first frame
+        run: npx playwright test tests/e2e/startup-build.spec.ts --reporter=dot
+        env:
+          CADRORA_SITE: cadrora
+          CADRORA_SEED_DEMO: 'true'
+          CADRORA_E2E_BUILD: 'true'
+      - name: Build Atelier Giulia
+        run: npm run build
+        env:
+          CADRORA_SITE: atelier-giulia
+      - name: Check the built Atelier first frame before deployment
         run: npx playwright test tests/e2e/startup-build.spec.ts --reporter=dot
         env:
           CADRORA_SITE: atelier-giulia

@@ -22,7 +22,7 @@ test.describe('site vitrine statique', () => {
     });
   });
 
-  test('the Home copy waits for its photo during a slow load', async ({ page }) => {
+  test('the complete Home waits for its photo during a slow load', async ({ page }) => {
     let releaseImage = () => {};
     const imageReady = new Promise<void>((resolve) => { releaseImage = resolve; });
     await page.route('**/home-hero-image/**', async (route) => {
@@ -32,20 +32,21 @@ test.describe('site vitrine statique', () => {
     try {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       const hero = page.locator('.site-hero');
-      await expect(hero).toBeVisible();
-      await expect(hero.locator('.site-hero__copy')).toBeHidden();
-      await expect(hero.locator('.site-hero__art')).toBeVisible();
+      await expect(page.locator('.site-startup__brand')).toBeInViewport();
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+      await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
       releaseImage();
+      await expect(page.locator('.site-startup')).toHaveCount(0);
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
       await expect(hero.locator('.site-hero__copy')).toBeVisible();
-      await expect(hero).not.toHaveClass(/site-hero--photo-loading/u);
     } finally { releaseImage(); }
   });
 
   test('the Home copy remains available when its photo fails', async ({ page }) => {
     await page.route('**/home-hero-image/**', (route) => route.fulfill({ status: 404 }));
     await page.goto('/');
-    await expect(page.locator('.site-hero__copy')).toBeVisible();
-    await expect(page.locator('.site-hero')).not.toHaveClass(/site-hero--photo-loading/u);
+    await expect(page.locator('.site-startup')).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
@@ -164,7 +165,7 @@ test.describe('site vitrine statique', () => {
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute('href', 'https://ateliergiulia.com/');
     await expect(card).toHaveAttribute('rel', 'noopener');
-    await expect(card.locator('img')).toHaveAttribute('src', '/brand/atelier-giulia-logo.png');
+    await expect(card.locator('.progressive-photo__preview')).toHaveAttribute('src', '/brand/responsive/atelier-giulia-logo-32.webp');
     await expect(card).toContainText('Visiter le site');
 
     await page.getByRole('button', { name: 'Afficher en EN' }).click();
@@ -345,8 +346,11 @@ test.describe('site vitrine statique', () => {
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');
     const heroCopy = page.locator('.site-hero__copy');
-    await expect(heroCopy).toHaveClass(/motion-reveal--visible/);
-    expect(await heroCopy.evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
+    await expect(page.locator('.site-startup')).toHaveCount(0);
+    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+    await expect(heroCopy).toBeVisible();
+    // The first frame fades as one stage; individual entrances begin below it.
+    expect(await page.locator('.session-home__stage').evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
     const demoCard = page.locator('.demo-experience-card').first();
     await demoCard.scrollIntoViewIfNeeded();
     await expect(demoCard).toHaveClass(/motion-reveal--visible/);

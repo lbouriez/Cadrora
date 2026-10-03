@@ -192,8 +192,6 @@
   gap: clamp(2rem, 7vw, 6rem);
 }
 
-.site-hero--photo-loading .site-hero__copy { visibility: hidden; }
-
 .site-hero::before {
   position: absolute;
   z-index: -1;
@@ -2082,6 +2080,7 @@
 .public-main--immersive { width: 100%; min-height: 0; padding: 0; }
 .session-story { position: relative; background: var(--color-text); }
 .session-home { position: relative; min-height: 100svh; }
+.session-home--pending { height: 100svh; overflow: clip; }
 /* Preserve real layout measurements and image loading while the first complete frame prepares. */
 .session-home__stage { opacity: 1; transition: opacity 1s ease; }
 .session-home__stage--pending { opacity: 0; pointer-events: none; }

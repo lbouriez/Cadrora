@@ -73,114 +73,119 @@ export function DefaultHomePage() {
   // demo above an already painted stack section caused a reproducible layout shift.
   if (settings.isPending) return <div className="session-home"><SiteStartup /></div>;
   return (
-    <PublicLayout>
-      <section className={`site-hero${heroPhotoReady ? '' : ' site-hero--photo-loading'}`}>
-        <MotionReveal className="site-hero__copy">
-          <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
-          <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
-          <p className="site-hero__lead">{heroText?.description ?? t('gallery.heroLead')}</p>
-          {heroActions.length ? <div className="site-actions">
-            {heroActions.map((action, index) => <SiteActionLink {...action} key={index} />)}
-          </div> : null}
-          {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
-            <span>{t('gallery.productProof.private')}</span>
-            <span>{t('gallery.productProof.free')}</span>
-            <span>{t('gallery.productProof.open')}</span>
-          </div> : null}
-        </MotionReveal>
-        <figure className="site-hero__art">
-          <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
-            height={853} immediate onVisualReady={markHeroPhotoReady} priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
-            sources={[
-              { url: `${heroImagePath}/preview`, width: 320 },
-              { url: `${heroImagePath}/small`, width: 640 },
-              { url: `${heroImagePath}/medium`, width: settings.data?.homeHeroImageMediumWidth ?? 960 },
-              { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
-            ]} />
-          {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
-          {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
-            <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />
-            <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
-          </div> : null}
-        </figure>
-      </section>
+    <div className={`session-home${heroPhotoReady ? '' : ' session-home--pending'}`}>
+      {!heroPhotoReady ? <SiteStartup /> : null}
+      <div aria-hidden={!heroPhotoReady || undefined} className={`session-home__stage${heroPhotoReady ? '' : ' session-home__stage--pending'}`} inert={!heroPhotoReady}>
+        <PublicLayout>
+          <section className="site-hero">
+            <div className="site-hero__copy">
+              <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
+              <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
+              <p className="site-hero__lead">{heroText?.description ?? t('gallery.heroLead')}</p>
+              {heroActions.length ? <div className="site-actions">
+                {heroActions.map((action, index) => <SiteActionLink {...action} key={index} />)}
+              </div> : null}
+              {siteProfile.home.showProof ? <div className="site-hero__proof" aria-label={t('gallery.productProofLabel')}>
+                <span>{t('gallery.productProof.private')}</span>
+                <span>{t('gallery.productProof.free')}</span>
+                <span>{t('gallery.productProof.open')}</span>
+              </div> : null}
+            </div>
+            <figure className="site-hero__art">
+              <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
+                height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
+                sources={[
+                  { url: `${heroImagePath}/preview`, width: 320 },
+                  { url: `${heroImagePath}/small`, width: 640 },
+                  { url: `${heroImagePath}/medium`, width: settings.data?.homeHeroImageMediumWidth ?? 960 },
+                  { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
+                ]} />
+              {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
+              {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
+                <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />
+                <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
+              </div> : null}
+            </figure>
+          </section>
 
-      {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled && galleryDirectoryEnabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
-        <div className="site-section__heading site-section__heading--row">
-          <div>
-            <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
-            <h2 id="demo-title">{t('gallery.demo.sectionTitle')}</h2>
-          </div>
-          <p>{t('gallery.demo.sectionLead')}</p>
-        </div>
-        <DemoExperienceCards />
-      </MotionReveal> : null}
-
-      {section === 'stack' ? <MotionReveal as="section" labelledBy="stack-title" className="product-stack">
-        <div>
-          <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
-          <h2 id="stack-title">{t('gallery.stack.title')}</h2>
-        </div>
-        <p>{t('gallery.stack.body')}</p>
-        <a className="button button--secondary" href="https://github.com/lbouriez/Cadrora" rel="noreferrer" target="_blank">{t('gallery.stack.github')} <span aria-hidden="true">↗</span></a>
-      </MotionReveal> : null}
-
-      {section === 'services' ? <MotionReveal as="section" labelledBy="services-title" className="site-section" id="services">
-        <div className="site-section__heading">
-          <p className="site-eyebrow">{t('gallery.servicesEyebrow')}</p>
-          <h2 id="services-title">{t('gallery.servicesTitle')}</h2>
-          <p>{t('gallery.servicesLead')}</p>
-        </div>
-        <div aria-busy={services.isPending} className="service-grid">
-          {services.isPending ? <Spinner label={t('gallery.servicesLoading')} /> : null}
-          {featuredServices.map((card, index) => {
-            const copy = serviceText(card, language, (key) => t(key));
-            return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
-              <ServicePhotoHeader card={card} className="service-card__visual" heading="h3"
-                sizes="(max-width: 48rem) 100vw, 33vw" title={copy.title} />
-              <div className="service-card__copy"><p>{copy.shortDescription}</p>
-                <Button aria-haspopup="dialog" onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
+          {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled && galleryDirectoryEnabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
+            <div className="site-section__heading site-section__heading--row">
+              <div>
+                <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
+                <h2 id="demo-title">{t('gallery.demo.sectionTitle')}</h2>
               </div>
-            </MotionReveal>;
-          })}
-        </div>
-        <div className="site-actions">
-          {settings.data?.sessionsPageEnabled === true
-            ? <Link className="button button--secondary" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link> : null}
-          <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
-        </div>
-      </MotionReveal> : null}
+              <p>{t('gallery.demo.sectionLead')}</p>
+            </div>
+            <DemoExperienceCards />
+          </MotionReveal> : null}
 
-      {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
-        <p className="site-eyebrow">{t('gallery.approachEyebrow')}</p>
-        <h2 id="approach-title">{t('gallery.approachTitle')}</h2>
-        <p>{t('gallery.approachBody')}</p>
-      </MotionReveal> : null}
+          {section === 'stack' ? <MotionReveal as="section" labelledBy="stack-title" className="product-stack">
+            <div>
+              <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
+              <h2 id="stack-title">{t('gallery.stack.title')}</h2>
+            </div>
+            <p>{t('gallery.stack.body')}</p>
+            <a className="button button--secondary" href="https://github.com/lbouriez/Cadrora" rel="noreferrer" target="_blank">{t('gallery.stack.github')} <span aria-hidden="true">↗</span></a>
+          </MotionReveal> : null}
 
-      {section === 'galleries' && showHomeGalleries ? <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
-        <div className="site-section__heading site-section__heading--row">
-          <div>
-            <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>
-            <h2 id="galleries-title">{t('gallery.events')}</h2>
-          </div>
-          <p>{t('gallery.galleryLead')}</p>
-        </div>
-        {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
-        {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
-        {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
-        <PublicEventCards events={events.data} language={i18n.language} limit={settings.data?.homeGalleries.limit ?? 6} />
-      </MotionReveal> : null}
+          {section === 'services' ? <MotionReveal as="section" labelledBy="services-title" className="site-section" id="services">
+            <div className="site-section__heading">
+              <p className="site-eyebrow">{t('gallery.servicesEyebrow')}</p>
+              <h2 id="services-title">{t('gallery.servicesTitle')}</h2>
+              <p>{t('gallery.servicesLead')}</p>
+            </div>
+            <div aria-busy={services.isPending} className="service-grid">
+              {services.isPending ? <Spinner label={t('gallery.servicesLoading')} /> : null}
+              {featuredServices.map((card, index) => {
+                const copy = serviceText(card, language, (key) => t(key));
+                return <MotionReveal as="article" className="service-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
+                  <ServicePhotoHeader card={card} className="service-card__visual" heading="h3"
+                    sizes="(max-width: 48rem) 100vw, 33vw" title={copy.title} />
+                  <div className="service-card__copy"><p>{copy.shortDescription}</p>
+                    <Button aria-haspopup="dialog" onClick={() => setSelectedId(card.id)} variant="secondary">{t('gallery.servicesPage.moreInfo')}</Button>
+                  </div>
+                </MotionReveal>;
+              })}
+            </div>
+            <div className="site-actions">
+              {settings.data?.sessionsPageEnabled === true
+                ? <Link className="button button--secondary" to={localizedMarketingPath('/services', language)}>{t('gallery.servicesPage.viewAll')}</Link> : null}
+              <Link className="button button--secondary" to={localizedMarketingPath('/portfolio', language)}>{t('gallery.portfolioPage.homeAction')}</Link>
+            </div>
+          </MotionReveal> : null}
 
-      {section === 'featuredSites' && siteProfile.home.featuredSites?.length ? <FeaturedSites sites={siteProfile.home.featuredSites} /> : null}
+          {section === 'approach' ? <MotionReveal as="section" labelledBy="approach-title" className="site-statement">
+            <p className="site-eyebrow">{t('gallery.approachEyebrow')}</p>
+            <h2 id="approach-title">{t('gallery.approachTitle')}</h2>
+            <p>{t('gallery.approachBody')}</p>
+          </MotionReveal> : null}
 
-      {section === 'contact' ? <MotionReveal as="section" className="site-contact-callout">
-        <div>
-          <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
-          <h2>{t('gallery.contactCalloutTitle')}</h2>
-        </div>
-        <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
-      </MotionReveal> : null}</Fragment>)}
-      <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
-    </PublicLayout>
+          {section === 'galleries' && showHomeGalleries ? <MotionReveal as="section" labelledBy="galleries-title" className="site-section" id="galleries">
+            <div className="site-section__heading site-section__heading--row">
+              <div>
+                <p className="site-eyebrow">{t('gallery.galleryEyebrow')}</p>
+                <h2 id="galleries-title">{t('gallery.events')}</h2>
+              </div>
+              <p>{t('gallery.galleryLead')}</p>
+            </div>
+            {events.isPending ? <Spinner label={t('gallery.loading')} /> : null}
+            {events.isError ? <p className="gallery-notice" role="status">{t('gallery.eventsUnavailable')}</p> : null}
+            {events.data?.length === 0 ? <p className="gallery-notice">{t('gallery.noEvents')}</p> : null}
+            <PublicEventCards events={events.data} language={i18n.language} limit={settings.data?.homeGalleries.limit ?? 6} prioritizeFirstRow={false} />
+          </MotionReveal> : null}
+
+          {section === 'featuredSites' && siteProfile.home.featuredSites?.length ? <FeaturedSites sites={siteProfile.home.featuredSites} /> : null}
+
+          {section === 'contact' ? <MotionReveal as="section" className="site-contact-callout">
+            <div>
+              <p className="site-eyebrow">{t('gallery.contactEyebrow')}</p>
+              <h2>{t('gallery.contactCalloutTitle')}</h2>
+            </div>
+            <Link className="button button--primary" to={localizedMarketingPath('/contact', language)}>{t('gallery.contactCalloutAction')}</Link>
+          </MotionReveal> : null}</Fragment>)}
+          <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
+        </PublicLayout>
+      </div>
+    </div>
   );
 }

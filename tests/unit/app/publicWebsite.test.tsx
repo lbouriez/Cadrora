@@ -55,6 +55,14 @@ function renderPage(page: ReactNode) {
   );
 }
 
+// jsdom does not download images. Complete the display layer explicitly before
+// asserting controls that the real browser exposes only with the finished hero.
+async function completeHomePhoto() {
+  await waitFor(() => expect(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__optimized')).not.toBeNull());
+  fireEvent.load(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__optimized')!);
+  await waitFor(() => expect(document.querySelector('.site-startup')).toBeNull());
+}
+
 describe('public photographer website', () => {
   it('keeps Home sessions while removing disabled page links', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(url === '/api/v1/site'
@@ -86,6 +94,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
     renderPage(<HomePage />);
 
+    await completeHomePhoto();
     expect(await screen.findByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
@@ -137,6 +146,7 @@ describe('public photographer website', () => {
     ), { status: 200 }))));
     renderPage(<HomePage />);
 
+    await completeHomePhoto();
     await waitFor(() => expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy());
     expect(document.querySelector('.public-construction-notice')?.textContent).toBe('Notre site est en préparation. Merci de votre patience.');
     expect(screen.getByText('© Studio Boréal · Des histoires à garder.')).toBeTruthy();
@@ -163,6 +173,7 @@ describe('public photographer website', () => {
     ), { status: 200 }))));
     renderPage(<HomePage />);
 
+    await completeHomePhoto();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Newer event' })).toBeTruthy());
     const titles = [...document.querySelectorAll('.event-card h3')].map((title) => title.textContent);
     expect(titles).toEqual(['Newer event', 'Middle event']);
@@ -208,6 +219,11 @@ describe('public photographer website', () => {
 
     expect(document.querySelector('.site-startup')).not.toBeNull();
     expect(document.querySelector('.site-hero__art > .progressive-photo img')).toBeNull();
+    await waitFor(() => expect(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__preview')).not.toBeNull());
+    fireEvent.load(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__preview')!);
+    expect(document.querySelector('.site-startup')).not.toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Votre lumière' })).toBeNull();
+    await completeHomePhoto();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
     fireEvent.load(screen.getByRole('img', { name: 'Portrait au soleil' }));
     await waitFor(() => expect(document.querySelector('.site-hero__art img[srcset]')?.getAttribute('srcset'))
@@ -245,6 +261,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage(<HomePage />);
 
+    await completeHomePhoto();
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
     expect((await screen.findByRole('link', { name: 'Explorer les galeries en ligne' })).getAttribute('href')).toBe('/galleries');
@@ -259,6 +276,7 @@ describe('public photographer website', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage(<HomePage />);
 
+    await completeHomePhoto();
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Galeries' })).toBeNull());
     expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();

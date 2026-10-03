@@ -58,6 +58,104 @@ test('Cadrora resolves the optional demo before exposing the sections below it',
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
 declare global { interface Window { startupFrames: StartupFrame[] } }
 
+test.describe('Cadrora first frame', () => {
+  test.skip(atelier, 'Standard Home presentation.');
+
+  test('loads lower gallery covers only when the visitor approaches them', async ({ page }) => {
+    await installOwnerHome(page);
+    await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+      siteName: 'Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+      contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+      galleryDirectoryEnabled: true, homeGalleries: { enabled: true, limit: 6 },
+      updatedAt: '2026-10-03T00:00:00.000Z',
+    } }));
+    await page.route('**/api/v1/galleries?**', (route) => route.fulfill({ json: {
+      events: [{ id: 'test-gallery', slug: 'test-gallery', title: 'Gallery', description: null,
+        service: null, startsAt: '2026-09-26T12:00:00.000Z', timezone: 'America/Toronto',
+        coverPhotoId: 'test-photo', coverPhotoUrl: '/media/test-gallery/test-photo/1/medium',
+        visibility: 'published', access: 'public', allowDownloads: false, faceSearchEnabled: false,
+        nearbySearchEnabled: false, showPhotoMetadata: false, retouchSelectionEnabled: false,
+        retentionDays: null, revision: 1, createdAt: '2026-09-26T00:00:00.000Z', updatedAt: '2026-09-26T00:00:00.000Z' }],
+      protectedGalleries: [], nextCursor: null,
+    } }));
+    const requests: string[] = [];
+    await page.route('**/media/test-gallery/**', async (route) => {
+      requests.push(route.request().url());
+      await route.fulfill({ path: resolve('public/brand/demo-hero.webp'), contentType: 'image/webp' });
+    });
+    await page.goto('/fr/');
+    await expect(page.locator('.site-startup')).toHaveCount(0);
+    const cover = page.locator('#galleries .event-card .progressive-photo');
+    await expect(cover).toBeAttached();
+    expect(requests).toEqual([]);
+    await expect(cover.locator('img')).toHaveCount(0);
+    await cover.scrollIntoViewIfNeeded();
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    await expect(cover.locator('.progressive-photo__optimized')).toHaveJSProperty('complete', true);
+    await expect(cover).toHaveClass(/progressive-photo--ready/u);
+  });
+
+  for (const language of ['fr', 'en']) {
+    test(`${language} keeps the identity until the owner display photo is ready`, async ({ page }, testInfo) => {
+      await installOwnerHome(page);
+      await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+        siteName: 'Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+        contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+        map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+        enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'light',
+        homeHeroImageRevision: 2, homeGalleries: { enabled: false, limit: 6 },
+        updatedAt: '2026-10-03T00:00:00.000Z',
+      } }));
+      const fallbackRequests: string[] = [];
+      page.on('request', (request) => { if (request.url().includes('/home-hero-image/')) fallbackRequests.push(request.url()); });
+      let release = () => {};
+      const waiting = new Promise<void>((resolve) => { release = resolve; });
+      let requested = false;
+      await page.route(/\/service-media\/home-hero\/2\/(?:small|medium|large)$/u, async (route) => {
+        requested = true;
+        await waiting;
+        await route.fallback();
+      });
+      try {
+        await page.goto(`/${language}/`, { waitUntil: 'domcontentloaded' });
+        await expect.poll(() => requested).toBe(true);
+        await expect(page.locator('.site-startup__brand')).toHaveText('Cadrora');
+        await expect(page.locator('.site-startup__brand')).toBeInViewport();
+        await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+        await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+        await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+        await page.screenshot({ path: testInfo.outputPath('waiting-for-display-photo.png') });
+      } finally { release(); }
+      await expect(page.locator('.site-startup')).toHaveCount(0);
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('.site-hero__art > .progressive-photo .progressive-photo__optimized')).toHaveJSProperty('complete', true);
+      expect(fallbackRequests).toEqual([]);
+      await assertNoHorizontalOverflow(page);
+      await page.screenshot({ path: testInfo.outputPath('complete-first-frame.png') });
+      await page.locator('.site-hero__copy a').first().focus();
+      await expect(page.locator('.site-hero__copy a').first()).toBeFocused();
+    });
+  }
+
+  for (const failure of ['display', 'all']) {
+    test(`recovers when ${failure} hero sources fail`, async ({ page }) => {
+      await installOwnerHome(page);
+      await page.route('**/home-hero-image/**', async (route) => {
+        if (failure === 'display' && route.request().url().endsWith('/preview')) {
+          await route.fulfill({ path: resolve('public/brand/demo-hero.webp'), contentType: 'image/webp' });
+        } else await route.abort();
+      });
+      await page.goto('/fr/');
+      await expect(page.locator('.site-startup')).toHaveCount(0);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('.session-home__stage')).not.toHaveAttribute('inert', '');
+    });
+  }
+});
+
 async function installOwnerHome(page: Page) {
   await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
   await page.route('**/api/v1/site', (route) => route.fulfill({ json: {

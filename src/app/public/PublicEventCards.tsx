@@ -10,7 +10,7 @@ import { siteProfile } from './siteProfile';
 import { galleryText } from './galleryText';
 
 /** Shared live-gallery cards used by the landing and events pages. */
-export function PublicEventCards({ events, language, limit, protectedGalleries = [] }: { events: PublicEvent[] | undefined; language: string; limit?: number; protectedGalleries?: ProtectedGalleryPreview[] }) {
+export function PublicEventCards({ events, language, limit, prioritizeFirstRow = true, protectedGalleries = [] }: { events: PublicEvent[] | undefined; language: string; limit?: number; prioritizeFirstRow?: boolean; protectedGalleries?: ProtectedGalleryPreview[] }) {
   const { t } = useTranslation();
   const cards = [
     ...(events ?? []).map((event) => ({ kind: 'public' as const, event, startsAt: event.startsAt, id: event.id })),
@@ -23,8 +23,8 @@ export function PublicEventCards({ events, language, limit, protectedGalleries =
         const gallery = card.kind === 'public' ? card.event : card.gallery;
         const copy = galleryText(gallery, language);
         return <EditorialGalleryCard cover={card.kind === 'protected'
-          ? <><BrandPhoto alt="" immediate={index < 2} priority={index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" src={siteProfile.privateGalleryCoverUrl} /><span aria-hidden="true" className="event-card__lock"><LockIcon /></span></>
-                : card.event.coverPhotoUrl ? <ProgressivePhoto alt="" height={3} immediate={index < 2} priority={index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" sources={coverPhotoSources(card.event.coverPhotoUrl)} width={4} /> : <span aria-hidden="true" className="event-card__placeholder" />}
+          ? <><BrandPhoto alt="" lazyPreview immediate={prioritizeFirstRow && index < 2} priority={prioritizeFirstRow && index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" src={siteProfile.privateGalleryCoverUrl} /><span aria-hidden="true" className="event-card__lock"><LockIcon /></span></>
+                : card.event.coverPhotoUrl ? <ProgressivePhoto alt="" height={3} lazyPreview immediate={prioritizeFirstRow && index < 2} priority={prioritizeFirstRow && index === 0} sizes="(min-width: 75rem) 36rem, (min-width: 48rem) 50vw, 100vw" sources={coverPhotoSources(card.event.coverPhotoUrl)} width={4} /> : <span aria-hidden="true" className="event-card__placeholder" />}
           description={copy.description} eyebrow={gallery.service ? t(`gallery.category.${gallery.service}`) : null}
           href={`/e/${card.kind === 'public' ? gallery.slug : gallery.id}`} index={index} key={gallery.id}
           locked={card.kind === 'protected'} meta={new Intl.DateTimeFormat(language, { dateStyle: 'long' }).format(new Date(gallery.startsAt))}
