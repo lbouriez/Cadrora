@@ -4,6 +4,7 @@ import { loadSiteProfile } from './scripts/sites/loadProfile.mjs';
 const port = Number(process.env.CADRORA_E2E_PORT ?? 4_178);
 const site = loadSiteProfile(process.env.CADRORA_SITE || 'cadrora');
 const showcase = site.allowShowcase === true;
+const builtSite = process.env.CADRORA_E2E_BUILD === 'true';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -25,12 +26,14 @@ export default defineConfig({
     },
     {
       name: 'mobile-chromium',
-      testMatch: /(public-website|site-profile)\.spec\.ts/,
+      testMatch: /(public-website|site-profile|startup-build)\.spec\.ts/,
       use: { ...devices['Pixel 7'] },
     },
   ],
   webServer: {
-    command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
+    command: builtSite
+      ? `npx vite preview --host 127.0.0.1 --port ${port} --strictPort`
+      : `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     env: {
       ...process.env,
       CADRORA_SEED_DEMO: showcase ? 'true' : 'false',
@@ -42,7 +45,7 @@ export default defineConfig({
       VITE_SERVICE_AREA: showcase ? 'Montreal et environs' : '',
       VITE_TURNSTILE_SITE_KEY: 'e2e-site-key',
     },
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !builtSite,
     timeout: 120_000,
     url: `http://127.0.0.1:${port}`,
   },

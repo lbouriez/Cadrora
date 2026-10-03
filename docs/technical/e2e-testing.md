@@ -19,6 +19,23 @@ Pour executer plusieurs validations locales en parallele, definir `CADRORA_E2E_P
 
 ## Couverture actuelle
 
+### Premier rendu du build de production
+
+Le serveur de developpement ne contient pas le HTML localise genere apres le build. La suite ciblee `startup-build.spec.ts` utilise donc `vite preview` pour verifier le premier affichage : JavaScript retarde puis libere, couleurs du profil, FR/EN, bureau/mobile, API indisponible et navigation au clavier sans JavaScript.
+
+```powershell
+$env:CADRORA_SITE = 'atelier-giulia'
+$env:VITE_APP_NAME = 'Atelier Giulia'
+npm run build
+$env:CADRORA_E2E_BUILD = 'true'
+npx playwright test startup-build.spec.ts --workers=2
+Remove-Item Env:CADRORA_E2E_BUILD
+```
+
+Repeter avec `CADRORA_SITE=cadrora` et `VITE_APP_NAME=Cadrora`. Le profil choisi doit correspondre au build sur disque. Ces tests sont ignores en mode developpement. Ils ne valident pas un deploiement distant.
+
+### Parcours applicatifs
+
 - site vitrine en bureau et mobile, y compris la panne de l'API des galeries;
 - navigation canonique `/galleries` et vocabulaire galerie;
 - contact configure par variables publiques, sans formulaire et sans requete vers un domaine externe;

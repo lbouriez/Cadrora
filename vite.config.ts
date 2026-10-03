@@ -30,6 +30,7 @@ export default defineConfig({
         const icon = site.document.icon;
         const iconType = icon?.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
         const documentHtml = html
+          .replace('<html lang="fr">', `<html lang="${site.defaultLanguage ?? 'fr'}" data-site="${siteId}">`)
           .replace(/<title>[^<]*<\/title>/u, `<title>${site.name}</title>`)
           .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${site.document.description}$2`)
           .replace(/(<meta name="theme-color" content=")[^"]*(" \/>)/u, `$1${site.document.themeColor}$2`)

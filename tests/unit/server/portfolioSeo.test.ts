@@ -89,6 +89,9 @@ describe('localized portfolio documents', () => {
     expect(html).toContain('hreflang="fr" href="https://cadrora.com/fr/portfolio/marques/"');
     expect(html).toContain('property="og:image" content="https://cadrora.com/portfolio-media/cover-1/large"');
     expect(html).toContain('<h1>Brand portraits</h1>');
+    expect(html).toContain('<main class="site-startup">');
+    expect(html).toContain('<details class="site-startup__fallback">');
+    expect(html).toContain('<summary>Browse pages</summary>');
     expect(html).toContain('"areaServed":"Montréal"');
     expect(html).not.toContain('rel="canonical" href="https://cadrora.com/fr/portfolio/"');
   });

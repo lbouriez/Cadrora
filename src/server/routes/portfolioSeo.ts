@@ -1,5 +1,6 @@
 import type { Context, Hono } from 'hono';
 
+import startupCopy from '../../shared/i18n/publicStartup.json';
 import { PortfolioCollectionTextSchema } from '../../shared/schemas/portfolio';
 import { SlugSchema } from '../../shared/schemas/primitives';
 import type { AppEnv } from '../types';
@@ -63,7 +64,16 @@ ${alternates}
   '@context': 'https://schema.org', '@type': 'Organization', name: siteName, url: origin,
   image: options.image, ...(options.areaServed ? { areaServed: options.areaServed } : {}),
 }).replaceAll('<', '\\u003c')}</script>`;
-  const fallback = `<main><h1>${escapeHtml(options.title)}</h1><p>${description}</p><a href="/${language}/portfolio/">Portfolio</a></main>`;
+  const fallback = `<main class="site-startup">
+    <section class="site-startup__identity" aria-label="${escapeHtml(startupCopy[language].loading)}">
+      <p class="site-startup__brand">${escapeHtml(siteName)}</p>
+      <span class="site-startup__rule" aria-hidden="true"></span>
+    </section>
+    <details class="site-startup__fallback">
+      <summary>${escapeHtml(startupCopy[language].navigation)}</summary>
+      <section class="site-startup__content"><h1>${escapeHtml(options.title)}</h1><p>${description}</p><a href="/${language}/portfolio/">Portfolio</a></section>
+    </details>
+  </main>`;
   return template
     .replace(/<title>[^<]*<\/title>/u, `<title>${title}</title>`)
     .replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?\s*>/u, `<meta name="description" content="${description}">`)

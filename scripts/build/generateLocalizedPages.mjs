@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { loadSiteProfile } from '../sites/loadProfile.mjs';
+import startupCopy from '../../src/shared/i18n/publicStartup.json' with { type: 'json' };
 
 const site = loadSiteProfile(process.env.CADRORA_SITE?.trim() || 'cadrora');
 const output = 'dist/client';
@@ -52,8 +53,19 @@ function documentFor(language, page, path) {
     }).replaceAll('<', '\\u003c')}</script>` : '';
   const navigation = pages.map(([key, suffix]) =>
     `<a href="/${language}/${suffix ? `${suffix}/` : ''}">${escapeHtml(site.document.pages?.[key]?.[language]?.title ?? key)}</a>`).join(' ');
-  const fallback = `<main><h1>${title}</h1><p>${description}</p><nav aria-label="${language === 'fr' ? 'Pages publiques' : 'Public pages'}">${navigation}</nav></main>`;
-  return shell.replace(/<html lang="[^"]*">/u, `<html lang="${language}">`)
+  // This paints before the application module runs. The native disclosure also
+  // keeps the localized content and links available without JavaScript.
+  const fallback = `<main class="site-startup">
+    <section class="site-startup__identity" aria-label="${escapeHtml(startupCopy[language].loading)}">
+      <p class="site-startup__brand">${escapeHtml(site.name)}</p>
+      <span class="site-startup__rule" aria-hidden="true"></span>
+    </section>
+    <details class="site-startup__fallback">
+      <summary>${escapeHtml(startupCopy[language].navigation)}</summary>
+      <section class="site-startup__content"><h1>${title}</h1><p>${description}</p><nav aria-label="${escapeHtml(startupCopy[language].navigation)}">${navigation}</nav></section>
+    </details>
+  </main>`;
+  return shell.replace(/(<html\b[^>]*\blang=")[^"]*(")/u, `$1${language}$2`)
     .replace(/<title>[^<]*<\/title>/u, `<title>${title}</title>`)
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${description}$2`)
     .replace('</head>', `${metadata}\n  </head>`)
