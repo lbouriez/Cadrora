@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 
 import type { ThemeMode } from '../shared/schemas';
+import { useServerRender } from './prerender/context';
 
 export type Theme = 'dark' | 'light';
 
@@ -14,12 +15,12 @@ function savedTheme(): Theme | null {
 }
 
 function initialTheme(): Theme {
-  if (document.documentElement.dataset.theme === 'dark') return 'dark';
+  if (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark') return 'dark';
   return savedTheme() ?? systemTheme();
 }
 
 function systemTheme(): Theme {
-  const prefersDark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const prefersDark = typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
   return prefersDark ? 'dark' : 'light';
 }
 
@@ -35,9 +36,11 @@ function applyTheme(theme: Theme, persist: boolean): void {
 
 /** Keeps the local preference when visitors may choose, otherwise enforces the owner setting. */
 export function useTheme(mode: ThemeMode = 'both') {
+  const serverRender = useServerRender();
   const [theme, setTheme] = useState<Theme>(initialTheme);
   const [preferredSystemTheme, setPreferredSystemTheme] = useState<Theme>(systemTheme);
-  const effectiveTheme = mode === 'system' ? preferredSystemTheme : mode === 'both' ? theme : mode;
+  const effectiveTheme = mode === 'system' ? (serverRender ? 'light' : preferredSystemTheme)
+    : mode === 'both' ? (serverRender ? 'light' : theme) : mode;
 
   useEffect(() => {
     if (mode !== 'system' || typeof window.matchMedia !== 'function') return undefined;
@@ -49,8 +52,8 @@ export function useTheme(mode: ThemeMode = 'both') {
   }, [mode]);
 
   useLayoutEffect(() => {
-    applyTheme(effectiveTheme, mode === 'both');
-  }, [effectiveTheme, mode]);
+    if (!serverRender) applyTheme(effectiveTheme, mode === 'both');
+  }, [effectiveTheme, mode, serverRender]);
 
   const toggleTheme = () => {
     if (mode !== 'both') return;

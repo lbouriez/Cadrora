@@ -1,6 +1,7 @@
 // Start optional metadata independently of the application bundle. Never request images here.
 (() => {
   if (window.cadroraPublicRequestsConsumed) return;
+  if (document.documentElement.dataset.marketingRender === 'true') return;
   const pathname = window.location.pathname.replace(/^\/(?:fr|en)(?=\/|$)/u, '').replace(/\/$/u, '') || '/';
   if (!/^\/(?:about|services|portfolio(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)?|galleries|contact|privacy)?$/u.test(pathname)) return;
   const requests = new Map();

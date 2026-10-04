@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { Fragment, useCallback, useState } from 'react';
+import { Fragment, useCallback, useContext, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { Button, MotionReveal, ProgressivePhoto, Spinner } from '../components';
 import { getPublicEvents, getPublicSiteSettings } from './api';
@@ -19,6 +19,7 @@ import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
 import { localizedMarketingPath } from './localizedMarketingPath';
 import type { HomeSection, SiteAction } from '../site/types';
+import { MarketingRenderContext } from '../prerender/context';
 
 export function HomePage() {
   const Override = siteProfile.pages?.home;
@@ -38,10 +39,27 @@ function SiteActionLink({ action, variant, label, href }: { action?: SiteAction;
 
 export function DefaultHomePage() {
   const { t, i18n } = useTranslation();
+  const marketingRender = useContext(MarketingRenderContext);
+  const { hash } = useLocation();
+  const heroArt = useRef<HTMLElement>(null);
   const [heroPhotoReady, setHeroPhotoReady] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const markHeroPhotoReady = useCallback(() => setHeroPhotoReady(true), []);
+  useLayoutEffect(() => {
+    if (!marketingRender || !heroPhotoReady || !hash) return;
+    // Native fragment navigation happens while the startup frame clips the page.
+    // Honor a direct link once the same, fully styled DOM becomes available.
+    try { document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ behavior: 'instant' }); }
+    catch { /* A malformed fragment must not block the page. */ }
+  }, [hash, heroPhotoReady, marketingRender]);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  useLayoutEffect(() => {
+    // On narrow screens the photo can be entirely below the first viewport.
+    // It must not hold an otherwise complete first screen behind the identity.
+    if (marketingRender && heroArt.current && heroArt.current.getBoundingClientRect().top >= window.innerHeight) {
+      markHeroPhotoReady();
+    }
+  }, [marketingRender, settings.isPending, markHeroPhotoReady]);
   const services = usePublicServiceCatalog(settings);
   const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled === true;
   const showHomeGalleries = galleryDirectoryEnabled && (settings.data?.homeGalleries.enabled ?? true);
@@ -74,7 +92,7 @@ export function DefaultHomePage() {
   if (settings.isPending) return <div className="session-home"><SiteStartup /></div>;
   return (
     <div className={`session-home${heroPhotoReady ? '' : ' session-home--pending'}`}>
-      {!heroPhotoReady ? <SiteStartup /> : null}
+      {!heroPhotoReady ? <SiteStartup siteName={settings.data?.siteName} /> : null}
       <div aria-hidden={!heroPhotoReady || undefined} className={`session-home__stage${heroPhotoReady ? '' : ' session-home__stage--pending'}`} inert={!heroPhotoReady}>
         <PublicLayout>
           <section className="site-hero">
@@ -91,7 +109,7 @@ export function DefaultHomePage() {
                 <span>{t('gallery.productProof.open')}</span>
               </div> : null}
             </div>
-            <figure className="site-hero__art">
+            <figure className="site-hero__art" ref={heroArt}>
               <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
                 height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
                 sources={[

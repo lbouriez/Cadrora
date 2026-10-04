@@ -1,6 +1,6 @@
 # ADR-049: Marketing HTML rendering proposal
 
-Status: Proposed; requires human validation. No runtime or routing contract is changed by this document.
+Status: Approved for an isolated Cadrora preview experiment on 2026-10-03. Production adoption remains proposed and requires the acceptance evidence below.
 
 ## Context and evidence
 
@@ -21,6 +21,8 @@ This would explicitly replace the current `no SSR` constraint and narrowly exten
 The first screen retains the branded identity while its required styles, display photo and critical controls prepare. Reveal it once, using the existing shared fade and reduced-motion behavior. Preserve image DOM nodes through hydration and keep native navigation usable. All photos continue through `ProgressivePhoto` / `BrandPhoto`; an already-complete image must be detected during hydration because its load event may have occurred earlier. Initial visibility, locale, theme and component identifiers must agree between HTML and hydration.
 
 ## Publication and cache contract to implement
+
+The first prototype deliberately has **no HTML cache**. Each request reads settings, session rows and published variant rows in one D1 transaction (`batch`), validates the public DTOs, and returns `no-store, no-transform`. It introduces no database migration or presentation revision yet. The revision and cache scheme below is a separate gate before adding any HTML cache; it must not be approximated with a TTL. Gallery data remains on its existing authorized API path and is not embedded in the document.
 
 - Read only public DTOs, validated with the existing shared schemas. Never serialize admin settings, secrets, private galleries, user-specific grants or biometric data.
 - Add a monotonic public presentation revision in D1. Relevant owner text, visibility, ordering and image publication mutations advance it transactionally. Existing D1 photo revision and media access checks remain authoritative.
@@ -45,6 +47,18 @@ More aggressive image compression cannot remove JavaScript/metadata/rendering de
 4. Edit text, replace a photo, reorder/disable a session, and race a publish against cache generation. Verify the new revision immediately, including across separately populated cache locations. Simulate D1/render/cache failure and preserve safe fallbacks and disabled-page behavior.
 5. Check public/private cache separation, preview hostnames, CSP, accessibility and metadata. Run `npm run check`, `npm run test`, both profile builds and the relevant browser suites. Keep Atelier's existing first-frame tests green before considering a rollout there.
 6. Obtain exact-commit preview evidence. Only then update the frozen contracts and deployment strategy, subject to the human validation required by `docs/technical/README.md`.
+
+## Prototype scope and invocation
+
+`CADRORA_MARKETING_PRERENDER=true` enables the experiment only for the Cadrora profile. Builds additionally require `CLOUDFLARE_ENV=preview`; a production or Atelier build with the flag fails. Normal builds remove the Worker rendering import and retain asset-first routing. Preview Worker-first additions are exactly `/`, `/fr`, `/fr/`, `/en`, `/en/`; Sessions already uses the Worker. Other paths, auth middleware and CSP stay unchanged.
+
+The renderer uses the same Home/Sessions components, a request-local i18n instance, the same Query data and the same React tree shape. A safely escaped JSON data block transfers only validated settings and public session cards. Priority photos use native `srcset` from the HTML without downgrading resolution; hydration detects already-complete or failed image nodes. Personal theme/consent values resolve after the matching initial hydration render. The identity remains until the visible hero decodes; an entirely below-viewport Home photo does not delay a complete mobile first viewport. The existing one-second fade and reduced-motion behavior remain.
+
+The small preview entry allows the identity to paint before importing/hydrating the application. Preview HTML embeds the shared tokens/startup CSS, keeps the stage hidden, and preloads the full stylesheet without blocking that identity. The entry applies the full stylesheet before starting React; a failed stylesheet retains the styled identity and native fallback links. Inlining all CSS and preloading the full JavaScript graph were also measured but not retained. `Server-Timing` exposes public-data and React render wall durations for measurement; these are **not Worker CPU measurements**. The data read has a 1.5-second fallback deadline. Sessions continues through its existing fail-closed handler if it cannot be safely rendered.
+
+Local validation: build with the two flags above, then run `CADRORA_E2E_BUILD=true CADRORA_MARKETING_PRERENDER=true CLOUDFLARE_ENV=preview npx playwright test tests/e2e/marketing-prerender.spec.ts`. Apply the isolated local preview D1 migrations first. Local Lighthouse fixtures do not establish remote D1 latency, Worker CPU or a production score. No production rollout is authorized by the prototype alone.
+
+The [2026-10-03 experiment report](../technical/marketing-prerender-experiment-2026-10-03.md) records the repeated local measurements and both-profile regression checks. The mobile median-100 gate remains unmet, and remote preview verification is blocked by Cadrora account authentication. Keep production adoption proposed.
 
 ## References
 

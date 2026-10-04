@@ -56,6 +56,15 @@ app.use('*', ogMetadata);
 // Registered before route handlers so its post-next phase runs after them.
 app.use('*', cacheHeaders);
 
+if (__CADRORA_MARKETING_PRERENDER__) {
+  app.use('*', async (context, next) => {
+    const { marketingDocument } = await import('./http/marketingDocument');
+    const document = await marketingDocument(context.req.raw, context.env);
+    if (document) { context.res = document; return; }
+    await next();
+  });
+}
+
 // Every admin mutation, including feature-package routes, is same-origin only.
 app.use('/api/v1/admin/*', adminCsrf);
 app.use('/api/v1/admin/*', demoReadOnly);

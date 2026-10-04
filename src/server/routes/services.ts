@@ -15,7 +15,7 @@ import { readServiceMediaCache } from '../services/publicMediaCache';
 import dimensions from '../../shared/brand-photo-dimensions.json';
 import type { AppEnv } from '../types';
 
-interface ServiceRow {
+export interface ServiceRow {
   id: string;
   is_builtin: number;
   sort_order: number;
@@ -28,7 +28,7 @@ interface ServiceRow {
   mobile_photo_alignment: string | null;
 }
 
-interface VariantRow {
+export interface VariantRow {
   service_id: string;
   revision: number;
   variant: string;
@@ -66,13 +66,12 @@ async function serviceRow(db: D1Database, id: string): Promise<ServiceRow | null
   return db.prepare('SELECT * FROM site_services WHERE id = ?').bind(id).first<ServiceRow>();
 }
 
-async function listServices(db: D1Database): Promise<ServiceCard[]> {
-  const [cards, variants] = await Promise.all([
-    db.prepare(`SELECT * FROM site_services WHERE id NOT IN ('home-hero', 'about-hero') ORDER BY sort_order, id LIMIT ${MAX_SITE_SERVICES}`).all<ServiceRow>(),
-    db.prepare('SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width').all<VariantRow>(),
-  ]);
-  return ServiceCardsSchema.parse(cards.results.map((row) => {
-    const published = variants.results.filter((variant) => variant.service_id === row.id && variant.revision === row.image_revision);
+export const SERVICES_SELECT = `SELECT * FROM site_services WHERE id NOT IN ('home-hero', 'about-hero') ORDER BY sort_order, id LIMIT ${MAX_SITE_SERVICES}`;
+export const SERVICE_VARIANTS_SELECT = 'SELECT service_id, revision, variant, storage_key, content_type, byte_size, width, height, checksum_sha256 FROM site_service_variants ORDER BY width';
+
+export function serviceCardsFromRows(cards: ServiceRow[], variants: VariantRow[]): ServiceCard[] {
+  return ServiceCardsSchema.parse(cards.map((row) => {
+    const published = variants.filter((variant) => variant.service_id === row.id && variant.revision === row.image_revision);
     return {
       id: row.id,
       isBuiltin: row.is_builtin === 1,
@@ -90,6 +89,19 @@ async function listServices(db: D1Database): Promise<ServiceCard[]> {
       })),
     };
   }));
+}
+
+export function publicServiceCards(cards: ServiceCard[]): ServiceCard[] {
+  return ServiceCardsSchema.parse(cards.filter((card) => (card.enabled || card.showOnHome)
+    && (card.isBuiltin || (card.copy && card.imageSources.length === requiredVariants.length))));
+}
+
+async function listServices(db: D1Database): Promise<ServiceCard[]> {
+  const [cards, variants] = await Promise.all([
+    db.prepare(SERVICES_SELECT).all<ServiceRow>(),
+    db.prepare(SERVICE_VARIANTS_SELECT).all<VariantRow>(),
+  ]);
+  return serviceCardsFromRows(cards.results, variants.results);
 }
 
 function requireOwner(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
@@ -198,8 +210,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
   app.get('/api/v1/services', async (context) => {
     applyCachePolicy(context, 'event-public');
     const cards = await listServices(context.env.DB);
-    return context.json(ServiceCardsSchema.parse(cards.filter((card) => (card.enabled || card.showOnHome) &&
-      (card.isBuiltin || (card.copy && card.imageSources.length === requiredVariants.length)))));
+    return context.json(publicServiceCards(cards));
   });
 
   app.get('/api/v1/admin/services', async (context) => {

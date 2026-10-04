@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { MarketingRenderContext } from '../prerender/context';
 
 export interface MotionRevealProps {
   as?: 'article' | 'div' | 'figure' | 'header' | 'section';
@@ -14,7 +15,8 @@ export interface MotionRevealProps {
 /** Reveal a reusable content block once it enters view; reduced-motion and no-IO browsers show it immediately. */
 export function MotionReveal({ as = 'div', children, className, delay = 0, effect = 'rise', id, labelledBy }: MotionRevealProps) {
   const element = useRef<HTMLElement | null>(null);
-  const [visible, setVisible] = useState(() => typeof window === 'undefined'
+  const marketingRender = useContext(MarketingRenderContext);
+  const [visible, setVisible] = useState(() => marketingRender || typeof window === 'undefined'
     || !('IntersectionObserver' in window)
     || Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches));
 

@@ -6,7 +6,21 @@ import startupCopy from '../../src/shared/i18n/publicStartup.json' with { type: 
 
 const site = loadSiteProfile(process.env.CADRORA_SITE?.trim() || 'cadrora');
 const output = 'dist/client';
-const shell = await readFile(join(output, 'index.html'), 'utf8');
+let shell = await readFile(join(output, 'index.html'), 'utf8');
+if (process.env.CADRORA_MARKETING_PRERENDER === 'true') {
+  const critical = (await Promise.all(['tokens.css', 'startup.css'].map((file) =>
+    readFile(join('src/app/styles', file), 'utf8')))).join('\n');
+  shell = shell.replace('</head>', `<style data-marketing-startup>${critical}
+    html,body{margin:0;background:var(--color-background);color:var(--color-text);font-family:var(--font-sans)}
+    *,*::before,*::after{box-sizing:border-box}
+    </style></head>`)
+    .replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gu, (link) => {
+      const href = /href="([^"]+)"/u.exec(link)?.[1];
+      if (!href) throw new Error('Missing preview stylesheet URL');
+      return `${link.replace('rel="stylesheet"', 'rel="stylesheet" media="print" data-marketing-styles')}
+        <link rel="preload" as="style" crossorigin href="${href}">`;
+    });
+}
 const pages = [
   ['home', ''], ['services', 'services'], ['portfolio', 'portfolio'],
   ['about', 'about'], ['contact', 'contact'], ['privacy', 'privacy'],

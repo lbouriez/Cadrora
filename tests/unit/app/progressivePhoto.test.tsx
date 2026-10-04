@@ -4,10 +4,38 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ProgressivePhoto } from '../../../src/app/components/ProgressivePhoto';
+import { MarketingRenderContext } from '../../../src/app/prerender/context';
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('ProgressivePhoto', () => {
+  it('detects a priority image that completed before hydration could attach load handlers', async () => {
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, 'currentSrc', 'get').mockImplementation(function (this: HTMLImageElement) { return this.src; });
+    vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(1280);
+    const onVisualReady = vi.fn();
+    const { container } = render(<MarketingRenderContext.Provider value>
+      <ProgressivePhoto alt="Owner hero" height={853} width={1280} priority
+        onVisualReady={onVisualReady} visualReadyAt="display" sizes="42vw"
+        sources={[{ url: '/owner-preview.webp', width: 320 }, { url: '/owner-display.webp', width: 1280 }]} />
+    </MarketingRenderContext.Provider>);
+    await waitFor(() => expect(onVisualReady).toHaveBeenCalledOnce());
+    expect(container.querySelector('.progressive-photo')).toHaveClass('progressive-photo--ready');
+    expect(container.querySelector('img[srcset]')).toHaveAttribute('sizes', '42vw');
+    expect(container.querySelector('img[srcset]')).toHaveAttribute('srcset', '/owner-preview.webp 320w, /owner-display.webp 1280w');
+  });
+
+  it('releases the identity if both HTML photo sources failed before hydration', async () => {
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, 'currentSrc', 'get').mockImplementation(function (this: HTMLImageElement) { return this.src; });
+    vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(0);
+    const onVisualReady = vi.fn();
+    render(<MarketingRenderContext.Provider value><ProgressivePhoto alt="Owner hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} visualReadyAt="display" sizes="42vw"
+      sources={[{ url: '/failed-preview.webp', width: 320 }, { url: '/failed-display.webp', width: 1280 }]} />
+    </MarketingRenderContext.Provider>);
+    await waitFor(() => expect(onVisualReady).toHaveBeenCalledOnce());
+  });
   it('uses a nearby published width at the current DPR instead of doubling the download', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(378);
     vi.stubGlobal('devicePixelRatio', 1.75);

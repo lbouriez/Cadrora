@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, Navigate } from 'react-router-dom';
 
@@ -14,6 +14,8 @@ import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { localizedMarketingPath } from './localizedMarketingPath';
 import { SessionDetailsModal } from './SessionDetailsModal';
+import { MarketingRenderContext, useServerRender } from '../prerender/context';
+import { SiteStartup } from './SiteStartup';
 
 export function ServicesPage() {
   const { t, i18n } = useTranslation();
@@ -29,13 +31,18 @@ export function ServicesPage() {
 
 export function DefaultServicesPage() {
   const { i18n, t } = useTranslation();
+  const marketingRender = useContext(MarketingRenderContext);
+  const serverRender = useServerRender();
+  const [firstPhotoReady, setFirstPhotoReady] = useState(false);
+  const markFirstPhotoReady = useCallback(() => setFirstPhotoReady(true), []);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, retryOnMount: false, staleTime: 60_000 });
   const services = usePublicServiceCatalog(settings);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const visibleServices = services.cards.filter((card) => card.enabled);
   const selectedCard = visibleServices.find((card) => card.id === selectedId);
-  return (
+  const pending = marketingRender && (serverRender || services.isPending || (visibleServices.length > 0 && !firstPhotoReady));
+  const content = (
     <PublicLayout>
       <PublicPageIntro eyebrow={t('gallery.servicesPage.eyebrow')}
         lead={t('gallery.servicesPage.lead')} title={t('gallery.servicesPage.title')} />
@@ -45,6 +52,7 @@ export function DefaultServicesPage() {
           const copy = serviceText(card, language, (key) => t(key));
           return <MotionReveal as="article" className="service-detail-card" delay={(index % 3) as 0 | 1 | 2} key={card.id}>
             <ServicePhotoHeader card={card} className="service-detail-card__visual" heading="h2"
+              onVisualReady={marketingRender && index === 0 ? markFirstPhotoReady : undefined} visualReadyAt="display"
               immediate={index === 0} priority={index === 0} sizes="(max-width: 48rem) 100vw, 50vw" title={copy.title} />
             <div className="service-detail-card__copy">
               <p>{copy.shortDescription}</p>
@@ -71,6 +79,10 @@ export function DefaultServicesPage() {
       <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
     </PublicLayout>
   );
+  return marketingRender ? <div className={`session-home${pending ? ' session-home--pending' : ''}`}>
+    {pending ? <SiteStartup siteName={settings.data?.siteName} /> : null}
+    <div aria-hidden={pending || undefined} className={`session-home__stage${pending ? ' session-home__stage--pending' : ''}`} inert={pending}>{content}</div>
+  </div> : content;
 }
 
 export function GalleriesPage() {

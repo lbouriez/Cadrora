@@ -6,6 +6,8 @@ Cadrora serves photo galleries from a single Cloudflare deployment that a photog
 
 Non-goals for v1 include SSR, video, RAW/HEIC import, payment, a CLI product, multi-photographer tenancy, microservices, and cross-event biometric profiles.
 
+ADR-049 permits an isolated, disabled-by-default Cadrora preview experiment for Worker-rendered Home/Sessions HTML. It reads validated public DTOs in one D1 transaction, returns uncached HTML, and hydrates the existing React DOM; private galleries/admin remain outside this renderer. The production static architecture below remains authoritative until the performance, freshness and deployment acceptance gates are met.
+
 ## System view
 
 ```mermaid

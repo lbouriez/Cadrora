@@ -74,6 +74,8 @@ Local implementation and browser coverage are complete. The import suite verifie
 
 ## Guardrails
 
+ADR-049 preview experiment (approved 2026-10-03): shared PB Home/Sessions components, PA build flags and shared DTOs, and the existing Worker public-data boundary may participate in an isolated Cadrora renderer. No admin/gallery authorization or publication mutation changes are part of the uncached prototype. Acceptance requires matching hydration/first-frame behavior, fresh transactional public data, static/fail-closed fallbacks, repeated equivalent Lighthouse measurements, both profile regressions and exact-preview deployment evidence before production adoption.
+
 1. The frontend is static and gallery photos never enter the build.
 2. The browser receives no secrets or provider bindings.
 3. Heavy processing never runs in the Worker.
