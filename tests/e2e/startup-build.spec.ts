@@ -57,7 +57,33 @@ test('Cadrora resolves the optional demo before exposing the sections below it',
 
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
 interface AboutFrame { photoId: number; displayDecoded: boolean; titleVisible: boolean; opacity: number }
-declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[] } }
+interface CrossfadeFrame { stageOpacity: number; overlayOpacity: number | null }
+declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[]; crossfadeFrames: CrossfadeFrame[] } }
+
+async function observeCrossfade(page: Page) {
+  await page.addInitScript(() => {
+    window.crossfadeFrames = [];
+    const sample = () => {
+      const stage = document.querySelector('.session-home__stage');
+      const overlay = document.querySelector('.site-startup--overlay');
+      const stageOpacity = stage ? Number(getComputedStyle(stage).opacity) : 0;
+      if (stageOpacity > 0) window.crossfadeFrames.push({
+        stageOpacity,
+        overlayOpacity: overlay ? Number(getComputedStyle(overlay).opacity) : null,
+      });
+      if (window.crossfadeFrames.length < 90) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+}
+
+async function expectContinuousCrossfade(page: Page) {
+  await expect.poll(() => page.evaluate(() => window.crossfadeFrames.length)).toBeGreaterThanOrEqual(12);
+  const frames = await page.evaluate(() => window.crossfadeFrames);
+  expect(frames.some((frame) => frame.stageOpacity > 0.1 && frame.stageOpacity < 0.9
+    && frame.overlayOpacity !== null && frame.overlayOpacity > 0.1 && frame.overlayOpacity < 0.9)).toBe(true);
+  expect(frames.every((frame) => frame.stageOpacity > 0.99 || frame.overlayOpacity !== null && frame.overlayOpacity > 0)).toBe(true);
+}
 
 test.describe('Cadrora first frame', () => {
   test.skip(atelier, 'Standard Home presentation.');
@@ -101,6 +127,7 @@ test.describe('Cadrora first frame', () => {
   for (const language of ['fr', 'en']) {
     test(`${language} keeps the identity until the owner display photo is ready`, async ({ page }, testInfo) => {
       await installOwnerHome(page);
+      await observeCrossfade(page);
       await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
         siteName: 'Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
         contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
@@ -131,6 +158,7 @@ test.describe('Cadrora first frame', () => {
       } finally { release(); }
       await expect(page.locator('.site-startup')).toHaveCount(0);
       await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+      await expectContinuousCrossfade(page);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.locator('.site-hero__art > .progressive-photo .progressive-photo__optimized')).toHaveJSProperty('complete', true);
       expect(fallbackRequests).toEqual([]);
@@ -185,6 +213,7 @@ test.describe('immersive first frame', () => {
     for (const resource of ['slider-js', 'slider-css', 'settings', 'display-photo', 'font']) {
       test(`${language} reveals one complete frame with slow ${resource}`, async ({ page }, testInfo) => {
         await installOwnerHome(page);
+        if (resource === 'display-photo') await observeCrossfade(page);
         await page.addInitScript(() => {
           window.startupFrames = [];
           const photos = new WeakMap<Element, number>();
@@ -223,6 +252,7 @@ test.describe('immersive first frame', () => {
         } finally { release(); }
         await expect(page.locator('.site-startup')).toHaveCount(0);
         await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+        if (resource === 'display-photo') await expectContinuousCrossfade(page);
         await expect.poll(() => page.evaluate(() => window.startupFrames.length)).toBeGreaterThanOrEqual(12);
         const frames = await page.evaluate(() => window.startupFrames);
         expect(new Set(frames.map((frame) => frame.photoId)).size).toBe(1);
@@ -266,6 +296,7 @@ test.describe('immersive About first frame', () => {
 
   for (const language of ['fr', 'en']) {
     test(`${language} reveals the complete About photo and title together`, async ({ page }, testInfo) => {
+      await observeCrossfade(page);
       await page.addInitScript(() => {
         localStorage.setItem('cadrora-privacy-consent-v1', 'necessary');
         window.aboutFrames = [];
@@ -319,6 +350,7 @@ test.describe('immersive About first frame', () => {
       } finally { release(); }
       await expect(page.locator('.site-startup')).toHaveCount(0);
       await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+      await expectContinuousCrossfade(page);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.locator('.about-page__image .progressive-photo__optimized')).toHaveJSProperty('complete', true);
       await expect.poll(() => page.evaluate(() => window.aboutFrames.length)).toBeGreaterThanOrEqual(12);

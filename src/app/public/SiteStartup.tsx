@@ -5,10 +5,15 @@ import copy from '../../shared/i18n/publicStartup.json';
 import { siteProfile } from './siteProfile';
 
 /** Continue the static branded first frame while a photo-backed page prepares. */
-export function SiteStartup({ failed = false }: { failed?: boolean }) {
+export function SiteStartup({ failed = false, leaving = false, onFadeComplete }: {
+  failed?: boolean; leaving?: boolean; onFadeComplete?: () => void;
+}) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  return <section className="site-startup site-startup--overlay">
+  return <section aria-hidden={leaving || undefined} className={`site-startup site-startup--overlay${leaving ? ' site-startup--leaving' : ''}`}
+    inert={leaving} onTransitionEnd={(event) => {
+      if (event.target === event.currentTarget && event.propertyName === 'opacity') onFadeComplete?.();
+    }}>
     <section aria-label={copy[language].loading} className="site-startup__identity">
       <p className="site-startup__brand">{siteProfile.siteName}</p>
       <span aria-hidden="true" className="site-startup__rule" />
