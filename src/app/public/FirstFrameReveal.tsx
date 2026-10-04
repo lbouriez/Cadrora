@@ -11,7 +11,7 @@ export function FirstFrameReveal({ children, failed = false, ready }: { children
     // transitionend normally removes the overlay; this also covers reduced motion
     // and a tab hidden while the transition is running.
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true;
-    const delay = reducedMotion ? 0 : 400;
+    const delay = reducedMotion ? 0 : 1000;
     const timeout = window.setTimeout(() => setStartupMounted(false), delay);
     return () => window.clearTimeout(timeout);
   }, [ready]);

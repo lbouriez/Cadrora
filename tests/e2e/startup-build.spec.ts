@@ -57,7 +57,7 @@ test('Cadrora resolves the optional demo before exposing the sections below it',
 
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
 interface AboutFrame { photoId: number; displayDecoded: boolean; titleVisible: boolean; opacity: number }
-interface CrossfadeFrame { stageOpacity: number; overlayOpacity: number | null }
+interface CrossfadeFrame { stageOpacity: number; overlayOpacity: number | null; identityOpacity: number | null; overlayDuration: string | null }
 declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[]; crossfadeFrames: CrossfadeFrame[] } }
 
 async function observeCrossfade(page: Page) {
@@ -66,10 +66,13 @@ async function observeCrossfade(page: Page) {
     const sample = () => {
       const stage = document.querySelector('.session-home__stage');
       const overlay = document.querySelector('.site-startup--overlay');
+      const identity = overlay?.querySelector('.site-startup__identity');
       const stageOpacity = stage ? Number(getComputedStyle(stage).opacity) : 0;
       if (stageOpacity > 0) window.crossfadeFrames.push({
         stageOpacity,
         overlayOpacity: overlay ? Number(getComputedStyle(overlay).opacity) : null,
+        identityOpacity: identity ? Number(getComputedStyle(identity).opacity) : null,
+        overlayDuration: overlay ? getComputedStyle(overlay).transitionDuration : null,
       });
       if (window.crossfadeFrames.length < 90) requestAnimationFrame(sample);
     };
@@ -78,11 +81,19 @@ async function observeCrossfade(page: Page) {
 }
 
 async function expectContinuousCrossfade(page: Page) {
-  await expect(page.locator('.session-home__stage')).toHaveCSS('transition-duration', '0.26s');
   await expect.poll(() => page.evaluate(() => window.crossfadeFrames.length)).toBeGreaterThanOrEqual(12);
   const frames = await page.evaluate(() => window.crossfadeFrames);
-  expect(frames.some((frame) => frame.stageOpacity > 0.1 && frame.stageOpacity < 0.9
-    && frame.overlayOpacity !== null && frame.overlayOpacity > 0.1 && frame.overlayOpacity < 0.9)).toBe(true);
+  if (page.viewportSize()!.width >= 880) {
+    await expect(page.locator('.session-home__stage')).toHaveCSS('transition-duration', '0s');
+    expect(frames.some((frame) => frame.overlayDuration === '0.62s')).toBe(true);
+    expect(frames.some((frame) => frame.stageOpacity > 0.99
+      && frame.overlayOpacity !== null && frame.overlayOpacity > 0.2 && frame.overlayOpacity < 0.8
+      && frame.identityOpacity !== null && frame.identityOpacity < 0.1)).toBe(true);
+  } else {
+    await expect(page.locator('.session-home__stage')).toHaveCSS('transition-duration', '0.26s');
+    expect(frames.some((frame) => frame.stageOpacity > 0.1 && frame.stageOpacity < 0.9
+      && frame.overlayOpacity !== null && frame.overlayOpacity > 0.1 && frame.overlayOpacity < 0.9)).toBe(true);
+  }
   expect(frames.every((frame) => frame.stageOpacity > 0.99 || frame.overlayOpacity !== null && frame.overlayOpacity > 0)).toBe(true);
 }
 
@@ -358,7 +369,11 @@ test.describe('immersive About first frame', () => {
       const frames = await page.evaluate(() => window.aboutFrames);
       expect(new Set(frames.map((frame) => frame.photoId))).toEqual(new Set([1]));
       expect(frames.every((frame) => frame.displayDecoded && frame.titleVisible)).toBe(true);
-      expect(frames.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+      if (page.viewportSize()!.width >= 880) {
+        expect(frames.every((frame) => frame.opacity === 1)).toBe(true);
+      } else {
+        expect(frames.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+      }
       expect(fallbackRequests).toEqual([]);
       await assertNoHorizontalOverflow(page);
       await page.screenshot({ path: testInfo.outputPath('about-complete-first-frame.png') });
