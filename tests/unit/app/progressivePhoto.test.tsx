@@ -8,6 +8,71 @@ import { ProgressivePhoto } from '../../../src/app/components/ProgressivePhoto';
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('ProgressivePhoto', () => {
+  it('does not measure static images or one-variant photos', () => {
+    const measured = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get');
+    const resizeObserver = vi.fn();
+    vi.stubGlobal('ResizeObserver', resizeObserver);
+    const { container } = render(<>
+      <ProgressivePhoto alt="Logo" immediate sizes="40px" src="/logo.svg" />
+      <ProgressivePhoto alt="One variant" immediate height={600} width={900} sizes="100vw"
+        sources={[{ url: '/only.webp', width: 900 }]} />
+    </>);
+    expect(measured).not.toHaveBeenCalled();
+    expect(resizeObserver).not.toHaveBeenCalled();
+    expect(container.querySelectorAll('img')).toHaveLength(2);
+    expect(container.querySelector('img[srcset]')).toBeNull();
+  });
+
+  it('prepares offscreen photos with the current size and DPR only when approaching the viewport', () => {
+    let frameWidth = 350;
+    const measured = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => frameWidth);
+    const observeResize = vi.fn();
+    vi.stubGlobal('ResizeObserver', class { observe = observeResize; disconnect() {} });
+    let approach: (entries: { isIntersecting: boolean }[]) => void = () => {};
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(callback: typeof approach) { approach = callback; }
+      observe() {}
+      disconnect() {}
+    });
+    const { container } = render(<ProgressivePhoto alt="Offscreen card" height={600} width={900} lazyPreview
+      sizes="100vw" sources={[{ url: '/preview.webp', width: 320 }, { url: '/small.webp', width: 640 },
+        { url: '/medium.webp', width: 1280 }]} />);
+    act(() => { frameWidth = 500; vi.stubGlobal('devicePixelRatio', 2); window.dispatchEvent(new Event('resize')); });
+    expect(measured).not.toHaveBeenCalled();
+    expect(observeResize).not.toHaveBeenCalled();
+    expect(container.querySelector('img')).toBeNull();
+    act(() => approach([{ isIntersecting: true }]));
+    expect(observeResize).toHaveBeenCalledOnce();
+    fireEvent.load(screen.getByRole('img'));
+    expect(container.querySelector('img[srcset]')).toHaveAttribute('sizes', '500px');
+    expect(container.querySelector('img[srcset]')).toHaveAttribute('srcset', '/preview.webp 320w, /small.webp 640w, /medium.webp 1280w');
+  });
+
+  it('settles an already-complete priority image without waiting for another load event', async () => {
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, 'currentSrc', 'get').mockImplementation(function (this: HTMLImageElement) { return this.src; });
+    vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(1280);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(800);
+    const onVisualReady = vi.fn();
+    const { container } = render(<ProgressivePhoto alt="Owner hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} visualReadyAt="display" sizes="42vw"
+      sources={[{ url: '/owner-preview.webp', width: 320 }, { url: '/owner-display.webp', width: 1280 }]} />);
+    await waitFor(() => expect(onVisualReady).toHaveBeenCalledOnce());
+    expect(container.firstElementChild).toHaveClass('progressive-photo--ready');
+    expect(container.querySelector('img[srcset]')).toHaveAttribute('sizes', '800px');
+  });
+
+  it('releases the startup frame if both sources have already failed', async () => {
+    vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true);
+    vi.spyOn(HTMLImageElement.prototype, 'currentSrc', 'get').mockImplementation(function (this: HTMLImageElement) { return this.src; });
+    vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(0);
+    const onVisualReady = vi.fn();
+    render(<ProgressivePhoto alt="Owner hero" height={853} width={1280} priority
+      onVisualReady={onVisualReady} visualReadyAt="display" sizes="42vw"
+      sources={[{ url: '/failed-preview.webp', width: 320 }, { url: '/failed-display.webp', width: 1280 }]} />);
+    await waitFor(() => expect(onVisualReady).toHaveBeenCalledOnce());
+  });
+
   it('uses a nearby published width at the current DPR instead of doubling the download', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(378);
     vi.stubGlobal('devicePixelRatio', 1.75);

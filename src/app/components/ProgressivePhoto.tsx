@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface PhotoSource {
   url: string;
@@ -49,8 +49,14 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
   const targetWidth = (displayWidth ?? 0) * pixelRatio;
   const displaySource = responsiveSources.find((source) => source.width >= targetWidth * 0.95) ?? responsiveSources.at(-1);
   const displaySources = displayWidth ? responsiveSources.filter((source) => source.width <= (displaySource?.width ?? 0)) : responsiveSources;
+  const sourceCount = responsiveSources.length;
+  const measureEnabled = enabled && sourceCount > 1 && (nearby || immediate || priority);
+  const observeNearby = !immediate && !priority && (lazyPreview || sourceCount > 1);
 
   useLayoutEffect(() => {
+    // Only responsive images need a measured size. Offscreen frames can wait for
+    // the existing 500px approach margin; first-frame photos still measure now.
+    if (!measureEnabled) return;
     const target = frame.current;
     if (!target) return;
     const measure = () => {
@@ -66,9 +72,10 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
     const observer = new ResizeObserver(measure);
     observer.observe(target);
     return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
-  }, []);
+  }, [measureEnabled]);
 
   useEffect(() => {
+    if (!observeNearby) return;
     const target = frame.current;
     if (!target) return;
     if (!('IntersectionObserver' in window)) return;
@@ -80,33 +87,54 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
     }, { rootMargin: '500px 0px' });
     observer.observe(target);
     return () => observer.disconnect();
-  }, []);
+  }, [observeNearby]);
 
   // Priority photos start both layers together, after owner-managed sources and frame sizing resolve.
   const revealOptimized = enabled && displayWidth !== null && (nearby || immediate || priority)
     && (previewReady || priority) && responsiveSources.length > 1;
   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
-  const reportVisualReady = () => {
+  const reportVisualReady = useCallback(() => {
     if (!onVisualReady || visualReported.current) return;
     visualReported.current = true;
     onVisualReady?.();
-  };
-  const reportDecoded = (image: HTMLImageElement, optimized = false) => {
+  }, [onVisualReady]);
+  const reportDecoded = useCallback((image: HTMLImageElement, optimized = false) => {
     if (!onVisualReady || visualReported.current) return;
     const decoded = () => {
       if (!optimized) previewDecoded.current = true;
-      if (visualReadyAt === 'preview' || optimized || responsiveSources.length <= 1 || optimizedFailed.current) reportVisualReady();
+      if (visualReadyAt === 'preview' || optimized || sourceCount <= 1 || optimizedFailed.current) reportVisualReady();
     };
     if (typeof image.decode !== 'function') { decoded(); return; }
     void image.decode().catch(() => undefined).then(decoded);
-  };
+  }, [onVisualReady, reportVisualReady, sourceCount, visualReadyAt]);
+  const settleImage = useCallback((image: HTMLImageElement, optimized: boolean, failed = false) => {
+    if (failed) {
+      if (optimized) {
+        optimizedFailed.current = true;
+        if (previewFailed.current || previewDecoded.current) reportVisualReady();
+      } else {
+        previewFailed.current = true;
+        setPreviewReady(true);
+        if (sourceCount <= 1 || optimizedFailed.current) reportVisualReady();
+      }
+      return;
+    }
+    if (optimized) setOptimizedReady(true);
+    else setPreviewReady(true);
+    reportDecoded(image, optimized);
+  }, [reportDecoded, reportVisualReady, sourceCount]);
+
+  useEffect(() => {
+    // A cached image may complete before its load handler runs. Settle the same
+    // DOM node, preserving the display decode gate and all-sources-failed escape.
+    frame.current?.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
+      if (image.complete && image.currentSrc) settleImage(image,
+        image.classList.contains('progressive-photo__optimized'), image.naturalWidth === 0);
+    });
+  }, [previewUrl, revealOptimized, settleImage]);
 
   return <span className={`progressive-photo${src !== undefined ? ' progressive-photo--single' : ''}${priority ? ' progressive-photo--priority' : ''}${fit === 'contain' ? ' progressive-photo--contain' : ''}${ready ? ' progressive-photo--ready' : ''}${className ? ` ${className}` : ''}`} ref={frame} style={width && height ? { aspectRatio: `${width} / ${height}` } : undefined}>
-    {enabled && previewUrl && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} height={height} loading={immediate ? 'eager' : 'lazy'} onError={() => {
-      previewFailed.current = true;
-      setPreviewReady(true);
-      if (responsiveSources.length <= 1 || optimizedFailed.current) reportVisualReady();
-    }} onLoad={(event) => { setPreviewReady(true); reportDecoded(event.currentTarget); }} src={previewUrl} width={width} /> : null}
+    {enabled && previewUrl && (!lazyPreview || nearby || immediate || priority) ? <img alt={alt} className="progressive-photo__preview" decoding="async" fetchPriority={priority ? 'high' : undefined} height={height} loading={immediate ? 'eager' : 'lazy'} onError={(event) => settleImage(event.currentTarget, false, true)} onLoad={(event) => settleImage(event.currentTarget, false)} src={previewUrl} width={width} /> : null}
     {revealOptimized ? <img
       alt=""
       aria-hidden="true"
@@ -114,12 +142,8 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
       decoding="async"
       fetchPriority={priority ? 'high' : undefined}
       loading="eager"
-      onError={() => {
-        optimizedFailed.current = true;
-        // Keep a successfully loaded preview visible when the larger source fails.
-        if (previewFailed.current || previewDecoded.current) reportVisualReady();
-      }}
-      onLoad={(event) => { setOptimizedReady(true); reportDecoded(event.currentTarget, true); }}
+      onError={(event) => settleImage(event.currentTarget, true, true)}
+      onLoad={(event) => settleImage(event.currentTarget, true)}
       sizes={displayWidth ? `${displayWidth}px` : sizes}
       src={displaySources.at(-1)?.url}
       srcSet={displaySources.map((source) => `${source.url} ${source.width}w`).join(', ')}
