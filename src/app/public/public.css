@@ -2069,7 +2069,7 @@
 .session-home { position: relative; min-height: 100svh; }
 .session-home--pending { height: 100svh; overflow: clip; }
 /* Preserve real layout measurements and image loading while the first complete frame prepares. */
-.session-home__stage { opacity: 1; transition: opacity 1s ease; }
+.session-home__stage { opacity: 1; transition: opacity var(--motion-standard) ease; }
 .session-home__stage--pending { opacity: 0; pointer-events: none; }
 .session-story__panel { display: grid; height: 100%; overflow: hidden; place-items: center; isolation: isolate; }
 /* Swiper's lazy-loaded stylesheet arrives later; keep its slides centered after it loads. */

@@ -78,6 +78,7 @@ async function observeCrossfade(page: Page) {
 }
 
 async function expectContinuousCrossfade(page: Page) {
+  await expect(page.locator('.session-home__stage')).toHaveCSS('transition-duration', '0.26s');
   await expect.poll(() => page.evaluate(() => window.crossfadeFrames.length)).toBeGreaterThanOrEqual(12);
   const frames = await page.evaluate(() => window.crossfadeFrames);
   expect(frames.some((frame) => frame.stageOpacity > 0.1 && frame.stageOpacity < 0.9
