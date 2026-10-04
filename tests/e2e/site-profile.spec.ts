@@ -198,7 +198,7 @@ test('the shared masthead and page introductions align across routes', async ({ 
   expect(narrowPositions[0]?.y).toBeCloseTo(narrowPositions[1]?.y ?? NaN, 0);
 });
 
-test('Home keeps its branded screen while the slider chunk loads', async ({ page }) => {
+test('Home keeps its startup canvas while the slider chunk loads', async ({ page }) => {
   let releaseSlider = () => {};
   const sliderReady = new Promise<void>((resolve) => { releaseSlider = resolve; });
   await page.route('**/*VerticalStorySlider*', async (route) => {
@@ -262,7 +262,13 @@ test('Home owner photo keeps its monochrome framing through image load and slide
     const fallback = page.locator('.session-story');
     releaseSlider();
     await expect(fallback).toBeAttached();
-    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+    if (page.viewportSize()!.width >= 880) {
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+      await expect(fallback.locator('.session-story__visual').first()).toHaveCSS('opacity', '0');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    } else {
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+    }
     expect(await fallback.locator('.session-story__photo').evaluate((element) => getComputedStyle(element).backgroundColor))
       .toBe(await fallback.evaluate((element) => getComputedStyle(element).backgroundColor));
     await expectStablePhoto('.session-story');

@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 import copy from '../../shared/i18n/publicStartup.json';
 import { siteProfile } from './siteProfile';
 
-/** Continue the static branded first frame while a photo-backed page prepares. */
-export function SiteStartup({ failed = false, leaving = false, onFadeComplete }: {
-  failed?: boolean; leaving?: boolean; onFadeComplete?: () => void;
+/** Continue the profile's static first frame while a photo-backed page prepares. */
+export function SiteStartup({ failed = false, leaving = false, mediaReveal = false, onFadeComplete }: {
+  failed?: boolean; leaving?: boolean; mediaReveal?: boolean; onFadeComplete?: () => void;
 }) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  return <section aria-hidden={leaving || undefined} className={`site-startup site-startup--overlay${leaving ? ' site-startup--leaving' : ''}`}
+  return <section aria-hidden={leaving || undefined} className={`site-startup site-startup--overlay${mediaReveal ? ' site-startup--media' : ''}${leaving ? ' site-startup--leaving' : ''}`}
     inert={leaving} onTransitionEnd={(event) => {
       if (event.target === event.currentTarget && event.propertyName === 'opacity') onFadeComplete?.();
     }}>

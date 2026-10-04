@@ -18,6 +18,9 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
   if (profile.defaultLanguage !== undefined && profile.defaultLanguage !== 'fr' && profile.defaultLanguage !== 'en') {
     throw new Error(`Invalid defaultLanguage for site profile: ${siteId}`);
   }
+  if (profile.startupPresentation !== undefined && profile.startupPresentation !== 'media') {
+    throw new Error(`Invalid startupPresentation for site profile: ${siteId}`);
+  }
   if (profile.document.fonts !== undefined && (!Array.isArray(profile.document.fonts)
       || profile.document.fonts.some((font) => typeof font !== 'string'
         || !new RegExp(`^/sites/${siteId}/fonts/[a-zA-Z0-9-]+\\.woff2$`, 'u').test(font)

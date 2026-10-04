@@ -19,6 +19,10 @@
 .site-startup--leaving { opacity: 0; pointer-events: none; }
 @media (min-width: 55rem) {
   .site-startup--overlay { transition: opacity var(--motion-reveal) linear; }
+  .site-startup--media { background: var(--color-text); color: var(--color-on-photo); }
+  .site-startup--media .site-startup__identity { opacity: 0; }
+  .site-startup--media .site-startup__fallback summary { color: var(--color-on-photo); }
+  .site-startup--media.site-startup--overlay { transition: opacity var(--motion-standard) ease; }
   .site-startup--overlay .site-startup__identity, .site-startup--overlay .site-startup__fallback { transition: opacity var(--motion-fast) ease; }
   .site-startup--leaving .site-startup__identity, .site-startup--leaving .site-startup__fallback { opacity: 0; }
 }

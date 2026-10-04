@@ -52,6 +52,6 @@ export function AboutPage() {
   if (!immersive) return page;
   const ready = !settings.isPending && heroPhotoReady;
   return <div className={`session-home${ready ? '' : ' session-home--pending'}`}>
-    <FirstFrameReveal ready={ready}>{page}</FirstFrameReveal>
+    <FirstFrameReveal mediaReveal prepared={!settings.isPending} ready={ready}>{page}</FirstFrameReveal>
   </div>;
 }

@@ -3,22 +3,40 @@ import type { ReactNode } from 'react';
 
 import { SiteStartup } from './SiteStartup';
 
-/** Reveal a complete public first frame after its owner data and display photo are ready. */
-export function FirstFrameReveal({ children, failed = false, ready }: { children?: ReactNode; failed?: boolean; ready: boolean }) {
+/** Keep owner sources stable while revealing either the complete frame or its photo canvas. */
+export function FirstFrameReveal({ children, failed = false, mediaReveal = false, prepared = false, ready }: {
+  children?: ReactNode; failed?: boolean; mediaReveal?: boolean; prepared?: boolean; ready: boolean;
+}) {
   const [startupMounted, setStartupMounted] = useState(true);
+  const [desktop, setDesktop] = useState(() => typeof window !== 'undefined'
+    && (window.matchMedia?.('(min-width: 55rem)').matches ?? false));
+  const [photoVisible, setPhotoVisible] = useState(false);
+  const visible = ready || (mediaReveal && desktop && prepared);
   useEffect(() => {
-    if (!ready) return;
+    if (!mediaReveal || !window.matchMedia) return;
+    const query = window.matchMedia('(min-width: 55rem)');
+    const update = () => setDesktop(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, [mediaReveal]);
+  useEffect(() => {
+    if (!mediaReveal || !ready) return;
+    const frame = window.requestAnimationFrame(() => setPhotoVisible(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [mediaReveal, ready]);
+  useEffect(() => {
+    if (!visible) return;
     // transitionend normally removes the overlay; this also covers reduced motion
     // and a tab hidden while the transition is running.
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? true;
-    const delay = reducedMotion ? 0 : 1000;
+    const delay = reducedMotion ? 0 : mediaReveal && desktop ? 400 : 1000;
     const timeout = window.setTimeout(() => setStartupMounted(false), delay);
     return () => window.clearTimeout(timeout);
-  }, [ready]);
+  }, [desktop, mediaReveal, visible]);
 
   return <>
-    {!ready || startupMounted ? <SiteStartup failed={failed} leaving={ready} onFadeComplete={() => setStartupMounted(false)} /> : null}
-    {children ? <div aria-hidden={!ready || undefined} className={`session-home__stage${ready ? '' : ' session-home__stage--pending'}`} inert={!ready}>
+    {!visible || startupMounted ? <SiteStartup failed={failed} leaving={visible} mediaReveal={mediaReveal} onFadeComplete={() => setStartupMounted(false)} /> : null}
+    {children ? <div aria-hidden={!visible || undefined} className={`session-home__stage${visible ? '' : ' session-home__stage--pending'}${mediaReveal ? ' session-home__stage--media' : ''}${photoVisible ? ' session-home__stage--media-photo-ready' : ''}`} inert={!visible}>
       {children}
     </div> : null}
   </>;

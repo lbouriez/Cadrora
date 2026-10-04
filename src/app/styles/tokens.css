@@ -37,6 +37,7 @@
   --motion-fast: 160ms;
   --motion-standard: 260ms;
   --motion-reveal: 620ms;
+  --motion-photo-reveal: 1000ms;
   --motion-stagger: 90ms;
   --motion-reveal-distance: 1.25rem;
   --motion-spring: cubic-bezier(0.22, 1, 0.36, 1);

@@ -55,7 +55,8 @@ function documentFor(language, page, path) {
     `<a href="/${language}/${suffix ? `${suffix}/` : ''}">${escapeHtml(site.document.pages?.[key]?.[language]?.title ?? key)}</a>`).join(' ');
   // This paints before the application module runs. The native disclosure also
   // keeps the localized content and links available without JavaScript.
-  const fallback = `<main class="site-startup">
+  const mediaStartup = site.startupPresentation === 'media' && (page === 'home' || page === 'about');
+  const fallback = `<main class="site-startup${mediaStartup ? ' site-startup--media' : ''}">
     <section class="site-startup__identity" aria-label="${escapeHtml(startupCopy[language].loading)}">
       <p class="site-startup__brand">${escapeHtml(site.name)}</p>
       <span class="site-startup__rule" aria-hidden="true"></span>

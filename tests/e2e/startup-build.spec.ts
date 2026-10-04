@@ -58,7 +58,8 @@ test('Cadrora resolves the optional demo before exposing the sections below it',
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
 interface AboutFrame { photoId: number; displayDecoded: boolean; titleVisible: boolean; opacity: number }
 interface CrossfadeFrame { stageOpacity: number; overlayOpacity: number | null; identityOpacity: number | null; overlayDuration: string | null }
-declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[]; crossfadeFrames: CrossfadeFrame[] } }
+interface MediaFrame { stageOpacity: number; photoOpacity: number; photoDuration: string; titleVisible: boolean; photoDecoded: boolean }
+declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[]; crossfadeFrames: CrossfadeFrame[]; mediaFrames: MediaFrame[] } }
 
 async function observeCrossfade(page: Page) {
   await page.addInitScript(() => {
@@ -95,6 +96,38 @@ async function expectContinuousCrossfade(page: Page) {
       && frame.overlayOpacity !== null && frame.overlayOpacity > 0.1 && frame.overlayOpacity < 0.9)).toBe(true);
   }
   expect(frames.every((frame) => frame.stageOpacity > 0.99 || frame.overlayOpacity !== null && frame.overlayOpacity > 0)).toBe(true);
+}
+
+async function observeMediaReveal(page: Page) {
+  await page.addInitScript(() => {
+    window.mediaFrames = [];
+    let readyFrames = 0;
+    const sample = () => {
+      const stage = document.querySelector('.session-home__stage');
+      const photo = document.querySelector('.session-story__visual, .about-page__image');
+      const display = photo?.querySelector<HTMLImageElement>('.progressive-photo__optimized');
+      const stageOpacity = stage ? Number(getComputedStyle(stage).opacity) : 0;
+      if (stageOpacity > 0 && photo) window.mediaFrames.push({
+        stageOpacity,
+        photoOpacity: Number(getComputedStyle(photo).opacity),
+        photoDuration: getComputedStyle(photo).transitionDuration,
+        titleVisible: Boolean(document.querySelector('h1')),
+        photoDecoded: Boolean(display?.complete && display.naturalWidth),
+      });
+      if (stage?.classList.contains('session-home__stage--media-photo-ready')) readyFrames++;
+      if (readyFrames < 90) requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+}
+
+async function expectMediaReveal(page: Page) {
+  await expect(page.locator('.session-home__stage')).toHaveCSS('transition-duration', '0.26s');
+  await expect.poll(() => page.evaluate(() => window.mediaFrames.some((frame) => frame.photoOpacity > 0.99))).toBe(true);
+  const frames = await page.evaluate(() => window.mediaFrames);
+  expect(frames.some((frame) => frame.stageOpacity > 0.99 && frame.titleVisible && frame.photoOpacity === 0)).toBe(true);
+  expect(frames.some((frame) => frame.photoDuration === '1s' && frame.photoDecoded
+    && frame.photoOpacity > 0.1 && frame.photoOpacity < 0.9)).toBe(true);
 }
 
 test.describe('Cadrora first frame', () => {
@@ -225,7 +258,11 @@ test.describe('immersive first frame', () => {
     for (const resource of ['slider-js', 'slider-css', 'settings', 'display-photo', 'font']) {
       test(`${language} reveals one complete frame with slow ${resource}`, async ({ page }, testInfo) => {
         await installOwnerHome(page);
-        if (resource === 'display-photo') await observeCrossfade(page);
+        const desktop = page.viewportSize()!.width >= 880;
+        if (resource === 'display-photo') {
+          if (desktop) await observeMediaReveal(page);
+          else await observeCrossfade(page);
+        }
         await page.addInitScript(() => {
           window.startupFrames = [];
           const photos = new WeakMap<Element, number>();
@@ -256,19 +293,33 @@ test.describe('immersive first frame', () => {
         try {
           await page.goto(`/${language}/`, { waitUntil: 'commit' });
           await expect.poll(() => requested).toBe(true);
-          await expect(page.locator('.site-startup--overlay')).toBeVisible();
-          await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
-          await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
-          if (resource.startsWith('slider')) await expect(page.locator('.session-story__photo')).toHaveCount(0);
-          await expect.poll(() => page.evaluate(() => window.startupFrames.length)).toBe(0);
+          if (desktop && resource === 'display-photo') {
+            await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+            await expect(page.locator('.session-home__stage')).not.toHaveAttribute('inert', '');
+            await expect(page.locator('.session-story__visual').first()).toHaveCSS('opacity', '0');
+            await expect(page.getByRole('heading', { level: 1 })).toHaveText(language === 'fr' ? 'Mariages' : 'Weddings');
+            await expect(page.locator('.vertical-story-slider__page')).toHaveCount(2);
+            await expect(page.locator('.site-startup')).toHaveCount(0);
+          } else {
+            await expect(page.locator('.site-startup--overlay')).toBeVisible();
+            await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+            await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+            if (resource.startsWith('slider')) await expect(page.locator('.session-story__photo')).toHaveCount(0);
+            await expect.poll(() => page.evaluate(() => window.startupFrames.length)).toBe(0);
+          }
         } finally { release(); }
         await expect(page.locator('.site-startup')).toHaveCount(0);
         await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
-        if (resource === 'display-photo') await expectContinuousCrossfade(page);
+        if (resource === 'display-photo') {
+          if (desktop) await expectMediaReveal(page);
+          else await expectContinuousCrossfade(page);
+        }
         await expect.poll(() => page.evaluate(() => window.startupFrames.length)).toBeGreaterThanOrEqual(12);
         const frames = await page.evaluate(() => window.startupFrames);
-        expect(new Set(frames.map((frame) => frame.photoId)).size).toBe(1);
-        expect(frames.every((frame) => frame.photoId > 0 && frame.displayDecoded && frame.titleOpacity === '1' && frame.dots === 2)).toBe(true);
+        expect(new Set(frames.filter((frame) => frame.photoId > 0).map((frame) => frame.photoId)).size).toBe(1);
+        expect(frames.every((frame) => frame.titleOpacity === '1' && frame.dots === 2)).toBe(true);
+        if (desktop) expect(frames.some((frame) => frame.photoId > 0 && frame.displayDecoded)).toBe(true);
+        else expect(frames.every((frame) => frame.photoId > 0 && frame.displayDecoded)).toBe(true);
         await expect(page.getByRole('heading', { level: 1 })).toHaveText(language === 'fr' ? 'Mariages' : 'Weddings');
         await assertNoHorizontalOverflow(page);
         await page.screenshot({ path: testInfo.outputPath('complete-first-frame.png') });
@@ -308,7 +359,9 @@ test.describe('immersive About first frame', () => {
 
   for (const language of ['fr', 'en']) {
     test(`${language} reveals the complete About photo and title together`, async ({ page }, testInfo) => {
-      await observeCrossfade(page);
+      const desktop = page.viewportSize()!.width >= 880;
+      if (desktop) await observeMediaReveal(page);
+      else await observeCrossfade(page);
       await page.addInitScript(() => {
         localStorage.setItem('cadrora-privacy-consent-v1', 'necessary');
         window.aboutFrames = [];
@@ -353,25 +406,36 @@ test.describe('immersive About first frame', () => {
       try {
         await page.goto(`/${language}/about/`, { waitUntil: 'domcontentloaded' });
         await expect.poll(() => requested).toBe(true);
-        await expect(page.locator('.site-startup--overlay')).toBeVisible();
-        await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
-        await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
-        await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
-        expect(await page.evaluate(() => window.aboutFrames)).toEqual([]);
+        if (desktop) {
+          await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+          await expect(page.locator('.session-home__stage')).not.toHaveAttribute('inert', '');
+          await expect(page.locator('.about-page__image')).toHaveCSS('opacity', '0');
+          await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+          await expect(page.locator('.site-startup')).toHaveCount(0);
+        } else {
+          await expect(page.locator('.site-startup--overlay')).toBeVisible();
+          await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+          await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+          await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+          expect(await page.evaluate(() => window.aboutFrames)).toEqual([]);
+        }
         await page.screenshot({ path: testInfo.outputPath('about-waiting-for-photo.png') });
       } finally { release(); }
       await expect(page.locator('.site-startup')).toHaveCount(0);
       await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
-      await expectContinuousCrossfade(page);
+      if (desktop) await expectMediaReveal(page);
+      else await expectContinuousCrossfade(page);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.locator('.about-page__image .progressive-photo__optimized')).toHaveJSProperty('complete', true);
       await expect.poll(() => page.evaluate(() => window.aboutFrames.length)).toBeGreaterThanOrEqual(12);
       const frames = await page.evaluate(() => window.aboutFrames);
-      expect(new Set(frames.map((frame) => frame.photoId))).toEqual(new Set([1]));
-      expect(frames.every((frame) => frame.displayDecoded && frame.titleVisible)).toBe(true);
-      if (page.viewportSize()!.width >= 880) {
-        expect(frames.every((frame) => frame.opacity === 1)).toBe(true);
+      expect(new Set(frames.filter((frame) => frame.photoId > 0).map((frame) => frame.photoId))).toEqual(new Set([1]));
+      expect(frames.every((frame) => frame.titleVisible)).toBe(true);
+      if (desktop) {
+        expect(frames.some((frame) => frame.photoId > 0 && frame.displayDecoded)).toBe(true);
+        expect(frames.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
       } else {
+        expect(frames.every((frame) => frame.displayDecoded)).toBe(true);
         expect(frames.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
       }
       expect(fallbackRequests).toEqual([]);
@@ -397,8 +461,8 @@ test.describe('immersive About first frame', () => {
 });
 
 for (const language of ['fr', 'en']) {
-  for (const path of ['', 'contact/']) {
-    test(`${language}/${path} is branded before JavaScript and hands over to React`, async ({ page }, testInfo) => {
+  for (const path of atelier ? ['', 'about/', 'contact/'] : ['', 'contact/']) {
+    test(`${language}/${path} has a styled startup before JavaScript and hands over to React`, async ({ page }, testInfo) => {
       let release = () => {};
       const scripts = new Promise<void>((resolve) => { release = resolve; });
       await page.route('**/assets/*.js', async (route) => { await scripts; await route.continue(); });
@@ -408,7 +472,14 @@ for (const language of ['fr', 'en']) {
         await expect(page.locator('.site-startup__brand')).toHaveText(atelier ? 'Atelier Giulia' : 'Cadrora');
         await expect(page.locator('html')).toHaveAttribute('data-site', siteId);
         await expect(page.locator('html')).toHaveAttribute('lang', language);
-        await expect(page.locator('.site-startup')).toHaveCSS('background-color', atelier ? 'rgb(246, 241, 231)' : 'rgb(255, 250, 247)');
+        const mediaStartup = atelier && (path === '' || path === 'about/') && page.viewportSize()!.width >= 880;
+        if (mediaStartup) {
+          await expect(page.locator('.site-startup')).toHaveClass(/site-startup--media/u);
+          await expect(page.locator('.site-startup__identity')).toHaveCSS('opacity', '0');
+          await expect(page.locator('.site-startup')).toHaveCSS('background-color', 'rgb(46, 42, 36)');
+        } else {
+          await expect(page.locator('.site-startup')).toHaveCSS('background-color', atelier ? 'rgb(246, 241, 231)' : 'rgb(255, 250, 247)');
+        }
         await expect(page.locator('.site-startup h1')).toBeHidden();
         await expect(page.locator('.public-header')).toHaveCount(0);
         await assertNoHorizontalOverflow(page);

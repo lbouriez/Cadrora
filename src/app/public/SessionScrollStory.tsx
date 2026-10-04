@@ -44,7 +44,8 @@ export function SessionScrollStory() {
       .catch(() => undefined).then(() => { if (active) setFontReady(true); });
     return () => { active = false; };
   }, []);
-  const ready = !settings.isPending && !services.isPending && sliderReady && firstPhotoReady && fontReady;
+  const prepared = !settings.isPending && !services.isPending && sliderReady && fontReady;
+  const ready = prepared && firstPhotoReady;
   const slides = sessions.length ? sessions.map((card, index) => ({
     id: card.id,
     label: serviceText(card, language, (key) => t(key)).title,
@@ -65,7 +66,7 @@ export function SessionScrollStory() {
   </> }];
 
   return <div className="session-home">
-    <FirstFrameReveal failed={sliderFailed} ready={ready}>
+    <FirstFrameReveal failed={sliderFailed} mediaReveal prepared={prepared} ready={ready}>
       <PublicLayout immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
         {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
           interactionDisabled={!ready || Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex}
