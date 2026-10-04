@@ -192,19 +192,6 @@
   gap: clamp(2rem, 7vw, 6rem);
 }
 
-.site-hero::before {
-  position: absolute;
-  z-index: -1;
-  top: -15rem;
-  right: -22rem;
-  width: 40rem;
-  height: 40rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-primary) 13%, transparent);
-  content: '';
-  filter: blur(0.125rem);
-}
-
 .site-eyebrow {
   margin: 0 0 var(--space-4);
   color: var(--color-primary);
