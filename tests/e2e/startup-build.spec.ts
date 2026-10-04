@@ -56,7 +56,8 @@ test('Cadrora resolves the optional demo before exposing the sections below it',
 });
 
 interface StartupFrame { photoId: number; displayDecoded: boolean; titleOpacity: string; dots: number }
-declare global { interface Window { startupFrames: StartupFrame[] } }
+interface AboutFrame { photoId: number; displayDecoded: boolean; titleVisible: boolean; opacity: number }
+declare global { interface Window { startupFrames: StartupFrame[]; aboutFrames: AboutFrame[] } }
 
 test.describe('Cadrora first frame', () => {
   test.skip(atelier, 'Standard Home presentation.');
@@ -258,6 +259,93 @@ test.describe('immersive first frame', () => {
       }
     });
   }
+});
+
+test.describe('immersive About first frame', () => {
+  test.skip(!atelier, 'The Atelier profile has the immersive About page.');
+
+  for (const language of ['fr', 'en']) {
+    test(`${language} reveals the complete About photo and title together`, async ({ page }, testInfo) => {
+      await page.addInitScript(() => {
+        localStorage.setItem('cadrora-privacy-consent-v1', 'necessary');
+        window.aboutFrames = [];
+        const photos = new WeakMap<Element, number>();
+        let nextId = 0;
+        const sample = () => {
+          const stage = document.querySelector('.session-home__stage');
+          const photo = document.querySelector<HTMLImageElement>('.about-page__image .progressive-photo__optimized');
+          const title = document.querySelector('.about-page__hero-copy h1');
+          if (photo && !photos.has(photo)) photos.set(photo, ++nextId);
+          const opacity = stage ? Number(getComputedStyle(stage).opacity) : 0;
+          if (opacity > 0) window.aboutFrames.push({
+            photoId: photo ? photos.get(photo) ?? 0 : 0,
+            displayDecoded: Boolean(photo?.complete && photo.naturalWidth),
+            titleVisible: Boolean(title && getComputedStyle(title).visibility === 'visible'),
+            opacity,
+          });
+          if (window.aboutFrames.length < 120) requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+      await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+        siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+        contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+        map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+        enabledServices: ['family'], analyticsMeasurementId: null, themeMode: 'light',
+        homeGalleries: { enabled: false, limit: 6 }, aboutEnabled: true, aboutImageRevision: 2,
+        aboutImageMediumWidth: 1280, aboutImageLargeWidth: 2560, updatedAt: '2026-10-04T00:00:00.000Z',
+      } }));
+      let release = () => {};
+      const waiting = new Promise<void>((resolve) => { release = resolve; });
+      let requested = false;
+      const fallbackRequests: string[] = [];
+      page.on('request', (request) => {
+        if (request.url().includes('/about-hero-image/')) fallbackRequests.push(request.url());
+      });
+      await page.route('**/service-media/about-hero/2/**', async (route) => {
+        requested = true;
+        await waiting;
+        await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1706"><rect width="2560" height="1706" fill="#777"/></svg>' });
+      });
+      try {
+        await page.goto(`/${language}/about/`, { waitUntil: 'domcontentloaded' });
+        await expect.poll(() => requested).toBe(true);
+        await expect(page.locator('.site-startup--overlay')).toBeVisible();
+        await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
+        await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+        await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+        expect(await page.evaluate(() => window.aboutFrames)).toEqual([]);
+        await page.screenshot({ path: testInfo.outputPath('about-waiting-for-photo.png') });
+      } finally { release(); }
+      await expect(page.locator('.site-startup')).toHaveCount(0);
+      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      await expect(page.locator('.about-page__image .progressive-photo__optimized')).toHaveJSProperty('complete', true);
+      await expect.poll(() => page.evaluate(() => window.aboutFrames.length)).toBeGreaterThanOrEqual(12);
+      const frames = await page.evaluate(() => window.aboutFrames);
+      expect(new Set(frames.map((frame) => frame.photoId))).toEqual(new Set([1]));
+      expect(frames.every((frame) => frame.displayDecoded && frame.titleVisible)).toBe(true);
+      expect(frames.some((frame) => frame.opacity > 0 && frame.opacity < 1)).toBe(true);
+      expect(fallbackRequests).toEqual([]);
+      await assertNoHorizontalOverflow(page);
+      await page.screenshot({ path: testInfo.outputPath('about-complete-first-frame.png') });
+    });
+  }
+
+  test('releases About when both photo sources fail', async ({ page }) => {
+    await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+      siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+      contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
+      map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
+      enabledServices: ['family'], analyticsMeasurementId: null, themeMode: 'light',
+      homeGalleries: { enabled: false, limit: 6 }, aboutEnabled: true, updatedAt: '2026-10-04T00:00:00.000Z',
+    } }));
+    await page.route('**/about-hero-image/**', (route) => route.abort());
+    await page.goto('/fr/about/');
+    await expect(page.locator('.site-startup')).toHaveCount(0);
+    await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
 });
 
 for (const language of ['fr', 'en']) {

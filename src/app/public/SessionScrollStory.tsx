@@ -6,13 +6,13 @@ import { Link } from 'react-router-dom';
 import type { VerticalStorySlider } from '../components/VerticalStorySlider';
 import { getPublicSiteSettings } from './api';
 import { BrandPhoto } from './BrandPhoto';
+import { FirstFrameReveal } from './FirstFrameReveal';
 import { PublicLayout } from './PublicLayout';
 import { SessionStoryContent } from './SessionStoryContent';
 import { SessionDetailsModal } from './SessionDetailsModal';
 import { serviceText } from './serviceCatalog';
 import { localizedMarketingPath } from './localizedMarketingPath';
 import { siteProfile } from './siteProfile';
-import { SiteStartup } from './SiteStartup';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
 /** Present owner-managed Home sessions through the shared vertical slider. */
@@ -65,14 +65,13 @@ export function SessionScrollStory() {
   </> }];
 
   return <div className="session-home">
-    {!ready ? <SiteStartup failed={sliderFailed} /> : null}
-    <div aria-hidden={!ready || undefined} className={`session-home__stage${ready ? '' : ' session-home__stage--pending'}`} inert={!ready}>
+    <FirstFrameReveal failed={sliderFailed} ready={ready}>
       <PublicLayout immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
         {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
           interactionDisabled={!ready || Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex}
           onReady={markSliderReady} showPagination slideClassName="session-story__panel" slides={slides} /> : null}
         <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
       </PublicLayout>
-    </div>
+    </FirstFrameReveal>
   </div>;
 }

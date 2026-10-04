@@ -102,6 +102,7 @@ for (const path of ['/', '/services']) {
 for (const path of ['/', '/about']) {
   test(`${path} resolves site-photo overrides before the shared renderer requests an image`, async ({ page }, testInfo) => {
     test.skip(path === '/' && process.env.CADRORA_SITE === 'atelier-giulia', 'This Home profile uses session photos.');
+    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     const owner = path === '/' ? 'home-hero' : 'about-hero';
     const frame = page.locator(path === '/' ? '.site-hero__art > .progressive-photo' : '.about-page__image');
     const requests: string[] = [];
@@ -128,7 +129,10 @@ for (const path of ['/', '/about']) {
       await expect(frame).toBeVisible();
       await expect(frame.locator('img')).toHaveCount(0);
       expect(requests).toEqual([]);
-      await page.getByRole('button', { name: /nécessaire seulement|necessary only/i }).click();
+      if (path === '/about' && process.env.CADRORA_SITE === 'atelier-giulia') {
+        await expect(page.locator('.site-startup--overlay')).toBeVisible();
+        await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+      }
       await page.screenshot({ path: testInfo.outputPath('site-photo-pending.png') });
       release();
       await expect(frame.locator('img')).toHaveCount(2);

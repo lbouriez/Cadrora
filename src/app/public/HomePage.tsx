@@ -7,13 +7,13 @@ import { Button, MotionReveal, ProgressivePhoto, Spinner } from '../components';
 import { getPublicEvents, getPublicSiteSettings } from './api';
 import { DemoExperienceCards } from './DemoExperienceCards';
 import { FeaturedSites } from './FeaturedSites';
+import { FirstFrameReveal } from './FirstFrameReveal';
 import { PublicEventCards } from './PublicEventCards';
 import { PublicLayout } from './PublicLayout';
 import { serviceText } from './serviceCatalog';
 import { ServicePhotoHeader } from './ServicePhotoHeader';
 import { SessionScrollStory } from './SessionScrollStory';
 import { SessionDetailsModal } from './SessionDetailsModal';
-import { SiteStartup } from './SiteStartup';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
@@ -71,11 +71,10 @@ export function DefaultHomePage() {
       || actions.findIndex((candidate) => candidate.href === '/portfolio') === index);
   // Resolve optional section visibility before exposing the layout. Inserting the
   // demo above an already painted stack section caused a reproducible layout shift.
-  if (settings.isPending) return <div className="session-home"><SiteStartup /></div>;
+  if (settings.isPending) return <div className="session-home"><FirstFrameReveal ready={false} /></div>;
   return (
     <div className={`session-home${heroPhotoReady ? '' : ' session-home--pending'}`}>
-      {!heroPhotoReady ? <SiteStartup /> : null}
-      <div aria-hidden={!heroPhotoReady || undefined} className={`session-home__stage${heroPhotoReady ? '' : ' session-home__stage--pending'}`} inert={!heroPhotoReady}>
+      <FirstFrameReveal ready={heroPhotoReady}>
         <PublicLayout>
           <section className="site-hero">
             <div className="site-hero__copy">
@@ -185,7 +184,7 @@ export function DefaultHomePage() {
           </MotionReveal> : null}</Fragment>)}
           <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
         </PublicLayout>
-      </div>
+      </FirstFrameReveal>
     </div>
   );
 }

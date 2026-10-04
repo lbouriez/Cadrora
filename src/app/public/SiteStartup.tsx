@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import copy from '../../shared/i18n/publicStartup.json';
 import { siteProfile } from './siteProfile';
 
-/** Continue the static branded first frame while the immersive Home prepares. */
+/** Continue the static branded first frame while a photo-backed page prepares. */
 export function SiteStartup({ failed = false }: { failed?: boolean }) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
