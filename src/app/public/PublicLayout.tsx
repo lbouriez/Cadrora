@@ -76,7 +76,10 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
     }
     try {
       const saved = localStorage.getItem('cadrora-language');
-      if (saved && settings.data.enabledLanguages.includes(saved as 'en' | 'fr')) return;
+      if (saved && settings.data.enabledLanguages.includes(saved as 'en' | 'fr')) {
+        void i18n.changeLanguage(saved);
+        return;
+      }
     } catch {
       // The runtime default still applies when preference storage is blocked.
     }

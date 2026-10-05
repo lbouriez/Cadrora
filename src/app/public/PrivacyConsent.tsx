@@ -9,10 +9,12 @@ import {
 } from './consent';
 import type { PrivacyConsent as PrivacyConsentValue } from './consent';
 import { localizedMarketingPath } from './localizedMarketingPath';
+import { useServerRender } from '../prerender/context';
 
 export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvailable?: boolean }) {
   const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(() => readPrivacyConsent() === null);
+  const serverRender = useServerRender();
 
   useEffect(() => {
     const handlePreferences = (event: Event) => {
@@ -27,7 +29,7 @@ export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvaila
     setOpen(false);
   };
 
-  if (!open) return null;
+  if (!serverRender && !open) return null;
 
   return (
     <aside aria-labelledby="privacy-consent-title" className="privacy-consent" role="region">

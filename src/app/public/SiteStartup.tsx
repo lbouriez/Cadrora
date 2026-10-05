@@ -5,12 +5,12 @@ import copy from '../../shared/i18n/publicStartup.json';
 import { siteProfile } from './siteProfile';
 
 /** Continue the static branded first frame while the immersive Home prepares. */
-export function SiteStartup({ failed = false }: { failed?: boolean }) {
+export function SiteStartup({ failed = false, siteName }: { failed?: boolean; siteName?: string | undefined }) {
   const { i18n, t } = useTranslation();
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   return <section className="site-startup site-startup--overlay">
     <section aria-label={copy[language].loading} className="site-startup__identity">
-      <p className="site-startup__brand">{siteProfile.siteName}</p>
+      <p className="site-startup__brand">{siteName ?? siteProfile.siteName}</p>
       <span aria-hidden="true" className="site-startup__rule" />
       {failed ? <p role="alert">{copy[language].unavailable} <a href={window.location.href}>{copy[language].retry}</a></p> : null}
     </section>

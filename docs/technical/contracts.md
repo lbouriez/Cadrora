@@ -30,7 +30,7 @@ Owner-only media inventory and its read-only diagnostics API are recorded in [`A
 ## Platform boundaries
 
 - React + TypeScript + Vite with the official Cloudflare plugin.
-- Hono in one Worker; no SSR, microservices, ORM, Docker, CLI product surface, or Redux.
+- Hono in one Worker; no production SSR, microservices, ORM, Docker, CLI product surface, or Redux. ADR-049 authorizes a disabled-by-default, isolated Cadrora preview rendering experiment; adoption is gated separately and does not change the production routing or cache contract.
 - Shared Zod validation for every API request and response.
 - Raw D1 SQL, private R2 media, optional Vectorize, and browser-side heavy processing.
 - TanStack Query for server state; React Context only for auth, theme, i18n, and UI hosts such as toasts.

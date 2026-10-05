@@ -8,6 +8,7 @@ export default defineConfig({
   } },
   define: {
     __CADRORA_SHOWCASE_DEMO__: false,
+    __CADRORA_MARKETING_PRERENDER__: false,
     __CADRORA_SITE_ID__: JSON.stringify('cadrora'),
     __CADRORA_SITE_DEFAULT_LANG__: JSON.stringify('fr'),
   },

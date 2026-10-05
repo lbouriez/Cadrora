@@ -174,6 +174,8 @@ Text placed on photos uses the shared `--color-on-photo` and overlay tokens; nev
 
 ## Validation
 
+ADR-049 permits a **preview-only** Home/Sessions Worker-rendering experiment, disabled by default. It embeds validated, transactional public settings/catalog data and hydrates the existing image nodes; it does not cache HTML or include private/gallery data. Its build flag is refused for production and other profiles. See [ADR-049](../decisions/ADR-049-marketing-prerender-proposal.md) for invocation, first-frame requirements and the remaining adoption gates. The production static-site contract still applies.
+
 After changing the public site, run `npm run check`, `npm run test`, `npm run build`, and the relevant Playwright tests. Inspect `/`, `/services`, `/portfolio`, `/galleries` when enabled, `/contact`, `/privacy`, the public gallery and finder, and the demo admin login at 320–390-pixel phone widths and a desktop viewport, in FR and EN. Verify the menu, consent panel, image focal points, and no horizontal overflow; check contact values both configured and empty.
 
 The global Sessions page checkbox lives beside Galleries visibility in Settings > Website. Disabling it removes navigation and sitemap/llms discovery and returns 404 for all session HTML URLs; Home sessions still follow their existing per-session selection. Configured Home buttons targeting the page point to the Home sessions section. See [ADR-046](../decisions/ADR-046-optional-sessions-page.md).

@@ -7,22 +7,28 @@ const bootstrap = readFileSync(new URL('../../../public/public-requests.js', imp
 afterEach(() => vi.unstubAllGlobals());
 
 describe('early public metadata', () => {
+  it('does not repeat the validated metadata already embedded by the Worker', () => {
+    const fetch = vi.fn();
+    runInNewContext(bootstrap, { window: { location: { pathname: '/fr/' } },
+      document: { documentElement: { dataset: { marketingRender: 'true' } } }, fetch, Map, Response });
+    expect(fetch).not.toHaveBeenCalled();
+  });
   it('starts localized Home and Sessions metadata before the application without requesting photos', () => {
     for (const pathname of ['/fr', '/fr/', '/en/', '/en/services/', '/fr/services']) {
       const fetch = vi.fn().mockResolvedValue(new Response('[]'));
-      runInNewContext(bootstrap, { window: { location: { pathname } }, fetch, Map, Response });
+      runInNewContext(bootstrap, { window: { location: { pathname } }, document: { documentElement: { dataset: {} } }, fetch, Map, Response });
       expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/site', '/api/v1/services']);
     }
     for (const pathname of ['/en/about/', '/fr/portfolio/mariages/']) {
       const fetch = vi.fn().mockResolvedValue(new Response('{}'));
-      runInNewContext(bootstrap, { window: { location: { pathname } }, fetch, Map, Response });
+      runInNewContext(bootstrap, { window: { location: { pathname } }, document: { documentElement: { dataset: {} } }, fetch, Map, Response });
       expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/site']);
     }
   });
   it('requests only optional public metadata and stays absent on admin/private routes', () => {
     for (const pathname of ['/services', '/about', '/admin/login', '/e/private-gallery']) {
       const fetch = vi.fn().mockResolvedValue(new Response('[]'));
-      runInNewContext(bootstrap, { window: { location: { pathname } }, fetch, Map, Response });
+      runInNewContext(bootstrap, { window: { location: { pathname } }, document: { documentElement: { dataset: {} } }, fetch, Map, Response });
       expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(pathname === '/services'
         ? ['/api/v1/site', '/api/v1/services'] : pathname === '/about' ? ['/api/v1/site'] : []);
     }
@@ -30,7 +36,7 @@ describe('early public metadata', () => {
 
   it('does not start duplicate requests if the application has already started', () => {
     const fetch = vi.fn();
-    runInNewContext(bootstrap, { window: { location: { pathname: '/' }, cadroraPublicRequestsConsumed: true }, fetch, Map, Response });
+    runInNewContext(bootstrap, { window: { location: { pathname: '/' }, cadroraPublicRequestsConsumed: true }, document: { documentElement: { dataset: {} } }, fetch, Map, Response });
     expect(fetch).not.toHaveBeenCalled();
   });
 
