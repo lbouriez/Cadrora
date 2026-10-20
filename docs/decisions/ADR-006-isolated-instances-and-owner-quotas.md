@@ -1,6 +1,6 @@
 # ADR-006: Isolated instances and owner self-quotas
 
-Status: accepted, 2026-09-22. The gallery-count part was superseded by [ADR-017](ADR-017-remove-gallery-count-limit.md).
+Status: accepted, 2026-09-22. The gallery-count part was superseded by [ADR-017](ADR-017-remove-gallery-count-limit.md). Fixed provider ceilings were superseded by [ADR-050](ADR-050-configurable-deployment-capacity.md); the conservative deployment defaults remain.
 
 ## Context
 

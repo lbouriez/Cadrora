@@ -2,10 +2,6 @@ import { ApiException } from '../../shared/errors/ApiError';
 import { QuotaLimitsSchema, QuotaUsageSchema } from '../../shared/schemas/site';
 import type { QuotaLimits, QuotaUsage } from '../../shared/schemas/site';
 
-const R2_FREE_STORAGE_BYTES = 10_000_000_000;
-const FACE_VECTOR_DIMENSIONS = 128;
-const VECTORIZE_FREE_STORED_DIMENSIONS = 5_000_000;
-
 interface OwnerQuotaRow {
   owner_face_limit: number | null;
   owner_storage_limit_bytes: number | null;
@@ -39,14 +35,8 @@ function requiredPositiveLimit(value: string | undefined, name: string): number 
 
 export function quotaCeilings(bindings: Omit<QuotaBindings, 'DB'>): QuotaLimits {
   return QuotaLimitsSchema.parse({
-    faceLimit: Math.min(
-      requiredPositiveLimit(bindings.MAX_TOTAL_FACES, 'MAX_TOTAL_FACES'),
-      Math.floor(VECTORIZE_FREE_STORED_DIMENSIONS / FACE_VECTOR_DIMENSIONS),
-    ),
-    storageLimitBytes: Math.min(
-      requiredPositiveLimit(bindings.MAX_STORAGE_BYTES, 'MAX_STORAGE_BYTES'),
-      R2_FREE_STORAGE_BYTES,
-    ),
+    faceLimit: requiredPositiveLimit(bindings.MAX_TOTAL_FACES, 'MAX_TOTAL_FACES'),
+    storageLimitBytes: requiredPositiveLimit(bindings.MAX_STORAGE_BYTES, 'MAX_STORAGE_BYTES'),
   });
 }
 

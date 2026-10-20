@@ -16,8 +16,9 @@ test('public routes and gallery viewer share the image renderer', async ({ page 
     contentType: 'application/json', body: JSON.stringify({ events: [], protectedGalleries: [], nextCursor: null }),
   }));
   await mockGallery(page);
-  for (const path of ['/', '/services', '/about', '/contact', '/privacy', '/portfolio', '/portfolio/absent', '/galleries', '/missing']) {
-    await page.goto(path);
+  // Unknown URLs use static 404 documents (ADR-048), not the React photo renderer.
+  for (const path of ['/', '/services', '/about', '/contact', '/privacy', '/portfolio', '/galleries']) {
+    await page.goto(path === '/galleries' ? path : `/${language}${path === '/' ? '/' : path}`);
     await expect(page.locator('main')).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('lang', language);
     await expect(page.locator('img').first()).toBeAttached();

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
@@ -16,11 +16,15 @@ import { useTheme } from '../useTheme';
 import { rememberVisitorLanguage } from '../i18n/visitorLanguage';
 import type { NavigationItem } from '../site/types';
 
-export function PublicLayout({ children, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, wide = false }: {
-  children: ReactNode; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
+const fallbackLanguages: ('fr' | 'en')[] = ['fr', 'en'];
+
+export function PublicLayout({ children, compactHeader = false, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, wide = false }: {
+  children: ReactNode; compactHeader?: boolean; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const shell = useRef<HTMLDivElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
@@ -28,6 +32,29 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
   const isPortfolioDetail = /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
   const immersiveHome = siteProfile.home.presentation === 'session-slides' && marketingPath === '/';
+  useEffect(() => {
+    if (immersiveHome || siteProfile.home.presentation !== 'session-slides') return;
+    const update = () => setScrolled((previous) => window.scrollY > (previous ? 16 : 64));
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, [immersiveHome, pathname]);
+  useLayoutEffect(() => {
+    if (!immersiveHome || !shell.current) return;
+    const element = shell.current;
+    const masthead = element.querySelector<HTMLElement>('.public-masthead');
+    const footer = element.querySelector<HTMLElement>('.public-footer');
+    const measure = () => {
+      element.style.setProperty('--story-header-height', `${masthead?.offsetHeight ?? 0}px`);
+      element.style.setProperty('--story-footer-height', `${footer?.offsetHeight ?? 0}px`);
+    };
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    if (masthead) observer.observe(masthead);
+    if (footer) observer.observe(footer);
+    return () => observer.disconnect();
+  }, [immersiveHome]);
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
     queryFn: getPublicSiteSettings,
@@ -39,8 +66,8 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   // Until D1 resolves, keep the static light shell and hide controls whose policy is unknown.
   const themePolicy = settings.isPending ? 'light' : settings.data?.themeMode ?? 'both';
   const { canChooseTheme, theme, toggleTheme } = useTheme(themePolicy);
-  const enabledLanguages = settings.data?.enabledLanguages ?? ['fr', 'en'];
-  const canChooseLanguage = enabledLanguages.length > 1;
+  const enabledLanguages = settings.data?.enabledLanguages ?? fallbackLanguages;
+  const canChooseLanguage = !settings.isPending && enabledLanguages.length > 1;
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const pageKey = marketingPath === '/' ? 'home' : isPortfolioDetail ? 'portfolio'
     : (['services', 'portfolio', 'about', 'contact', 'privacy'] as const)
@@ -66,8 +93,13 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   useEffect(() => {
     if (!settings.data?.defaultLanguage) return;
     if (routeLanguage) {
-      rememberVisitorLanguage(routeLanguage);
-      void i18n.changeLanguage(routeLanguage);
+      const selectedLanguage = settings.data.enabledLanguages.includes(routeLanguage)
+        ? routeLanguage : settings.data.defaultLanguage;
+      rememberVisitorLanguage(selectedLanguage);
+      void i18n.changeLanguage(selectedLanguage);
+      if (selectedLanguage !== routeLanguage) {
+        void navigate(`/${selectedLanguage}${marketingPath === '/' ? '' : marketingPath}${search}${hash}`, { replace: true });
+      }
       return;
     }
     if (settings.data.enabledLanguages.length === 1) {
@@ -81,7 +113,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
       // The runtime default still applies when preference storage is blocked.
     }
     void i18n.changeLanguage(settings.data.defaultLanguage);
-  }, [i18n, routeLanguage, settings.data]);
+  }, [hash, i18n, marketingPath, navigate, routeLanguage, search, settings.data]);
 
   useEffect(() => {
     const title = pageTitle ? `${pageTitle} | ${siteName}`
@@ -105,8 +137,10 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
     meta('meta[property="og:type"]', 'property', 'og:type', 'website');
     if (siteProfile.seoLocales) {
       meta('meta[property="og:locale"]', 'property', 'og:locale', siteProfile.seoLocales[language]);
-      meta('meta[property="og:locale:alternate"]', 'property', 'og:locale:alternate',
-        siteProfile.seoLocales[language === 'fr' ? 'en' : 'fr']);
+      if (enabledLanguages.length > 1) {
+        meta('meta[property="og:locale:alternate"]', 'property', 'og:locale:alternate',
+          siteProfile.seoLocales[language === 'fr' ? 'en' : 'fr']);
+      } else document.querySelector('meta[property="og:locale:alternate"]')?.remove();
     }
     if (siteProfile.seoOrigin) {
       const image = new URL(siteProfile.shareImageUrl, siteProfile.seoOrigin).href;
@@ -132,6 +166,10 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
         canonical.href = url;
         if (!canonical.parentNode) document.head.append(canonical);
         for (const alternate of ['fr', 'en', 'x-default'] as const) {
+          if (alternate !== 'x-default' && !enabledLanguages.includes(alternate)) {
+            document.querySelector(`link[rel="alternate"][hreflang="${alternate}"]`)?.remove();
+            continue;
+          }
           const link = document.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${alternate}"]`) ?? document.createElement('link');
           link.rel = 'alternate'; link.hreflang = alternate;
           link.href = `${siteProfile.seoOrigin}/${alternate === 'x-default'
@@ -145,7 +183,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
         document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.remove();
       }
     }
-  }, [description, language, marketingPath, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
+  }, [description, enabledLanguages, language, marketingPath, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
 
   useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
@@ -189,7 +227,7 @@ export function PublicLayout({ children, fullBleed = false, immersiveFooterVisib
   }, [menuOpen]);
 
   return (
-    <div className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div ref={shell} className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
         <header className="public-header">

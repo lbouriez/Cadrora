@@ -11,7 +11,15 @@ export function FirstFrameReveal({ children, failed = false, mediaReveal = false
   const [desktop, setDesktop] = useState(() => typeof window !== 'undefined'
     && (window.matchMedia?.('(min-width: 55rem)').matches ?? false));
   const [photoVisible, setPhotoVisible] = useState(false);
-  const visible = ready || (mediaReveal && desktop && prepared);
+  const [timedOut, setTimedOut] = useState(false);
+  const visible = ready || (mediaReveal && desktop && prepared && !timedOut);
+  useEffect(() => {
+    if (ready) return;
+    // Preserve the waiting frame and owner-source gates; offer recovery instead
+    // of replacing a stalled chunk or photo with a provisional default image.
+    const timeout = window.setTimeout(() => setTimedOut(true), 30_000);
+    return () => window.clearTimeout(timeout);
+  }, [ready]);
   useEffect(() => {
     if (!mediaReveal || !window.matchMedia) return;
     const query = window.matchMedia('(min-width: 55rem)');
@@ -35,7 +43,7 @@ export function FirstFrameReveal({ children, failed = false, mediaReveal = false
   }, [desktop, mediaReveal, visible]);
 
   return <>
-    {!visible || startupMounted ? <SiteStartup failed={failed} leaving={visible} mediaReveal={mediaReveal} onFadeComplete={() => setStartupMounted(false)} /> : null}
+    {!visible || startupMounted ? <SiteStartup failed={failed || timedOut} leaving={visible} mediaReveal={mediaReveal} onFadeComplete={() => setStartupMounted(false)} /> : null}
     {children ? <div aria-hidden={!visible || undefined} className={`session-home__stage${visible ? '' : ' session-home__stage--pending'}${mediaReveal ? ' session-home__stage--media' : ''}${photoVisible ? ' session-home__stage--media-photo-ready' : ''}`} inert={!visible}>
       {children}
     </div> : null}

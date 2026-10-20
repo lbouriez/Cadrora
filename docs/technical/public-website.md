@@ -189,3 +189,21 @@ Public Galleries, Sessions and About links stay hidden until the settings respon
 The Admin Sessions menu is always available and links directly to `/admin/settings#admin-settings-services`, including when the public Sessions page is disabled. Session enablement applies to the card across Home and the optional Sessions page; Home selection remains separate. Disabling the public page never removes catalog editing.
 
 Session placement flags are independent: `enabled` selects the Sessions page and `showOnHome` selects Home. The public catalog includes complete sessions selected for either placement; the admin Hidden badge applies only when both are off. Default and phone focal points support Left, Center, Right, Top and Bottom. The phone choice inherits the default when unset. Migration 044 preserves existing framing and media references. See [ADR-047](../decisions/ADR-047-independent-session-placement-and-vertical-framing.md).
+
+## Metadata deadlines and visitor language policy
+
+Optional `/api/v1/site` and `/api/v1/services` reads have a 15-second deadline, including body consumption. The early static bootstrap buffers small metadata responses within the same deadline and aborts stalled requests. The application validates every response with the existing shared schemas. This deadline applies only to these read-only metadata routes, not gallery writes.
+
+Pending metadata still blocks owner-managed image sources and compiled fallback cards. A definitive error or timeout settles that query before the existing outage fallback may appear; a successful response never follows an initial flash of compiled defaults. Cached successful owner data survives a failed background refresh. Do not remove these gates to improve a loading metric.
+
+Once settings resolve, a localized URL must use an enabled language. A disabled prefix is replaced with the default language while preserving the path, query and hash; the corrected preference is remembered. Client-rendered canonical and alternate metadata use the enabled languages. Static FR/EN HTML remains asset-first and cannot enforce a D1 language choice before JavaScript/settings resolve; this does not introduce server rendering.
+
+Cadrora's profile presents the product and labels sample studio content explicitly. Its existing demos remain the hands-on entry point; `#demo` and `#installation` distinguish trial from setup. Atelier keeps its studio voice and immersive presentation. Source copy changes do not overwrite saved D1 translations or owner hero text.
+
+## Compact navigation and short immersive viewports
+
+The shared public layout exposes a compact-header state. For the session-slides presentation, ordinary pages set it after 64 px of document scroll and clear it below 16 px; the hysteresis prevents header resizing from repeatedly crossing the threshold. Immersive Home supplies the active-slide state instead, because Swiper transforms do not advance document scroll. Atelier's theme keeps the masthead sticky on ordinary pages, reduces its vertical padding and brand size when compact, and starts compact below 34rem viewport height. Menu controls retain their 44 px targets.
+
+Immersive slides reserve the measured masthead height, including the optional progress notice, and reserve the measured footer on the last slide. Text scrolls within that remaining space when long copy or enlarged type cannot fit. An overflowing text region is keyboard focusable and uses native touch scrolling; wheel and keyboard input scroll its remaining content before advancing the slider. Slide pagination remains outside the text region and scrolls independently for long catalogs. This retains ADR-043's one-viewport Home and forced slide animation without hiding the CTA.
+
+Atelier waits at most three seconds for its local display font before using the CSS font fallback. A first frame that is not ready after 30 seconds offers the existing localized Retry link and fallback navigation; it does not expose provisional owner images. This also covers desktop's prepared-text state while its photo and slide interactions are still pending. A late successful load can still reveal the page, and Retry reloads the current URL. Before the deadline, desktop retains its prepared-text/late-photo reveal.

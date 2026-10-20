@@ -9,14 +9,28 @@ const deploymentLimits = {
 };
 
 describe('owner quota guardrails', () => {
-  it('caps deployment settings at the relevant Cloudflare Free allowances', () => {
+  it.each(['', '0', '-1', '1.5', 'NaN', '9007199254740992'])('rejects an invalid deployment ceiling: %s', (value) => {
+    expect(() => quotaCeilings({ ...deploymentLimits, MAX_STORAGE_BYTES: value })).toThrow();
+    expect(() => quotaCeilings({ ...deploymentLimits, MAX_TOTAL_FACES: value })).toThrow();
+  });
+
+  it('keeps deployment ceilings authoritative even when stored owner limits are higher', async () => {
+    const database = { prepare: vi.fn().mockReturnValue({ first: vi.fn().mockResolvedValue({
+      owner_face_limit: 50000, owner_storage_limit_bytes: 12000000000,
+    }) }) } as unknown as D1Database;
+    await expect(effectiveQuotaLimits({ DB: database, ...deploymentLimits })).resolves.toEqual({
+      faceLimit: 39000, storageLimitBytes: 9900000000,
+    });
+  });
+
+  it('honors explicitly configured capacity above the default free-tier guardrails', () => {
     expect(quotaCeilings({
       ...deploymentLimits,
       MAX_STORAGE_BYTES: '12000000000',
       MAX_TOTAL_FACES: '50000',
     })).toEqual({
-      faceLimit: 39062,
-      storageLimitBytes: 10000000000,
+      faceLimit: 50000,
+      storageLimitBytes: 12000000000,
     });
   });
 

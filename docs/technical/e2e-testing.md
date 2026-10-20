@@ -15,7 +15,9 @@ npm run test:e2e
 
 `npm run test:e2e:headed` ouvre Chromium pour une inspection locale. En cas d'echec, Playwright conserve une capture, une trace et une video sous `test-results/`; le rapport HTML est produit en CI sous `playwright-report/`. Ces dossiers ne sont pas versionnes.
 
-Pour executer plusieurs validations locales en parallele, definir `CADRORA_E2E_PORT` sur un port libre. Garder les artefacts personnalises hors du depot avec `--output` : Vite peut tenter de surveiller les videos Playwright creees dans un dossier du projet sur Windows.
+Pour executer plusieurs validations locales en parallele, definir `CADRORA_E2E_PORT` sur un port libre et laisser Playwright lancer un serveur avec les variables du profil attendu. Ne pas reutiliser un serveur manuel dont les variables `VITE_*` different. Vite ignore `.artifacts/`, `test-results*/` et `playwright-report/` : les instantanes HTML des traces ne doivent jamais provoquer de rechargement pendant un autre scenario. Pour un autre dossier d'artefacts, utiliser `--output` hors du depot. Executer les builds de profils sequentiellement : ils partagent `dist/` et les documents generes.
+
+La suite `compact-header-site-profile.spec.ts` couvre le header compact sur les slides et les pages ordinaires, le retour en haut, le paysage, les textes longs agrandis, le defilement tactile/clavier et la reprise apres un chargement bloque. Les attentes de placement des seances suivent ADR-047 ; la visionneuse telephone conserve le ratio de la photo suivant ADR-042.
 
 ## Couverture actuelle
 

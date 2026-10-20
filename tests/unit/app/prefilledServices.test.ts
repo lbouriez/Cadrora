@@ -37,13 +37,13 @@ describe('prefilled sessions', () => {
       .toMatchObject([
         { title: 'Maternity', shortDescription: 'The beauty of becoming', duration: '', priceRange: '' },
         { title: 'Portraits', shortDescription: 'Every face tells a story', duration: '', priceRange: '' },
-        { title: 'Couples', shortDescription: 'Love and laugh', duration: '', priceRange: '' },
+        { title: 'Couples', shortDescription: 'Love and laughter', duration: '', priceRange: '' },
       ]);
     expect(additions.map((card) => serviceText(card, 'fr', (key) => i18n.getFixedT('fr')(key))))
       .toMatchObject([
         { title: 'Maternité', shortDescription: 'La beauté de devenir mère' },
         { title: 'Portraits', shortDescription: 'Chaque visage raconte une histoire' },
-        { title: 'Couples', shortDescription: 'Love and laugh' },
+        { title: 'Couples', shortDescription: 'De l’amour et des rires' },
       ]);
   });
 });

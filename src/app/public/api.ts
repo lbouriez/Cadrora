@@ -23,14 +23,35 @@ export class GalleryApiError extends Error {
 }
 
 async function validatedFetch<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
-  const initial = init === undefined ? takeInitialPublicRequest(url) : undefined;
-  const response = (initial ? await initial : undefined) ?? await fetch(url, init);
-  if (!response.ok) {
-    const error = ApiErrorSchema.safeParse(await response.clone().json().catch(() => null));
-    throw new GalleryApiError(response.status, error.success ? error.data.code : undefined);
+  // Only optional, read-only website metadata has an outage fallback. Do not
+  // turn a slow gallery write into an ambiguous timeout or retry it here.
+  const metadata = url === '/api/v1/site' || url === '/api/v1/services';
+  const controller = metadata ? new AbortController() : undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const read = async () => {
+    const initial = init === undefined ? takeInitialPublicRequest(url) : undefined;
+    const response = (initial ? await initial : undefined) ?? await fetch(url, controller ? { ...init, signal: controller.signal } : init);
+    if (!response.ok) {
+      const error = ApiErrorSchema.safeParse(await response.clone().json().catch(() => null));
+      throw new GalleryApiError(response.status, error.success ? error.data.code : undefined);
+    }
+    const value: unknown = await response.json();
+    return schema.parse(value);
+  };
+  if (!controller) return read();
+  try {
+    return await Promise.race([
+      read(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new GalleryApiError(408, 'PUBLIC_METADATA_TIMEOUT'));
+          controller.abort();
+        }, 15_000);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
   }
-  const value: unknown = await response.json();
-  return schema.parse(value);
 }
 
 export async function getPublicEvents(): Promise<PublicEvent[]> {

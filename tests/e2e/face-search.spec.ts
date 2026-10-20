@@ -24,7 +24,7 @@ test('garde la photo locale avant toute recherche faciale', async ({ page }) => 
   await expect(fileInput).toBeEnabled();
   await fileInput.setInputFiles({ buffer: tinyPng, mimeType: 'image/png', name: 'selfie.png' });
 
-  await expect(page.getByRole('img', { name: /photo de recherche (?:choisie|sélectionnée)|locally selected search photo/i })).toBeVisible();
+  await expect(page.getByRole('img', { name: /photo choisie pour la recherche faciale|photo selected for face search/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /trouver un visage|find a face/i })).toBeVisible();
   expect(faceApiRequests).toEqual([]);
 });

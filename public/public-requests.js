@@ -7,5 +7,14 @@
   window.cadroraInitialPublicRequests = requests;
   const urls = ['/api/v1/site'];
   if (pathname === '/' || pathname === '/services') urls.push('/api/v1/services');
-  for (const url of urls) requests.set(url, fetch(url).catch(() => Response.error()));
+  for (const url of urls) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    requests.set(url, fetch(url, { signal: controller.signal }).then(async (response) => {
+      // Finish the small metadata body inside the deadline. The application may
+      // start later; keep a buffered Response whose body cannot then be aborted.
+      const body = await response.arrayBuffer();
+      return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
+    }).catch(() => Response.error()).finally(() => clearTimeout(timer)));
+  }
 })();

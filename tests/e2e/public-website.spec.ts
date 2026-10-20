@@ -52,10 +52,10 @@ test.describe('site vitrine statique', () => {
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/vos moments préférés|the moments you came for/i);
-    await expect(page.getByRole('heading', { name: /des photos qui vous ressemblent|photos that feel like you/i })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/vos photos\. vos galeries|your work\. your galleries/i);
+    await expect(page.getByRole('heading', { name: /présentez les séances|present the sessions/i })).toBeVisible();
     await expect(page.locator('.gallery-notice[role="status"]')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
-    await expect(page.getByRole('link', { name: /retrouver des photos avec l’ia|find photos with ai/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /essayer la démo|try the demo/i })).toBeVisible();
     await expect(page.locator('.public-footer__credit')).toHaveCount(0);
     await assertNoHorizontalOverflow(page);
   });
@@ -177,7 +177,8 @@ test.describe('site vitrine statique', () => {
   test('ouvre les nouvelles pages en haut après une navigation depuis le bas', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');
-    const contactCta = page.locator('.site-contact-callout a[href="/fr/contact"]');
+    await expect(page.locator('.site-startup')).toHaveCount(0);
+    const contactCta = page.locator('.public-footer a[href="/fr/contact"]');
     await contactCta.scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await contactCta.click();
@@ -217,7 +218,7 @@ test.describe('site vitrine statique', () => {
 
     await page.goto('/contact');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/créons quelque chose|create something/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/un exemple de page contact|an example contact page/i);
     await expect(page.getByRole('link', { name: '+1 438 555-0199' })).toHaveAttribute('href', 'tel:+14385550199');
     await expect(page.getByRole('link', { name: 'studio@runtime.example' })).toHaveAttribute('href', 'mailto:studio@runtime.example');
     await expect(page.getByText('456 rue du Studio, Québec')).toBeVisible();
@@ -349,8 +350,11 @@ test.describe('site vitrine statique', () => {
     await expect(page.locator('.site-startup')).toHaveCount(0);
     await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
     await expect(heroCopy).toBeVisible();
-    // The first frame fades as one stage; individual entrances begin below it.
-    expect(await page.locator('.session-home__stage').evaluate((element) => getComputedStyle(element).transitionDuration)).not.toBe('0s');
+    // Desktop reveals the complete composition directly; phones fade the stage.
+    const desktop = await page.evaluate(() => matchMedia('(min-width: 55rem)').matches);
+    const stageDuration = await page.locator('.session-home__stage').evaluate((element) => getComputedStyle(element).transitionDuration);
+    if (desktop) expect(stageDuration).toBe('0s');
+    else expect(stageDuration).not.toBe('0s');
     const demoCard = page.locator('.demo-experience-card').first();
     await demoCard.scrollIntoViewIfNeeded();
     await expect(demoCard).toHaveClass(/motion-reveal--visible/);

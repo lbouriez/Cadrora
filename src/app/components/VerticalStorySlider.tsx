@@ -33,6 +33,10 @@ function releaseWheelAtSettledEdge(swiper: SwiperInstance, settled: boolean, all
 
 const EDGE_SCROLL_MS = 700;
 
+function canScrollContent(element: HTMLElement, direction: number) {
+  return direction > 0 ? element.scrollTop + element.clientHeight < element.scrollHeight - 1 : element.scrollTop > 1;
+}
+
 /** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
   motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false,
@@ -43,6 +47,32 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
   const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const animate = motionPreference === 'always' || !reducedMotion;
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const areas = [...section.querySelectorAll<HTMLElement>('[data-story-scroll]')];
+    const measure = () => areas.forEach((area) => {
+      const overflowing = area.scrollHeight > area.clientHeight + 1;
+      // Native touch scrolling owns an overflowing text area. Pagination remains
+      // available outside it, so a swipe never skips unread content.
+      area.classList.toggle('swiper-no-swiping', overflowing);
+      area.tabIndex = overflowing ? 0 : -1;
+    });
+    measure();
+    const observer = new ResizeObserver(measure);
+    areas.forEach((area) => {
+      observer.observe(area);
+      if (area.firstElementChild) observer.observe(area.firstElementChild);
+    });
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || !(event.target instanceof Element)) return;
+      const area = event.target.closest<HTMLElement>('[data-story-scroll]');
+      if (area && canScrollContent(area, event.deltaY)) event.stopPropagation();
+    };
+    section.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    return () => { observer.disconnect(); section.removeEventListener('wheel', onWheel, true); };
+  }, [slides]);
 
   useEffect(() => {
     const swiper = swiperRef.current;
@@ -115,6 +145,8 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
         ? 1 : event.key === 'ArrowUp' || event.key === 'ArrowLeft'
           || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey) ? -1 : 0;
       if (!direction) return;
+      const area = target instanceof Element ? target.closest<HTMLElement>('[data-story-scroll]') : null;
+      if (area && canScrollContent(area, direction)) return;
       if ((direction > 0 && swiper.isEnd) || (direction < 0 && swiper.isBeginning)) {
         if (!allowDocumentScrollAtEdges) event.preventDefault();
         return;

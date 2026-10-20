@@ -32,7 +32,7 @@ export const AboutCopySchema = z.object({ fr: AboutCopyLanguageSchema, en: About
 export const UpdateAboutSchema = z.object({ enabled: z.boolean().optional(), copy: AboutCopySchema }).strict();
 
 export const HomeHeroDestinationSchema = z.enum([
-  '/contact', '/services', '/portfolio', '/galleries', '#services', '#galleries', '/e/find-your-photos/find',
+  '/contact', '/services', '/portfolio', '/galleries', '#services', '#galleries', '#demo', '#installation', '/e/find-your-photos/find',
 ]);
 export const HomeHeroLanguageSchema = z.object({
   label: z.string().min(1).max(120),

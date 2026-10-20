@@ -95,7 +95,7 @@ for (const enabled of [false, true]) {
     const optional = page.locator('a[href$="/services"], a[href$="/about"], a[href="/galleries"]');
     try {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
-      await expect(page.locator('.public-header')).toBeVisible();
+      await expect(page.locator('.site-startup--overlay')).toBeVisible();
       await expect(optional).toHaveCount(0);
       await page.waitForTimeout(2100);
       await expect(optional).toHaveCount(0);

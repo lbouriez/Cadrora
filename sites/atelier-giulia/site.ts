@@ -41,7 +41,7 @@ export const atelierGiuliaSite = {
     en: { gallery: {
       heroEyebrow: 'Photography for the moments that matter',
       heroTitle: 'Your story, seen with care.',
-      heroLead: 'Atelier Giulia brings a gentle eye to celebrations, portraits, and the people you love. Explore the work and tell us what you are imagining.',
+      heroLead: 'Portraits, family moments and celebrations, photographed with care. Discover the sessions and tell us about your plans.',
       heroArtCaption: 'People. Light. Feeling.',
       heroImageAlt: 'A sunlit celebration, shown as temporary portfolio imagery',
       servicesEyebrow: 'What we photograph',
@@ -53,13 +53,13 @@ export const atelierGiuliaSite = {
       footerTagline: 'Photography with feeling.',
       aboutPage: {
         title: 'Meet Giulia',
-        body: "I'm Giulia, an Italian girl who moved to Canada with a passion for family photography. I've always been the one grabbing the camera to capture happy moments — with a keen eye for aesthetics and, above all, making people feel at ease in front of the lens.",
+        body: "I'm Giulia, an Italian photographer living in Canada with a passion for family photography. I've always been the one grabbing the camera to capture happy moments — with a keen eye for aesthetics and, above all, making people feel at ease in front of the lens.",
       },
     } },
     fr: { gallery: {
       heroEyebrow: 'Des images pour les moments qui comptent',
       heroTitle: 'Votre histoire, avec attention.',
-      heroLead: 'Atelier Giulia porte un regard sensible sur les célébrations, les portraits et les personnes que vous aimez. Découvrez notre univers et racontez-nous votre projet.',
+      heroLead: 'Des portraits, des moments en famille et des célébrations photographiés avec attention. Découvrez les séances et racontez-nous votre projet.',
       heroArtCaption: 'Présence. Lumière. Émotion.',
       heroImageAlt: 'Une célébration ensoleillée, présentée avec une image provisoire du portfolio',
       servicesEyebrow: 'Ce que nous photographions',

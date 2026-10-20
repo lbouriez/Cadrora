@@ -12,6 +12,7 @@ The Home introduction editor had a mandatory first button and a toggle for a sec
 - The admin editor can add or remove buttons and uses the shared translation field for each button's text. Reset restores the profile's two example buttons along with the rest of the introduction.
 - The public Home page renders the list in order. On narrow screens, an unmatched last button spans the two-column action row. The compiled profile's two buttons remain the fallback when no D1 override exists.
 - Existing D1 documents with `primaryHref`, `secondaryHref`, and `showSecondary` are parsed into the ordered list on read. Saving writes the new shape; no D1 migration is required.
+- 2026-10-19, maintainer-approved showcase clarification: allow the internal `#demo` and `#installation` destinations. The shared Home sections provide these anchors; Cadrora uses them to separate trying the product from installing it. If the demo is unavailable, its default action becomes the setup action and duplicate destinations are collapsed. Owner-written copy remains authoritative. This does not introduce profile-capability controls or change Atelier's immersive composition.
 
 ## Consequences
 

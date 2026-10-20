@@ -55,20 +55,22 @@ export function DefaultHomePage() {
     ? `/service-media/home-hero/${settings.data.homeHeroImageRevision}` : '/home-hero-image';
   const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
     && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
-  const resolveAction = (href: string) => galleryActionHidden(href)
+  const demoActionHidden = (href: string) => href === '#demo' && (!siteProfile.demo.enabled || !galleryDirectoryEnabled);
+  const resolveAction = (href: string) => demoActionHidden(href)
+    ? '#installation' : galleryActionHidden(href)
     ? '/portfolio' : settings.data?.sessionsPageEnabled !== true && href === '/services'
       ? '#services' : !showHomeGalleries && href === '#galleries' ? '/galleries' : href;
   const portfolioLabel = t('gallery.portfolioPage.homeAction');
   const heroActions: { action?: SiteAction; href: string; label: string; variant: 'primary' | 'secondary' }[] = (hero
     ? hero.buttons.map((button) => ({ href: resolveAction(button.href),
-      label: galleryActionHidden(button.href) ? portfolioLabel : button.labels[language], variant: button.variant }))
+      label: demoActionHidden(button.href) ? t('gallery.installCadrora') : galleryActionHidden(button.href) ? portfolioLabel : button.labels[language], variant: button.variant }))
     : [siteProfile.home.primaryAction, siteProfile.home.secondaryAction].map((action, index) => ({
-      action: galleryActionHidden(action.href) ? undefined : action,
+      action: galleryActionHidden(action.href) || demoActionHidden(action.href) ? undefined : action,
       href: resolveAction(action.href),
-      label: galleryActionHidden(action.href) ? portfolioLabel : t(action.labelKey),
+      label: demoActionHidden(action.href) ? t('gallery.installCadrora') : galleryActionHidden(action.href) ? portfolioLabel : t(action.labelKey),
       variant: index === 0 ? 'primary' as const : 'secondary' as const,
-    }))).filter((action, index, actions) => action.href !== '/portfolio'
-      || actions.findIndex((candidate) => candidate.href === '/portfolio') === index);
+    }))).filter((action, index, actions) => (action.href !== '/portfolio' && action.href !== '#installation')
+      || actions.findIndex((candidate) => candidate.href === action.href) === index);
   // Resolve optional section visibility before exposing the layout. Inserting the
   // demo above an already painted stack section caused a reproducible layout shift.
   if (settings.isPending) return <div className="session-home"><FirstFrameReveal ready={false} /></div>;
@@ -107,7 +109,7 @@ export function DefaultHomePage() {
             </figure>
           </section>
 
-          {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled && galleryDirectoryEnabled ? <MotionReveal as="section" labelledBy="demo-title" className="site-section site-section--demo">
+          {siteProfile.home.sections.map((section: HomeSection) => <Fragment key={section}>{section === 'demo' && siteProfile.demo.enabled && galleryDirectoryEnabled ? <MotionReveal as="section" id="demo" labelledBy="demo-title" className="site-section site-section--demo">
             <div className="site-section__heading site-section__heading--row">
               <div>
                 <p className="site-eyebrow">{t('gallery.demo.eyebrow')}</p>
@@ -118,7 +120,7 @@ export function DefaultHomePage() {
             <DemoExperienceCards />
           </MotionReveal> : null}
 
-          {section === 'stack' ? <MotionReveal as="section" labelledBy="stack-title" className="product-stack">
+          {section === 'stack' ? <MotionReveal as="section" id="installation" labelledBy="stack-title" className="product-stack">
             <div>
               <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
               <h2 id="stack-title">{t('gallery.stack.title')}</h2>

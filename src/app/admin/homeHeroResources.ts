@@ -14,6 +14,7 @@ export const homeHeroResources = {
     destinations: {
       _contact: 'Contact page', _services: 'Sessions page', _portfolio: 'Portfolio page', _galleries: 'Galleries page',
       section_services: 'Sessions below on Home', section_galleries: 'Galleries below on Home',
+      section_demo: 'Demo section on Home', section_installation: 'Setup section on Home',
       '_e_find-your-photos_find': 'Find your photos',
     },
   } } },
@@ -32,6 +33,7 @@ export const homeHeroResources = {
     destinations: {
       _contact: 'Page Contact', _services: 'Page Séances', _portfolio: 'Page Portfolio', _galleries: 'Page Galeries',
       section_services: 'Séances plus bas sur l’accueil', section_galleries: 'Galeries plus bas sur l’accueil',
+      section_demo: 'Démonstration sur l’accueil', section_installation: 'Installation sur l’accueil',
       '_e_find-your-photos_find': 'Retrouver ses photos',
     },
   } } },

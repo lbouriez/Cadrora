@@ -69,7 +69,7 @@ The 10 ms Workers Free CPU allowance is also an authentication design constraint
 
 ## Application limits are separate
 
-`MAX_PHOTOS_PER_EVENT`, `MAX_STORAGE_BYTES`, `MAX_FACES_PER_EVENT`, and `MAX_TOTAL_FACES` are deployment ceilings set in `wrangler.jsonc`. Site settings lets the owner choose lower instance limits for stored media and stored face vectors. Upload and indexing routes enforce the effective lower limit server-side. Reducing a limit below current usage does not delete data; it blocks additional media or face writes.
+`MAX_PHOTOS_PER_EVENT`, `MAX_STORAGE_BYTES`, `MAX_FACES_PER_EVENT`, and `MAX_TOTAL_FACES` are deployment ceilings set in `wrangler.jsonc`. Site settings lets the owner choose lower instance limits for stored media and stored face vectors. Upload and indexing routes enforce the effective lower limit server-side. As recorded in ADR-050, deployment variables can exceed the default Free-oriented safeguards; there is no additional hardcoded provider ceiling. An existing lower owner limit still applies after a deployment variable is raised. Reducing a limit below current usage does not delete data; it blocks additional media or face writes.
 
 `MAX_PHOTOS_PER_EVENT=2000` allows up to 2,000 photos in each gallery. There is no gallery-count setting or Worker ceiling. The owner-facing media and face settings still cannot exceed their reviewed deployment values.
 

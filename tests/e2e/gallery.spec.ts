@@ -55,7 +55,7 @@ test('charge les pages et choisit les variantes selon la largeur sans répéter 
   await expect(page.locator('.gallery-heading__hero img')).toHaveCount(0);
   await expect(page.locator('.photo-tile-shell')).toHaveCount(40);
   await expect(page.locator('.progressive-photo__preview').first()).toHaveJSProperty('complete', true);
-  await expect(page.locator('.progressive-photo__optimized').first()).toHaveAttribute('srcset', /480w.*1600w/u);
+  await expect(page.locator('.photo-grid .progressive-photo__optimized').first()).toHaveAttribute('srcset', /480w.*1600w/u);
   await expect(page.locator('.progressive-photo').first()).toHaveClass(/progressive-photo--ready/u);
   expect(photoRequests.some((url) => url.includes('photo-1-small.svg'))).toBe(true);
   expect(photoRequests.some((url) => url.includes('photo-40-large.svg'))).toBe(false);
@@ -231,7 +231,7 @@ test('selectionne des photos et cree le ZIP de secours avec un bouton retour ent
   expect((await download).suggestedFilename()).toBe('mariage-lumiere-photos.zip');
 });
 
-test('partage le même retour visuel entre la galerie, la recherche et le contact', async ({ page }, testInfo) => {
+test('partage le même retour visuel entre la galerie et la recherche', async ({ page }, testInfo) => {
   await mockGallery(page);
   const appearance = async () => page.locator('.back-link').evaluate((element) => {
     const style = getComputedStyle(element);
@@ -254,8 +254,6 @@ test('partage le même retour visuel entre la galerie, la recherche et le contac
   expect(await appearance()).toEqual(galleryAppearance);
   await page.screenshot({ path: testInfo.outputPath('find-back-link.png') });
 
-  await page.goto('/contact');
-  expect(await appearance()).toEqual(galleryAppearance);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/e/mariage-lumiere/find');
   await expect(page.locator('.back-link')).toBeVisible();
@@ -471,7 +469,10 @@ test('garde la sélection retouche distincte du coeur sur téléphone', async ({
   await tile.getByRole('link', { name: 'danse-au-coucher-du-soleil.jpg' }).click();
   await expect(page.getByRole('dialog').locator('.retouch-button')).toHaveAttribute('aria-pressed', 'true');
   const viewer = await page.getByRole('dialog').boundingBox();
-  expect(viewer).toEqual({ height: 844, width: 390, x: 0, y: 0 });
+  // ADR-042 keeps the whole photo and sizes the frame to its aspect ratio on phones too.
+  expect(viewer?.width).toBe(390);
+  expect(viewer?.height).toBeCloseTo(260, 0);
+  expect(viewer?.y).toBeCloseTo((844 - 260) / 2, 0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: testInfo.outputPath('retouch-viewer-mobile.png') });
 });

@@ -95,8 +95,8 @@ describe('public photographer website', () => {
     renderPage(<HomePage />);
 
     await completeHomePhoto();
-    expect(await screen.findByRole('heading', { level: 1, name: 'Vos moments préférés. Plus faciles à retrouver.' })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Des photos qui vous ressemblent.' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Vos photos. Vos galeries. Votre propre site.' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Présentez les séances que vous proposez.' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
     const atelierLink = screen.getByRole('link', { name: /Atelier Giulia.*Visiter le site/u });
     expect(atelierLink.getAttribute('href')).toBe('https://ateliergiulia.com/');
@@ -252,7 +252,7 @@ describe('public photographer website', () => {
       .toEqual(['Recent public', 'Middle private', 'Old public']);
   });
 
-  it('hides home stories and keeps the gallery call to action usable', async () => {
+  it('hides home stories and keeps the setup call to action usable', async () => {
     const fetchMock = vi.fn((url: string) => Promise.resolve(new Response(JSON.stringify(
       url === '/api/v1/site'
         ? { ...runtimeSettings, homeGalleries: { enabled: false, limit: 2 } }
@@ -264,7 +264,7 @@ describe('public photographer website', () => {
     await completeHomePhoto();
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
-    expect((await screen.findByRole('link', { name: 'Explorer les galeries en ligne' })).getAttribute('href')).toBe('/galleries');
+    expect((await screen.findByRole('link', { name: 'Créer mon site' })).getAttribute('href')).toBe('#installation');
   });
 
   it('uses the portfolio as the public destination when the gallery directory is hidden', async () => {
@@ -284,7 +284,7 @@ describe('public photographer website', () => {
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
   });
 
-  it('renders contact details supplied by D1 without a demo disclaimer', async () => {
+  it('renders contact details supplied by D1 in the Cadrora sample page', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({
       siteName: 'Atelier Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
       contactEmail: 'studio@runtime.example', contactPhone: '+1 438 555-0199',
@@ -296,11 +296,11 @@ describe('public photographer website', () => {
     }), { headers: { 'content-type': 'application/json' }, status: 200 })));
     renderPage(<ContactPage />);
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Créons quelque chose de mémorable.' })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'Un exemple de page Contact.' })).toBeTruthy();
     await waitFor(() => expect(screen.getByRole('link', { name: 'studio@runtime.example' })).toBeTruthy());
     expect(screen.getByRole('link', { name: '+1 438 555-0199' })).toBeTruthy();
     expect(screen.getByText('456 rue du Studio, Québec')).toBeTruthy();
-    expect(screen.queryByText(/coordonnées sont fictives/i)).toBeNull();
+    expect(screen.getByText(/Cette démonstration utilise des coordonnées fictives/u)).toBeTruthy();
   });
 
   it('explains gallery privacy choices in the shared notice', () => {

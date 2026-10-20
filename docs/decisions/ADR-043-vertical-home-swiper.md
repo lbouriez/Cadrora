@@ -16,3 +16,7 @@ The Atelier Giulia Home previously animated `window.scrollY` between full-height
 ## Consequences
 
 The Swiper module is bundled only for the Home presentation that imports it. Slide movement no longer depends on measured document scroll positions, so owner updates can replace or reorder sessions without recalculating snap points. The overlay removes the extra Home scrollbar while interior pages retain their normal footer. The dependency adds client bundle weight; local build and browser checks must cover performance, wheel and touch edges, keyboard use, reduced motion, and desktop/mobile layout.
+
+## Responsive refinement — 2026-10-19
+
+Following the owner's approval of the compact-header and landscape recommendation, the header becomes compact after leaving the first slide (or scrolling an ordinary page), and is compact immediately in short viewports. Slide text reserves the actual masthead and final-slide footer heights. Overflowing text scrolls natively inside the active slide with a focusable region; pagination remains reachable independently. This is a refinement of the same one-viewport Swiper design, not a replacement of the accepted animation or photo-proportioned viewer contracts.

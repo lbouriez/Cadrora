@@ -29,6 +29,8 @@ Use Vitest and Testing Library for deterministic unit/component tests, Playwrigh
 
 ## Consequences
 
+Dependency maintenance, 2026-10-19: retain this stack and update the official Cloudflare Vite plugin to 1.64.0, Wrangler to 4.151.2 and its compatible Workers types to 5.20261019.1. Update sharp to 0.35.5 and the locked source-map-js transitive package to 1.2.2. This removes the reported development-tool advisories without adding dependencies or forcing incompatible peer versions. Validate both site builds, unit/browser checks and the complete npm audit; registry results are point-in-time evidence.
+
 - The Worker stays orchestration-focused and within a small CPU budget; heavy image and ML work belongs in Web Workers or the browser main-thread fallback.
 - D1/R2/Vectorize consistency is explicit and eventual through an outbox.
 - Shared schemas add some bundle weight but eliminate divergent API types.

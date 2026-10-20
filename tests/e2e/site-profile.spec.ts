@@ -321,7 +321,10 @@ test('owner sessions form full-height panels with their own details action', asy
   expect(hero?.height).toBe(page.viewportSize()?.height);
   await expect(panels.first()).toHaveCSS('display', 'grid');
   const copy = await panels.first().locator('.session-story__copy').boundingBox();
-  expect(Math.abs((copy?.y ?? 0) + (copy?.height ?? 0) / 2 - (hero?.height ?? 0) / 2)).toBeLessThan(2);
+  const masthead = (await page.locator('.public-masthead').boundingBox())!;
+  const content = (await panels.first().locator('.session-story__content').boundingBox())!;
+  expect(copy?.y).toBeGreaterThanOrEqual(masthead.y + masthead.height);
+  expect(Math.abs(content.y + content.height / 2 - ((copy?.y ?? 0) + (copy?.height ?? 0) / 2))).toBeLessThan(2);
   expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
   await expect(page.locator('.session-story__cta')).toHaveCount(3);
   await expect(page.locator('.session-story__cta').first()).toHaveAttribute('aria-haspopup', 'dialog');

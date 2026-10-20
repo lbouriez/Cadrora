@@ -39,7 +39,8 @@
 
 /* Atelier-specific header, menu and immersive Home presentation. */
 :root[data-site='atelier-giulia'] .public-header { width: 100%; min-height: 5.5rem; padding: 1rem clamp(1.25rem, 4vw, 4rem); border: 0; border-radius: 0; background: var(--color-background); box-shadow: none; backdrop-filter: none; }
-:root[data-site='atelier-giulia'] .public-masthead { --public-header-height: 5.5rem; }
+:root[data-site='atelier-giulia'] .public-shell { overflow: clip; }
+:root[data-site='atelier-giulia'] .public-masthead { --public-header-height: 5.5rem; position: sticky; top: 0; min-height: 0; }
 :root[data-site='atelier-giulia'] .public-masthead > .public-header { flex: 1; }
 :root[data-site='atelier-giulia'] .public-brand { font-family: var(--font-display); font-size: clamp(1.4rem, 2.3vw, 2rem); font-weight: 400; letter-spacing: 0.02em; }
 :root[data-site='atelier-giulia'] .public-brand__logo { display: none; }
@@ -113,4 +114,55 @@
   :root[data-site='atelier-giulia'] .public-header { border-radius: 0; padding-inline: 1rem; }
   :root[data-site='atelier-giulia'] .public-brand { font-size: 1.3rem; }
   :root[data-site='atelier-giulia'] .public-shell--immersive .public-footer { gap: var(--space-1); padding-top: var(--space-2); padding-bottom: max(var(--space-2), env(safe-area-inset-bottom)); }
+}
+
+/* Compact navigation follows document scroll or the immersive slide index. */
+:root[data-site='atelier-giulia'] .public-header { transition: min-height var(--motion-standard) ease, padding var(--motion-standard) ease; }
+:root[data-site='atelier-giulia'] .public-brand { transition: font-size var(--motion-standard) ease; }
+:root[data-site='atelier-giulia'] .public-shell--compact-header .public-header { min-height: 3.75rem; padding-block: 0.5rem; }
+:root[data-site='atelier-giulia'] .public-shell--compact-header .public-brand { font-size: 1.2rem; }
+
+/* Measure the actual notice/header/footer, including owner text and zoom. */
+:root[data-site='atelier-giulia'] .public-shell--immersive .session-story__panel {
+  grid-template-rows: minmax(0, 1fr);
+  padding-top: var(--story-header-height, 8rem);
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+:root[data-site='atelier-giulia'] .public-shell--immersive .session-story__panel:last-child { padding-bottom: var(--story-footer-height, 6rem); }
+:root[data-site='atelier-giulia'] .public-shell--immersive .session-story__copy {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-x;
+  padding-inline: var(--control-min-size);
+  scrollbar-width: thin;
+}
+:root[data-site='atelier-giulia'] .public-shell--immersive .session-story__copy.swiper-no-swiping { touch-action: pan-y; }
+:root[data-site='atelier-giulia'] .vertical-story-slider:has(.swiper-slide-active .swiper-no-swiping) { touch-action: pan-y; }
+:root[data-site='atelier-giulia'] .public-shell--immersive .session-story__content { flex-shrink: 0; margin-block: auto; padding-block: var(--space-4); }
+:root[data-site='atelier-giulia'] .public-shell--immersive .vertical-story-slider__pagination {
+  top: var(--story-header-height, 8rem);
+  bottom: var(--story-footer-height, 6rem);
+  align-content: safe center;
+  overflow-y: auto;
+  transform: none;
+}
+
+@media (max-height: 34rem) {
+  :root[data-site='atelier-giulia'] .public-header { min-height: 3.75rem; padding-block: 0.5rem; }
+  :root[data-site='atelier-giulia'] .public-brand { font-size: 1.2rem; }
+  :root[data-site='atelier-giulia'] .session-story h1,
+  :root[data-site='atelier-giulia'] .session-story h2 { font-size: clamp(2rem, 7vh, 3rem); line-height: 1.05; }
+  :root[data-site='atelier-giulia'] .session-story__subtitle { margin-top: var(--space-2); font-size: 1rem; line-height: 1.4; }
+  :root[data-site='atelier-giulia'] .session-story__introduction { margin-top: var(--space-2); }
+  :root[data-site='atelier-giulia'] .session-story__cta { margin-top: var(--space-3); }
+  :root[data-site='atelier-giulia'] .public-nav { justify-content: safe center; padding-block: 5rem; }
+  :root[data-site='atelier-giulia'] .public-nav a { min-height: var(--control-min-size); font-size: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-site='atelier-giulia'] .public-header,
+  :root[data-site='atelier-giulia'] .public-brand { transition: none; }
 }

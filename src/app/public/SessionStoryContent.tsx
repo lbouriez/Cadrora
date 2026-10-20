@@ -20,7 +20,7 @@ export function SessionStoryContent({ card, heading = 'h2', immediate = false, o
         onVisualReady={onVisualReady} visualReadyAt="display" priority={priority} sizes={preview ? '320px' : '100vw'} {...(preview ? { framing: 'mobile' as const } : {})} />
     </div>
     <div className="session-story__shade" />
-    <div className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-200' })}>
+    <div aria-label={copy.title} className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-200', 'data-story-scroll': '', role: 'region', tabIndex: -1 })}>
       <div className="session-story__content">
         <Heading>{copy.title}</Heading>
         {copy.shortDescription ? <p className="session-story__subtitle">{copy.shortDescription}</p> : null}

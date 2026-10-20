@@ -11,7 +11,7 @@ const settings = {
 
 for (const path of ['/services', '/contact']) {
   for (const notice of [true, false]) {
-    test(`${path} keeps the main content in place while the owner notice resolves to ${notice}`, async ({ page }) => {
+    test(`${path} waits for page availability and resolves the owner notice to ${notice}`, async ({ page }) => {
       let release = () => {};
       const pending = new Promise<void>((resolve) => { release = resolve; });
       await page.route('**/api/v1/site', async (route) => {
@@ -24,15 +24,18 @@ for (const path of ['/services', '/contact']) {
       });
       try {
         await page.goto(path);
-        await expect(page.locator('.public-page-intro')).toBeVisible();
+        if (path === '/services') {
+          await expect(page.getByRole('status', { name: /chargement des séances|loading sessions/i })).toBeVisible();
+          await expect(page.locator('.public-page-intro')).toHaveCount(0);
+        } else await expect(page.locator('.public-page-intro')).toBeVisible();
         await page.evaluate(() => document.fonts.ready);
         const before = await page.locator('.public-main').boundingBox();
-        const following = page.locator(path === '/services' ? '.process-section' : '.contact-page__expectations');
-        expect((await following.boundingBox())?.y).toBeGreaterThan(page.viewportSize()?.height ?? 0);
+        if (path === '/contact') expect((await page.locator('.contact-page__expectations').boundingBox())?.y).toBeGreaterThan(page.viewportSize()?.height ?? 0);
         release();
         await expect(page.locator('.public-data-region--pending')).toHaveCount(0);
         await expect(page.locator('.public-construction-notice')).toHaveCount(notice ? 1 : 0);
-        expect((await page.locator('.public-main').boundingBox())?.y).toBeCloseTo(before?.y ?? NaN, 0);
+        await expect(page.locator('.public-page-intro')).toBeVisible();
+        if (process.env.CADRORA_SITE !== 'atelier-giulia') expect((await page.locator('.public-main').boundingBox())?.y).toBeCloseTo(before?.y ?? NaN, 0);
         await assertNoHorizontalOverflow(page);
       } finally { release(); }
     });

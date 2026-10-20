@@ -6,9 +6,9 @@ Cadrora has no tagged stable release or published support window in this reposit
 
 ## Reporting a vulnerability
 
-The repository does not currently publish a dedicated security contact or a verified private reporting channel. Do **not** open a public issue containing an exploit, production URL, credential, cookie, private photo, selfie, embedding, vector ID, or personal data.
+Report vulnerabilities through [GitHub's private vulnerability reporting channel](https://github.com/lbouriez/Cadrora/security/advisories/new). Private reporting is enabled for this repository. Do **not** open a public issue containing an exploit, production URL, credential, cookie, private photo, selfie, embedding, vector ID, or personal data.
 
-If the hosting platform offers private security advisories, use that channel. Otherwise, contact the repository owner through a verified private channel and include only the minimum necessary reproduction details. Maintainers should acknowledge receipt, establish a protected communication channel, assess affected deployments, and coordinate remediation before public disclosure.
+Include only the minimum necessary reproduction details, the affected version or commit, the expected access boundary, and the observed result. Do not attach real customer photos or credentials. Maintainers should acknowledge receipt, assess affected deployments, and coordinate remediation before public disclosure. A fork must publish its own verified reporting channel; do not send another operator's private data to this repository.
 
 ## In scope
 

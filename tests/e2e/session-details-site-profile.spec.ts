@@ -35,10 +35,12 @@ for (const language of ['fr', 'en'] as const) {
     const contactLabel = language === 'fr' ? 'Parlons de votre séance' : 'Let’s talk about your session';
     const title = session.copy[language].title;
     await page.goto(`/${language}/`);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     const consent = page.getByRole('button', { name: /nécessaire seulement|necessary only/i });
     if (await consent.isVisible()) await consent.click();
     const homeCards = page.locator(immersive ? '.swiper-slide.session-story__panel' : '.service-card');
-    await expect(homeCards).toHaveCount(2);
+    // Home placement is independent of Sessions-page visibility (ADR-047).
+    await expect(homeCards).toHaveCount(3);
     if (immersive) {
       await page.locator('.vertical-story-slider__pagination button').nth(1).click();
       await expect(homeCards.nth(1)).toHaveClass(/swiper-slide-active/u);
@@ -78,13 +80,14 @@ for (const language of ['fr', 'en'] as const) {
     if (immersive) {
       await expect(page.locator('.session-story')).not.toHaveAttribute('inert', '');
       await expect(homeCards.nth(homeIndex)).toHaveClass(/swiper-slide-active/u);
+      await expect.poll(() => page.locator('.swiper-wrapper').evaluate((element) => element.getAnimations().some((animation) => animation.playState === 'running'))).toBe(false);
       const next = page.locator('.vertical-story-slider__pagination button').first();
       await next.click();
       await expect(homeCards.first()).toHaveClass(/swiper-slide-active/u);
     }
     if (immersive) await expect(page.locator('.session-story__all')).toHaveCount(0);
     await page.goto(`/${language}/services`);
-    await expect(page).toHaveURL(`/${language}/services`);
+    await expect(page).toHaveURL(new RegExp(`/${language}/services/?$`, 'u'));
     const cards = page.locator('.service-detail-card');
     await expect(cards).toHaveCount(3);
     await expect(cards.first()).toContainText(session.copy[language].shortDescription);
@@ -104,7 +107,8 @@ for (const language of ['fr', 'en'] as const) {
   });
 }
 
-test('Contact remains usable with invalid, unknown, disabled, or unavailable session context', async ({ page }) => {
+test('Contact remains usable with invalid, unknown, hidden, or unavailable session context', async ({ page }) => {
+  await page.route('**/api/v1/services', (route) => route.fulfill({ json: sessions.map((card) => card.id === 'brand' ? { ...card, showOnHome: false } : card) }));
   for (const id of ['invalid/id', 'unknown-session', 'brand']) {
     await page.goto(`/en/contact?session=${encodeURIComponent(id)}`);
     await expect(page.getByRole('link', { name: 'hello@example.test' })).toBeVisible();

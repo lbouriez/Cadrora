@@ -40,9 +40,11 @@ export function SessionScrollStory() {
       if (active) setSlider(() => module.VerticalStorySlider);
     }).catch(() => { if (active) setSliderFailed(true); });
     const displayFont = getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim();
+    // A local font is cosmetic: a stalled font must not keep the studio closed.
+    const fontDeadline = window.setTimeout(() => { if (active) setFontReady(true); }, 3_000);
     void (document.fonts && displayFont ? document.fonts.load(`400 1em ${displayFont}`) : Promise.resolve())
-      .catch(() => undefined).then(() => { if (active) setFontReady(true); });
-    return () => { active = false; };
+      .catch(() => undefined).then(() => { window.clearTimeout(fontDeadline); if (active) setFontReady(true); });
+    return () => { active = false; window.clearTimeout(fontDeadline); };
   }, []);
   const prepared = !settings.isPending && !services.isPending && sliderReady && fontReady;
   const ready = prepared && firstPhotoReady;
@@ -57,7 +59,7 @@ export function SessionScrollStory() {
       <BrandPhoto alt="" className="session-story__photo" immediate onVisualReady={markFirstPhotoReady} visualReadyAt="display" priority sizes="100vw" src={siteProfile.heroImageUrl} />
     </div>
     <div className="session-story__shade" />
-    <div className="session-story__copy" data-swiper-parallax="-200">
+    <div aria-label={t('gallery.heroTitle')} className="session-story__copy" data-story-scroll="" data-swiper-parallax="-200" role="region" tabIndex={-1}>
       <div className="session-story__content">
         <h1>{t('gallery.heroTitle')}</h1>
         <Link className="session-story__cta" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
@@ -67,7 +69,7 @@ export function SessionScrollStory() {
 
   return <div className="session-home">
     <FirstFrameReveal failed={sliderFailed} mediaReveal prepared={prepared} ready={ready}>
-      <PublicLayout immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
+      <PublicLayout compactHeader={activeSlideIndex > 0} immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
         {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
           interactionDisabled={!ready || Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex}
           onReady={markSliderReady} showPagination slideClassName="session-story__panel" slides={slides} /> : null}

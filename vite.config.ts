@@ -48,5 +48,8 @@ export default defineConfig(({ command, isPreview }) => ({
   ],
   server: {
     cors: false,
+    // Playwright traces contain HTML snapshots. Watching them reloads the app
+    // in the middle of another test (or a developer's manual browser session).
+    watch: { ignored: ['**/.artifacts/**', '**/test-results*/**', '**/playwright-report/**'] },
   },
 }));
