@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { ServiceCatalogEditor } from '../../../src/app/admin/ServiceCatalogEditor';
@@ -20,6 +20,72 @@ beforeAll(() => {
 afterEach(async () => { cleanup(); vi.unstubAllGlobals(); await i18n.changeLanguage('fr'); });
 
 describe('service catalog editor', () => {
+  it.each(['fr', 'en'] as const)('adds, translates, saves, reloads and removes pricing packages in %s', async (language) => {
+    await i18n.changeLanguage(language);
+    let card = ServiceCardSchema.parse({ id: 'portrait', isBuiltin: true, sortOrder: 0, enabled: true, showOnHome: true,
+      copy: { fr: { title: 'Portraits', shortDescription: 'Court', description: 'Long', points: [], priceRange: '250 $–450 $' },
+        en: { title: 'Portraits', shortDescription: 'Short', description: 'Long', points: [], priceRange: '$250–$450' } },
+      imageRevision: null, imageSources: [],
+    });
+    let saves = 0;
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/api/v1/admin/services/portrait' && init?.method === 'PATCH') {
+        const body = JSON.parse(typeof init.body === 'string' ? init.body : '') as Record<string, unknown>;
+        card = ServiceCardSchema.parse({ ...card, ...body });
+        saves += 1;
+        return Promise.resolve(new Response(JSON.stringify(card)));
+      }
+      if (url === '/api/v1/admin/services') return Promise.resolve(new Response(JSON.stringify([card])));
+      return Promise.reject(new Error(`Unexpected request: ${url}`));
+    }));
+    const mount = () => render(<QueryClientProvider client={new QueryClient()}><ServiceCatalogEditor
+      enabledLanguages={['fr', 'en']} primaryLanguage={language} readOnly={false} /></QueryClientProvider>);
+    const view = mount();
+    fireEvent.click(await screen.findByText('Portraits', { selector: 'summary' }));
+    const label = (key: string, number?: number) => i18n.t(`admin.serviceEditor.${key}`, { number });
+    const other = language === 'fr' ? 'en' : 'fr';
+    const suffix = language === 'fr' ? 'Français' : 'English';
+    const otherName = language === 'fr' ? 'Anglais' : 'French';
+    for (const number of [1, 2]) {
+      fireEvent.click(screen.getByRole('button', { name: label('addTariff') }));
+      for (const field of ['Name', 'Price', 'Summary']) {
+        const fieldLabel = label(`tariff${field}`, number);
+        fireEvent.change(screen.getByRole('textbox', { name: `${fieldLabel} · ${suffix}` }),
+          { target: { value: `${language} ${field} ${number}` } });
+        fireEvent.click(screen.getByRole('button', { name: new RegExp(i18n.t('admin.settings.translationsFor', { field: fieldLabel }), 'u') }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.change(within(dialog).getByRole('textbox', { name: otherName }),
+          { target: { value: `${other} ${field} ${number}` } });
+        fireEvent.click(within(dialog).getByText(i18n.t('admin.settings.translationsClose'), { selector: 'button' }));
+      }
+    }
+    fireEvent.change(screen.getByRole('textbox', { name: `${label('goodToKnow')} · ${suffix}` }),
+      { target: { value: '  Travel included.  ' } });
+    fireEvent.click(screen.getByRole('button', { name: label('save') }));
+    await waitFor(() => expect(saves).toBe(1));
+    expect(card.copy?.[language].goodToKnow).toBe('Travel included.');
+    for (const locale of ['fr', 'en'] as const) expect(card.copy?.[locale].tariffs).toEqual([1, 2].map(number => ({
+      name: `${locale} Name ${number}`, price: `${locale} Price ${number}`, summary: `${locale} Summary ${number}`,
+    })));
+    view.unmount();
+    mount();
+    fireEvent.click(await screen.findByText('Portraits', { selector: 'summary' }));
+    expect(screen.getByRole<HTMLInputElement>('textbox', { name: `${label('tariffName', 2)} · ${suffix}` }).value).toBe(`${language} Name 2`);
+    fireEvent.click(screen.getByRole('button', { name: label('removeTariff', 1) }));
+    fireEvent.click(screen.getByRole('button', { name: label('save') }));
+    await waitFor(() => expect(saves).toBe(2));
+    for (const locale of ['fr', 'en'] as const) expect(card.copy?.[locale].tariffs).toEqual([
+      { name: `${locale} Name 2`, price: `${locale} Price 2`, summary: `${locale} Summary 2` },
+    ]);
+    fireEvent.click(screen.getByRole('button', { name: label('removeTariff', 1) }));
+    fireEvent.change(screen.getByRole('textbox', { name: `${label('goodToKnow')} · ${suffix}` }), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: label('save') }));
+    await waitFor(() => expect(saves).toBe(3));
+    expect(card.copy?.fr.tariffs).toEqual([]);
+    expect(card.copy?.en.tariffs).toEqual([]);
+    expect(card.copy?.[language].goodToKnow).toBe('');
+  }, 15_000);
+
   it('accepts the expanded copy limits and rejects content beyond them', () => {
     const copy = { title: 'Birthday', shortDescription: 'Memories', description: 'x'.repeat(1000),
       points: Array.from({ length: 8 }, (_, index) => `Inclusion ${index + 1}`) };

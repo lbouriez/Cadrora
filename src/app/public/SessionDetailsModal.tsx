@@ -16,11 +16,29 @@ export function SessionDetailsModal({ card, onClose }: { card: ServiceCard | nul
     {copy && card ? <div className="service-details-modal__body">
       <p>{copy.description}</p>
       {copy.duration ? <p><strong>{t('gallery.servicesPage.durationLabel')}</strong> {copy.duration}</p> : null}
-      {copy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {copy.priceRange}</p> : null}
+      {copy.tariffs.length === 1 ? <>
+        <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {copy.tariffs[0]?.name} — {copy.tariffs[0]?.price}</p>
+        <p>{copy.tariffs[0]?.summary}</p>
+      </> : <>
+        {copy.priceRange ? <p><strong>{t('gallery.servicesPage.priceLabel')}</strong> {copy.priceRange}</p> : null}
+        {copy.tariffs.length > 1 ? <section className="service-details-modal__pricing" aria-label={t('gallery.servicesPage.tariffsLabel')}>
+          <h3>{t('gallery.servicesPage.tariffsLabel')}</h3>
+          <ul className="service-details-modal__tariffs">
+            {copy.tariffs.map((tariff, index) => <li key={index}>
+              <strong>{tariff.name} — {tariff.price}</strong>
+              <p>{tariff.summary}</p>
+            </li>)}
+          </ul>
+        </section> : null}
+      </>}
       {copy.illustrativeExample ? <p className="service-details-modal__example-note">{t('gallery.servicesPage.exampleNotice')}</p> : null}
       {copy.details ? <p className="service-details-modal__details">{copy.details}</p> : null}
       {copy.points.length ? <><h3>{t('gallery.servicesPage.includedLabel')}</h3>
         <ul>{copy.points.map((point, index) => <li key={index}>{point}</li>)}</ul></> : null}
+      {copy.goodToKnow ? <section className="service-details-modal__good-to-know" aria-label={t('gallery.servicesPage.goodToKnowLabel')}>
+        <h3>{t('gallery.servicesPage.goodToKnowLabel')}</h3>
+        <p className="service-details-modal__details">{copy.goodToKnow}</p>
+      </section> : null}
       <Link className="button button--primary" onClick={onClose}
         to={`${localizedMarketingPath('/contact', language)}?${new URLSearchParams({ session: card.id })}`}>
         {t('gallery.servicesPage.contactAction')}

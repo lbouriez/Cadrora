@@ -264,6 +264,7 @@ export const publicResources = {
         viewAll: 'View all sessions', contactAction: 'Let’s talk about your session',
         contactContext: 'Interested in: {{session}}',
         priceLabel: 'Price:', durationLabel: 'Duration:', includedLabel: 'What is included',
+        tariffsLabel: 'Packages', goodToKnowLabel: 'Good to know',
         exampleNotice: 'These are examples. We confirm the duration and price for your project before booking.',
         brand: {
           durationExample: 'Example: 1–2 hours', priceExample: 'Example: $450–$900',
@@ -643,6 +644,7 @@ export const publicResources = {
         viewAll: 'Voir toutes les séances', contactAction: 'Parlons de votre séance',
         contactContext: 'Séance qui vous intéresse : {{session}}',
         priceLabel: 'Tarif :', durationLabel: 'Durée :', includedLabel: 'Ce qui est inclus',
+        tariffsLabel: 'Forfaits', goodToKnowLabel: 'Bon à savoir',
         exampleNotice: 'Ces durées et tarifs sont des exemples. Nous confirmons la durée et le tarif de votre projet avant la réservation.',
         brand: {
           durationExample: 'Exemple : 1 à 2 heures', priceExample: 'Exemple : 450 $ à 900 $',

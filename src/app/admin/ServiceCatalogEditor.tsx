@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema, ServicePhotoAlignmentSchema,
-  MAX_SERVICE_DESCRIPTION_LENGTH, MAX_SERVICE_INCLUSIONS,
+  MAX_SERVICE_DESCRIPTION_LENGTH, MAX_SERVICE_INCLUSIONS, MAX_SERVICE_TARIFFS,
 } from '../../shared/schemas';
 import { MAX_SITE_SERVICES } from '../../shared/constants';
 import type { Language, ServiceCard, ServiceCopy, ServicePhotoAlignment } from '../../shared/schemas';
@@ -71,7 +71,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
   const [photoSaved, setPhotoSaved] = useState(false);
   const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
 
-  const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | 'duration' | 'priceRange' | 'details' | number, value: string) => {
+  const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | 'duration' | 'priceRange' | 'details' | 'goodToKnow' | number, value: string) => {
     const nextLanguage = { ...copy[language] };
     if (typeof field === 'number') {
       const points = [...nextLanguage.points];
@@ -79,6 +79,27 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       nextLanguage.points = points;
     } else nextLanguage[field] = value;
     setField('copy', { ...copy, [language]: nextLanguage });
+    setSuccess(false);
+  };
+
+  const tariffCount = Math.max(copy.fr.tariffs?.length ?? 0, copy.en.tariffs?.length ?? 0);
+  const updateTariff = (language: Language, index: number, field: 'name' | 'price' | 'summary', value: string) => {
+    const tariffs = Array.from({ length: tariffCount }, (_, position) =>
+      copy[language].tariffs?.[position] ?? { name: '', price: '', summary: '' });
+    tariffs[index] = { ...(tariffs[index] ?? { name: '', price: '', summary: '' }), [field]: value };
+    setField('copy', { ...copy, [language]: { ...copy[language], tariffs } });
+    setSuccess(false);
+  };
+  const resizeTariffs = (removeIndex?: number) => {
+    if (removeIndex === undefined && tariffCount >= MAX_SERVICE_TARIFFS) return;
+    const updateLanguage = (language: Language) => {
+      const tariffs = Array.from({ length: tariffCount }, (_, index) =>
+        copy[language].tariffs?.[index] ?? { name: '', price: '', summary: '' });
+      if (removeIndex === undefined) tariffs.push({ name: '', price: '', summary: '' });
+      else tariffs.splice(removeIndex, 1);
+      return { ...copy[language], tariffs };
+    };
+    setField('copy', { fr: updateLanguage('fr'), en: updateLanguage('en') });
     setSuccess(false);
   };
 
@@ -94,6 +115,8 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       duration: copy[language].duration?.trim() ?? '',
       priceRange: copy[language].priceRange?.trim() ?? '',
       details: copy[language].details?.trim() ?? '',
+      tariffs: copy[language].tariffs ?? [],
+      goodToKnow: copy[language].goodToKnow?.trim() ?? '',
     }]));
     const parsed = ServiceCopySchema.safeParse(normalized);
     if (!parsed.success) { setError(true); return; }
@@ -165,6 +188,25 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         languages={LanguageSchema.options} maxLength={field === 'duration' ? 120 : field === 'priceRange' ? 160 : 2000}
         multiline={field === 'details'} onChange={(language, value) => updateCopy(language, field, value)}
         primaryLanguage={primaryLanguage} values={{ fr: copy.fr[field] ?? '', en: copy.en[field] ?? '' }} />)}
+      <fieldset className="admin-service-framing" disabled={busy || readOnly}>
+        <legend>{t('admin.serviceEditor.tariffs')}</legend>
+        <p className="field__hint">{t('admin.serviceEditor.tariffsHint')}</p>
+        {Array.from({ length: tariffCount }, (_, index) => <fieldset className="admin-service-framing" key={index}>
+          <legend>{t('admin.serviceEditor.tariffNumber', { number: index + 1 })}</legend>
+          {(['name', 'price', 'summary'] as const).map((field) => <LocalizedTextField
+            key={field} enabledLanguages={enabledLanguages} languages={LanguageSchema.options} required
+            label={t(`admin.serviceEditor.tariff${field === 'name' ? 'Name' : field === 'price' ? 'Price' : 'Summary'}`, { number: index + 1 })}
+            maxLength={field === 'name' ? 120 : field === 'price' ? 160 : 600} multiline={field === 'summary'}
+            onChange={(language, value) => updateTariff(language, index, field, value)} primaryLanguage={primaryLanguage}
+            values={{ fr: copy.fr.tariffs?.[index]?.[field] ?? '', en: copy.en.tariffs?.[index]?.[field] ?? '' }} />)}
+          <Button variant="secondary" onClick={() => resizeTariffs(index)}>{t('admin.serviceEditor.removeTariff', { number: index + 1 })}</Button>
+        </fieldset>)}
+        <Button variant="secondary" disabled={tariffCount >= MAX_SERVICE_TARIFFS} onClick={() => resizeTariffs()}>{t('admin.serviceEditor.addTariff')}</Button>
+      </fieldset>
+      <LocalizedTextField enabledLanguages={enabledLanguages} languages={LanguageSchema.options}
+        label={t('admin.serviceEditor.goodToKnow')} maxLength={1000} multiline primaryLanguage={primaryLanguage}
+        values={{ fr: copy.fr.goodToKnow ?? '', en: copy.en.goodToKnow ?? '' }}
+        onChange={(language, value) => updateCopy(language, 'goodToKnow', value)} />
       {card ? <>
         <label className="admin-settings-services__option"><input checked={enabled} disabled={readOnly} onChange={(event) => setField('enabled', event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.enabled')}</span></label>
         <label className="admin-settings-services__option"><input checked={showOnHome} disabled={readOnly} onChange={(event) => setField('showOnHome', event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.showOnHome')}</span></label>

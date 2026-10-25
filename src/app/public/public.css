@@ -746,6 +746,23 @@
   white-space: pre-line;
 }
 
+.service-details-modal__pricing,
+.service-details-modal__good-to-know {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.service-details-modal__pricing h3,
+.service-details-modal__good-to-know h3 {
+  margin: 0;
+}
+
+.service-details-modal__tariffs > li + li {
+  margin-top: var(--space-3);
+}
+
 .process-section {
   display: grid;
   padding: clamp(4rem, 9vw, 7rem) 0;

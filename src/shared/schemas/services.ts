@@ -3,6 +3,12 @@ import { MAX_SITE_SERVICES } from '../constants';
 
 export const MAX_SERVICE_DESCRIPTION_LENGTH = 1000;
 export const MAX_SERVICE_INCLUSIONS = 8;
+export const MAX_SERVICE_TARIFFS = 8;
+export const ServiceTariffSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  price: z.string().trim().min(1).max(160),
+  summary: z.string().trim().min(1).max(600),
+}).strict();
 
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
@@ -15,6 +21,8 @@ export const ServiceCopyLanguageSchema = z.object({
   duration: z.string().max(120).optional(),
   priceRange: z.string().max(160).optional(),
   details: z.string().max(2000).optional(),
+  tariffs: z.array(ServiceTariffSchema).max(MAX_SERVICE_TARIFFS).optional(),
+  goodToKnow: z.string().max(1000).optional(),
 }).strict();
 export const ServiceCopySchema = z.object({ fr: ServiceCopyLanguageSchema, en: ServiceCopyLanguageSchema }).strict();
 export const ServiceImageSourceSchema = z.object({ url: z.string().startsWith('/service-media/'), width: z.number().int().positive(), height: z.number().int().positive() }).strict();

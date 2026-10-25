@@ -44,6 +44,8 @@ export function serviceText(card: ServiceCard, language: 'fr' | 'en', translate:
     duration: copy?.duration ?? (illustrativeExample ? duration : ''),
     priceRange: copy?.priceRange ?? (illustrativeExample ? price : ''),
     details: copy?.details ?? '',
+    tariffs: copy?.tariffs ?? [],
+    goodToKnow: copy?.goodToKnow?.trim() ?? '',
     illustrativeExample,
   };
 }

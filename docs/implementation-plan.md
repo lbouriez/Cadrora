@@ -1,5 +1,7 @@
 # Approved implementation plan
 
+Post-plan extension (2026-10-25): ADR-054 adds optional bilingual session pricing packages and practical information across PA admin editing, PB shared public session details, and shared API schemas. Reuse `site_services.copy_json`, existing routes and localized fields. Acceptance includes legacy/single/multiple price rendering, optional-block omission, FR/EN save/reload and mobile/keyboard coverage, both profile builds, and shared-code deployment before the separate Atelier content migration.
+
 Status: implemented. Approved 2026-09-20; implementation and documentation reviewed 2026-09-21. Release-specific provider evidence must still be recorded for each deployed revision.
 
 Post-plan extension (2026-10-25): ADR-053 adds the owner Maintenance workspace across PA admin navigation/UI, shared schemas, and PD job/log observability. Reuse the existing Cron and D1 log history; retain existing upload recovery. Acceptance includes migration 046, owner-only no-store reads, safe structured events, bounded 90-day history cleanup, accurate scheduler/job states, lazy manual media scans, FR/EN mobile/keyboard checks and both profile builds. Future repairs and health sections require their own implementation scope.

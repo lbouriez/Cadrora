@@ -1,5 +1,7 @@
 # Frozen technical contracts
 
+ADR-054 adds optional localized `tariffs` (up to eight named prices with short summaries) and `goodToKnow` to existing service copy. Legacy copy stays valid; the shared dialog and admin editor use these fields without new routes or tables. Deploy schema support before populating them. See [ADR-054](../decisions/ADR-054-session-pricing-packages.md).
+
 ADR-048 replaces the global SPA fallback with localized static 404 documents. Only recognized dynamic gallery/admin client routes request an HTML shell, after existing middleware; public marketing documents stay asset-first and the gallery directory remains unindexed. See [ADR-048](../decisions/ADR-048-static-not-found-documents.md).
 
 Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md); owner-approved public-site configuration changes are recorded in [`ADR-008`](../decisions/ADR-008-runtime-website-settings-and-maps.md).
