@@ -1,14 +1,17 @@
 import { z } from '../zod';
 import { MAX_SITE_SERVICES } from '../constants';
 
+export const MAX_SERVICE_DESCRIPTION_LENGTH = 1000;
+export const MAX_SERVICE_INCLUSIONS = 8;
+
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
 export const ServicePhotoAlignmentSchema = z.enum(['left', 'center', 'right', 'top', 'bottom']);
 export const ServiceCopyLanguageSchema = z.object({
   title: z.string().min(1).max(120),
   shortDescription: z.string().min(1).max(180),
-  description: z.string().min(1).max(600),
-  points: z.array(z.string().min(1).max(200)).max(5),
+  description: z.string().min(1).max(MAX_SERVICE_DESCRIPTION_LENGTH),
+  points: z.array(z.string().min(1).max(200)).max(MAX_SERVICE_INCLUSIONS),
   duration: z.string().max(120).optional(),
   priceRange: z.string().max(160).optional(),
   details: z.string().max(2000).optional(),

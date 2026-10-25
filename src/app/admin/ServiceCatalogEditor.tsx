@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import {
   LanguageSchema, ServiceCardSchema, ServiceCardsSchema, ServiceCopySchema, ServicePhotoAlignmentSchema,
+  MAX_SERVICE_DESCRIPTION_LENGTH, MAX_SERVICE_INCLUSIONS,
 } from '../../shared/schemas';
 import { MAX_SITE_SERVICES } from '../../shared/constants';
 import type { Language, ServiceCard, ServiceCopy, ServicePhotoAlignment } from '../../shared/schemas';
@@ -152,10 +153,10 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     <div className="admin-service-editor__fields">
       {(['title', 'shortDescription', 'description'] as const).map((field) => <LocalizedTextField
         enabledLanguages={enabledLanguages} key={field} label={t(`admin.serviceEditor.${field}`)}
-        languages={LanguageSchema.options} maxLength={field === 'title' ? 120 : field === 'shortDescription' ? 180 : 600}
+        languages={LanguageSchema.options} maxLength={field === 'title' ? 120 : field === 'shortDescription' ? 180 : MAX_SERVICE_DESCRIPTION_LENGTH}
         multiline={field === 'description'} onChange={(language, value) => updateCopy(language, field, value)}
         primaryLanguage={primaryLanguage} values={{ fr: copy.fr[field], en: copy.en[field] }} />)}
-      {[0, 1, 2].map((index) => <LocalizedTextField enabledLanguages={enabledLanguages} key={index}
+      {Array.from({ length: MAX_SERVICE_INCLUSIONS }, (_, index) => <LocalizedTextField enabledLanguages={enabledLanguages} key={index}
         label={t('admin.serviceEditor.point', { number: index + 1 })} languages={LanguageSchema.options}
         maxLength={200} onChange={(language, value) => updateCopy(language, index, value)} primaryLanguage={primaryLanguage}
         values={{ fr: copy.fr.points[index] ?? '', en: copy.en.points[index] ?? '' }} />)}

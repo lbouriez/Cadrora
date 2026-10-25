@@ -8,7 +8,7 @@ import { adminResourceFragment } from '../../../src/app/admin/resources';
 import { serviceEditorResources } from '../../../src/app/admin/serviceEditorResources';
 import { i18n } from '../../../src/app/i18n';
 import { installPublicResources } from '../../../src/app/public/i18n';
-import { ServiceCardSchema } from '../../../src/shared/schemas';
+import { ServiceCardSchema, ServiceCopyLanguageSchema } from '../../../src/shared/schemas';
 
 beforeAll(() => {
   installPublicResources(i18n);
@@ -20,6 +20,58 @@ beforeAll(() => {
 afterEach(async () => { cleanup(); vi.unstubAllGlobals(); await i18n.changeLanguage('fr'); });
 
 describe('service catalog editor', () => {
+  it('accepts the expanded copy limits and rejects content beyond them', () => {
+    const copy = { title: 'Birthday', shortDescription: 'Memories', description: 'x'.repeat(1000),
+      points: Array.from({ length: 8 }, (_, index) => `Inclusion ${index + 1}`) };
+    expect(ServiceCopyLanguageSchema.safeParse(copy).success).toBe(true);
+    expect(ServiceCopyLanguageSchema.safeParse({ ...copy, description: 'x'.repeat(1001) }).success).toBe(false);
+    expect(ServiceCopyLanguageSchema.safeParse({ ...copy, points: [...copy.points, 'Ninth'] }).success).toBe(false);
+  });
+
+  it.each(['fr', 'en'] as const)('edits and reloads eight inclusions and a 1000-character description in %s', async (language) => {
+    await i18n.changeLanguage(language);
+    let card = ServiceCardSchema.parse({ id: 'maternity', isBuiltin: true, sortOrder: 0, enabled: true, showOnHome: true,
+      copy: { fr: { title: 'Maternité', shortDescription: 'Court', description: 'Long', points: ['Inclus'] },
+        en: { title: 'Maternity', shortDescription: 'Short', description: 'Long', points: ['Included'] } },
+      imageRevision: null, imageSources: [],
+    });
+    let saves = 0;
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/api/v1/admin/services/maternity' && init?.method === 'PATCH') {
+        const body = JSON.parse(typeof init.body === 'string' ? init.body : '') as Record<string, unknown>;
+        card = ServiceCardSchema.parse({ ...card, ...body });
+        saves += 1;
+        return Promise.resolve(new Response(JSON.stringify(card)));
+      }
+      if (url === '/api/v1/admin/services') return Promise.resolve(new Response(JSON.stringify([card])));
+      return Promise.reject(new Error(`Unexpected request: ${url}`));
+    }));
+    const mount = () => render(<QueryClientProvider client={new QueryClient()}><ServiceCatalogEditor
+      enabledLanguages={['fr', 'en']} primaryLanguage={language} readOnly={false} /></QueryClientProvider>);
+    const view = mount();
+    const title = language === 'fr' ? 'Maternité' : 'Maternity';
+    const suffix = language === 'fr' ? 'Français' : 'English';
+    const descriptionLabel = `${i18n.t('admin.serviceEditor.description')} · ${suffix}`;
+    const pointLabel = (number: number) => `${i18n.t('admin.serviceEditor.point', { number })} · ${suffix}`;
+    fireEvent.click(await screen.findByText(title, { selector: 'summary' }));
+    const description = screen.getByRole<HTMLTextAreaElement>('textbox', { name: descriptionLabel });
+    expect(description.maxLength).toBe(1000);
+    fireEvent.change(description, { target: { value: 'x'.repeat(1000) } });
+    const points = Array.from({ length: 8 }, (_, index) => `Inclusion ${index + 1}`);
+    points.forEach((value, index) => fireEvent.change(screen.getByRole('textbox', { name: pointLabel(index + 1) }),
+      { target: { value } }));
+    expect(screen.queryByRole('textbox', { name: pointLabel(9) })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('admin.serviceEditor.save') }));
+    await waitFor(() => expect(saves).toBe(1));
+    expect(card.copy?.[language]).toMatchObject({ description: 'x'.repeat(1000), points });
+    expect(card.copy?.[language === 'fr' ? 'en' : 'fr'].points).toEqual([language === 'fr' ? 'Included' : 'Inclus']);
+    view.unmount();
+    mount();
+    fireEvent.click(await screen.findByText(title, { selector: 'summary' }));
+    expect(screen.getByRole<HTMLTextAreaElement>('textbox', { name: descriptionLabel }).value).toBe('x'.repeat(1000));
+    points.forEach((value, index) => expect(screen.getByRole<HTMLInputElement>('textbox', { name: pointLabel(index + 1) }).value).toBe(value));
+  });
+
   it.each(['fr', 'en'] as const)('previews, saves, and reloads the phone override in %s without uploading again', async (language) => {
     await i18n.changeLanguage(language);
     let card = ServiceCardSchema.parse({ id: 'maternity', isBuiltin: true, sortOrder: 0, enabled: false, showOnHome: true,
