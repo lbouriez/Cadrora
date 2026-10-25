@@ -1,8 +1,154 @@
-# Deployment guide
+# Set up and launch Cadrora
 
-After the infrastructure is working, follow [Make the site yours after deployment](after-deployment.md) for contact details, appearance, logo, favicon and content. The deployment steps below do not replace that launch checklist.
+Start here to put your own photography website online. The sequence is **prepare → deploy → connect your domain → add your content → test a client journey**. A successful build completes the deployment stage; the launch checklist completes the setup.
 
-This is a deployment preflight for Cadrora. For the product overview and a short setup path, start with the [main README](../README.md); for account-wide free allowances and example bills, see [cost planning](free-tier.md). This guide documents the repository-preserving Cloudflare Workers Builds flow and the separate Deploy Button clone flow. Cadrora is one Worker named `cadrora`, with Vite static assets, D1, private media R2, and a separate model R2 bucket. The public website at `/`, `/services`, `/galleries`, `/contact`, and `/privacy` remains a static asset route; do not place it behind the admin guard or make it depend on gallery availability. Public and admin gallery HTTP routes use `/galleries`; no legacy `/events` alias is registered.
+This is the single installation guide linked from the [README](../README.md). Keep provider configuration here, studio-content instructions in [after-deployment.md](after-deployment.md), and later releases in [upgrading.md](upgrading.md). No setup wizard is required to follow these steps.
+
+## Choose your path
+
+| Your situation | Start here |
+| --- | --- |
+| First site, deployed automatically from your existing GitHub fork | Follow **Before you start**, then steps 1–12 below. |
+| Try the site on your computer first | [Local preview and validation](#local-validation); this creates no remote resources. |
+| Maintain the existing Atelier Giulia installation | [Atelier Giulia pipeline](#atelier-giulia-from-this-repository); do not recreate its credentials or use the generic first-install path. |
+| Add another isolated site with the command-line provisioner | [Additional domain or subdomain](#additional-isolated-domain-or-subdomain). This does not set up Workers Builds. |
+| Intentionally let Cloudflare create another repository | [Deploy Button clone](#deploy-button-setup-page). |
+| Upgrade a working installation | [Upgrade guide](upgrading.md); retain the existing resources and credentials. |
+
+## Before you start
+
+Have these ready:
+
+- A Cloudflare account and a domain or subdomain in an active zone you control. Review [costs and account-wide limits](free-tier.md), including R2 billing activation.
+- Git, a GitHub account, and a fork of this repository. Clone **your fork**, open a terminal in its root, and run the commands below. An existing maintainer checkout can use its current repository.
+- Node.js **22.23.4+ (22 LTS)** or **24.22.1+ (24 LTS)** and npm **10+**, matching the repository's supported versions. Use a supported version in Cloudflare Builds too.
+- A password manager for the generated admin password, and permission to connect the repository and configure the intended Cloudflare account.
+- Your studio name, enabled languages, contact details and licensed photos. These can be added after deployment, before sharing the site.
+
+```powershell
+node --version
+npm --version
+npm ci
+```
+
+**Ready to continue:** dependency installation succeeds from your fork. None of these commands creates a Cloudflare resource or publishes a website.
+
+For a normal photographer's installation, leave `CADRORA_SEED_DEMO` unset. Cadrora.com intentionally enables it to demonstrate the product; other sites should not inherit its fictional galleries or read-only demo login. The normal Workers Builds path defaults to the `cadrora` presentation profile; select and customize a different checked-in profile with `CADRORA_SITE` if needed. The instance provisioner's different default is documented in its own section.
+
+## Existing-repository Cloudflare Builds
+
+Follow steps 1–12 in order for a first installation. Use **your own hostname** wherever a domain is requested; `cadrora` in the resource names below is the application name, not a requirement to own `cadrora.com`.
+
+Use this path when `lbouriez/Cadrora` (or a fork you maintain) must remain the only source repository. Do **not** use the Deploy Button: Cloudflare's button creates a clone in a Git provider account. The Workers Builds labels below were cross-checked against Cloudflare's [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) and [Build configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) guides on 2026-09-25; Atelier Giulia's zone, R2, and Turnstile labels were [observed directly](technical/deployment-rehearsal-2026-09-25.md). The new-account Workers Builds form and screenshots remain unverified, so do not mistake this for a completed visual walkthrough of that **separate** installation path.
+
+### Step 1 — Select the intended Cloudflare account.
+
+In the Dashboard account switcher, choose the account that owns the domain, then verify the zone status is **Active**. If you run Wrangler on a workstation, `npx wrangler whoami` must list that account; setting only `CLOUDFLARE_ACCOUNT_ID` in `.env.local` neither logs Wrangler into another account nor changes the account selected in Workers Builds. Never provision through a CLI session showing only another account.
+### Step 2 — Enable R2 once.
+
+Open **Storage & databases → R2 Object Storage**. If R2 is not active, Cloudflare opens **Get started with R2**, shows **Includes free monthly usage**, then offers **Add R2 subscription to my account**. On the AtelierGiulia screen this displayed **Total Due Now $0.00** and **Due Monthly $0.00 + additional usage**, but also an existing payment card, automatic renewal, and charges above the free monthly allowances. The account owner must review the live terms and click this billing button personally; included free usage does not mean the subscription step can be skipped. Afterward, return to **R2 Object Storage** and confirm the bucket overview opens instead of **Get started with R2**. `npx wrangler r2 bucket list` may validly return an empty list; error `10042` means R2 is disabled.
+### Step 3 — Create the production resources.
+
+Create D1 `cadrora`, R2 `cadrora-media`, and R2 `cadrora-models`. Both buckets must show **Public Access: Disabled**. Create Vectorize `cadrora-face-index` with **128** dimensions and the **cosine** metric, then create its string metadata index `partition_id`. Copy the D1 UUID from its Overview page; record the two bucket names exactly. The first party configuration binds `FACE_INDEX` to that exact index name.
+### Step 4 — Create the admin credential and pepper.
+
+Run `npm ci` then `npm run setup:admin-credentials` on a trusted workstation. This command **generates a random password**; it does not prompt you to choose one. It writes the ignored local `.artifacts/setup/admin-credentials.env`. Open that file privately and store the value after `ADMIN_PASSWORD=` in a password manager. Cloudflare gets the matching `ADMIN_SECRET_HASH` and random `AUTH_PEPPER` as two separate encrypted secrets—never the password or the artifact itself. The generator refuses to overwrite its file by default; do not force regeneration for an existing deployment, because a new password/hash/pepper pair would invalidate its current login.
+### Step 5 — Create Turnstile for the real hostname.
+
+Open **Application security → Turnstile → Add widget manually**; enter a **Widget name**, add your actual hostname (for example `photos.example.com`) under **Hostname Management → Hostnames**, keep **Managed** under **Widget Mode**, leave **Skip future security rule challenges for verified visitors** off, then select **Create**. On the resulting screen choose **Integrate the widget yourself**, not **Set up with Spin**; copy **Site key (Click to copy)** and **Secret key (Click to copy)** separately. The private key belongs only in an encrypted secret. Add your `www` hostname only if it will be served. To test admin login before connecting the custom domain, also authorize the exact Worker hostname shown by Cloudflare; return to this widget after deployment if that hostname was not yet known. Localhost test keys are not production keys.
+### Step 6 — Import the existing repository.
+
+In **Workers & Pages**, select **Create application → Get started** beside **Import a repository**, choose the Git account under **Import a repository**, then select **your existing fork** (or `lbouriez/Cadrora` only when maintaining the original site). This connects it; it does not fork or create another repository.
+### Step 7 — Complete the build settings.
+
+Use Worker name `cadrora`, matching `wrangler.jsonc`; Git branch `main`; Build command `npm run build`; Deploy command `npm run deploy`; Root directory `/`. Disable preview/other-branch builds until preview has separate bindings. Leave Cloudflare Access off for the first release. The current Cloudflare documentation calls the final button **Save and Deploy**; if your account shows **Deploy**, review the same values before selecting it.
+### Step 8 — Complete Build variables and secrets before deployment.
+
+Cloudflare can generate a Workers Builds **API token** automatically; use a dedicated scoped token only if you need to replace that default. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. Do **not** add `VITE_GA_MEASUREMENT_ID`; configure GA4 later in authenticated Site settings. The click-to-load contact map uses OpenStreetMap without a key; `VITE_GOOGLE_MAPS_EMBED_KEY` is optional public configuration only if you prefer Google for the embed. `CADRORA_SEED_DEMO=true` is only for an intentional showcase deployment and defaults to off. The release materializes the matching runtime gate and the reserved `demo-private` bypass; do not add or enable `DEMO_SHOWCASE_ENABLED` manually. Use the field map below so a secret is not accidentally placed in a public `VITE_*` value. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
+### Step 9 — Deploy and verify the Worker hostname.
+
+Select **Save and Deploy** (or **Deploy** on a different setup form), wait for the build's terminal success, then run the verification list below. A later push to `main` builds production automatically. Keep branch builds off until preview gets its own D1/R2 values and secret set.
+### Step 10 — Attach the domain after the Worker works.
+
+In the Worker's **Settings → Domains & Routes**, add your actual hostname as a custom domain. Confirm DNS and TLS are active, then repeat the verification list on that hostname. Adding `www` serves the Worker but does not make it redirect; add a redirect rule only if that is desired.
+### Step 11 — Make the site yours.
+
+Complete [the content setup steps](after-deployment.md): studio identity, FR/EN descriptions and sessions, About, contact, appearance, real photos, logo and favicon. Save admin changes; commit and deploy any profile/static-asset changes. Keep the site-progress notice on while preparing the site if you use that feature.
+### Step 12 — Test before sharing.
+
+Complete [the launch checklist](after-deployment.md#launch-readiness-checklist), including a small password-protected gallery in a signed-out browser. Leave face search off until its [model objects and index](#models-and-optional-face-search) are verified. Record the hostname and deployed revision, then share the site when its intended public content and client journey work.
+
+### Check your progress
+
+Before step 9, verify that the Workers Builds API token can apply migrations to your selected D1 database as well as deploy the Worker and access its required resources. Cloudflare's automatically generated token should not be assumed to include every permission Cadrora's release script needs; inspect its scope and add the required D1 edit permission for the intended account. See [Cloudflare's build-token configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/#api-token). A D1 authorization failure at migration time is a token/account configuration issue, not a reason to skip migrations.
+
+| After | Evidence to look for |
+| --- | --- |
+| Steps 1–3: account and resources | Correct account, active zone, D1 UUID, two private R2 buckets and the configured Vectorize index. |
+| Steps 4–5: credentials | Admin password stored privately; matching hash/pepper ready; real Turnstile widget covers every hostname you will test. |
+| Steps 6–8: build configuration | Correct fork and branch, explicit build/deploy commands, supported Node version, and all three secret fields encrypted. |
+| Step 9: deployment | Build log confirms migrations and Worker deployment; public pages load and admin sign-in works on the Worker hostname. |
+| Step 10: domain | HTTPS works on your domain; sign-in works there too. Test any chosen `www` redirect separately. |
+| Steps 11–12: launch | Your real content is visible in each enabled language, and a signed-out visitor can complete the intended gallery journey. |
+
+If a checkpoint fails, stay at that stage. A successful local build does not confirm remote bindings, Turnstile hostnames, or a usable client gallery. Use [login/unlock troubleshooting](#turnstile-and-gallery-unlock-troubleshooting) for authentication failures and the [operations runbook](operations.md) for diagnostics and cleanup.
+
+The account owner must personally review any billing confirmation, API-token creation, domain replacement warning, and secret transmission. A successful local build or visible GitHub repository does not prove those manual account steps are complete.
+
+### Cloudflare setup form: exact field map
+
+Do not place actual values in this public repository or in a ticket/screenshot. The table identifies where each value comes from and whether the Cloudflare setup page's **Encrypt** action is required.
+
+| Cloudflare setup field | Value to enter | Encrypt? | Where to retrieve it safely |
+| --- | --- | --- | --- |
+| `NODE_VERSION` | A supported installed version, for example `22.23.4` | No | Match `package.json` engines and the local version used for validation. Set in Workers Builds, not Worker runtime settings. |
+| `CADRORA_SITE` | Optional checked-in profile ID, for example `studio`; default `cadrora` for this path | No | `sites/<site-id>/profile.json` and `site.ts`. This selects presentation, not a Cloudflare account or database. Customize its static metadata before launch. |
+| `CADRORA_D1_DATABASE_ID` | The UUID of the production `cadrora` D1 database | No | **Storage & databases → D1 → cadrora → Overview** |
+| `CADRORA_MEDIA_BUCKET_NAME` | `cadrora-media` (or the exact private media bucket name chosen for this deployment) | No | **Storage & databases → R2** |
+| `CADRORA_MODELS_BUCKET_NAME` | `cadrora-models` (or the exact private models bucket name chosen for this deployment) | No | **Storage & databases → R2** |
+| `ADMIN_SECRET_HASH` | The value after `ADMIN_SECRET_HASH=` in the ignored `.artifacts/setup/admin-credentials.env` produced by `npm run setup:admin-credentials` | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Do **not** enter `ADMIN_PASSWORD`; store that password in a password manager. |
+| `AUTH_PEPPER` | The matching value after `AUTH_PEPPER=` in the same ignored credential artifact; it represents at least 32 random bytes | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Keep it separate from the verifier and rotate both together. Never put it in a `VITE_*` variable. |
+| `TURNSTILE_SECRET_KEY` | The private **secret key** for the production Cadrora widget | **Yes** on a setup form with **Encrypt**; otherwise create a build secret | **Application security → Turnstile → Cadrora Production**. Copy the secret key from the widget details; never photograph or document its value. |
+| `VITE_TURNSTILE_SITE_KEY` | The matching public **sitekey** for that widget | **No**: normal build variable | **Application security → Turnstile → Cadrora Production**. This value is intentionally sent to the browser build. |
+| `CADRORA_SEED_DEMO` | `true` only when the deployment should contain the generated public/private demo galleries and read-only demo login | No | Leave unset for a real photographer. This is a **build-time** flag: it must be present before `npm run build` (or the release command) so the browser bundle includes the demo journeys. Setting only `DEMO_SHOWCASE_ENABLED` at Worker runtime cannot add those cards after compilation. The deploy script enables the gated demo, uploads tracked WebP variants to private R2, then repairs and validates the reserved D1 sample records. |
+| `FEATURE_PUBLIC_MEDIA_CACHE` | Optional `false` to disable the Cloudflare cache for public gallery photos; default `true` | No | Set as a deployment environment variable and redeploy. The release script copies it into a Worker variable. The flag affects only public display variants; D1 access checks and private-gallery rules remain active. |
+| `VITE_GOOGLE_MAPS_EMBED_KEY` | Optional restricted public Google Maps Embed API key | No | Leave blank for the keyless, click-to-load OpenStreetMap map. To use Google instead: Google Cloud Console → Maps Embed API → Credentials. Enable billing on that separate Google Cloud project, restrict the key to your site's HTTP referrers and the Maps Embed API, then add it as a public build variable. Google currently lists Embed API usage as free, but the billing-account requirement remains. Either iframe loads only after a visitor clicks to display it. |
+
+After entering each of the three secrets, the setup page should show it as encrypted/hidden. If one does not, do not deploy: remove the value and enter it again using **Encrypt**. A Turnstile secret key, auth pepper, admin password, API token, or local credential artifact must never be committed, sent as a public build variable, or copied into documentation.
+
+The build-command/variable distinction and token configuration were rechecked against [Cloudflare's build configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) on 2026-10-25. `NODE_VERSION` is a supported [build-image override](https://developers.cloudflare.com/workers/ci-cd/builds/build-image/). This documentation check is not a new-account deployment rehearsal.
+
+### Deploy Button setup page
+
+The Deploy Button opens the same resource-and-secret setup form, but it also creates an independent repository clone. Use it only when that clone is intentional; maintainers of the existing `lbouriez/Cadrora` repository should follow [Existing-repository Cloudflare Builds](#existing-repository-cloudflare-builds) instead.
+
+On the button's **Set up your application** page, create or select separate production D1 and private R2 resources, then fill every field in the table above. For the three secret fields, paste `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` one at a time and select **Encrypt** after each paste. `AUTH_PEPPER` must come from the same `npm run setup:admin-credentials` run as `ADMIN_SECRET_HASH`; generating or copying only one of them makes password verification fail closed. Enter `VITE_TURNSTILE_SITE_KEY` as a normal public variable, not an encrypted secret. Review the repository visibility and all account-level resource choices before selecting **Deploy**.
+
+## Local validation
+
+For a **fresh local preview**, run these commands in your cloned fork:
+
+```powershell
+npm ci
+npm run setup:local
+npm run dev
+```
+
+Open the local address printed by Vite. `setup:local` creates ignored local credentials and test-only Turnstile keys, applies local migrations, and never deploys. Save the generated local password privately. Local test keys must not be used in production. Stop the dev server with Ctrl+C when finished.
+
+For an already configured local checkout, validate without regenerating its files:
+
+```powershell
+npm ci
+npm run setup -- --diagnose
+npm run check
+npm run test
+npm run build
+```
+
+For a fresh checkout, `npm run setup:local` generates ignored local admin credentials and a random pepper, configures Cloudflare's official test-only Turnstile pair, and applies the local migrations without printing credential values. It refuses to replace an existing `.env`, `.dev.vars`, or credential artifact. For an existing or manually managed environment, use `npm run setup:admin-credentials`, copy the generated verifier and matching pepper into ignored `.dev.vars`, add the matching Turnstile values, and run `npm run setup`. Diagnostic mode validates the versioned HMAC verifier, the minimum pepper length, and source-declared `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` bindings without exposing values. It deliberately fails before local D1 work when a required secret is absent or malformed.
+
+For an installation created before `AUTH_PEPPER` existed, run `npm run setup:admin-credentials -- --migrate` against the existing ignored credential artifact. The command refuses a missing `ADMIN_PASSWORD`, preserves that password exactly, generates or reuses a 32-byte pepper, and recalculates the verifier without printing values. Update both encrypted `AUTH_PEPPER` and `ADMIN_SECRET_HASH` in Cloudflare Builds before pushing code that requires them; updating only one makes authentication fail closed.
 
 ## Current deployment status
 
@@ -29,65 +175,6 @@ The checked-in configuration has one Cron Trigger, every 15 minutes. Its Worker 
 | D1 UUID | Cloudflare's unique identifier for one database | Copy it from the D1 Overview page into `CADRORA_D1_DATABASE_ID`; it is not the display name. |
 
 R2 buckets stay private. Cadrora's Worker reads from them and checks gallery authorization before returning media. Never enable an R2 public development URL or custom bucket domain for `cadrora-media`.
-
-## Existing-repository Cloudflare Builds
-
-Use this path when `lbouriez/Cadrora` (or a fork you maintain) must remain the only source repository. Do **not** use the Deploy Button: Cloudflare's button creates a clone in a Git provider account. The Workers Builds labels below were cross-checked against Cloudflare's [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) and [Build configuration](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/) guides on 2026-09-25; Atelier Giulia's zone, R2, and Turnstile labels were [observed directly](technical/deployment-rehearsal-2026-09-25.md). The new-account Workers Builds form and screenshots remain unverified, so do not mistake this for a completed visual walkthrough of that **separate** installation path.
-
-1. **Select the intended Cloudflare account.** In the Dashboard account switcher, choose the account that owns the domain, then verify the zone status is **Active**. If you run Wrangler on a workstation, `npx wrangler whoami` must list that account; setting only `CLOUDFLARE_ACCOUNT_ID` in `.env.local` neither logs Wrangler into another account nor changes the account selected in Workers Builds. Never provision through a CLI session showing only another account.
-2. **Enable R2 once.** Open **Storage & databases → R2 Object Storage**. If R2 is not active, Cloudflare opens **Get started with R2**, shows **Includes free monthly usage**, then offers **Add R2 subscription to my account**. On the AtelierGiulia screen this displayed **Total Due Now $0.00** and **Due Monthly $0.00 + additional usage**, but also an existing payment card, automatic renewal, and charges above the free monthly allowances. The account owner must review the live terms and click this billing button personally; included free usage does not mean the subscription step can be skipped. Afterward, return to **R2 Object Storage** and confirm the bucket overview opens instead of **Get started with R2**. `npx wrangler r2 bucket list` may validly return an empty list; error `10042` means R2 is disabled.
-3. **Create the production resources.** Create D1 `cadrora`, R2 `cadrora-media`, and R2 `cadrora-models`. Both buckets must show **Public Access: Disabled**. Create Vectorize `cadrora-face-index` with **128** dimensions and the **cosine** metric, then create its string metadata index `partition_id`. Copy the D1 UUID from its Overview page; record the two bucket names exactly. The first party configuration binds `FACE_INDEX` to that exact index name.
-4. **Create the admin credential and pepper.** Run `npm ci` then `npm run setup:admin-credentials` on a trusted workstation. This command **generates a random password**; it does not prompt you to choose one. It writes the ignored local `.artifacts/setup/admin-credentials.env`. Open that file privately and store the value after `ADMIN_PASSWORD=` in a password manager. Cloudflare gets the matching `ADMIN_SECRET_HASH` and random `AUTH_PEPPER` as two separate encrypted secrets—never the password or the artifact itself. The generator refuses to overwrite its file by default; do not force regeneration for an existing deployment, because a new password/hash/pepper pair would invalidate its current login.
-5. **Create Turnstile for the real hostname.** Open **Application security → Turnstile → Add widget manually**; enter a **Widget name**, select `cadrora.com` under **Hostname Management → Hostnames**, keep **Managed** under **Widget Mode**, leave **Skip future security rule challenges for verified visitors** off, then select **Create**. On the resulting screen choose **Integrate the widget yourself**, not **Set up with Spin**; copy **Site key (Click to copy)** and **Secret key (Click to copy)** separately. The private key belongs only in an encrypted secret. Add `www.cadrora.com` only if it will be served. Localhost test keys are not production keys.
-6. **Import the existing repository.** In **Workers & Pages**, select **Create application → Get started** beside **Import a repository**, choose the Git account under **Import a repository**, then select the existing `lbouriez/Cadrora` repository. This connects it; it does not fork or create another repository.
-7. **Complete the build settings.** Use Worker name `cadrora`, matching `wrangler.jsonc`; Git branch `main`; Build command `npm run build`; Deploy command `npm run deploy`; Root directory `/`. Disable preview/other-branch builds until preview has separate bindings. Leave Cloudflare Access off for the first release. The current Cloudflare documentation calls the final button **Save and Deploy**; if your account shows **Deploy**, review the same values before selecting it.
-8. **Complete Build variables and secrets before deployment.** Cloudflare can generate a Workers Builds **API token** automatically; use a dedicated scoped token only if you need to replace that default. Add these non-secret build variables: `CADRORA_D1_DATABASE_ID=<D1 UUID>`, `CADRORA_MEDIA_BUCKET_NAME=cadrora-media`, and `CADRORA_MODELS_BUCKET_NAME=cadrora-models`. Add `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` as encrypted build secrets. Add `VITE_TURNSTILE_SITE_KEY` and optional public profile `VITE_*` values as normal build variables. Do **not** add `VITE_GA_MEASUREMENT_ID`; configure GA4 later in authenticated Site settings. The click-to-load contact map uses OpenStreetMap without a key; `VITE_GOOGLE_MAPS_EMBED_KEY` is optional public configuration only if you prefer Google for the embed. `CADRORA_SEED_DEMO=true` is only for an intentional showcase deployment and defaults to off. The release materializes the matching runtime gate and the reserved `demo-private` bypass; do not add or enable `DEMO_SHOWCASE_ENABLED` manually. Use the field map below so a secret is not accidentally placed in a public `VITE_*` value. Build values exist only while the build runs; runtime configuration stays in `wrangler.jsonc` and Worker secrets.
-9. **Deploy and verify the Worker hostname.** Select **Save and Deploy** (or **Deploy** on a different setup form), wait for the build's terminal success, then run the verification list below. A later push to `main` builds production automatically. Keep branch builds off until preview gets its own D1/R2 values and secret set.
-10. **Attach the domain after the Worker works.** In the Worker's **Settings → Domains & Routes**, add `cadrora.com` as a custom domain. Confirm DNS and TLS are active, then repeat the verification list on that hostname. Adding `www` serves the Worker but does not make it redirect; add a redirect rule only if that is desired.
-
-The account owner must personally review any billing confirmation, API-token creation, domain replacement warning, and secret transmission. A successful local build or visible GitHub repository does not prove those manual account steps are complete.
-
-### Cloudflare setup form: exact field map
-
-Do not place actual values in this public repository or in a ticket/screenshot. The table identifies where each value comes from and whether the Cloudflare setup page's **Encrypt** action is required.
-
-| Cloudflare setup field | Value to enter | Encrypt? | Where to retrieve it safely |
-| --- | --- | --- | --- |
-| `CADRORA_D1_DATABASE_ID` | The UUID of the production `cadrora` D1 database | No | **Storage & databases → D1 → cadrora → Overview** |
-| `CADRORA_MEDIA_BUCKET_NAME` | `cadrora-media` (or the exact private media bucket name chosen for this deployment) | No | **Storage & databases → R2** |
-| `CADRORA_MODELS_BUCKET_NAME` | `cadrora-models` (or the exact private models bucket name chosen for this deployment) | No | **Storage & databases → R2** |
-| `ADMIN_SECRET_HASH` | The value after `ADMIN_SECRET_HASH=` in the ignored `.artifacts/setup/admin-credentials.env` produced by `npm run setup:admin-credentials` | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Do **not** enter `ADMIN_PASSWORD`; store that password in a password manager. |
-| `AUTH_PEPPER` | The matching value after `AUTH_PEPPER=` in the same ignored credential artifact; it represents at least 32 random bytes | **Yes**: paste it, then select **Encrypt** | Trusted local editor only. Keep it separate from the verifier and rotate both together. Never put it in a `VITE_*` variable. |
-| `TURNSTILE_SECRET_KEY` | The private **secret key** for the production Cadrora widget | **Yes** on a setup form with **Encrypt**; otherwise create a build secret | **Application security → Turnstile → Cadrora Production**. Copy the secret key from the widget details; never photograph or document its value. |
-| `VITE_TURNSTILE_SITE_KEY` | The matching public **sitekey** for that widget | **No**: normal build variable | **Application security → Turnstile → Cadrora Production**. This value is intentionally sent to the browser build. |
-| `CADRORA_SEED_DEMO` | `true` only when the deployment should contain the generated public/private demo galleries and read-only demo login | No | Leave unset for a real photographer. This is a **build-time** flag: it must be present before `npm run build` (or the release command) so the browser bundle includes the demo journeys. Setting only `DEMO_SHOWCASE_ENABLED` at Worker runtime cannot add those cards after compilation. The deploy script enables the gated demo, uploads tracked WebP variants to private R2, then repairs and validates the reserved D1 sample records. |
-| `FEATURE_PUBLIC_MEDIA_CACHE` | Optional `false` to disable the Cloudflare cache for public gallery photos; default `true` | No | Set as a deployment environment variable and redeploy. The release script copies it into a Worker variable. The flag affects only public display variants; D1 access checks and private-gallery rules remain active. |
-| `VITE_GOOGLE_MAPS_EMBED_KEY` | Optional restricted public Google Maps Embed API key | No | Leave blank for the keyless, click-to-load OpenStreetMap map. To use Google instead: Google Cloud Console → Maps Embed API → Credentials. Enable billing on that separate Google Cloud project, restrict the key to your site's HTTP referrers and the Maps Embed API, then add it as a public build variable. Google currently lists Embed API usage as free, but the billing-account requirement remains. Either iframe loads only after a visitor clicks to display it. |
-
-After entering each of the three secrets, the setup page should show it as encrypted/hidden. If one does not, do not deploy: remove the value and enter it again using **Encrypt**. A Turnstile secret key, auth pepper, admin password, API token, or local credential artifact must never be committed, sent as a public build variable, or copied into documentation.
-
-### Deploy Button setup page
-
-The Deploy Button opens the same resource-and-secret setup form, but it also creates an independent repository clone. Use it only when that clone is intentional; maintainers of the existing `lbouriez/Cadrora` repository should follow [Existing-repository Cloudflare Builds](#existing-repository-cloudflare-builds) instead.
-
-On the button's **Set up your application** page, create or select separate production D1 and private R2 resources, then fill every field in the table above. For the three secret fields, paste `ADMIN_SECRET_HASH`, `AUTH_PEPPER`, and `TURNSTILE_SECRET_KEY` one at a time and select **Encrypt** after each paste. `AUTH_PEPPER` must come from the same `npm run setup:admin-credentials` run as `ADMIN_SECRET_HASH`; generating or copying only one of them makes password verification fail closed. Enter `VITE_TURNSTILE_SITE_KEY` as a normal public variable, not an encrypted secret. Review the repository visibility and all account-level resource choices before selecting **Deploy**.
-
-## Local validation
-
-Use only the project commands before a deployment:
-
-```powershell
-npm ci
-npm run setup:local
-npm run setup -- --diagnose
-npm run check
-npm run test
-npm run build
-```
-
-For a fresh checkout, `npm run setup:local` generates ignored local admin credentials and a random pepper, configures Cloudflare's official test-only Turnstile pair, and applies the local migrations without printing credential values. It refuses to replace an existing `.env`, `.dev.vars`, or credential artifact. For an existing or manually managed environment, use `npm run setup:admin-credentials`, copy the generated verifier and matching pepper into ignored `.dev.vars`, add the matching Turnstile values, and run `npm run setup`. Diagnostic mode validates the versioned HMAC verifier, the minimum pepper length, and source-declared `DB`, `MEDIA_BUCKET`, and `MODELS_BUCKET` bindings without exposing values. It deliberately fails before local D1 work when a required secret is absent or malformed.
-
-For an installation created before `AUTH_PEPPER` existed, run `npm run setup:admin-credentials -- --migrate` against the existing ignored credential artifact. The command refuses a missing `ADMIN_PASSWORD`, preserves that password exactly, generates or reuses a 32-byte pepper, and recalculates the verifier without printing values. Update both encrypted `AUTH_PEPPER` and `ADMIN_SECRET_HASH` in Cloudflare Builds before pushing code that requires them; updating only one makes authentication fail closed.
 
 ## Required Worker bindings
 

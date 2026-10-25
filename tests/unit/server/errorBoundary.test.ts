@@ -56,8 +56,9 @@ describe('errorBoundary middleware', () => {
     const response = await app.request('/test', { headers: { 'x-request-id': 'error-test' } });
 
     expect(response.status).toBe(500);
-    expect(log).toHaveBeenCalledWith('cadrora_unhandled_request_error', {
-      errorCategory: 'unexpected',
+    expect(log).toHaveBeenCalledWith('cadrora_app_event', {
+      level: 'error', source: 'http', code: 'INTERNAL_ERROR', category: 'unexpected',
+      method: 'GET', routeGroup: 'other', jobId: null, jobKind: null,
       requestId: 'error-test',
     });
     expect(JSON.stringify(log.mock.calls)).not.toMatch(/stack|secret-value/u);

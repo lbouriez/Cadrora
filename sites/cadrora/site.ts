@@ -67,6 +67,22 @@ export const cadroraSite = {
       contactTitle: 'An example Contact page.',
       contactBody: 'On your website, clients will find your contact details here. This demonstration uses fictional details and does not accept session bookings.',
       contactExpectationTitle: 'Show clients what to expect.',
+      contactExpectation1: 'Use this space to explain what clients should include when they contact you.',
+      contactExpectation2: 'Describe how you prepare a proposal and confirm a session.',
+      contactExpectation3: 'Explain how clients will receive their photos in a gallery.',
+      servicesPage: {
+        title: 'An example Sessions page.',
+        lead: 'Explore sample photography sessions. On your website, add your own descriptions, photos and prices from the admin area.',
+        exampleNotice: 'These durations and prices are fictional examples for this demonstration. No sessions can be booked here.',
+      },
+      portfolioPage: {
+        title: 'An example portfolio.',
+        lead: 'These sample collections show how you can present your photography. Add your own collections and photos from the admin area.',
+      },
+      eventsPage: {
+        title: 'Demo photo galleries.',
+        lead: 'Try the gallery experience with sample photos. Public galleries open directly; protected galleries ask for a password.',
+      },
       aboutPage: { title: 'An example studio introduction', body: 'Use this page to introduce yourself and your approach to photography. Add your portrait and your own story in the admin area, in French and English.' },
       featuredSites: {
       atelierGiulia: 'Portraits, celebrations, and photo galleries on a site shaped around the studio.',
@@ -89,6 +105,22 @@ export const cadroraSite = {
       contactTitle: 'Un exemple de page Contact.',
       contactBody: 'Sur votre site, vos clients trouveront vos coordonnées ici. Cette démonstration utilise des coordonnées fictives et ne permet pas de réserver une séance.',
       contactExpectationTitle: 'Expliquez la suite à vos clients.',
+      contactExpectation1: 'Précisez ici les informations que les clients devraient vous transmettre lors du premier contact.',
+      contactExpectation2: 'Expliquez comment vous préparez une proposition et confirmez une séance.',
+      contactExpectation3: 'Indiquez comment les clients recevront leurs photos dans une galerie.',
+      servicesPage: {
+        title: 'Un exemple de page Séances.',
+        lead: 'Découvrez des séances photo d’exemple. Sur votre site, ajoutez vos descriptions, photos et tarifs depuis l’administration.',
+        exampleNotice: 'Ces durées et tarifs sont des exemples fictifs pour cette démonstration. Aucune séance ne peut être réservée ici.',
+      },
+      portfolioPage: {
+        title: 'Un exemple de portfolio.',
+        lead: 'Ces collections d’exemple montrent comment présenter votre travail. Ajoutez vos collections et vos photos depuis l’administration.',
+      },
+      eventsPage: {
+        title: 'Galeries photo de démonstration.',
+        lead: 'Essayez les galeries avec des photos d’exemple. Les galeries publiques s’ouvrent directement; les galeries protégées demandent un mot de passe.',
+      },
       aboutPage: { title: 'Un exemple de présentation du studio', body: 'Cette page vous permet de vous présenter et d’expliquer votre approche de la photographie. Ajoutez votre portrait et votre histoire depuis l’administration, en français et en anglais.' },
       featuredSites: {
       atelierGiulia: 'Portraits, célébrations et galeries photo sur un site adapté au studio.',

@@ -8,7 +8,7 @@ import type { AppEnv } from '../../../src/server/types';
 import { WorkerErrorListSchema } from '../../../src/shared/schemas/workerErrors';
 
 describe('Worker error history', () => {
-  it('records only classified diagnostics and purges entries older than 30 days', async () => {
+  it('records only classified diagnostics and purges entries older than 90 days in bounded batches', async () => {
     const bind = vi.fn(() => ({ run: vi.fn(() => Promise.resolve({ success: true })) }));
     const prepare = vi.fn(() => ({ bind }));
     const db = { prepare } as unknown as D1Database;
@@ -16,10 +16,10 @@ describe('Worker error history', () => {
       requestId: 'req-1', method: 'GET', path: '/api/v1/events/private-id/photos',
       code: 'INTERNAL_ERROR', category: 'unexpected',
     });
-    expect(bind).toHaveBeenCalledWith(expect.any(String), 'req-1', 'GET', 'gallery-api', 'INTERNAL_ERROR', 'unexpected');
+    expect(bind).toHaveBeenCalledWith(expect.any(String), 'req-1', 'GET', 'gallery-api', 'INTERNAL_ERROR', 'unexpected', 'error', 'http', null, null);
     await purgeOldWorkerErrors(db, new Date('2030-02-01T00:00:00.000Z'));
-    expect(bind).toHaveBeenLastCalledWith('2030-01-02T00:00:00.000Z');
-    expect(prepare).toHaveBeenLastCalledWith('DELETE FROM worker_errors WHERE occurred_at < ?1');
+    expect(bind).toHaveBeenLastCalledWith('2029-11-03T00:00:00.000Z');
+    expect(prepare).toHaveBeenLastCalledWith(expect.stringContaining('ORDER BY occurred_at LIMIT 1000'));
   });
 
   it('keeps the original error response if the diagnostic write fails', async () => {

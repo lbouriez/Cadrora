@@ -26,6 +26,7 @@ Event-date directory ordering and bounded, owner-controlled home stories are rec
 Future-import deduplication and bounded variant-upload retry are recorded in [`ADR-014`](../decisions/ADR-014-gallery-scoped-future-import-deduplication.md).
 Admin recovery of unfinished imports from exact original files is recorded in [`ADR-020`](../decisions/ADR-020-admin-import-recovery-from-originals.md).
 Owner-only media inventory and its read-only diagnostics API are recorded in [`ADR-036`](../decisions/ADR-036-owner-media-inventory.md).
+The owner-only Maintenance workspace, typed application events, scheduler evidence and 90-day bounded history cleanup are recorded in [`ADR-053`](../decisions/ADR-053-owner-maintenance-and-application-log.md). The compatibility HTTP-error endpoint retains its response shape; upload recovery and maintenance-job retry semantics remain unchanged.
 
 ## Platform boundaries
 
@@ -159,6 +160,7 @@ Unknown access classification fails closed as `private, no-store`. Changing an e
 - In password mode only and only with the explicit showcase gate, the published demo identity receives a separate one-hour, HMAC-signed `__Host-cadrora-demo` session with `access=read-only`. It is not an owner session and cannot mutate provider state. The gate defaults to false.
 - Cloudflare Access JWTs are verified in the Worker for signature, issuer, audience, and expiry on every hostname.
 - Event grants contain only `eventId` and `accessVersion`. A password change increments the version and invalidates old grants.
+- [ADR-051](../decisions/ADR-051-independent-gallery-grants.md) stores signed grants in independent canonical-gallery host cookies with the existing expiry. API and media access select only the requested gallery's token; the legacy shared cookie remains a fallback only when its scoped replacement is absent. Slug resolution, signature checks, current access-version checks, and private caching remain unchanged.
 - An owner with a verified `manage` admin session may request a current event grant for a published, online protected gallery through a same-origin admin POST. The ordinary protected gallery API and media checks still require that grant; draft, offline, deleting, and read-only demo access never issue an owner grant.
 - The reserved `demo-private` password bypass exists only behind the explicit showcase gate; it is forbidden for normal events and real photographer deployments.
 - State-changing admin requests verify `Origin` for CSRF protection.

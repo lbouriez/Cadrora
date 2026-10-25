@@ -2,6 +2,8 @@
 
 Status: implemented. Approved 2026-09-20; implementation and documentation reviewed 2026-09-21. Release-specific provider evidence must still be recorded for each deployed revision.
 
+Post-plan extension (2026-10-25): ADR-053 adds the owner Maintenance workspace across PA admin navigation/UI, shared schemas, and PD job/log observability. Reuse the existing Cron and D1 log history; retain existing upload recovery. Acceptance includes migration 046, owner-only no-store reads, safe structured events, bounded 90-day history cleanup, accurate scheduler/job states, lazy manual media scans, FR/EN mobile/keyboard checks and both profile builds. Future repairs and health sections require their own implementation scope.
+
 Post-plan extension (2026-09-24): ADR-011 adds a distinct protected-gallery retouch selection and photographer replacement workflow across PB/PC/PD, plus opaque locked-gallery index cards. Its release gate includes migration 016, private-grant and admin-role tests, desktop/mobile review, and a live replacement/cleanup smoke test.
 
 Post-plan extension (2026-09-24): ADR-012 adds a per-gallery public-directory switch and creation-date card ordering across PB/PD, plus a compact text-only gallery header and progressive, scroll-triggered photo loading in PB. Its release gate includes migration 017, admin/index tests, large-page desktop/mobile browsing, and live verification that hidden galleries still work by direct link.

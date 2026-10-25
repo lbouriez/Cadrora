@@ -17,6 +17,7 @@ import type { StorageService } from '../services/storage';
 import { CloudflareVectorDeleteService } from '../services/vectorize';
 import type { VectorDeleteService } from '../services/vectorize';
 import { purgePublicMediaCache } from '../services/publicMediaCache';
+import { recordAppLog } from '../services/appLog';
 
 export interface MaintenanceRunnerDependencies {
   now: () => Date;
@@ -24,6 +25,7 @@ export interface MaintenanceRunnerDependencies {
   storage: StorageService;
   vectors: VectorDeleteService;
   purgeGalleryCache?: ((eventId: string) => Promise<void>) | undefined;
+  onFailure?: (job: MaintenanceJobRecord) => Promise<void>;
 }
 
 export class MaintenanceRunner {
@@ -38,8 +40,10 @@ export class MaintenanceRunner {
 
       try {
         await this.process(job, now);
-      } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Unknown maintenance failure';
+      } catch {
+        // Provider exceptions can contain media keys or credentials. Persist a
+        // classified code; never copy their message into jobs or application logs.
+        const message = 'MAINTENANCE_OPERATION_FAILED';
         const delayMs = Math.min(60 * 60 * 1_000, 2 ** job.attempts * 30_000);
         await this.dependencies.repository.retryJob(
           job,
@@ -47,6 +51,8 @@ export class MaintenanceRunner {
           new Date(now.getTime() + delayMs).toISOString(),
           now.toISOString(),
         );
+        // An optional telemetry sink must not interrupt subsequent cleanup jobs.
+        try { await this.dependencies.onFailure?.(job); } catch { /* best effort */ }
       }
       processed += 1;
     }
@@ -163,6 +169,11 @@ export async function runMaintenance(bindings: CloudflareBindings, limit = 10, e
     storage: new R2StorageService(bindings.MEDIA_BUCKET),
     vectors: new CloudflareVectorDeleteService(bindings.FACE_INDEX),
     purgeGalleryCache: executionContext ? (eventId) => purgePublicMediaCache(executionContext, eventId) : undefined,
+    onFailure: (job) => recordAppLog(bindings.DB, {
+      level: job.attempts >= 5 && job.kind !== 'delete_gallery' && job.kind !== 'purge_gallery_cache' ? 'error' : 'warn',
+      source: 'maintenance', code: 'MAINTENANCE_OPERATION_FAILED', category: 'maintenance',
+      requestId: crypto.randomUUID(), method: 'SCHEDULED', routeGroup: 'maintenance', jobId: job.id, jobKind: job.kind,
+    }),
   });
   return runner.run(limit);
 }

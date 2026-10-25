@@ -8,6 +8,7 @@ This guide summarizes engineering constraints; executable auth and authorization
 - Only the Worker accesses D1, R2, Vectorize, and secret bindings.
 - Public SPA routing never implies API or media authorization.
 - Protected media is streamed only after event-grant validation; object keys are derived from validated D1 records, never from a client-supplied storage key.
+- Gallery grants use independent secure host cookies keyed by the canonical gallery ID, so separate galleries remain open concurrently. Resolve after slug lookup and require the signed ID and current D1 access version to match. A scoped cookie takes precedence over the legacy shared cookie even when invalid; legacy access remains accepted only when that gallery's scoped cookie is absent. See [ADR-051](../decisions/ADR-051-independent-gallery-grants.md).
 
 ## Fail-closed behavior
 

@@ -2,6 +2,7 @@ import type { Context } from 'hono';
 
 import type { AppEnv } from '../../types';
 import type { Event } from '../../../shared/schemas';
+import { resolveEventGrant } from '../../auth/resolveEventGrant';
 
 export function hasEventAccess(context: Context<AppEnv>, event: Event): boolean {
   if (event.access === 'public') return true;
@@ -21,6 +22,7 @@ export async function hasCurrentEventAccess(
   context: Context<AppEnv>,
   event: Event,
 ): Promise<boolean> {
+  if (event.access === 'protected') await resolveEventGrant(context, event.id);
   if (!hasEventAccess(context, event)) return false;
   if (event.access === 'public') return true;
   const version = await currentAccessVersion(context.env.DB, event.id);

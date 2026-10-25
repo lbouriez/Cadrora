@@ -71,7 +71,7 @@ export function SessionScrollStory() {
     <FirstFrameReveal failed={sliderFailed} mediaReveal prepared={prepared} ready={ready}>
       <PublicLayout compactHeader={activeSlideIndex > 0} immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
         {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
-          interactionDisabled={!ready || Boolean(selectedCard)} motionPreference="always" onActiveIndexChange={setActiveSlideIndex}
+          interactionDisabled={!ready || Boolean(selectedCard)} onActiveIndexChange={setActiveSlideIndex}
           onReady={markSliderReady} showPagination slideClassName="session-story__panel" slides={slides} /> : null}
         <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />
       </PublicLayout>

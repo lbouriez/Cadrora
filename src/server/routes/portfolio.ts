@@ -65,13 +65,17 @@ async function photoRow(db: D1Database, id: string): Promise<PhotoRow | null> {
 async function variantsForPhotos(db: D1Database, photoIds: string[]): Promise<Map<string, VariantRow[]>> {
   const grouped = new Map<string, VariantRow[]>();
   if (!photoIds.length) return grouped;
-  const placeholders = photoIds.map(() => '?').join(', ');
-  const rows = await db.prepare(`SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256
-    FROM portfolio_variants WHERE photo_id IN (${placeholders}) ORDER BY photo_id, width`).bind(...photoIds).all<VariantRow>();
-  for (const variant of rows.results) {
-    const group = grouped.get(variant.photo_id) ?? [];
-    group.push(variant);
-    grouped.set(variant.photo_id, group);
+  // The portfolio permits 200 photos; D1 permits only 100 bound values per query.
+  for (let offset = 0; offset < photoIds.length; offset += 100) {
+    const ids = photoIds.slice(offset, offset + 100);
+    const placeholders = ids.map(() => '?').join(', ');
+    const rows = await db.prepare(`SELECT photo_id, variant, storage_key, content_type, byte_size, width, height, checksum_sha256
+      FROM portfolio_variants WHERE photo_id IN (${placeholders}) ORDER BY photo_id, width`).bind(...ids).all<VariantRow>();
+    for (const variant of rows.results) {
+      const group = grouped.get(variant.photo_id) ?? [];
+      group.push(variant);
+      grouped.set(variant.photo_id, group);
+    }
   }
   return grouped;
 }

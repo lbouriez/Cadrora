@@ -80,7 +80,7 @@ function validatedJson<T>(context: Context<AppEnv>, schema: z.ZodType<T>, value:
 }
 
 async function eventAccessError(context: Context<AppEnv>, event: Event): Promise<ApiException> {
-  const tokenPresent = readEventGrantToken(context.req.header('Cookie')) !== null;
+  const tokenPresent = readEventGrantToken(context.req.header('Cookie'), event.id) !== null;
   const grant = context.get('auth').eventGrant;
   if (!tokenPresent) return new ApiException('EVENT_ACCESS_REQUIRED', 'errors.eventAccessRequired', 401);
   if (!grant) return new ApiException('EVENT_GRANT_INVALID', 'errors.eventAccessRequired', 401);

@@ -15,6 +15,15 @@ import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 import { PhotoCompressionField } from './PhotoCompressionField';
 import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
+import { useAdminDraft } from './useAdminDraft';
+
+interface ServiceDraft {
+  copy: ServiceCopy;
+  enabled: boolean;
+  showOnHome: boolean;
+  photoAlignment: ServicePhotoAlignment;
+  mobilePhotoAlignment: ServicePhotoAlignment | null;
+}
 
 async function apiJson<T>(url: string, schema: { parse(value: unknown): T }, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { credentials: 'same-origin', ...init });
@@ -45,15 +54,20 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
 }) {
   const { i18n, t } = useTranslation();
   const translate = (language: Language, key: string) => i18n.getFixedT(language)(key);
-  const [copy, setCopy] = useState<ServiceCopy>(() => card?.copy ?? defaultCopy(card, translate));
-  const [enabled, setEnabled] = useState(card?.enabled ?? false);
-  const [showOnHome, setShowOnHome] = useState(card?.showOnHome ?? false);
-  const [photoAlignment, setPhotoAlignment] = useState<ServicePhotoAlignment>(card?.photoAlignment ?? 'center');
-  const [mobilePhotoAlignment, setMobilePhotoAlignment] = useState<ServicePhotoAlignment | null>(card?.mobilePhotoAlignment ?? null);
+  const { value: draft, setValue: setDraft, markSaved, dirty } = useAdminDraft<ServiceDraft>(`session:${card?.id ?? 'new'}`, {
+    copy: card?.copy ?? defaultCopy(card, translate), enabled: card?.enabled ?? false,
+    showOnHome: card?.showOnHome ?? false, photoAlignment: card?.photoAlignment ?? 'center',
+    mobilePhotoAlignment: card?.mobilePhotoAlignment ?? null,
+  }, !readOnly);
+  const { copy, enabled, showOnHome, photoAlignment, mobilePhotoAlignment } = draft;
+  const setField = <Field extends keyof ServiceDraft>(field: Field, value: ServiceDraft[Field]) => {
+    setDraft((previous) => ({ ...previous, [field]: value }));
+  };
   const previewCard = card ? { ...card, copy, photoAlignment, mobilePhotoAlignment } : null;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [photoSaved, setPhotoSaved] = useState(false);
   const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
 
   const updateCopy = (language: Language, field: 'title' | 'shortDescription' | 'description' | 'duration' | 'priceRange' | 'details' | number, value: string) => {
@@ -63,7 +77,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
       points[field] = value;
       nextLanguage.points = points;
     } else nextLanguage[field] = value;
-    setCopy({ ...copy, [language]: nextLanguage });
+    setField('copy', { ...copy, [language]: nextLanguage });
     setSuccess(false);
   };
 
@@ -94,6 +108,7 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed.data),
         });
       }
+      markSaved(draft);
       await onChanged();
       setSuccess(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -104,9 +119,11 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     setBusy(true); setError(false); setSuccess(false);
     try {
       const restored = await apiJson(`/api/v1/admin/services/${card.id}/reset`, ServiceCardSchema, { method: 'POST' });
-      setPhotoAlignment(restored.photoAlignment);
-      setMobilePhotoAlignment(restored.mobilePhotoAlignment);
-      setCopy(defaultCopy(card, translate));
+      const restoredDraft = { copy: defaultCopy(card, translate), enabled: restored.enabled,
+        showOnHome: restored.showOnHome, photoAlignment: restored.photoAlignment,
+        mobilePhotoAlignment: restored.mobilePhotoAlignment };
+      setDraft(restoredDraft);
+      markSaved(restoredDraft);
       await onChanged();
       setSuccess(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -119,10 +136,11 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
     setBusy(true);
     setError(false);
     setSuccess(false);
+    setPhotoSaved(false);
     try {
       await uploadMarketingPhoto(file, { kind: 'service', id: card.id }, compression);
       await onChanged();
-      setSuccess(true);
+      setPhotoSaved(true);
     } catch { setError(true); } finally { setBusy(false); }
   };
 
@@ -147,8 +165,8 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         multiline={field === 'details'} onChange={(language, value) => updateCopy(language, field, value)}
         primaryLanguage={primaryLanguage} values={{ fr: copy.fr[field] ?? '', en: copy.en[field] ?? '' }} />)}
       {card ? <>
-        <label className="admin-settings-services__option"><input checked={enabled} disabled={readOnly} onChange={(event) => setEnabled(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.enabled')}</span></label>
-        <label className="admin-settings-services__option"><input checked={showOnHome} disabled={readOnly} onChange={(event) => setShowOnHome(event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.showOnHome')}</span></label>
+        <label className="admin-settings-services__option"><input checked={enabled} disabled={readOnly} onChange={(event) => setField('enabled', event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.enabled')}</span></label>
+        <label className="admin-settings-services__option"><input checked={showOnHome} disabled={readOnly} onChange={(event) => setField('showOnHome', event.target.checked)} type="checkbox" /><span>{t('admin.serviceEditor.showOnHome')}</span></label>
         <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
         <label className="field"><span className="field__label">{t('admin.serviceEditor.photo')}</span>
           <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly} onChange={(event) => { void upload(event); }} type="file" />
@@ -157,12 +175,12 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
           <legend>{t('admin.serviceEditor.framing')}</legend>
           <p className="field__hint">{t('admin.serviceEditor.framingHint')}</p>
           <Select label={t('admin.serviceEditor.desktopAlignment')} value={photoAlignment} onChange={(event) => {
-            setPhotoAlignment(ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
+            setField('photoAlignment', ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
           }}>
             {ServicePhotoAlignmentSchema.options.map((alignment) => <option key={alignment} value={alignment}>{t(`admin.serviceEditor.alignment.${alignment}`)}</option>)}
           </Select>
           <Select label={t('admin.serviceEditor.mobileAlignment')} value={mobilePhotoAlignment ?? ''} onChange={(event) => {
-            setMobilePhotoAlignment(event.target.value === '' ? null : ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
+            setField('mobilePhotoAlignment', event.target.value === '' ? null : ServicePhotoAlignmentSchema.parse(event.target.value)); setSuccess(false);
           }}>
             <option value="">{t('admin.serviceEditor.sameAlignment')}</option>
             {ServicePhotoAlignmentSchema.options.map((alignment) => <option key={alignment} value={alignment}>{t(`admin.serviceEditor.alignment.${alignment}`)}</option>)}
@@ -185,7 +203,9 @@ function EditableService({ card, enabledLanguages, primaryLanguage, readOnly, on
         {card?.isBuiltin ? <Button disabled={busy || readOnly} onClick={() => { void reset(); }} variant="secondary">{t('admin.settings.restoreExample')}</Button> : null}
       </div>
       {error ? <p role="alert">{t('admin.serviceEditor.error')}</p> : null}
-      {success ? <p role="status">{t('admin.serviceEditor.saved')}</p> : null}
+      {success && !dirty ? <p role="status">{t('admin.serviceEditor.saved')}</p> : null}
+      {photoSaved ? <p role="status">{t('admin.serviceEditor.photoSaved')}</p> : null}
+      {dirty ? <p role="status">{t('admin.serviceEditor.unsaved')}</p> : null}
     </div>
   </details>;
 }

@@ -34,7 +34,9 @@ import { registerPortfolioRoutes } from './routes/portfolio';
 import { registerPortfolioSeoRoutes } from './routes/portfolioSeo';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
-import { purgeOldWorkerErrors } from './services/workerErrorLog';
+import { purgeAppHistory } from './services/appLog';
+import { observeMaintenanceRun } from './maintenance/observeRun';
+import { registerMaintenanceRoutes } from './routes/admin/maintenance';
 import type { AppEnv } from './types';
 export { PublicMediaCache } from './services/publicMediaCache';
 export { ServiceMediaCache } from './services/publicMediaCache';
@@ -76,6 +78,7 @@ registerPublicRoutes(app, {
 });
 registerAdminEventRoutes(app);
 registerAdminWorkerErrorRoutes(app);
+registerMaintenanceRoutes(app);
 registerAdminImportRoutes(app);
 registerAdminSiteRoutes(app);
 registerMediaRoutes(app);
@@ -107,13 +110,17 @@ app.notFound(async (context) => {
 const worker: ExportedHandler<CloudflareBindings> = {
   fetch: (request, bindings, executionContext) => app.fetch(request, bindings, executionContext),
   scheduled: (_controller, bindings, executionContext) => {
-    executionContext.waitUntil(Promise.all([
-      (async () => {
-        await enqueueExpiredFacePurges(bindings.DB, new Date().toISOString());
-        await runMaintenance(bindings, 25, executionContext);
-      })(),
-      purgeOldWorkerErrors(bindings.DB),
-    ]).then(() => undefined));
+    executionContext.waitUntil(observeMaintenanceRun(bindings.DB, async () => {
+      const results = await Promise.allSettled([
+        (async () => {
+          await enqueueExpiredFacePurges(bindings.DB, new Date().toISOString());
+          return runMaintenance(bindings, 25, executionContext);
+        })(),
+        purgeAppHistory(bindings.DB),
+      ]);
+      for (const result of results) if (result.status === 'rejected') throw result.reason;
+      return results[0].status === 'fulfilled' ? results[0].value : 0;
+    }));
   },
 };
 

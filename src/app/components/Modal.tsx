@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 
 import { IconButton } from './IconButton';
 import { CloseIcon } from './Icons';
+import { isTopModal, modalTabStops, registerModal } from './modalFocus';
 
 /**
  * Accessible modal with focus trap, Escape close, and focus restoration.
@@ -20,44 +21,43 @@ export interface ModalProps {
   title: string;
 }
 
-const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
-
 export function Modal({ backdropClassName = '', children, className = '', closeLabel, onClose, open, style, title }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return undefined;
 
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const previousOverflow = document.body.style.overflow;
     const dialog = dialogRef.current;
-    const first = dialog?.querySelector<HTMLElement>(FOCUSABLE);
-    document.body.style.overflow = 'hidden';
-    (first ?? dialog)?.focus();
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      previous?.focus();
-    };
+    const backdrop = backdropRef.current;
+    if (dialog && backdrop) return registerModal(dialog, backdrop);
+    return undefined;
   }, [open]);
 
   if (!open) return null;
 
   const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    const dialog = dialogRef.current;
+    if (!dialog || !isTopModal(dialog)) return;
     if (event.key === 'Escape') {
       event.preventDefault();
+      event.stopPropagation();
       onClose();
       return;
     }
 
     if (event.key !== 'Tab') return;
-    const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    const focusable = modalTabStops(dialog);
     const first = focusable[0];
     const last = focusable.at(-1);
-    if (!first || !last) return;
+    if (!first || !last) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
 
-    if (event.shiftKey && document.activeElement === first) {
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
@@ -67,7 +67,8 @@ export function Modal({ backdropClassName = '', children, className = '', closeL
   };
 
   return createPortal(
-    <div className={`modal-backdrop ${backdropClassName}`.trim()} onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div className={`modal-backdrop ${backdropClassName}`.trim()} ref={backdropRef}
+      onMouseDown={(event) => event.target === event.currentTarget && dialogRef.current && isTopModal(dialogRef.current) && onClose()}>
       <div
         aria-labelledby={titleId}
         aria-modal="true"

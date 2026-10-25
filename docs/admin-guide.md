@@ -92,7 +92,15 @@ Deleting a photo immediately changes D1 state to `deleting`, so media lookup ret
 
 Deleting a whole gallery is intentionally separate from **Offline** and cannot be undone. In gallery settings, choose **Delete gallery**, then type the current title exactly. The Worker repeats that case-sensitive confirmation check, sets the gallery offline and deletion-pending, revokes protected grants, cancels open imports, and freezes photo writes. It queues a `delete_gallery` job with a five-minute quiescence window. The job removes only that gallery's D1-derived R2 media keys and Vectorize IDs, deletes its dependent D1 records, and deletes the gallery last. It never removes shared face-model files.
 
-The Worker defines a 15-minute Cron Trigger that enqueues expired face purges and runs maintenance. It has no administrative maintenance-job screen. Confirm the trigger has actually executed and the relevant job reached `completed` before claiming physical R2/Vectorize deletion is complete. Gallery deletion keeps retrying provider failures with bounded exponential delay and remains inaccessible throughout.
+The Worker defines a 15-minute Cron Trigger that enqueues expired face purges and runs maintenance. **Admin → Maintenance → Background jobs** shows unfinished or completed jobs, attempts and next-step guidance. **Overview** shows recorded scheduled-run evidence; no history means unknown, not healthy. Confirm the relevant job reached `completed` before claiming physical R2/Vectorize deletion is complete. Gallery deletion keeps retrying provider failures with bounded exponential delay and remains inaccessible throughout.
+
+## Maintenance and application logs
+
+Open **Maintenance** in the owner navigation. **Overview** shows the last recorded scheduled run and job totals, with links to existing gallery recovery and storage settings. **Background jobs** lists operation status, attempts, timing, safe references and an existing gallery-settings link. Filter to **Needs attention** for exhausted automatic retries; review the reference with your operator rather than editing D1 or deleting cloud objects manually.
+
+**Application logs** shows classified server errors, background-operation failures and scheduled-run outcomes. Filter by severity/source, load more, or refresh deliberately. Logs and run history have a 90-day retention policy, with bounded deletion by the scheduled trigger; outages may delay cleanup. This is not a log of every visitor click or upload, and an empty list does not prove the site is healthy. **Media checks** retains the existing manually triggered inventory. Scans do not run merely because you open Maintenance.
+
+Upload **Resume**, **Finish unfinished photos**, and **Finish replacement** stay in their existing workflows. Maintenance does not replace them or automatically retry destructive operations. The read-only showcase cannot access this workspace.
 
 ## Operator habits
 

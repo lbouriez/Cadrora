@@ -20,29 +20,13 @@ Cadrora is available under the [PolyForm Perimeter License 1.0.1](LICENSE.md). Y
 
 For the product's data flow and privacy boundaries, see [how Cadrora works](docs/architecture.md) and the [privacy guide](docs/privacy.md).
 
-## Deploy it to your Cloudflare account
+## Set up and launch your site
 
-You will need a Cloudflare account, a GitHub repository containing your fork, Node.js 22.12+ and npm 10+, and a domain or subdomain in a zone you control. Cloudflare provides the website runtime and three storage services: **D1** holds gallery/settings records, **R2** holds private photo files, and **Vectorize** indexes faces only for galleries where you enable the finder. You do not need to buy another application server.
+**[Start the step-by-step setup and launch guide](docs/deployment.md).** It takes you from a fork and Cloudflare account through credentials, deployment, your domain, studio content, and a first tested gallery. It includes prerequisites, exact configuration fields, and a launch checklist.
 
-The short path is:
+Already installed? Use [upgrading](docs/upgrading.md) for releases and the [admin guide](docs/admin-guide.md) for daily work. To try Cadrora on your computer first, follow [local preview](docs/deployment.md#local-validation).
 
-1. Fork this repository, enable R2 in your Cloudflare account, and create the D1 database, private R2 buckets, and Vectorize index described in the [deployment checklist](docs/deployment.md#existing-repository-cloudflare-builds).
-2. Generate your admin credentials locally, connect **your existing fork** through Cloudflare Workers Builds, and enter the build variables and encrypted secrets using the [exact field map](docs/deployment.md#cloudflare-setup-form-exact-field-map). This route does **not** create a second GitHub repository.
-3. Deploy, verify the Worker hostname, attach your domain, then follow the [after-deployment checklist](docs/after-deployment.md) to set your studio's identity, contact details, appearance, logo and favicon before sharing the site. The [deployment guide](docs/deployment.md#deployment-and-release-checks) lists the technical checks.
-
-The [full deployment guide](docs/deployment.md) covers every manual Cloudflare action, root domains versus subdomains, Turnstile keys, the optional showcase, and upgrades. A one-click [Deploy to Cloudflare clone](docs/deployment.md#deploy-button-setup-page) is also possible if you deliberately want Cloudflare to create a separate repository; it is not the existing-fork path. [Admin guide](docs/admin-guide.md) explains daily use.
-
-This repository also contains an optional [Atelier Giulia site profile and isolated GitHub pipeline](docs/deployment.md#atelier-giulia-from-this-repository). It demonstrates how one shared codebase can publish two separately branded sites into different Cloudflare accounts without a fork. It does not activate or alter the normal Cadrora deployment for other users. This pipeline is a **different installation path** from the Workers Builds steps above; see the [fresh-account rehearsal status](docs/technical/deployment-rehearsal-2026-09-25.md) before assuming either path has been tested in a new account.
-
-For a local preview, after cloning your fork:
-
-```powershell
-npm ci
-npm run setup:local
-npm run dev
-```
-
-`setup:local` creates ignored local credentials and test-only Turnstile keys. Keep the generated password safe and never deploy those test keys. See [local validation](docs/deployment.md#local-validation) for existing installations and manual setup.
+The [Atelier Giulia deployment](docs/deployment.md#atelier-giulia-from-this-repository) is a separate maintained profile and GitHub pipeline. It shares Cadrora's code but keeps its branding, Cloudflare account and data separate.
 
 ## What will Cloudflare cost?
 
@@ -76,7 +60,8 @@ See [Cloudflare free limits, assumptions, calculations, and sensitivity examples
 | If you want to… | Read… |
 | --- | --- |
 | Browse the available features and flags | [Feature catalogue](docs/features.md) |
-| Deploy or upgrade your own site | [Deployment guide](docs/deployment.md), [after-deployment checklist](docs/after-deployment.md), and [upgrading](docs/upgrading.md) |
+| Set up and launch your own site | [Step-by-step setup and launch](docs/deployment.md), then [content and launch checklist](docs/after-deployment.md) |
+| Update an existing installation | [Upgrading](docs/upgrading.md) |
 | Understand costs and safe limits | [Free-tier and cost planning](docs/free-tier.md) |
 | Run galleries and customise settings | [Admin guide](docs/admin-guide.md) |
 | Understand face search and privacy | [Face search](docs/face-search.md) and [privacy](docs/privacy.md) |

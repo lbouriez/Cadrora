@@ -1098,7 +1098,19 @@
   color: var(--color-primary-contrast);
 }
 
+/* Clip horizontal decoration without creating a scroll container that defeats sticky controls. */
+.public-shell:has(.gallery-download-selection) { overflow: clip; }
+.public-main:has(.gallery-download-selection) .photo-tile {
+  scroll-margin-top: calc(var(--gallery-toolbar-top, 0px) + var(--gallery-toolbar-height, 0px) + 2 * var(--space-3));
+}
+
 .gallery-download-selection {
+  position: sticky;
+  z-index: 6;
+  top: calc(var(--gallery-toolbar-top, 0px) + max(var(--space-2), env(safe-area-inset-top)));
+  max-height: min(40svh, calc(100svh - var(--gallery-toolbar-top, 0px) - 5rem));
+  overflow: auto;
+  overscroll-behavior: contain;
   margin-bottom: var(--space-5);
   padding: var(--space-4);
   border: 0.0625rem solid var(--color-border);

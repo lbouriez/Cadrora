@@ -12,6 +12,7 @@ import { LocalizedTextField } from './LocalizedTextField';
 import { uploadMarketingPhoto } from './uploadMarketingPhoto';
 import { PhotoCompressionField } from './PhotoCompressionField';
 import type { MarketingPhotoCompression } from '../../browser/images/marketingCompression';
+import { useAdminDraft } from './useAdminDraft';
 
 async function updateAbout(input: unknown) {
   const response = await fetch('/api/v1/admin/site/about', {
@@ -29,10 +30,12 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     body: i18n.getFixedT(language)('gallery.aboutPage.body'),
     imageAlt: i18n.getFixedT(language)('gallery.aboutPage.imageAlt'),
   });
-  const [copy, setCopy] = useState<AboutCopy>(() => settings.aboutCopy ?? { fr: fallback('fr'), en: fallback('en') });
+  const { value: copy, setValue: setCopy, markSaved, dirty } = useAdminDraft<AboutCopy>('about',
+    settings.aboutCopy ?? { fr: fallback('fr'), en: fallback('en') }, !readOnly);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [photoSaved, setPhotoSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [compression, setCompression] = useState<MarketingPhotoCompression>('balanced');
   const currentLanguage = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
@@ -56,7 +59,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     setBusy(true);
     try {
       const result = await updateAbout(parsed.data);
-      setCopy(parsed.data.copy);
+      markSaved(copy);
       await refresh(result);
       setSaved(true);
     } catch { setError(true); } finally { setBusy(false); }
@@ -65,21 +68,21 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file || busy || readOnly) return;
-    setBusy(true); setUploading(true); setError(false); setSaved(false);
+    setBusy(true); setUploading(true); setError(false); setSaved(false); setPhotoSaved(false);
     try {
       await uploadMarketingPhoto(file, { kind: 'about-hero' }, compression);
       await refresh();
-      setSaved(true);
+      setPhotoSaved(true);
     } catch { setError(true); } finally { setBusy(false); setUploading(false); }
   };
   const resetPhoto = async () => {
     if (busy || readOnly) return;
-    setBusy(true); setError(false); setSaved(false);
+    setBusy(true); setError(false); setSaved(false); setPhotoSaved(false);
     try {
       const response = await fetch('/api/v1/admin/site/about/photo/reset', { credentials: 'same-origin', method: 'POST' });
       if (!response.ok) throw new Error(`About photo reset returned ${response.status}`);
       await refresh(AdminSiteSettingsSchema.parse(await response.json()));
-      setSaved(true);
+      setPhotoSaved(true);
     } catch { setError(true); } finally { setBusy(false); }
   };
   const changeField = (language: Language, field: keyof AboutCopy['fr'], value: string) => {
@@ -113,7 +116,9 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
       </div>
       {uploading ? <p role="status">{t('admin.about.uploading')}</p> : null}
       {error ? <p role="alert">{t('admin.about.error')}</p> : null}
-      {saved ? <p role="status">{t('admin.about.saved')}</p> : null}
+      {saved && !dirty ? <p role="status">{t('admin.about.saved')}</p> : null}
+      {photoSaved ? <p role="status">{t('admin.about.photoSaved')}</p> : null}
+      {dirty ? <p role="status">{t('admin.about.unsaved')}</p> : null}
     </section>
   </div>;
 }

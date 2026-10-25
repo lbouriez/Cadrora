@@ -4,6 +4,7 @@ import {
   EVENT_GRANT_COOKIE,
   createEventGrantToken,
   eventGrantCookie,
+  eventGrantCookieName,
   eventGrantSigningSecret,
   readEventGrantToken,
   verifyEventGrantToken,
@@ -34,9 +35,9 @@ describe('event grant', () => {
       '8',
       now,
     );
-    const token = readEventGrantToken(cookie);
+    const token = readEventGrantToken(cookie, 'event-1');
 
-    expect(cookie).toContain(`${EVENT_GRANT_COOKIE}=`);
+    expect(cookie).toContain(`${eventGrantCookieName('event-1')}=`);
     expect(cookie).toContain('HttpOnly; Secure; SameSite=Strict');
     expect(token).not.toBeNull();
     await expect(
@@ -47,5 +48,19 @@ describe('event grant', () => {
   it('uses the stable pepper so an admin-password rotation does not revoke grants', () => {
     expect(eventGrantSigningSecret({ AUTH_PEPPER: 'stable-auth-pepper' })).toBe('stable-auth-pepper');
     expect(eventGrantSigningSecret({})).toBeUndefined();
+  });
+
+  it('keeps independent gallery cookies and accepts a legacy grant during migration', async () => {
+    const first = await eventGrantCookie({ eventId: 'event-1', accessVersion: 1 }, 'secret', '8', now);
+    const second = await eventGrantCookie({ eventId: 'event-2', accessVersion: 2 }, 'secret', '8', now);
+    const cookies = `${first.split(';')[0]}; ${second.split(';')[0]}`;
+    expect(eventGrantCookieName('event-1')).not.toBe(eventGrantCookieName('event-2'));
+    for (const [eventId, accessVersion] of [['event-1', 1], ['event-2', 2]] as const) {
+      const token = readEventGrantToken(cookies, eventId);
+      await expect(verifyEventGrantToken(token ?? '', 'secret', now)).resolves.toEqual({ eventId, accessVersion });
+    }
+    const legacyToken = await createEventGrantToken({ eventId: 'event-1', accessVersion: 1 }, 'secret', '8', now);
+    expect(readEventGrantToken(`${EVENT_GRANT_COOKIE}=${legacyToken}`, 'event-1')).toBe(legacyToken);
+    expect(readEventGrantToken(`${EVENT_GRANT_COOKIE}=${legacyToken}; ${eventGrantCookieName('event-1')}=malformed`, 'event-1')).toBeNull();
   });
 });

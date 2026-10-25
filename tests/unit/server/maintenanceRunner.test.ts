@@ -60,7 +60,7 @@ describe('maintenance runner', () => {
       purgeGalleryCache,
     };
     await new MaintenanceRunner({ ...dependencies, repository: first.repository }).run();
-    expect(first.retryJob).toHaveBeenCalledWith(job, 'purge rejected', expect.any(String), expect.any(String));
+    expect(first.retryJob).toHaveBeenCalledWith(job, 'MAINTENANCE_OPERATION_FAILED', expect.any(String), expect.any(String));
     expect(first.completeJob).not.toHaveBeenCalled();
 
     const second = repositoryFor(job);
@@ -145,7 +145,7 @@ describe('maintenance runner', () => {
     await runner.run();
     expect(retryJob).toHaveBeenCalledWith(
       job,
-      'R2 unavailable',
+      'MAINTENANCE_OPERATION_FAILED',
       '2030-01-01T00:02:00.000Z',
       '2030-01-01T00:00:00.000Z',
     );
@@ -214,7 +214,7 @@ describe('maintenance runner', () => {
     await runner.run(1);
     expect(pending).toHaveLength(GALLERY_CLEANUP_BATCH_SIZE + 7);
     await runner.run(1);
-    expect(retryJob).toHaveBeenCalledWith(job, 'R2 unavailable', expect.any(String), expect.any(String));
+    expect(retryJob).toHaveBeenCalledWith(job, 'MAINTENANCE_OPERATION_FAILED', expect.any(String), expect.any(String));
     expect(pending).toHaveLength(GALLERY_CLEANUP_BATCH_SIZE + 7);
     await runner.run(1);
     await runner.run(1);

@@ -121,6 +121,7 @@ export function GalleryPage() {
   const [downloadComplete, setDownloadComplete] = useState(false);
   const [zipResult, setZipResult] = useState<{ filename: string; url: string } | null>(null);
   const downloadAbort = useRef<AbortController | null>(null);
+  const selectionToolbar = useRef<HTMLElement | null>(null);
   const siteSettings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
   const backDestination = siteSettings.data?.galleryDirectoryEnabled === false
     ? localizedMarketingPath('/portfolio', i18n.language) : '/galleries';
@@ -252,6 +253,28 @@ export function GalleryPage() {
   }, [zipResult]);
 
   useEffect(() => () => downloadAbort.current?.abort(), []);
+
+  useEffect(() => {
+    const toolbar = selectionToolbar.current;
+    const main = toolbar?.closest<HTMLElement>('.public-main');
+    const masthead = toolbar?.closest('.public-shell')?.querySelector<HTMLElement>('.public-masthead');
+    if (!toolbar || !main) return;
+    const measure = () => {
+      const position = masthead ? getComputedStyle(masthead).position : '';
+      const offset = masthead && (position === 'sticky' || position === 'fixed') ? masthead.offsetHeight : 0;
+      main.style.setProperty('--gallery-toolbar-top', `${offset}px`);
+      main.style.setProperty('--gallery-toolbar-height', `${toolbar.offsetHeight}px`);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(toolbar);
+    if (masthead) observer.observe(masthead);
+    return () => {
+      observer.disconnect();
+      main.style.removeProperty('--gallery-toolbar-top');
+      main.style.removeProperty('--gallery-toolbar-height');
+    };
+  }, [selectionMode]);
 
   const resetDownloadResult = () => {
     setZipResult(null);
@@ -430,18 +453,9 @@ export function GalleryPage() {
       {!accessRequired && photos.isError ? <p role="alert">{t('gallery.unavailable')}</p> : null}
       {photos.isSuccess && allPhotos.length === 0 ? <p>{t('gallery.empty')}</p> : null}
       {selectionMode && event.data.allowDownloads ? (
-        <section aria-label={t('gallery.downloadSelection.label')} className="gallery-download-selection">
-          <p>{t('gallery.downloadSelection.count', { count: selectedPhotos.length })}</p>
+        <section aria-label={t('gallery.downloadSelection.label')} className="gallery-download-selection" ref={selectionToolbar}>
+          <p aria-live="polite" aria-atomic="true">{t('gallery.downloadSelection.count', { count: selectedPhotos.length })}</p>
           <div className="gallery-download-selection__actions">
-            <div className="gallery-download-selection__select-all">
-              <Button disabled={downloadProgress !== null || downloadablePhotos.length === 0} onClick={() => { resetDownloadResult(); setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)])); lastSelectedId.current = null; }} variant="secondary">
-                {t('gallery.downloadSelection.selectVisible')}
-              </Button>
-              <IconButton aria-controls={downloadHelpId} aria-expanded={showDownloadHelp} aria-label={t('gallery.downloadSelection.helpLabel')} onClick={() => setShowDownloadHelp((current) => !current)}><InfoIcon /></IconButton>
-            </div>
-            <Button disabled={downloadProgress !== null || selectedPhotos.length === 0} onClick={() => { setSelectedIds(new Set()); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
-              {t('gallery.downloadSelection.clear')}
-            </Button>
             {selectedPhotos.length === 1 ? <a className="button button--primary" download href={selectedPhotos[0]?.downloadUrl ?? undefined}>{t('gallery.download')}</a> : null}
             {selectedPhotos.length > 1 && supportsFolder ? (
               <Button disabled={downloadProgress !== null} onClick={() => void beginDownload('folder')} variant={downloadError === 'folder' ? 'secondary' : 'primary'}>
@@ -455,6 +469,15 @@ export function GalleryPage() {
             ) : null}
             {downloadProgress !== null ? <Button onClick={() => downloadAbort.current?.abort()} variant="secondary">{t('gallery.downloadSelection.cancel')}</Button> : null}
             {zipResult ? <a className="button button--primary" download={zipResult.filename} href={zipResult.url}>{t('gallery.downloadSelection.saveZip')}</a> : null}
+            <div className="gallery-download-selection__select-all">
+              <Button disabled={downloadProgress !== null || downloadablePhotos.length === 0} onClick={() => { resetDownloadResult(); setSelectedIds((current) => new Set([...current, ...downloadablePhotos.map((photo) => photo.id)])); lastSelectedId.current = null; }} variant="secondary">
+                {t('gallery.downloadSelection.selectVisible')}
+              </Button>
+              <IconButton aria-controls={downloadHelpId} aria-expanded={showDownloadHelp} aria-label={t('gallery.downloadSelection.helpLabel')} onClick={() => setShowDownloadHelp((current) => !current)}><InfoIcon /></IconButton>
+            </div>
+            <Button disabled={downloadProgress !== null || selectedPhotos.length === 0} onClick={() => { setSelectedIds(new Set()); lastSelectedId.current = null; resetDownloadResult(); }} variant="secondary">
+              {t('gallery.downloadSelection.clear')}
+            </Button>
           </div>
           <p className="gallery-download-selection__help" hidden={!showDownloadHelp} id={downloadHelpId}>{t('gallery.downloadSelection.help', { available: downloadablePhotos.length, total: visiblePhotos.length })}</p>
           {downloadProgress !== null ? <p role="status">{t('gallery.downloadSelection.progress', { current: downloadProgress, total: selectedPhotos.length })}</p> : null}

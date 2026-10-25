@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { IdSchema, IsoDateTimeSchema } from '../../shared/schemas';
+import type { MaintenanceKind } from '../../shared/schemas/maintenance';
+export type { MaintenanceKind } from '../../shared/schemas/maintenance';
 
 const DeletePhotoPayloadSchema = z.object({ eventId: IdSchema, photoId: IdSchema });
 const PurgeFacesPayloadSchema = z.object({ eventId: IdSchema });
@@ -33,8 +35,6 @@ const DeletePortfolioMediaPayloadSchema = z.object({
 }).refine((value) => value.storageKeys.every((key) => key.startsWith(`site/portfolio/${value.photoId}/`) &&
   /^site\/portfolio\/[^/]+\/(preview|small|medium|large)\.(jpg|webp)$/u.test(key)));
 
-export type MaintenanceKind = 'delete_face_vector' | 'delete_photo_media' | 'delete_gallery' | 'delete_gallery_originals' | 'delete_replaced_media' | 'delete_service_media' | 'delete_portfolio_media' | 'purge_event_faces' | 'purge_expired_faces' | 'reconcile_usage' | 'purge_gallery_cache';
-
 export const MAINTENANCE_LEASE_MS = 15 * 60_000;
 
 export interface MaintenanceJobRecord {
@@ -56,7 +56,9 @@ export interface PhotoCleanupData {
   vectorIds: string[];
 }
 
-export const GALLERY_CLEANUP_BATCH_SIZE = 100;
+// D1 allows 100 parameters per statement. Chunk rows use two parameters
+// each, plus the gallery ID shared by every cleanup statement.
+export const GALLERY_CLEANUP_BATCH_SIZE = 49;
 export type GalleryCleanupBatch =
   | { kind: 'media'; rows: { photoId: string; variant: string; storageKey: string }[] }
   | { kind: 'faces'; rows: { id: string; vectorId: string }[] }
@@ -368,14 +370,15 @@ export class D1MaintenanceRepository implements MaintenanceRepository {
           `INSERT INTO usage_counters (key, value, updated_at)
            SELECT 'storage_bytes',
              (SELECT COALESCE(SUM(byte_size), 0) FROM photo_variants) +
-             (SELECT COALESCE(SUM(byte_size), 0) FROM site_service_variants), ?1
+             (SELECT COALESCE(SUM(byte_size), 0) FROM site_service_variants) +
+             (SELECT COALESCE(SUM(byte_size), 0) FROM portfolio_variants), ?1
            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
         )
         .bind(now),
       this.database
         .prepare(
           `INSERT INTO usage_counters (key, value, updated_at)
-           SELECT 'faces', COUNT(*), ?1 FROM faces
+           SELECT 'faces', COUNT(*), ?1 FROM faces WHERE true
            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
         )
         .bind(now),

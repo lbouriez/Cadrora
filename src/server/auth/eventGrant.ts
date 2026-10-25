@@ -96,15 +96,24 @@ export async function verifyEventGrantToken(
   }
 }
 
-export function readEventGrantToken(cookieHeader: string | undefined): string | null {
+export function eventGrantCookieName(eventId: string): string {
+  // Encode the complete validated ID so distinct galleries cannot share a name.
+  return `${EVENT_GRANT_COOKIE}-${base64UrlEncode(encoder.encode(EventGrantSchema.shape.eventId.parse(eventId)))}`;
+}
+
+export function readEventGrantToken(cookieHeader: string | undefined, eventId?: string): string | null {
   if (!cookieHeader) return null;
+  const scopedName = eventId === undefined ? undefined : eventGrantCookieName(eventId);
+  let legacy: string | null = null;
   for (const piece of cookieHeader.split(';')) {
     const [name, ...valueParts] = piece.trim().split('=');
-    if (name !== EVENT_GRANT_COOKIE) continue;
     const value = valueParts.join('=');
-    return TOKEN_PATTERN.test(value) ? value : null;
+    // A present scoped cookie takes precedence even when malformed. Never
+    // revive an older legacy grant after the scoped grant has been rejected.
+    if (name === scopedName) return TOKEN_PATTERN.test(value) ? value : null;
+    if (name === EVENT_GRANT_COOKIE) legacy = TOKEN_PATTERN.test(value) ? value : null;
   }
-  return null;
+  return legacy;
 }
 
 export async function eventGrantCookie(
@@ -116,5 +125,5 @@ export async function eventGrantCookie(
   const hours = ttlHours(ttlSetting);
   const token = await createEventGrantToken(grant, secret, ttlSetting, now);
   const expires = new Date(now.getTime() + hours * 60 * 60 * 1_000);
-  return `${EVENT_GRANT_COOKIE}=${token}; Path=/; Expires=${expires.toUTCString()}; Max-Age=${hours * 60 * 60}; HttpOnly; Secure; SameSite=Strict`;
+  return `${eventGrantCookieName(grant.eventId)}=${token}; Path=/; Expires=${expires.toUTCString()}; Max-Age=${hours * 60 * 60}; HttpOnly; Secure; SameSite=Strict`;
 }

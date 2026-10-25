@@ -17,6 +17,7 @@ const AdminSiteSettingsRoute = lazy(async () => ({ default: (await import('./adm
 const AdminPortfolioRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminPortfolioRoute }));
 const AdminAboutRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminAboutRoute }));
 const AdminWorkerErrorsRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminWorkerErrorsRoute }));
+const AdminMaintenanceRoute = lazy(async () => ({ default: (await import('./admin/AdminRoutes')).AdminMaintenanceRoute }));
 
 function adminElement(element: ReactNode) {
   return <Suspense fallback={<main className="admin-login"><Spinner label={siteProfile.siteName} /></main>}>{element}</Suspense>;
@@ -31,6 +32,7 @@ export function App() {
     { path: '/admin/portfolio', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/about', element: adminElement(<AdminAboutRoute />) },
     { path: '/admin/diagnostics', element: adminElement(<AdminWorkerErrorsRoute />) },
+    { path: '/admin/maintenance', element: adminElement(<AdminMaintenanceRoute />) },
     { path: '/admin/portfolio/:id', element: adminElement(<AdminPortfolioRoute />) },
     { path: '/admin/galleries/:eventId', element: adminElement(<AdminEventSettingsRoute />) },
     { path: '/admin/galleries/:eventId/import', element: adminElement(<AdminImportRoute />) },

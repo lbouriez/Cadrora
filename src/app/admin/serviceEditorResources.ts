@@ -2,6 +2,7 @@ export const serviceEditorResources = {
   en: { admin: { serviceEditor: {
     loading: 'Loading sessions…', error: 'The session could not be saved. Check the translations, photo, and connection, then try again.',
     saved: 'Session saved.', newService: 'New session', hidden: 'Hidden', enabled: 'Show on the Sessions page',
+    photoSaved: 'Session photo saved.', unsaved: 'Session changes are not saved. They stay here when you visit another page in this tab. Save them before closing or reloading the tab.',
     showOnHome: 'Include on Home', photo: 'Session photo', photoRequired: 'Upload a photo before showing this new session.',
     framing: 'Photo framing', framingHint: 'Choose which side stays visible when the photo fills its frame. This keeps the full image. Save the session to apply your choice.',
     desktopAlignment: 'Default focal point', mobileAlignment: 'Phone focal point', sameAlignment: 'Use the default focal point',
@@ -16,6 +17,7 @@ export const serviceEditorResources = {
   fr: { admin: { serviceEditor: {
     loading: 'Chargement des séances…', error: 'La séance n’a pas pu être enregistrée. Vérifiez les traductions, la photo et la connexion, puis réessayez.',
     saved: 'Séance enregistrée.', newService: 'Nouvelle séance', hidden: 'Masquée', enabled: 'Afficher sur la page Séances',
+    photoSaved: 'Photo de la séance enregistrée.', unsaved: 'Les modifications de la séance ne sont pas enregistrées. Elles sont conservées si vous consultez une autre page dans cet onglet. Enregistrez-les avant de fermer ou de recharger l’onglet.',
     showOnHome: 'Inclure sur l’accueil', photo: 'Photo de la séance', photoRequired: 'Téléversez une photo avant d’afficher cette nouvelle séance.',
     framing: 'Cadrage de la photo', framingHint: 'Choisissez le côté à garder visible lorsque la photo remplit son cadre. L’image entière est conservée. Enregistrez la séance pour appliquer votre choix.',
     desktopAlignment: 'Point d’ancrage par défaut', mobileAlignment: 'Point d’ancrage sur téléphone', sameAlignment: 'Utiliser le point d’ancrage par défaut',

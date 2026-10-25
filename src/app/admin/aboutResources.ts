@@ -5,6 +5,7 @@ export const aboutResources = {
     photo: 'Photographer portrait', photoHint: 'Choose a photo at least 2560 px wide. Display copies are prepared in your browser; the original is not uploaded.',
     preview: 'Current About photo', resetPhoto: 'Restore example photo', save: 'Save About page',
     saved: 'About page saved.', error: 'The About page could not be saved. Check both translations and try again.',
+    photoSaved: 'Portrait saved.', unsaved: 'Text changes are not saved. They stay here when you visit another page in this tab. Save them before closing or reloading the tab.',
     uploading: 'Preparing and uploading the photo…',
   } } },
   fr: { admin: { about: {
@@ -13,6 +14,7 @@ export const aboutResources = {
     photo: 'Portrait de la photographe', photoHint: 'Choisissez une photo d’au moins 2 560 px de large. Les copies d’affichage sont préparées dans votre navigateur; l’original n’est pas téléversé.',
     preview: 'Photo actuelle de la page À propos', resetPhoto: 'Rétablir la photo d’exemple', save: 'Enregistrer la page À propos',
     saved: 'Page À propos enregistrée.', error: 'Impossible d’enregistrer la page À propos. Vérifiez les deux traductions et réessayez.',
+    photoSaved: 'Portrait enregistré.', unsaved: 'Le texte modifié n’est pas enregistré. Il est conservé si vous consultez une autre page dans cet onglet. Enregistrez-le avant de fermer ou de recharger l’onglet.',
     uploading: 'Préparation et téléversement de la photo…',
   } } },
 } as const;

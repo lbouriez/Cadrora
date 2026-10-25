@@ -73,12 +73,16 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
     : (['services', 'portfolio', 'about', 'contact', 'privacy'] as const)
       .find((key) => marketingPath === `/${key}`);
   const seoCopy = pageKey ? siteProfile.seoPages?.[pageKey]?.[language] : null;
-  const serviceArea = settings.data?.serviceArea?.trim() || settings.data?.contactAddress?.trim() || null;
+  // Showcase contact details describe a fictional studio, not the software's service area.
+  const serviceArea = siteProfile.demo.enabled ? null
+    : settings.data?.serviceArea?.trim() || settings.data?.contactAddress?.trim() || null;
   const localizedTarget = (path: string, selectedLanguage = language) =>
     pageKey && path !== '/galleries' ? `/${selectedLanguage}${path === '/' ? '' : path}` : path;
   const siteName = settings.data?.siteName ?? siteProfile.siteName;
-  const description = settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
-  const footerTagline = settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
+  const description = siteProfile.demo.enabled ? siteProfile.siteDescription[language]
+    : settings.data?.siteCopy?.[language].description ?? siteProfile.siteDescription[language];
+  const footerTagline = siteProfile.demo.enabled ? t('gallery.footerTagline')
+    : settings.data?.siteCopy?.[language].footerTagline ?? t('gallery.footerTagline');
   const galleryDirectoryEnabled = settings.data?.galleryDirectoryEnabled === true;
   const navigation: readonly NavigationItem[] = siteProfile.navigation ?? ['home', 'services', 'portfolio', 'galleries', 'about', 'contact'];
   const navigationTarget: Record<NavigationItem, { href: string; label: string }> = {
@@ -118,7 +122,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   useEffect(() => {
     const title = pageTitle ? `${pageTitle} | ${siteName}`
       : siteName === siteProfile.siteName ? seoCopy?.title ?? siteName : siteName;
-    const ownerDescription = settings.data?.siteCopy?.[language].description;
+    const ownerDescription = siteProfile.demo.enabled ? undefined : settings.data?.siteCopy?.[language].description;
     const summary = (pageDescription || (ownerDescription && ownerDescription !== siteProfile.siteDescription[language]
       ? ownerDescription : seoCopy?.description) || description)
       + (serviceArea && pageKey && pageKey !== 'privacy'

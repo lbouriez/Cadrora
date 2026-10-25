@@ -438,7 +438,7 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   }
 });
 
-test('Atelier keeps the reference slide animation for wheel and touch in a reduced-motion browser', async ({ page }, testInfo) => {
+test('Atelier respects reduced motion for wheel, touch, and keyboard slides', async ({ page }, testInfo) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.route('**/api/v1/site', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/v1/services', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify([
@@ -470,13 +470,13 @@ test('Atelier keeps the reference slide animation for wheel and touch in a reduc
   }
   await expect(page.locator('.session-story__panel').nth(1)).toHaveClass(/swiper-slide-active/u);
   const wrapper = page.locator('.vertical-story-slider .swiper-wrapper');
-  await expect.poll(() => wrapper.evaluate((element) => (element as HTMLElement).style.transitionDuration)).toBe('1200ms');
+  await expect.poll(() => wrapper.evaluate((element) => (element as HTMLElement).style.transitionDuration)).toBe('0ms');
   const firstFrame = await wrapper.evaluate((element) => getComputedStyle(element).transform);
   await page.waitForTimeout(250);
   const middleFrame = await wrapper.evaluate((element) => getComputedStyle(element).transform);
-  expect(middleFrame).not.toBe(firstFrame);
+  expect(middleFrame).toBe(firstFrame);
+  expect(await page.locator('.swiper-slide-active .session-story__visual').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
   if (testInfo.project.name === 'desktop-chromium') {
-    await page.waitForTimeout(1_000);
     await page.locator('.vertical-story-slider').focus();
     await page.keyboard.press('PageDown');
     await expect(page.locator('.session-story__panel').nth(2)).toHaveClass(/swiper-slide-active/u);

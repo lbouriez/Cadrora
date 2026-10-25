@@ -44,8 +44,8 @@ export function AdminLayout({ children, onLogout, readOnly = false, subject }: A
           <NavLink className="admin-shell__nav-link" to="/admin/about">
             {t('admin.about.title')}
           </NavLink>
-          {!readOnly ? <NavLink className="admin-shell__nav-link" to="/admin/diagnostics">
-            {t('admin.navigation.diagnostics')}
+          {!readOnly ? <NavLink className="admin-shell__nav-link" to="/admin/maintenance">
+            {t('admin.maintenance.title')}
           </NavLink> : null}
         </nav>
         <main id="admin-main">{children}</main>

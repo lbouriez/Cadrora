@@ -35,7 +35,7 @@ describe('prefilled sessions', () => {
 
     expect(additions.map((card) => serviceText(card, 'en', (key) => i18n.getFixedT('en')(key))))
       .toMatchObject([
-        { title: 'Maternity', shortDescription: 'The beauty of becoming', duration: '', priceRange: '' },
+        { title: 'Maternity', shortDescription: 'The beauty of becoming a mother', duration: '', priceRange: '' },
         { title: 'Portraits', shortDescription: 'Every face tells a story', duration: '', priceRange: '' },
         { title: 'Couples', shortDescription: 'Love and laughter', duration: '', priceRange: '' },
       ]);

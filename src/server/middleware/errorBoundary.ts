@@ -27,13 +27,6 @@ export const errorBoundary: ErrorHandler<AppEnv> = async (error, context) => {
     return apiErrorResponse(context, 503, 'D1_DAILY_QUOTA_EXCEEDED', 'errors.d1DailyQuotaExceeded');
   }
 
-  console.error('cadrora_unhandled_request_error', {
-    // Provider errors may include private object keys or request payloads in
-    // their message. Keep diagnostics classified, never copy exception text.
-    errorCategory: error instanceof TypeError ? 'type' : error instanceof SyntaxError ? 'syntax' : 'unexpected',
-    requestId: context.get('requestId'),
-  });
-
   await recordWorkerError(context.env?.DB, {
     requestId: context.get('requestId') ?? 'unavailable', method: context.req.method,
     path: context.req.path, code: 'INTERNAL_ERROR',

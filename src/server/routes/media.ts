@@ -11,6 +11,7 @@ import { downloadName } from '../services/mediaNames';
 import type { StorageService } from '../services/storage';
 import type { AppEnv } from '../types';
 import { featureEnabled } from '../config/featureFlags';
+import { resolveEventGrant } from '../auth/resolveEventGrant';
 
 export interface MediaRouteDependencies {
   cache?: (context: Context<AppEnv>, requestUrl: string, eventId: string, media: MediaRecord) => Promise<Response | null>;
@@ -47,7 +48,7 @@ export function registerMediaRoutes(
     if (!media) throw new ApiException('MEDIA_NOT_FOUND', 'errors.mediaNotFound', 404);
 
     if (media.access === 'protected') {
-      const grant = context.get('auth').eventGrant;
+      const grant = await resolveEventGrant(context, parsed.data.eventId);
       if (
         !grant ||
         grant.eventId !== parsed.data.eventId ||

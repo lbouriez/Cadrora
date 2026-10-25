@@ -180,7 +180,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
         onActiveIndexChange?.(swiper.activeIndex);
         releaseWheelAtSettledEdge(swiper, false, allowDocumentScrollAtEdges);
         const top = swiper.el.getBoundingClientRect().top + window.scrollY;
-        if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: 'smooth' });
+        if (Math.abs(window.scrollY - top) > 1) window.scrollTo({ top, behavior: animate ? 'smooth' : 'instant' });
       }}
       onSlideChangeTransitionEnd={(swiper) => releaseWheelAtSettledEdge(swiper, true, allowDocumentScrollAtEdges)}
       onSwiper={(swiper) => {

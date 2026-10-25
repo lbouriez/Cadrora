@@ -365,7 +365,7 @@ test.describe('site vitrine statique', () => {
 
   test('relie les services, les demonstrations et la confidentialite', async ({ page }) => {
     await page.goto('/services');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/photos pour les moments|photography for the moments/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/un exemple de page séances|an example sessions page/i);
     await expect(page.getByRole('heading', { name: /mariages|weddings/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /photos d’entreprise|workplace photography/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /portraits d’enfants|children’s portraits/i })).toBeVisible();
@@ -373,7 +373,7 @@ test.describe('site vitrine statique', () => {
     await assertNoHorizontalOverflow(page);
 
     await page.goto('/galleries');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/histoires à retrouver|stories to return/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/galeries photo de démonstration|demo photo galleries/i);
     await expect(page.getByRole('heading', { name: /explorer les collections|explore the collections/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /essayer la recherche de photos avec l’ia|try finding photos with ai/i })).toHaveCount(0);
     await assertNoHorizontalOverflow(page);

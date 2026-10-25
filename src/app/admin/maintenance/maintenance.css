@@ -1,0 +1,19 @@
+.maintenance-navigation, .maintenance-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+}
+.maintenance-navigation a[aria-current="page"] { background: var(--color-surface-raised); font-weight: 700; }
+.maintenance-filters > .field { flex: 1 1 12rem; }
+.maintenance-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: var(--space-4); }
+.maintenance-facts > div, .maintenance-job { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); }
+.maintenance-facts dd { margin-inline-start: 0; font-size: var(--text-lg); font-weight: 700; }
+.maintenance-jobs { display: grid; gap: var(--space-4); margin-block: var(--space-4); }
+.maintenance-section { min-width: 0; }
+.admin-workspace.maintenance-workspace { grid-template-columns: minmax(0, 1fr); }
+.maintenance-section .admin-table-scroll { max-width: 100%; overflow-x: auto; }
+.maintenance-section code { overflow-wrap: anywhere; }
+.maintenance-log-table { width: 100%; border-collapse: collapse; }
+.maintenance-log-table th, .maintenance-log-table td { padding: var(--space-3); text-align: start; vertical-align: top; border-bottom: 1px solid var(--color-border); }
+.maintenance-log-table td:last-child { min-width: 12rem; max-width: 24rem; }

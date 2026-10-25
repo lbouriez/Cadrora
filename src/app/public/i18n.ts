@@ -291,7 +291,7 @@ export const publicResources = {
           title: 'Workplace photography',
         },
         maternity: {
-          body: 'The beauty of becoming',
+          body: 'The beauty of becoming a mother',
           point1: 'A calm session shaped around your comfort',
           point2: 'Natural portraits before your baby arrives',
           point3: 'A private gallery to revisit and share',

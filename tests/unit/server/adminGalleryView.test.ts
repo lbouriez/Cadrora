@@ -70,7 +70,7 @@ describe('admin View Gallery access', () => {
     expect(response.headers.get('Cache-Control')).toBe('no-store');
     const cookie = response.headers.get('Set-Cookie') ?? '';
     expect(cookie).toContain('HttpOnly; Secure; SameSite=Strict');
-    const token = readEventGrantToken(cookie);
+    const token = readEventGrantToken(cookie, 'gallery-1');
     expect(token).not.toBeNull();
     expect(await verifyEventGrantToken(token ?? '', secret)).toEqual({ eventId: 'gallery-1', accessVersion: 7 });
     expect(prepare.mock.calls.map(([query]) => query)).not.toContain('SELECT password_hash, access_version FROM event_credentials WHERE event_id = ?1');

@@ -1,12 +1,31 @@
 PRAGMA foreign_keys = ON;
 
--- Initial showcase copy; owner changes (if demo writes are later enabled) remain authoritative.
+-- Repository-owned showcase copy. Ordinary studio profiles never run this seed.
 UPDATE site_settings
 SET site_copy = json_object(
-  'fr', json_object('description', 'Cadrora, photographie d’événements et galeries privées élégantes.', 'footerTagline', 'Des photographies faites pour durer.'),
-  'en', json_object('description', 'Cadrora, event photography and elegant private galleries.', 'footerTagline', 'Photographs made to be remembered.')
+  'fr', json_object('description', 'Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.', 'footerTagline', 'Votre site photo et vos galeries.'),
+  'en', json_object('description', 'Create your photography website and share your galleries with Cadrora, hosted in your own Cloudflare account.', 'footerTagline', 'Your photography website and galleries.')
 )
-WHERE id = 1 AND site_copy IS NULL;
+WHERE id = 1 AND site_name = 'Cadrora' AND site_copy IS NULL;
+
+-- Repair only the previous seeded values, independently in each language/field.
+-- Preserve the initial timestamp until the fictional contact/map seed below runs.
+UPDATE site_settings
+SET site_copy = json_set(site_copy, '$.fr.description', 'Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.')
+WHERE id = 1 AND site_name = 'Cadrora'
+  AND json_extract(site_copy, '$.fr.description') = 'Cadrora, photographie d’événements et galeries privées élégantes.';
+UPDATE site_settings
+SET site_copy = json_set(site_copy, '$.en.description', 'Create your photography website and share your galleries with Cadrora, hosted in your own Cloudflare account.')
+WHERE id = 1 AND site_name = 'Cadrora'
+  AND json_extract(site_copy, '$.en.description') = 'Cadrora, event photography and elegant private galleries.';
+UPDATE site_settings
+SET site_copy = json_set(site_copy, '$.fr.footerTagline', 'Votre site photo et vos galeries.')
+WHERE id = 1 AND site_name = 'Cadrora'
+  AND json_extract(site_copy, '$.fr.footerTagline') = 'Des photographies faites pour durer.';
+UPDATE site_settings
+SET site_copy = json_set(site_copy, '$.en.footerTagline', 'Your photography website and galleries.')
+WHERE id = 1 AND site_name = 'Cadrora'
+  AND json_extract(site_copy, '$.en.footerTagline') = 'Photographs made to be remembered.';
 
 -- Populate fictional showcase coordinates in D1 only for a never-edited site.
 -- Keep the initial timestamp so the map seed directly below can run as well.

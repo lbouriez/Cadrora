@@ -31,10 +31,13 @@ Authentication failures expose only application-safe codes and a request ID. `TU
 
 | Method and path | Result |
 | --- | --- |
-| `GET /admin/worker-errors?before=` | Up to 50 classified Worker 5xx entries, newest first, with `nextBefore`; rows expire after 30 days. |
+| `GET /admin/worker-errors?before=` | Compatibility view: up to 50 classified HTTP 5xx entries, newest first, with `nextBefore`; 90-day history. |
+| `GET /admin/maintenance/overview` | Snapshot time, job-state counts, expired running leases, latest scheduled invocation, last successful finish and retention policy. Missing run history is unknown. |
+| `GET /admin/maintenance/jobs?state=&beforeCreatedAt=&beforeId=` | Up to 50 jobs, newest created first with ID tie-breaker; `state` is `active` (default), `pending`, `running`, `failed` or `completed`. Both cursor fields are required together. Returns `nextCursor`, safe job details and an existing gallery ID when available; never payloads or raw errors. |
+| `GET /admin/maintenance/logs?level=&source=&before=` | Up to 50 structured events, newest ID first; optional `info|warn|error` severity and `http|maintenance|scheduler` source filters. Returns `nextBefore` and `retentionDays`. |
 | `GET /admin/diagnostics/media?scope=galleries|services|portfolio&cursor=` | One read-only page of at most 100 R2 objects in the selected namespace, compared with D1 variant rows after a 15-minute upload grace period. Returns `scanned`, `untracked`, `nextCursor`, and deletion-job state counts. |
 
-Both routes require a manage-capable owner session; the read-only demo is denied. Continue each media scan until `nextCursor` is null. Findings need manual review against D1 and maintenance jobs; this API never deletes an object.
+All these routes require a manage-capable owner session and return `no-store`; the read-only demo is denied. Unknown query fields and invalid cursors/filters are rejected. Continue each media scan until `nextCursor` is null. Findings need manual review against D1 and maintenance jobs; these APIs never delete or replay an operation. The scheduled trigger purges history older than 90 days in bounded batches; outages can delay physical removal.
 
 ## Galleries
 
