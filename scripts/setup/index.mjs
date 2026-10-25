@@ -6,7 +6,7 @@ const argumentsSet = new Set(process.argv.slice(2));
 const allowedArguments = new Set(['--diagnose', '--help']);
 const unknownArguments = [...argumentsSet].filter((argument) => !allowedArguments.has(argument));
 const diagnoseOnly = argumentsSet.has('--diagnose');
-const minimumNodeMajor = 22;
+const supportedNodeMinimums = { 22: [23, 4], 24: [22, 1] };
 
 if (argumentsSet.has('--help')) {
   process.stdout.write(`Usage: npm run setup [-- --diagnose]\n\n`);
@@ -62,9 +62,10 @@ function hasAuthPepper(value) {
   return Buffer.byteLength(value, 'utf8') >= 32;
 }
 
-const nodeMajor = Number(process.versions.node.split('.')[0]);
-if (nodeMajor < minimumNodeMajor) {
-  fail('Node.js', `version ${minimumNodeMajor}+ required; found ${process.versions.node}`);
+const [nodeMajor, nodeMinor, nodePatch] = process.versions.node.split('.').map(Number);
+const minimum = supportedNodeMinimums[nodeMajor];
+if (!minimum || nodeMinor < minimum[0] || (nodeMinor === minimum[0] && nodePatch < minimum[1])) {
+  fail('Node.js', `version 22.23.4+ (22 LTS) or 24.22.1+ (24 LTS) required; found ${process.versions.node}`);
 } else {
   report('ok', 'Node.js', process.versions.node);
 }

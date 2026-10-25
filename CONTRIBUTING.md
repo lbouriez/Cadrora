@@ -4,7 +4,7 @@ Thank you for improving Cadrora. It is a static photographer website plus a Clou
 
 ## Local setup
 
-Requirements are Node.js 22.12+ and npm 10+.
+Requirements are Node.js 22.23.4+ (22 LTS) or 24.22.1+ (24 LTS) and npm 10+.
 
 ```powershell
 npm ci
