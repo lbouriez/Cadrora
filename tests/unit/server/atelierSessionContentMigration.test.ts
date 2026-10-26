@@ -7,6 +7,7 @@ import { ServiceCopySchema } from '../../../src/shared/schemas/services';
 
 const migrationDirectory = new URL('../../../migrations/', import.meta.url);
 const migration = readFileSync(new URL('047_atelier_session_content.sql', migrationDirectory), 'utf8');
+const pricingMigration = readFileSync(new URL('048_atelier_structured_pricing.sql', migrationDirectory), 'utf8');
 const birthdayId = '5beb3b68-3389-423b-be37-142851a2a2ea';
 const databases: DatabaseSync[] = [];
 const oldCopy = {
@@ -120,5 +121,81 @@ describe('Atelier Giulia session content migration', () => {
     database.exec("UPDATE site_services SET copy_json = NULL WHERE id = 'portrait'");
     database.exec(migration);
     expect(copy(database, 'portrait').en.shortDescription).toBe('Every face tells a story.');
+  });
+});
+
+describe('Atelier structured pricing migration', () => {
+  it.each(['LF', 'CRLF'])('moves the approved text without losing or duplicating any content (%s checkout)', lineEnding => {
+    const database = fixture();
+    database.exec(migration);
+    const before = snapshot(database);
+    database.exec(pricingMigration.replace(/\r?\n/gu, lineEnding === 'CRLF' ? '\r\n' : '\n'));
+    const after = snapshot(database);
+    expect(after.settings).toEqual(before.settings);
+    expect(after.variants).toEqual(before.variants);
+    expect(after.schema).toEqual(before.schema);
+    for (const [index, row] of after.services.entries()) {
+      const original = before.services[index];
+      if (![birthdayId, 'maternity', 'portrait', 'couples'].includes(String(row.id))) {
+        expect(row).toEqual(original);
+        continue;
+      }
+      expect({ ...row, copy_json: original?.copy_json, updated_at: original?.updated_at }).toEqual(original);
+      const previous = ServiceCopySchema.parse(JSON.parse(String(original?.copy_json)));
+      const next = copy(database, String(row.id));
+      for (const language of ['fr', 'en'] as const) {
+        const { tariffs, goodToKnow, ...rest } = next[language];
+        expect(rest).toEqual({ ...previous[language], details: '' });
+        expect(tariffs).toHaveLength(3);
+        const reconstructed = [...(tariffs ?? []).map(tariff => `${tariff.name} — ${tariff.price}\n${tariff.summary}`),
+          `${language === 'fr' ? 'Bon à savoir' : 'Good to know'}\n${goodToKnow}`].join('\n\n');
+        expect(reconstructed).toBe(previous[language].details);
+      }
+    }
+    const changes = database.prepare('SELECT total_changes() AS count').get();
+    database.exec(pricingMigration);
+    expect(snapshot(database)).toEqual(after);
+    expect(database.prepare('SELECT total_changes() AS count').get()).toEqual(changes);
+  });
+
+  it.each([
+    ['Cadrora', 'photos@ateliergiulia.com'],
+    ['Atelier Giulia', 'other@example.com'],
+  ])('does not convert another installation even with matching content: %s / %s', (name, email) => {
+    const database = fixture();
+    database.exec(migration);
+    database.prepare('UPDATE site_settings SET site_name = ?, contact_email = ? WHERE id = 1').run(name, email);
+    const before = snapshot(database);
+    database.exec(pricingMigration);
+    expect(snapshot(database)).toEqual(before);
+  });
+
+  it.each(['details', 'tariffs', 'goodToKnow'])('preserves a later owner edit to %s independently for each locale', field => {
+    const database = fixture();
+    database.exec(migration);
+    const changed = copy(database, 'maternity');
+    if (field === 'details') changed.en.details = 'New owner information.';
+    if (field === 'tariffs') changed.en.tariffs = [{ name: 'Custom', price: '$999 CAD', summary: 'A custom package.' }];
+    if (field === 'goodToKnow') changed.en.goodToKnow = 'Owner practical information.';
+    database.prepare("UPDATE site_services SET copy_json = ? WHERE id = 'maternity'").run(JSON.stringify(changed));
+    database.exec(pricingMigration);
+    const next = copy(database, 'maternity');
+    expect(next.en).toEqual(changed.en);
+    expect(next.fr.tariffs).toHaveLength(3);
+    expect(next.fr.details).toBe('');
+  });
+
+  it('leaves missing sessions and absent legacy content alone', () => {
+    const database = fixture();
+    database.exec(migration);
+    database.exec(`DELETE FROM site_service_variants;
+      DELETE FROM site_services WHERE id = '${birthdayId}';
+      UPDATE site_services SET copy_json = NULL WHERE id = 'maternity';
+      UPDATE site_services SET copy_json = json_set(copy_json, '$.fr.details', '', '$.en.details', '') WHERE id = 'portrait';`);
+    database.exec(pricingMigration);
+    expect(database.prepare('SELECT * FROM site_services WHERE id = ?').get(birthdayId)).toBeUndefined();
+    expect(database.prepare("SELECT copy_json FROM site_services WHERE id = 'maternity'").get()?.copy_json).toBeNull();
+    expect(copy(database, 'portrait').en.tariffs).toBeUndefined();
+    expect(copy(database, 'couples').en.tariffs).toHaveLength(3);
   });
 });
