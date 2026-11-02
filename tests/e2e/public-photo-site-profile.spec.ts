@@ -30,8 +30,9 @@ test('public routes and gallery viewer share the image renderer', async ({ page 
       else {
         await expect(logo).toBeVisible();
         const bounds = await logo.boundingBox();
-        expect(bounds?.width).toBeCloseTo(40, 0);
-        expect(bounds?.height).toBeCloseTo(40, 0);
+        const size = page.viewportSize()!.width <= 864 ? 32 : 40;
+        expect(bounds?.width).toBeCloseTo(size, 0);
+        expect(bounds?.height).toBeCloseTo(size, 0);
       }
       await page.screenshot({ path: testInfo.outputPath('public-home.png') });
     }
@@ -60,7 +61,7 @@ test('face-search portraits, results, and local preview preserve their framing',
   page.on('request', (request) => {
     if (new URL(request.url()).pathname.startsWith('/demo/face-search/')) originalRequests.push(request.url());
   });
-  await page.goto('/e/mariage-lumiere/find');
+  await page.goto(process.env.CADRORA_SITE === 'atelier-giulia' ? '/e/mariage-lumiere/find' : '/e/find-your-photos/find');
   const necessary = page.getByRole('button', { name: /nécessaire seulement|necessary only/i });
   if (await necessary.isVisible()) await necessary.click();
   if (process.env.CADRORA_SITE !== 'atelier-giulia') {
@@ -71,8 +72,11 @@ test('face-search portraits, results, and local preview preserve their framing',
       .evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
     expect(await portraits.first().locator('.progressive-photo__optimized')
       .evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeLessThanOrEqual(320);
-    await expect(page.locator('.face-find__test-card').first()).toHaveAttribute('href', '/demo/face-search/test-portrait-amelia.webp');
+    await expect(page.locator('.face-find__test-card').first()).toBeDisabled();
     expect(originalRequests).toEqual([]);
+    await assertSharedImages(page);
+    await page.goto('/e/mariage-lumiere/find');
+    await expect(page.locator('.face-find__test-portraits')).toHaveCount(0);
   }
   const results = page.locator('.face-result__photo');
   await expect(results).toHaveCount(2);

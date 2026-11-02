@@ -4,6 +4,8 @@ import { useLocation } from 'react-router-dom';
 import { PRIVACY_PREFERENCES_EVENT, readPrivacyConsent } from './consent';
 
 const ANALYTICS_ROUTES = new Set(['/', '/about', '/contact', '/galleries', '/portfolio', '/privacy', '/services']);
+// Enumerated intent only: never copy URLs, labels, gallery IDs or visitor values.
+const MARKETING_ACTIONS = new Set(['demo_section', 'setup_section', 'setup_guide', 'demo_search', 'demo_public', 'demo_private', 'demo_admin', 'featured_site']);
 function isAnalyticsRoute(pathname: string): boolean {
   const marketingPath = pathname.replace(/^\/(?:fr|en)(?=\/|$)/u, '').replace(/\/$/u, '') || '/';
   return ANALYTICS_ROUTES.has(marketingPath) || /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
@@ -103,9 +105,18 @@ export function GoogleAnalytics({ measurementId }: { measurementId: string | nul
       } else disableAnalytics(measurementId);
     };
     applyConsent();
+    const trackMarketingAction = (event: MouseEvent) => {
+      if (readPrivacyConsent() !== 'analytics' || !isAnalyticsRoute(window.location.pathname)
+        || analyticsWindow()[`ga-disable-${measurementId}`] !== false || !(event.target instanceof Element)) return;
+      const action = event.target.closest<HTMLElement>('[data-marketing-action]')?.dataset.marketingAction;
+      if (!action || !MARKETING_ACTIONS.has(action)) return;
+      analyticsWindow().gtag?.('event', 'marketing_action', { action });
+    };
     window.addEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
+    document.addEventListener('click', trackMarketingAction, true);
     return () => {
       window.removeEventListener(PRIVACY_PREFERENCES_EVENT, applyConsent);
+      document.removeEventListener('click', trackMarketingAction, true);
       if (!isAnalyticsRoute(window.location.pathname)) {
         disableAnalytics(measurementId);
       } else {

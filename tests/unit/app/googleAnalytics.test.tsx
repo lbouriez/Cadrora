@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -16,6 +16,7 @@ afterEach(() => {
   delete target.dataLayer;
   delete target.gtag;
   delete target[`ga-disable-${measurementId}`];
+  window.history.replaceState({}, '', '/');
 });
 
 function renderAnalytics(path = '/') {
@@ -27,6 +28,38 @@ function renderAnalytics(path = '/') {
 }
 
 describe('consented Google Analytics loader', () => {
+  it('records only an enumerated intent after consent, without link text or destination', () => {
+    const view = render(<MemoryRouter><GoogleAnalytics measurementId={measurementId} />
+      <button data-marketing-action="demo_search" data-private-url="/e/private?token=sensitive"><span>Visitor content</span></button>
+      <button data-marketing-action="untrusted-value">Unknown action</button>
+    </MemoryRouter>);
+    const events = () => (window as unknown as { dataLayer?: IArguments[] }).dataLayer
+      ?.filter(entry => entry[0] === 'event' && entry[1] === 'marketing_action').map(entry => Array.from(entry as ArrayLike<unknown>)) ?? [];
+    fireEvent.click(view.getByText('Visitor content'));
+    expect(events()).toEqual([]);
+    act(() => savePrivacyConsent('analytics'));
+    fireEvent.click(view.getByText('Visitor content'));
+    fireEvent.click(view.getByText('Unknown action'));
+    expect(events()).toEqual([['event', 'marketing_action', { action: 'demo_search' }]]);
+    window.history.replaceState({}, '', '/e/private/find');
+    fireEvent.click(view.getByText('Visitor content'));
+    expect(events()).toHaveLength(1);
+    window.history.replaceState({}, '', '/');
+    act(() => savePrivacyConsent('necessary'));
+    fireEvent.click(view.getByText('Visitor content'));
+    expect(events()).toHaveLength(1);
+  });
+
+  it('does not create an analytics queue without an owner-configured measurement ID', () => {
+    localStorage.setItem('cadrora-privacy-consent-v1', 'analytics');
+    const view = render(<MemoryRouter><GoogleAnalytics measurementId={null} />
+      <button data-marketing-action="setup_guide">Guide</button>
+    </MemoryRouter>);
+    fireEvent.click(view.getByText('Guide'));
+    expect((window as unknown as { dataLayer?: IArguments[] }).dataLayer).toBeUndefined();
+    expect(document.querySelector('script[data-cadrora-analytics]')).toBeNull();
+  });
+
   it('loads no Google resource before explicit consent', () => {
     renderAnalytics();
     expect(document.querySelector('script[data-cadrora-analytics]')).toBeNull();

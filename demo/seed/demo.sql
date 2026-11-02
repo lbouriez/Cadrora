@@ -69,7 +69,7 @@ INSERT INTO events (
   ),
   (
     'demo-private', 'instants-en-famille', 'Instants en famille',
-    'Galerie privée de démonstration — mot de passe : cadrora-demo. Les personnes présentées sont générées et ne sont pas de vrais clients.',
+    'Galerie privée de démonstration. Les personnes représentées sont fictives et ne sont pas de vrais clients.',
     'family',
     '2026-10-04T15:00:00.000Z', 'America/Toronto', 'demo-private-family',
     'published', 'protected', 0, 0, 0, 1, 0, NULL, 1,
@@ -85,8 +85,12 @@ INSERT INTO events (
   )
 ON CONFLICT(id) DO UPDATE SET
   slug = excluded.slug,
-  title = excluded.title,
-  description = excluded.description,
+  title = CASE WHEN events.id = 'demo-private' THEN events.title ELSE excluded.title END,
+  description = CASE WHEN events.id = 'demo-private' AND (events.description IS NULL OR events.description NOT IN (
+    'Galerie privée de démonstration — mot de passe : cadrora-demo. Les personnes présentées sont générées et ne sont pas de vrais clients.',
+    'Galerie privée de démonstration. Mot de passe : cadrora-demo. Les personnes représentées sont fictives et ne sont pas de vrais clients.',
+    'Galerie privée de démonstration. Les personnes représentées sont fictives et ne sont pas de vrais clients.'
+  )) THEN events.description ELSE excluded.description END,
   service = COALESCE(events.service, excluded.service),
   starts_at = excluded.starts_at,
   timezone = excluded.timezone,
@@ -113,10 +117,25 @@ UPDATE events SET localized_copy = json_object(
 
 UPDATE events SET localized_copy = json_object(
   'fr', json_object('title', 'Instants en famille',
-    'description', 'Galerie privée de démonstration. Mot de passe : cadrora-demo. Les personnes représentées sont fictives et ne sont pas de vrais clients.'),
+    'description', 'Galerie privée de démonstration. Les personnes représentées sont fictives et ne sont pas de vrais clients.'),
   'en', json_object('title', 'Family moments',
-    'description', 'Private demonstration gallery. Password: cadrora-demo. The people shown are fictional and are not real clients.')
-) WHERE id = 'demo-private';
+    'description', 'Private demonstration gallery. The people shown are fictional and are not real clients.')
+) WHERE id = 'demo-private' AND localized_copy IS NULL
+  AND title = 'Instants en famille'
+  AND description = 'Galerie privée de démonstration. Les personnes représentées sont fictives et ne sont pas de vrais clients.';
+
+-- Repair only known private-demo descriptions; keep edited titles and each language's copy.
+UPDATE events SET localized_copy = json_set(localized_copy, '$.fr.description',
+  'Galerie privée de démonstration. Les personnes représentées sont fictives et ne sont pas de vrais clients.')
+WHERE id = 'demo-private'
+  AND EXISTS (SELECT 1 FROM site_settings WHERE id = 1 AND site_name = 'Cadrora')
+  AND json_extract(localized_copy, '$.fr.description') = 'Galerie privée de démonstration. Mot de passe : cadrora-demo. Les personnes représentées sont fictives et ne sont pas de vrais clients.';
+UPDATE events SET localized_copy = json_set(localized_copy, '$.en.description',
+  'Private demonstration gallery. The people shown are fictional and are not real clients.')
+WHERE id = 'demo-private'
+  AND EXISTS (SELECT 1 FROM site_settings WHERE id = 1 AND site_name = 'Cadrora')
+  AND json_extract(localized_copy, '$.en.description') = 'Private demonstration gallery. Password: cadrora-demo. The people shown are fictional and are not real clients.';
+-- End private-demo copy repair.
 
 UPDATE events SET localized_copy = json_object(
   'fr', json_object('title', 'Retrouvez vos photos',

@@ -18,6 +18,7 @@ import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
 import { localizedMarketingPath } from './localizedMarketingPath';
+import { ProductFaq, ProductInstallation, ProductWorkflow } from './ProductSections';
 import type { HomeSection, SiteAction } from '../site/types';
 
 export function HomePage() {
@@ -32,7 +33,7 @@ function SiteActionLink({ action, variant, label, href }: { action?: SiteAction;
   const className = `button button--${variant}`;
   const destination = localizedMarketingPath(href, i18n.resolvedLanguage ?? i18n.language);
   return destination.startsWith('#')
-    ? <a aria-label={label} className={className} href={destination}>{content}</a>
+    ? <a aria-label={label} className={className} data-marketing-action={destination === '#demo' ? 'demo_section' : destination === '#installation' ? 'setup_section' : undefined} href={destination}>{content}</a>
     : <Link aria-label={label} className={className} to={destination}>{content}</Link>;
 }
 
@@ -50,6 +51,7 @@ export function DefaultHomePage() {
   const selectedCard = featuredServices.find((card) => card.id === selectedId);
   const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
   const hero = settings.data?.homeHeroCopy;
+  const editorial = siteProfile.home.presentation === 'editorial';
   const heroText = hero?.[language];
   const heroImagePath = settings.data?.homeHeroImageRevision
     ? `/service-media/home-hero/${settings.data.homeHeroImageRevision}` : '/home-hero-image';
@@ -75,10 +77,10 @@ export function DefaultHomePage() {
   // demo above an already painted stack section caused a reproducible layout shift.
   if (settings.isPending) return <div className="session-home"><FirstFrameReveal ready={false} /></div>;
   return (
-    <div className={`session-home${heroPhotoReady ? '' : ' session-home--pending'}`}>
-      <FirstFrameReveal ready={heroPhotoReady}>
+    <div className={`session-home${heroPhotoReady || editorial ? '' : ' session-home--pending'}`}>
+      <FirstFrameReveal contentReady={editorial} mediaReveal={editorial} ready={heroPhotoReady}>
         <PublicLayout>
-          <section className="site-hero">
+          <section className={`site-hero${editorial ? ' site-hero--editorial' : ''}`}>
             <div className="site-hero__copy">
               <p className="site-eyebrow">{heroText?.label ?? t('gallery.heroEyebrow')}</p>
               <h1>{heroText?.title ?? t('gallery.heroTitle')}</h1>
@@ -94,7 +96,7 @@ export function DefaultHomePage() {
             </div>
             <figure className="site-hero__art">
               <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
-                height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes="(max-width: 48rem) 100vw, 42vw" width={1280}
+                height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes={editorial ? '100vw' : '(max-width: 48rem) 100vw, 42vw'} width={1280}
                 sources={[
                   { url: `${heroImagePath}/preview`, width: 320 },
                   { url: `${heroImagePath}/small`, width: 640 },
@@ -102,7 +104,7 @@ export function DefaultHomePage() {
                   { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
                 ]} />
               {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
-              {siteProfile.heroAccentImageUrl ? <div className="site-hero__ai-card">
+              {siteProfile.heroAccentImageUrl && !editorial ? <div className="site-hero__ai-card">
                 <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />
                 <div><span>{t('gallery.heroAiLabel')}</span><strong>{t('gallery.heroAiValue')}</strong></div>
               </div> : null}
@@ -120,14 +122,9 @@ export function DefaultHomePage() {
             <DemoExperienceCards />
           </MotionReveal> : null}
 
-          {section === 'stack' ? <MotionReveal as="section" id="installation" labelledBy="stack-title" className="product-stack">
-            <div>
-              <p className="site-eyebrow">{t('gallery.stack.eyebrow')}</p>
-              <h2 id="stack-title">{t('gallery.stack.title')}</h2>
-            </div>
-            <p>{t('gallery.stack.body')}</p>
-            <a className="button button--secondary" href="https://github.com/lbouriez/Cadrora" rel="noreferrer" target="_blank">{t('gallery.stack.github')} <span aria-hidden="true">↗</span></a>
-          </MotionReveal> : null}
+          {section === 'stack' ? <ProductInstallation /> : null}
+          {section === 'workflow' ? <ProductWorkflow /> : null}
+          {section === 'faq' ? <ProductFaq /> : null}
 
           {section === 'services' ? <MotionReveal as="section" labelledBy="services-title" className="site-section" id="services">
             <div className="site-section__heading">

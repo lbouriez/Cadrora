@@ -16,6 +16,7 @@ export interface VerticalStorySliderProps {
   slides: readonly VerticalStorySlide[];
   className?: string;
   slideClassName?: string;
+  direction?: 'vertical' | 'horizontal';
   motionPreference?: 'system' | 'always';
   allowDocumentScrollAtEdges?: boolean;
   onActiveIndexChange?: (index: number) => void;
@@ -37,16 +38,39 @@ function canScrollContent(element: HTMLElement, direction: number) {
   return direction > 0 ? element.scrollTop + element.clientHeight < element.scrollHeight - 1 : element.scrollTop > 1;
 }
 
-/** Full-viewport vertical slides with parallax, accessible focus, and optional document scroll at the edges. */
+/** Full-viewport stories; retain the vertical default for existing consumers. */
 export function VerticalStorySlider({ label, slides, className, slideClassName,
+  direction = 'vertical',
   motionPreference = 'system', allowDocumentScrollAtEdges = true, onActiveIndexChange, showPagination = false,
   interactionDisabled = false, onReady }: VerticalStorySliderProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const swiperRef = useRef<SwiperInstance | null>(null);
+  const paginationRef = useRef<HTMLElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(() => typeof window !== 'undefined'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const animate = motionPreference === 'always' || !reducedMotion;
+
+  useEffect(() => {
+    const pagination = paginationRef.current;
+    if (!pagination) return;
+    const revealCurrent = () => {
+      const current = pagination.querySelector<HTMLElement>('[aria-current="step"]');
+      if (!current) return;
+      const bounds = pagination.getBoundingClientRect();
+      const button = current.getBoundingClientRect();
+      // Scroll only the indicator strip, never the page or its fixed shell.
+      const left = button.left < bounds.left ? button.left - bounds.left
+        : button.right > bounds.right ? button.right - bounds.right : 0;
+      const top = button.top < bounds.top ? button.top - bounds.top
+        : button.bottom > bounds.bottom ? button.bottom - bounds.bottom : 0;
+      if (left || top) pagination.scrollBy({ left, top, behavior: 'instant' });
+    };
+    revealCurrent();
+    const observer = new ResizeObserver(revealCurrent);
+    observer.observe(pagination);
+    return () => observer.disconnect();
+  }, [activeIndex, showPagination, slides]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -68,7 +92,8 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || !(event.target instanceof Element)) return;
       const area = event.target.closest<HTMLElement>('[data-story-scroll]');
-      if (area && canScrollContent(area, event.deltaY)) event.stopPropagation();
+      if (area && event.deltaY !== 0 && Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+        && canScrollContent(area, event.deltaY)) event.stopPropagation();
     };
     section.addEventListener('wheel', onWheel, { capture: true, passive: true });
     return () => { observer.disconnect(); section.removeEventListener('wheel', onWheel, true); };
@@ -167,12 +192,12 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
     <Swiper
       aria-label={label}
       className="vertical-story-slider"
-      direction="vertical"
+      direction={direction}
       enabled={!interactionDisabled}
       followFinger={false}
       longSwipes={false}
       modules={[Mousewheel, Parallax]}
-      mousewheel={{ forceToAxis: true, releaseOnEdges: false }}
+      mousewheel={{ forceToAxis: direction === 'vertical', releaseOnEdges: false }}
       observeParents
       observer
       onSlideChange={(swiper) => {
@@ -198,7 +223,7 @@ export function VerticalStorySlider({ label, slides, className, slideClassName,
       {slides.map((slide, index) => <SwiperSlide className={slideClassName} inert={index !== currentIndex}
         key={slide.id} tag="article">{slide.content}</SwiperSlide>)}
     </Swiper>
-    {showPagination && slides.length > 1 ? <nav aria-label={label} className="vertical-story-slider__pagination">
+    {showPagination && slides.length > 1 ? <nav aria-label={label} className="vertical-story-slider__pagination" ref={paginationRef}>
       {slides.map((slide, index) => <button aria-current={index === currentIndex ? 'step' : undefined}
         aria-label={slide.label ?? `${label} ${index + 1}`} className="vertical-story-slider__page"
         key={slide.id} onClick={() => swiperRef.current?.slideTo(index)} type="button">

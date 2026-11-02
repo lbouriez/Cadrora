@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
@@ -25,6 +25,9 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const shell = useRef<HTMLDivElement>(null);
+  const measurePrivacy = useCallback((height: number) => {
+    shell.current?.style.setProperty('--story-privacy-height', `${height}px`);
+  }, []);
   const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
@@ -32,6 +35,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
   const isPortfolioDetail = /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
   const immersiveHome = siteProfile.home.presentation === 'session-slides' && marketingPath === '/';
+  const editorial = siteProfile.home.presentation === 'editorial';
   useEffect(() => {
     if (immersiveHome || siteProfile.home.presentation !== 'session-slides') return;
     const update = () => setScrolled((previous) => window.scrollY > (previous ? 16 : 64));
@@ -231,7 +235,8 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   }, [menuOpen]);
 
   return (
-    <div ref={shell} className={`public-shell${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div ref={shell} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+      <a className="public-skip-link" href="#public-content" onClick={() => setMenuOpen(false)}>{t('gallery.skipContent')}</a>
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
         <header className="public-header">
@@ -283,7 +288,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
         </div>
         </header>
       </div>
-      <main className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || immersiveHome ? ' public-main--immersive' : ''}`}>{children}</main>
+      <main id="public-content" tabIndex={-1} className={`public-main${wide ? ' public-main--gallery' : ''}${fullBleed || immersiveHome ? ' public-main--immersive' : ''}`}>{children}</main>
       <footer className="public-footer" inert={immersiveHome && !immersiveFooterVisible}>
         <div className="public-footer__identity">
           <div className="public-footer__signature">
@@ -308,7 +313,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
         </nav>
       </footer>
       <GoogleAnalytics measurementId={settings.data?.analyticsMeasurementId ?? null} />
-      <PrivacyConsent analyticsAvailable={Boolean(settings.data?.analyticsMeasurementId)} />
+      <PrivacyConsent analyticsAvailable={Boolean(settings.data?.analyticsMeasurementId)} onHeightChange={measurePrivacy} />
     </div>
   );
 }

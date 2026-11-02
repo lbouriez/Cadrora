@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Spinner } from '../components';
-import { getPublicSiteSettings } from './api';
+import { getPublicServices, getPublicSiteSettings } from './api';
 import { PublicLayout } from './PublicLayout';
 import { PublicPageIntro } from './PublicPageIntro';
 import { ServiceAreaMap } from './ServiceAreaMap';
 import { siteProfile } from './siteProfile';
 import { localizedMarketingPath } from './localizedMarketingPath';
-import { ServiceIdSchema } from '../../shared/schemas/services';
+import { ServiceIdSchema, ServiceTariffIndexSchema } from '../../shared/schemas/services';
 import { serviceText } from './serviceCatalog';
-import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
 export function PrivacyPage() {
   const Override = siteProfile.pages?.privacy;
@@ -64,23 +64,25 @@ export function ContactPage() {
   return Override ? <Override /> : <DefaultContactPage />;
 }
 
-/** Resolve optional session context without making direct contact depend on the catalog. */
-function ContactSessionContext({ sessionId }: { sessionId: string }) {
-  const { i18n, t } = useTranslation();
-  const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
-  const services = usePublicServiceCatalog(settings);
-  const card = services.cards.find((item) => (item.enabled || item.showOnHome) && item.id === sessionId);
-  if (!card) return null;
-  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
-  const copy = serviceText(card, language, (key) => t(key));
-  return <p className="contact-page__session">{t('gallery.servicesPage.contactContext', { session: copy.title })}</p>;
-}
-
 export function DefaultContactPage() {
-  const { t } = useTranslation();
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const copyEmail = async (value: string) => {
+    try { await navigator.clipboard.writeText(value); setCopyState('copied'); }
+    catch { setCopyState('failed'); }
+  };
+  const { i18n, t } = useTranslation();
   const [searchParams] = useSearchParams();
   const selectedSession = ServiceIdSchema.safeParse(searchParams.get('session'));
+  const selectedTariff = ServiceTariffIndexSchema.safeParse(searchParams.get('tariff'));
   const settings = useQuery({ queryFn: getPublicSiteSettings, queryKey: ['public-site-settings'], retry: false, staleTime: 60_000 });
+  // Optional context never blocks the direct contact methods and never trusts URL-supplied labels.
+  const services = useQuery({ queryFn: getPublicServices, queryKey: ['public-services'], enabled: selectedSession.success,
+    retry: false, staleTime: 60_000 });
+  const card = selectedSession.success ? services.data?.find(item => (item.enabled || item.showOnHome) && item.id === selectedSession.data) : undefined;
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const session = card ? serviceText(card, language, key => t(key)) : null;
+  const tariff = selectedTariff.success ? session?.tariffs[selectedTariff.data] : undefined;
+  const subject = session ? [session.title, tariff?.name].filter(Boolean).join(' — ') : '';
   const contact = {
     address: settings.data?.contactAddress ?? siteProfile.contact.address,
     email: settings.data?.contactEmail ?? siteProfile.contact.email,
@@ -89,17 +91,17 @@ export function DefaultContactPage() {
   };
   const map = settings.data?.map;
   const contactItems = [
+    contact.email ? {
+      key: 'email',
+      label: t('gallery.contactEmail'),
+      value: contact.email,
+      href: `mailto:${contact.email}${subject ? `?subject=${encodeURIComponent(subject)}` : ''}`,
+    } : null,
     contact.phone ? {
       key: 'phone',
       label: t('gallery.contactPhone'),
       value: contact.phone,
       href: `tel:${contact.phone.replace(/[^+\d]/g, '')}`,
-    } : null,
-    contact.email ? {
-      key: 'email',
-      label: t('gallery.contactEmail'),
-      value: contact.email,
-      href: `mailto:${contact.email}`,
     } : null,
     contact.address ? {
       key: 'address',
@@ -120,14 +122,21 @@ export function DefaultContactPage() {
       <article className="contact-page">
         <PublicPageIntro eyebrow={t('gallery.contactEyebrow')}
           lead={t('gallery.contactBody')} title={t('gallery.contactTitle')} />
-        {selectedSession.success ? <ContactSessionContext sessionId={selectedSession.data} /> : null}
+        {session ? <p className="contact-page__session">{t('gallery.servicesPage.contactContext', { session: subject })}</p> : null}
         <div className={settings.isPending ? 'public-data-region--pending' : undefined}>
         {contactItems.length > 0 ? (
           <dl className="contact-list">
             {contactItems.map((item) => (
               <div className="contact-list__item" key={item.key}>
                 <dt>{item.label}</dt>
-                <dd>{item.href ? <a href={item.href}>{item.value}</a> : item.value}</dd>
+                <dd>{item.href ? <a href={item.href}>{item.value}</a> : item.value}
+                  {item.key === 'email' ? <div className="contact-list__copy">
+                    <button className="button button--secondary" type="button" onClick={() => { void copyEmail(item.value); }}>
+                      {t('gallery.contactCopyEmail')}
+                    </button>
+                    <span role="status">{copyState !== 'idle' ? t(copyState === 'copied' ? 'gallery.contactCopied' : 'gallery.contactCopyFailed') : ''}</span>
+                  </div> : null}
+                </dd>
               </div>
             ))}
           </dl>

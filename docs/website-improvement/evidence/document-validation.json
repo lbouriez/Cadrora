@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-02",
+  "documents": [
+    {
+      "name": "01-audit.md",
+      "lines": 152,
+      "words": 3448,
+      "missing": [],
+      "trailingWhitespace": []
+    },
+    {
+      "name": "02-design-system.md",
+      "lines": 113,
+      "words": 2070,
+      "missing": [],
+      "trailingWhitespace": []
+    },
+    {
+      "name": "03-redesign-blueprint.md",
+      "lines": 174,
+      "words": 2803,
+      "missing": [],
+      "trailingWhitespace": []
+    },
+    {
+      "name": "04-implementation-roadmap.md",
+      "lines": 112,
+      "words": 2594,
+      "missing": [],
+      "trailingWhitespace": []
+    }
+  ],
+  "applicationCodeChanged": false,
+  "checks": {
+    "check": "pass",
+    "testDefault": "1 timeout, 537 passed, 1 skipped",
+    "testMaxWorkers2": "104 files passed; 538 tests passed, 1 skipped",
+    "build": "not run: documentation-only",
+    "fullE2E": "not run: targeted browser audit only"
+  },
+  "evidenceScope": "Atelier and named competitor files only; evidence/cadrora belongs to the concurrent Cadrora audit"
+}

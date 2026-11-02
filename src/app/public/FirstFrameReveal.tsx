@@ -4,22 +4,22 @@ import type { ReactNode } from 'react';
 import { SiteStartup } from './SiteStartup';
 
 /** Keep owner sources stable while revealing either the complete frame or its photo canvas. */
-export function FirstFrameReveal({ children, failed = false, mediaReveal = false, prepared = false, ready }: {
-  children?: ReactNode; failed?: boolean; mediaReveal?: boolean; prepared?: boolean; ready: boolean;
+export function FirstFrameReveal({ children, contentReady = false, failed = false, mediaReveal = false, prepared = false, ready }: {
+  children?: ReactNode; contentReady?: boolean; failed?: boolean; mediaReveal?: boolean; prepared?: boolean; ready: boolean;
 }) {
   const [startupMounted, setStartupMounted] = useState(true);
   const [desktop, setDesktop] = useState(() => typeof window !== 'undefined'
     && (window.matchMedia?.('(min-width: 55rem)').matches ?? false));
   const [photoVisible, setPhotoVisible] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
-  const visible = ready || (mediaReveal && desktop && prepared && !timedOut);
+  const visible = ready || contentReady || (mediaReveal && desktop && prepared && !timedOut);
   useEffect(() => {
-    if (ready) return;
+    if (ready || contentReady) return;
     // Preserve the waiting frame and owner-source gates; offer recovery instead
     // of replacing a stalled chunk or photo with a provisional default image.
     const timeout = window.setTimeout(() => setTimedOut(true), 30_000);
     return () => window.clearTimeout(timeout);
-  }, [ready]);
+  }, [contentReady, ready]);
   useEffect(() => {
     if (!mediaReveal || !window.matchMedia) return;
     const query = window.matchMedia('(min-width: 55rem)');

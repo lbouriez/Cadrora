@@ -8,6 +8,7 @@ import { ServiceCopySchema } from '../../../src/shared/schemas/services';
 const migrationDirectory = new URL('../../../migrations/', import.meta.url);
 const migration = readFileSync(new URL('047_atelier_session_content.sql', migrationDirectory), 'utf8');
 const pricingMigration = readFileSync(new URL('048_atelier_structured_pricing.sql', migrationDirectory), 'utf8');
+const polishMigration = readFileSync(new URL('049_atelier_english_offer_polish.sql', migrationDirectory), 'utf8');
 const birthdayId = '5beb3b68-3389-423b-be37-142851a2a2ea';
 const databases: DatabaseSync[] = [];
 const oldCopy = {
@@ -50,6 +51,53 @@ function copy(database: DatabaseSync, id: string) {
   const row = database.prepare('SELECT copy_json FROM site_services WHERE id = ?').get(id);
   return ServiceCopySchema.parse(JSON.parse(String(row?.copy_json)));
 }
+
+describe('Atelier English offer polish', () => {
+  it('preserves French, amounts, package content, media and visibility; repeated execution is a no-op', () => {
+    const database = fixture();
+    database.exec(migration);
+    database.exec(pricingMigration);
+    const before = snapshot(database);
+    database.exec(polishMigration);
+    const after = snapshot(database);
+    expect(after.settings).toEqual(before.settings);
+    expect(after.variants).toEqual(before.variants);
+    expect(after.schema).toEqual(before.schema);
+    for (const [index, row] of after.services.entries()) {
+      const previous = before.services[index];
+      expect({ ...row, copy_json: previous?.copy_json, updated_at: previous?.updated_at }).toEqual(previous);
+      const old = ServiceCopySchema.parse(JSON.parse(String(previous?.copy_json)));
+      const next = copy(database, String(row.id));
+      expect(next.fr).toEqual(old.fr);
+      expect(next.en.description).toEqual(old.en.description);
+      expect(next.en.points).toEqual(old.en.points);
+      expect(next.en.tariffs?.map(({ name, summary }) => ({ name, summary })))
+        .toEqual(old.en.tariffs?.map(({ name, summary }) => ({ name, summary })));
+      expect(JSON.stringify(next).match(/\d+/gu)).toEqual(JSON.stringify(old).match(/\d+/gu));
+    }
+    expect(copy(database, 'portrait').en.title).toBe('Portrait photography');
+    expect(copy(database, 'maternity').en.tariffs?.[0]?.price).toBe('CAD $350');
+    const count = database.prepare('SELECT total_changes() AS count').get();
+    database.exec(polishMigration);
+    expect(snapshot(database)).toEqual(after);
+    expect(database.prepare('SELECT total_changes() AS count').get()).toEqual(count);
+  });
+
+  it('preserves later owner edits and does not affect other studios', () => {
+    const database = fixture();
+    database.exec(migration);
+    database.exec(pricingMigration);
+    database.exec(`UPDATE site_services SET copy_json = json_set(copy_json,
+      '$.en.title', 'Owner portrait title', '$.en.tariffs[0].price', 'Owner price') WHERE id = 'portrait'`);
+    database.exec(polishMigration);
+    expect(copy(database, 'portrait').en.title).toBe('Owner portrait title');
+    expect(copy(database, 'portrait').en.tariffs?.[0]?.price).toBe('Owner price');
+    const other = fixture('Another studio', 'other@example.test');
+    const before = snapshot(other);
+    other.exec(polishMigration);
+    expect(snapshot(other)).toEqual(before);
+  });
+});
 
 describe('Atelier Giulia session content migration', () => {
   it('fills the existing bilingual fields and retains all media, placement, and unrelated data', () => {

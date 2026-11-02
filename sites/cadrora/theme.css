@@ -1,1 +1,20 @@
-/* The showcase uses the core semantic tokens without profile overrides. */
+/* Direction B: profile-owned identity, shared layouts and owner-managed content. */
+:root[data-site='cadrora'] {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --color-background: #f7f0e8;
+  --color-surface: #fffbf6;
+  --color-surface-raised: #ede1e5;
+  --color-text: #241822;
+  --color-text-muted: #685260;
+  --color-border: #d6c6cd;
+  --radius-sm: 0.2rem;
+  --content-max-width: 78rem;
+}
+[data-site='cadrora'][data-theme='dark'] {
+  --color-background: #241822;
+  --color-surface: #2c1f2b;
+  --color-surface-raised: #382737;
+  --color-text: #f7f0e8;
+  --color-text-muted: #dac6d3;
+  --color-border: #614b5d;
+}

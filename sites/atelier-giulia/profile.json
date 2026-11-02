@@ -6,7 +6,7 @@
   "document": {
     "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
     "origin": "https://ateliergiulia.com",
-    "shareImage": "/home-hero-image/large",
+    "shareImage": "/home-hero-image/large?source=first-session",
     "locales": { "fr": "fr_CA", "en": "en_CA" },
     "themeColor": "#F6F1E7",
     "icon": "/brand/atelier-giulia-logo.png",

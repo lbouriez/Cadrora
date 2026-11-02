@@ -77,7 +77,7 @@ function GalleryPhotoGrid({ downloadHelpId, favoritesEnabled, imagesEnabled, ret
           >
             {image}
             <span aria-hidden="true" className="photo-tile__check">{photo.downloadUrl ? '✓' : <InfoIcon />}</span>
-          </button> : <Link aria-label={photo.filename} className="photo-tile" to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
+          </button> : <Link aria-label={t('gallery.openPhoto', { filename: photo.filename })} className="photo-tile" to={`/e/${slug}/photo/${photo.id}${viewerQuery}`}>
             {image}
           </Link>}
           {!selectionMode && favoritesEnabled ? <FavoriteButton

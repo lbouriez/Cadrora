@@ -26,13 +26,13 @@ for (const language of ['fr', 'en'] as const) {
       await expect(page.locator('#demo')).toHaveCount(0);
     } else {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(language === 'fr'
-        ? 'Vos photos. Vos galeries. Votre propre site.' : 'Your work. Your galleries. Your own website.');
+        ? 'Votre regard. Un espace à vous.' : 'Your perspective. A space of your own.');
       await page.getByRole('link', { name: language === 'fr' ? 'Essayer la démo' : 'Try the demo', exact: true }).click();
       await expect(page.locator('#demo-title')).toBeInViewport();
       await expect(page.locator('#demo a')).toHaveCount(4);
-      await page.getByRole('link', { name: language === 'fr' ? 'Créer mon site' : 'Set up my website', exact: true }).click();
+      await page.getByRole('link', { name: language === 'fr' ? 'Voir l’installation' : 'Explore setup', exact: true }).click();
       await expect(page.locator('#stack-title')).toBeInViewport();
-      await expect(page.locator('#installation a')).toHaveAttribute('href', 'https://github.com/lbouriez/Cadrora');
+      await expect(page.locator('#installation a')).toHaveAttribute('href', 'https://github.com/lbouriez/Cadrora/blob/main/docs/deployment.md');
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     }
     await page.screenshot({ path: `.artifacts/review-2026-10-19/fixed-${atelier ? 'atelier' : 'cadrora'}-${language}-${testInfo.project.name}.png` });

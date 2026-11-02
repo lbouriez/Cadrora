@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-02",
+  "timezone": "America/Toronto",
+  "localHead": "b922165c0331ed52f62897a2b16d1de68812ed8a",
+  "deployedHead": "not established",
+  "desktop": {
+    "width": 1440,
+    "height": 1000
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844
+  },
+  "narrow": {
+    "width": 320,
+    "height": 568
+  },
+  "landscape": {
+    "width": 844,
+    "height": 390
+  },
+  "production": {
+    "portfolioCollections": 0,
+    "sessionsPageEnabled": false,
+    "galleryDirectoryEnabled": false,
+    "constructionNoticeEnabled": true,
+    "themeMode": "light",
+    "enabledLanguages": [
+      "fr",
+      "en"
+    ],
+    "contactServiceAreaEmpty": true,
+    "contactAddressEmpty": true,
+    "homeSessions": [
+      "family",
+      "maternity",
+      "portrait",
+      "couples",
+      "birthday"
+    ],
+    "familyPriceAndDurationEmpty": true
+  },
+  "interactions": {
+    "necessaryConsentChosen": true,
+    "gaScriptAfterRefusal": false,
+    "menuEscapeClosesAndRestoresFocus": true,
+    "modalEscapeClosesAndRestoresFocus": true,
+    "sessionContextPreservedOnContact": true,
+    "mailHrefContainsSession": false,
+    "paginationTargetsPx": 44,
+    "birthdayDialogViewportHeight": 844,
+    "birthdayDialogScrollHeight": 1980,
+    "narrowCTAInitiallyBelowVisibleRegion": true,
+    "narrowCTAFocusReveals": true
+  },
+  "faultSimulation": {
+    "method": "fresh context, abort /api/v1/site and /api/v1/services; no server mutation",
+    "contact": "renders but no email/phone fallback",
+    "home": "renders compiled default sessions including wedding/brand"
+  },
+  "limits": [
+    "No real phone or Safari",
+    "No Lighthouse or field CWV",
+    "No GA dashboard / Search Console",
+    "No contact message or booking submitted",
+    "No authenticated gallery access",
+    "Maria Rios and Maude Carriere browser renders blocked by Cloudflare; text reviewed via web search/open"
+  ]
+}

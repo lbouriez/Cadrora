@@ -11,7 +11,11 @@ export const ServiceTariffSchema = z.object({
 }).strict();
 
 export const ServiceIdSchema = z.string().regex(/^(?:[a-z][a-z0-9-]{0,63}|[0-9a-f]{8}-[0-9a-f-]{27,})$/u);
+/** Optional enquiry context is resolved against the current owner-managed tariff array. */
+export const ServiceTariffIndexSchema = z.string().regex(/^\d+$/u).transform(Number)
+  .pipe(z.number().int().min(0).max(MAX_SERVICE_TARIFFS - 1));
 export const ServiceVariantSchema = z.enum(['preview', 'small', 'medium', 'large']);
+export const HomeHeroImageSourceSchema = z.enum(['hero', 'first-session']).default('hero');
 export const ServicePhotoAlignmentSchema = z.enum(['left', 'center', 'right', 'top', 'bottom']);
 export const ServiceCopyLanguageSchema = z.object({
   title: z.string().min(1).max(120),

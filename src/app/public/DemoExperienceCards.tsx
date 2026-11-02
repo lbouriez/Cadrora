@@ -18,7 +18,7 @@ export function DemoExperienceCards() {
           <p className="site-eyebrow">{t('gallery.demo.aiEyebrow')}</p>
           <h3>{t('gallery.demo.aiTitle')}</h3>
           <p>{t('gallery.demo.aiBody')}</p>
-          <Link className="button button--primary" to="/e/find-your-photos/find">
+          <Link className="button button--primary" data-marketing-action="demo_search" to="/e/find-your-photos/find">
             {t('gallery.demo.aiAction')}
           </Link>
         </div>
@@ -27,7 +27,7 @@ export function DemoExperienceCards() {
         <p className="site-eyebrow">{t('gallery.demo.publicEyebrow')}</p>
         <h3>{t('gallery.demo.publicTitle')}</h3>
         <p>{t('gallery.demo.publicBody')}</p>
-        <Link className="button button--primary" to={`/e/${siteProfile.demo.publicGallerySlug}`}>
+        <Link className="button button--secondary" data-marketing-action="demo_public" to={`/e/${siteProfile.demo.publicGallerySlug}`}>
           {t('gallery.demo.publicAction')}
         </Link>
       </MotionReveal>
@@ -35,7 +35,7 @@ export function DemoExperienceCards() {
         <p className="site-eyebrow">{t('gallery.demo.privateEyebrow')}</p>
         <h3>{t('gallery.demo.privateTitle')}</h3>
         <p>{t('gallery.demo.privateBody')}</p>
-        <Link className="button button--secondary" to={`/e/${siteProfile.demo.privateGallerySlug}`}>
+        <Link className="button button--secondary" data-marketing-action="demo_private" to={`/e/${siteProfile.demo.privateGallerySlug}`}>
           {t('gallery.demo.privateAction')}
         </Link>
       </MotionReveal>
@@ -43,7 +43,7 @@ export function DemoExperienceCards() {
         <p className="site-eyebrow">{t('gallery.demo.adminEyebrow')}</p>
         <h3>{t('gallery.demo.adminTitle')}</h3>
         <p>{t('gallery.demo.adminBody')}</p>
-        <Link className="button button--secondary" to="/admin/login?demo=1">
+        <Link className="button button--secondary" data-marketing-action="demo_admin" to="/admin/login?demo=1">
           {t('gallery.demo.adminAction')}
         </Link>
       </MotionReveal>

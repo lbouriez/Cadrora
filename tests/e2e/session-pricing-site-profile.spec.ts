@@ -70,7 +70,7 @@ test('owner edits package pricing and practical information on desktop and phone
 });
 
 for (const language of ['fr', 'en'] as const) {
-  test(`${language}: package bullets and practical information fit the shared dialog and remain keyboard accessible`, async ({ page }, testInfo) => {
+  test(`${language}: package cards and practical information fit the shared dialog and remain keyboard accessible`, async ({ page }, testInfo) => {
     await page.route('**/api/v1/site', route => route.fulfill({ json: {
       siteName: 'Example Studio', defaultLanguage: language, enabledLanguages: ['fr', 'en'],
       contactEmail: 'hello@example.test', contactPhone: null, contactAddress: null, serviceArea: null,
@@ -97,7 +97,7 @@ for (const language of ['fr', 'en'] as const) {
     expect(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: testInfo.outputPath('pricing-packages.png') });
-    await dialog.getByRole('link').focus();
+    await dialog.locator('summary').focus();
     await page.keyboard.press('Tab');
     await expect(dialog.getByRole('button')).toBeFocused();
     await page.keyboard.press('Escape');
@@ -110,8 +110,8 @@ for (const language of ['fr', 'en'] as const) {
     await page.reload();
     await opener.click();
     await expect(dialog).toContainText(session.copy[language].tariffs[0].price);
-    await expect(dialog.locator('.service-details-modal__tariffs')).toHaveCount(0);
+    await expect(dialog.locator('.service-details-modal__tariffs > li')).toHaveCount(1);
     await expect(dialog.locator('.service-details-modal__good-to-know')).toHaveCount(0);
-    await expect(dialog).not.toContainText(session.copy[language].priceRange);
+    await expect(dialog).toContainText(session.copy[language].priceRange);
   });
 }

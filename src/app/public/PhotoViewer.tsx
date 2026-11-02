@@ -145,7 +145,7 @@ export function PhotoViewer<Photo extends ViewerPhoto>({ favoriteEnabled, retouc
           <div aria-label={t('gallery.photoOf', { current: index + 1, total: photos.length })} className="photo-viewer__rail">
             {photos.map((candidate) => {
               return (
-                <button aria-current={candidate.id === photo.id ? 'true' : undefined} aria-label={candidate.filename} key={candidate.id} onClick={() => onSelect(candidate)} type="button">
+                <button aria-current={candidate.id === photo.id ? 'true' : undefined} aria-label={t('gallery.selectPhoto', { filename: candidate.filename })} key={candidate.id} onClick={() => onSelect(candidate)} type="button">
                   <ProgressivePhoto alt="" height={candidate.height} lazyPreview maxQuality="preview" sizes="44px" sources={candidate.sources} width={candidate.width} />
                 </button>
               );

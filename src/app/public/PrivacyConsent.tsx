@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -10,9 +10,22 @@ import {
 import type { PrivacyConsent as PrivacyConsentValue } from './consent';
 import { localizedMarketingPath } from './localizedMarketingPath';
 
-export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvailable?: boolean }) {
+export function PrivacyConsent({ analyticsAvailable = false, onHeightChange }: {
+  analyticsAvailable?: boolean; onHeightChange?: (height: number) => void;
+}) {
   const { i18n, t } = useTranslation();
   const [open, setOpen] = useState(() => readPrivacyConsent() === null);
+  const panel = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const element = panel.current;
+    if (!open || !element) { onHeightChange?.(0); return; }
+    const measure = () => onHeightChange?.(element.offsetHeight);
+    measure();
+    if (typeof ResizeObserver !== 'function') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => { observer.disconnect(); onHeightChange?.(0); };
+  }, [onHeightChange, open]);
 
   useEffect(() => {
     const handlePreferences = (event: Event) => {
@@ -30,19 +43,20 @@ export function PrivacyConsent({ analyticsAvailable = false }: { analyticsAvaila
   if (!open) return null;
 
   return (
-    <aside aria-labelledby="privacy-consent-title" className="privacy-consent" role="region">
+    <aside aria-labelledby="privacy-consent-title" className={`privacy-consent${analyticsAvailable ? '' : ' privacy-consent--necessary'}`} ref={panel} role="region">
       <div>
         <p className="privacy-consent__eyebrow">{t('gallery.consent.eyebrow')}</p>
         <h2 id="privacy-consent-title">{t('gallery.consent.title')}</h2>
-        <p>{t(analyticsAvailable ? 'gallery.consent.body' : 'gallery.consent.bodyNoAnalytics')}</p>
-        <Link to={localizedMarketingPath('/privacy', i18n.language)}>{t('gallery.consent.learnMore')}</Link>
+        <p>{t(analyticsAvailable ? 'gallery.consent.body' : 'gallery.consent.bodyNoAnalytics')}{' '}
+          <Link to={localizedMarketingPath('/privacy', i18n.language)}>{t('gallery.consent.learnMore')}</Link>
+        </p>
       </div>
       <div className="privacy-consent__actions">
         <button className="button button--secondary" onClick={() => choose('necessary')} type="button">
           {t('gallery.consent.necessary')}
         </button>
         {analyticsAvailable ? (
-          <button className="button button--primary" onClick={() => choose('analytics')} type="button">
+          <button className="button button--secondary" onClick={() => choose('analytics')} type="button">
             {t('gallery.consent.analytics')}
           </button>
         ) : null}

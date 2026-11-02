@@ -170,9 +170,8 @@ test.describe('Cadrora first frame', () => {
   });
 
   for (const language of ['fr', 'en']) {
-    test(`${language} keeps the identity until the owner display photo is ready`, async ({ page }, testInfo) => {
+    test(`${language} exposes owner-resolved content before the display photo is ready`, async ({ page }, testInfo) => {
       await installOwnerHome(page);
-      await observeCrossfade(page);
       await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
         siteName: 'Cadrora', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
         contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
@@ -194,16 +193,17 @@ test.describe('Cadrora first frame', () => {
       try {
         await page.goto(`/${language}/`, { waitUntil: 'domcontentloaded' });
         await expect.poll(() => requested).toBe(true);
-        await expect(page.locator('.site-startup__brand')).toHaveText('Cadrora');
-        await expect(page.locator('.site-startup__brand')).toBeInViewport();
-        await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
-        await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
-        await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+        await expect(page.locator('.site-startup')).toHaveCount(0);
+        await expect(page.locator('.public-brand')).toHaveAccessibleName(language === 'fr' ? 'Cadrora — Accueil' : 'Cadrora — Home');
+        await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
+        await expect(page.locator('.session-home__stage')).not.toHaveAttribute('inert');
+        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+        await expect(page.locator('.site-hero__art > .progressive-photo')).toHaveCSS('opacity', '0');
         await page.screenshot({ path: testInfo.outputPath('waiting-for-display-photo.png') });
       } finally { release(); }
       await expect(page.locator('.site-startup')).toHaveCount(0);
       await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
-      await expectContinuousCrossfade(page);
+      await expect(page.locator('.site-hero__art > .progressive-photo')).toHaveCSS('opacity', '1');
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await expect(page.locator('.site-hero__art > .progressive-photo .progressive-photo__optimized')).toHaveJSProperty('complete', true);
       expect(fallbackRequests).toEqual([]);
@@ -478,7 +478,7 @@ for (const language of ['fr', 'en']) {
           await expect(page.locator('.site-startup__identity')).toHaveCSS('opacity', '0');
           await expect(page.locator('.site-startup')).toHaveCSS('background-color', 'rgb(46, 42, 36)');
         } else {
-          await expect(page.locator('.site-startup')).toHaveCSS('background-color', atelier ? 'rgb(246, 241, 231)' : 'rgb(255, 250, 247)');
+          await expect(page.locator('.site-startup')).toHaveCSS('background-color', atelier ? 'rgb(246, 241, 231)' : 'rgb(247, 240, 232)');
         }
         await expect(page.locator('.site-startup h1')).toBeHidden();
         await expect(page.locator('.public-header')).toHaveCount(0);

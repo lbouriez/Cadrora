@@ -28,9 +28,10 @@ export const cadroraSite = {
     couples: '/brand/service-couples.webp',
   },
   home: {
+    presentation: 'editorial',
     primaryAction: { href: '#demo', labelKey: 'gallery.tryDemo', shortLabelKey: 'gallery.tryDemo' },
     secondaryAction: { href: '#installation', labelKey: 'gallery.installCadrora', shortLabelKey: 'gallery.installCadrora' },
-    sections: ['demo', 'stack', 'services', 'approach', 'galleries', 'featuredSites'],
+    sections: ['demo', 'workflow', 'featuredSites', 'services', 'galleries', 'stack', 'faq'],
     showProof: true,
     featuredSites: [
       {
@@ -50,9 +51,9 @@ export const cadroraSite = {
   },
   copy: {
     en: { gallery: {
-      heroEyebrow: 'A website for your photography',
-      heroTitle: 'Your work. Your galleries. Your own website.',
-      heroLead: 'Show your work, present your sessions and deliver photos to your clients. Install Cadrora in your own Cloudflare account and make it yours. Try the demos below to see how it works.',
+      heroEyebrow: 'Your photography, your way',
+      heroTitle: 'Your perspective. A space of your own.',
+      heroLead: 'A website to present your work. Galleries to share it. Explore Cadrora, then install it in your own Cloudflare account.',
       heroArtCaption: 'Sample gallery',
       productProof: { private: 'Password-protected galleries', free: 'No software subscription', open: 'Your own hosting' },
       servicesEyebrow: 'An example website',
@@ -88,9 +89,9 @@ export const cadroraSite = {
       atelierGiulia: 'Portraits, celebrations, and photo galleries on a site shaped around the studio.',
     } } },
     fr: { gallery: {
-      heroEyebrow: 'Un site pour votre photographie',
-      heroTitle: 'Vos photos. Vos galeries. Votre propre site.',
-      heroLead: 'Présentez votre travail, vos séances et livrez vos photos à vos clients. Installez Cadrora dans votre propre compte Cloudflare et adaptez-le à votre studio. Découvrez son fonctionnement avec les démos ci-dessous.',
+      heroEyebrow: 'Votre photographie, à votre façon',
+      heroTitle: 'Votre regard. Un espace à vous.',
+      heroLead: 'Un site pour présenter votre travail. Des galeries pour le partager. Découvrez Cadrora, puis installez-le dans votre propre compte Cloudflare.',
       heroArtCaption: 'Galerie de démonstration',
       productProof: { private: 'Galeries protégées par mot de passe', free: 'Sans abonnement au logiciel', open: 'Votre propre hébergement' },
       servicesEyebrow: 'Un exemple de site',

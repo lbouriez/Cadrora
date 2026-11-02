@@ -103,6 +103,7 @@ function AboutEditor({ settings, readOnly }: { settings: AdminSiteSettings; read
           onChange={(language, value) => changeField(language, field, value)} primaryLanguage={primaryLanguage}
           required={field !== 'imageAlt'} values={{ fr: copy.fr[field], en: copy.en[field] }} />
       ))}
+      <p className="field__hint">{t('admin.about.imageAltHint')}</p>
       <PhotoCompressionField disabled={busy || readOnly} onChange={setCompression} value={compression} />
       <label className="field"><span className="field__label">{t('admin.about.photo')}</span>
         <input accept="image/jpeg,image/png,image/webp" className="field__input" disabled={busy || readOnly}

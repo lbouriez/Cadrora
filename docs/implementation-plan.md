@@ -1,5 +1,7 @@
 # Approved implementation plan
 
+Post-plan extension (2026-11-02): [ADR-055](decisions/ADR-055-atelier-direction-a.md) implements the owner's Atelier Direction A selection in the existing checkout. PB owns shared compact consent, session/package presentation, contextual contact and About alternatives; PA adds portrait-alternative guidance; the Worker resolves the owner-selected first Home photo for sharing. Atelier styling and presentation options stay in its profile. Acceptance covers persistent footer, wheel/push/fade and reduced motion, FR/EN short screens, configured content/visibility/framing, package-to-email context and copy feedback, both profile builds, media revision/order, and guarded migration 049. Excluded recommendations and unprovided owner content remain untouched.
+
 Post-plan extension (2026-10-25): ADR-054 adds optional bilingual session pricing packages and practical information across PA admin editing, PB shared public session details, and shared API schemas. Reuse `site_services.copy_json`, existing routes and localized fields. Acceptance includes legacy/single/multiple price rendering, optional-block omission, FR/EN save/reload and mobile/keyboard coverage, both profile builds, and shared-code deployment before the separate Atelier content migration.
 
 Status: implemented. Approved 2026-09-20; implementation and documentation reviewed 2026-09-21. Release-specific provider evidence must still be recorded for each deployed revision.
@@ -77,6 +79,8 @@ After all five packages pass their acceptance checks, integrate end-to-end photo
 Local implementation and browser coverage are complete. The import suite verifies real pipeline chunking over 200 synthetic files, restart from the first unfinished chunk after 100 finalizations, and browser IndexedDB/UI recovery over four 50-photo chunks. The public showcase has been deployed to Cloudflare, but each new revision still requires exact-deployment smoke tests. A fresh third-party account rehearsal, a real interrupted import with representative 50/200-photo payloads, and iPhone Safari facial-search validation remain release-acceptance work; deterministic local fakes and dry runs do not replace those checks.
 
 ## Guardrails
+
+Post-plan extension (2026-11-02, owner-approved Direction B and priority plan): PB implements profile-selected editorial Home, shared accessibility/contrast/privacy corrections, clearer demo/setup guidance and optional consented intent events. PE adds consent-gated selection of bundled showcase portraits and discards pending work after consent withdrawal. Existing admin settings, shared schemas, API/media routes and storage contracts remain authoritative; no dependency is added. Acceptance: FR/EN desktop/phone rendering, custom owner hero/actions/photos, all Home sessions in admin order (including Home-only), disabled page links, themes, keyboard/FAQ behavior, delayed/failed photo recovery, no analytics before consent and no automatic biometric request after sample selection; check, unit tests and both profile builds. Production traffic/conversion measurement, participant usability sessions and physical iPhone WASM checks require subsequent live validation.
 
 1. The frontend is static and gallery photos never enter the build.
 2. The browser receives no secrets or provider bindings.

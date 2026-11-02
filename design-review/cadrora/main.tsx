@@ -1,0 +1,15 @@
+import { createRoot } from 'react-dom/client';
+import { App } from './App';
+import { Prototype } from './Prototype';
+import type { MockPage } from './data';
+import './prototype.css';
+import './review.css';
+const params=new URLSearchParams(location.search);
+const direction=params.get('prototype');
+const lang=params.get('lang')==='en'?'en':'fr';
+const page=params.get('page');
+const view:MockPage=page==='about'||page==='services'||page==='contact'||page==='demos'||page==='installation'?page:'home';
+document.documentElement.lang=direction?lang:'en';
+const root=document.getElementById('root');
+if(!root)throw new Error('Missing review root');
+createRoot(root).render(direction==='a'||direction==='b'||direction==='c'?<Prototype direction={direction} language={lang} view={view}/>:<App/>);

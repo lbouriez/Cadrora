@@ -185,7 +185,7 @@ test('the shared masthead and page introductions align across routes', async ({ 
     expect(position.brand).toBeCloseTo(positions[0]?.brand ?? NaN, 0);
     expect(position.menu).toBeCloseTo(positions[0]?.menu ?? NaN, 0);
   }
-  expect(positions[1]?.intro).toBeCloseTo(positions[2]?.intro ?? NaN, 0);
+  expect(positions[2]?.intro).toBeLessThanOrEqual(positions[1]?.intro ?? NaN);
   expect(positions[1]?.intro).toBeCloseTo(positions[3]?.intro ?? NaN, 0);
   await page.setViewportSize({ width: 320, height: 700 });
   const narrowPositions = [];
@@ -218,7 +218,7 @@ test('Home keeps its startup canvas while the slider chunk loads', async ({ page
   const slide = page.locator('.swiper-slide-active.session-story__panel');
   await expect(slide).toBeVisible();
   const content = await slide.locator('.session-story__content').boundingBox();
-  expect((content?.x ?? 0) + (content?.width ?? 0) / 2).toBeCloseTo((page.viewportSize()?.width ?? 0) / 2, 0);
+  expect(content?.x).toBeLessThan((page.viewportSize()?.width ?? 1440) / 4);
 });
 
 test('Home owner photo keeps its monochrome framing through image load and slider mount', async ({ page }) => {
@@ -324,7 +324,8 @@ test('owner sessions form full-height panels with their own details action', asy
   const masthead = (await page.locator('.public-masthead').boundingBox())!;
   const content = (await panels.first().locator('.session-story__content').boundingBox())!;
   expect(copy?.y).toBeGreaterThanOrEqual(masthead.y + masthead.height);
-  expect(Math.abs(content.y + content.height / 2 - ((copy?.y ?? 0) + (copy?.height ?? 0) / 2))).toBeLessThan(2);
+  expect(content.y + content.height).toBeLessThanOrEqual((copy?.y ?? 0) + (copy?.height ?? 0) + 1);
+  expect(content.x).toBeLessThan((page.viewportSize()?.width ?? 1440) / 4);
   expect((await page.locator('.public-shell--immersive .public-header').boundingBox())?.y).toBe(0);
   await expect(page.locator('.session-story__cta')).toHaveCount(3);
   await expect(page.locator('.session-story__cta').first()).toHaveAttribute('aria-haspopup', 'dialog');
@@ -379,19 +380,20 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
   await dismissConsent(page);
   const footer = page.locator('.public-footer');
-  await expect(footer).toBeHidden();
-  await expect(footer).toHaveAttribute('inert', '');
+  await expect(footer).toBeVisible();
+  await expect(footer).not.toHaveAttribute('inert');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
     if (testInfo.project.name === 'mobile-chromium') {
       const session = await page.context().newCDPSession(page);
-      const x = (viewport?.width ?? 390) / 2;
-      const startY = direction > 0 ? height * 0.82 : height * 0.18;
-      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
+      const width = viewport?.width ?? 390;
+      const startX = direction > 0 ? width * 0.82 : width * 0.18;
+      const y = height / 2;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y, id: 0 }] });
       for (let step = 1; step <= 5; step += 1) {
         await session.send('Input.dispatchTouchEvent', {
-          type: 'touchMove', touchPoints: [{ x, y: startY - direction * height * 0.7 * step / 5, id: 0 }],
+          type: 'touchMove', touchPoints: [{ x: startX - direction * width * 0.7 * step / 5, y, id: 0 }],
         });
         await page.waitForTimeout(12);
       }
@@ -421,7 +423,7 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(footer).not.toHaveAttribute('inert');
   await gesture(-1);
   await settledAt(1);
-  await expect(footer).toBeHidden();
+  await expect(footer).toBeVisible();
   await gesture(1);
   await settledAt(2);
   await gesture(1);
@@ -453,12 +455,13 @@ test('Atelier respects reduced motion for wheel, touch, and keyboard slides', as
   const height = viewport?.height ?? 844;
   if (testInfo.project.name === 'mobile-chromium') {
     const session = await page.context().newCDPSession(page);
-    const x = (viewport?.width ?? 390) / 2;
-    const startY = height * 0.82;
-    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: startY, id: 0 }] });
+    const width = viewport?.width ?? 390;
+    const startX = width * 0.82;
+    const y = height / 2;
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y, id: 0 }] });
     for (let step = 1; step <= 5; step += 1) {
       await session.send('Input.dispatchTouchEvent', {
-        type: 'touchMove', touchPoints: [{ x, y: startY - height * 0.5 * step / 5, id: 0 }],
+        type: 'touchMove', touchPoints: [{ x: startX - width * 0.5 * step / 5, y, id: 0 }],
       });
       await page.waitForTimeout(16);
     }
@@ -556,8 +559,12 @@ test('fixed light appearance does not flash a dark theme or a theme switch while
   await expect(page.locator('.public-header__theme')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /autoriser l'analyse|allow analytics/i })).toBeVisible();
   const afterConsent = await page.locator('.privacy-consent').boundingBox();
-  expect(Math.abs((afterConsent?.y ?? 0) - (beforeConsent?.y ?? 0))).toBeLessThan(1);
-  expect(Math.abs((afterConsent?.height ?? 0) - (beforeConsent?.height ?? 0))).toBeLessThan(1);
+  expect(beforeConsent).not.toBeNull();
+  expect(afterConsent).not.toBeNull();
+  // The notice grows to fit the newly available choice while keeping its bottom anchor.
+  expect(Math.abs(afterConsent!.y + afterConsent!.height - beforeConsent!.y - beforeConsent!.height)).toBeLessThan(1);
+  expect(afterConsent!.y).toBeGreaterThanOrEqual(0);
+  await assertNoHorizontalOverflow(page);
 });
 
 test('Home obeys session eligibility while the Sessions page stays complete', async ({ page }) => {

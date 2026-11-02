@@ -15,7 +15,7 @@ import { localizedMarketingPath } from './localizedMarketingPath';
 import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 
-/** Present owner-managed Home sessions through the shared vertical slider. */
+/** Present owner-managed Home sessions through the shared slider. */
 export function SessionScrollStory() {
   const { i18n, t } = useTranslation();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -52,16 +52,18 @@ export function SessionScrollStory() {
     id: card.id,
     label: serviceText(card, language, (key) => t(key)).title,
     content: <SessionStoryContent card={card} heading={index === 0 ? 'h1' : 'h2'}
-      immediate={index === 0} introduction={index === 0} onExplore={setSelectedId} onVisualReady={index === 0 ? markFirstPhotoReady : undefined}
-      priority={index === 0} />,
+      immediate={index === 0} introduction={index === 0 && siteProfile.home.sessionIntroduction !== false} onExplore={setSelectedId} onVisualReady={index === 0 ? markFirstPhotoReady : undefined}
+      photoZoom={siteProfile.home.slidePhotoZoom !== false} priority={index === 0} />,
   })) : [{ id: 'fallback', label: t('gallery.heroTitle'), content: <>
-    <div className="session-story__visual" data-swiper-parallax-scale="1.1">
+    <div className="session-story__visual" {...(siteProfile.home.slidePhotoZoom !== false ? { 'data-swiper-parallax-scale': '1.1' } : {})}>
       <BrandPhoto alt="" className="session-story__photo" immediate onVisualReady={markFirstPhotoReady} visualReadyAt="display" priority sizes="100vw" src={siteProfile.heroImageUrl} />
     </div>
     <div className="session-story__shade" />
-    <div aria-label={t('gallery.heroTitle')} className="session-story__copy" data-story-scroll="" data-swiper-parallax="-200" role="region" tabIndex={-1}>
+    <div className="session-story__copy" data-swiper-parallax="-160" data-swiper-parallax-opacity="0.15">
       <div className="session-story__content">
-        <h1>{t('gallery.heroTitle')}</h1>
+        <div aria-label={t('gallery.heroTitle')} className="session-story__text" data-story-scroll="" role="region" tabIndex={-1}>
+          <h1>{t('gallery.heroTitle')}</h1>
+        </div>
         <Link className="session-story__cta" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
       </div>
     </div>
@@ -69,8 +71,9 @@ export function SessionScrollStory() {
 
   return <div className="session-home">
     <FirstFrameReveal failed={sliderFailed} mediaReveal prepared={prepared} ready={ready}>
-      <PublicLayout compactHeader={activeSlideIndex > 0} immersiveFooterVisible={ready && activeSlideIndex >= slides.length - 1}>
+      <PublicLayout compactHeader={activeSlideIndex > 0} immersiveFooterVisible={ready && (siteProfile.home.immersiveFooter === 'always' || activeSlideIndex >= slides.length - 1)}>
         {Slider && !services.isPending ? <Slider allowDocumentScrollAtEdges={false} className="session-story" label={t('gallery.services')}
+          direction={siteProfile.home.slideDirection ?? 'vertical'}
           interactionDisabled={!ready || Boolean(selectedCard)} onActiveIndexChange={setActiveSlideIndex}
           onReady={markSliderReady} showPagination slideClassName="session-story__panel" slides={slides} /> : null}
         <SessionDetailsModal card={selectedCard ?? null} onClose={() => setSelectedId(null)} />

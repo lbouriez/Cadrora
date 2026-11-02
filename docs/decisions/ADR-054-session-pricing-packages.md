@@ -2,6 +2,8 @@
 
 Status: accepted by the owner's 2026-10-25 request. Extends ADR-028 and ADR-032.
 
+Current presentation: the owner's 2026-11-02 A06 approval in [ADR-055](ADR-055-atelier-direction-a.md) replaces the simple-line/bulleted-list presentation below with responsive package cards, early duration/price/contact and practical information before inclusions. The schema, exact owner strings, bilingual editor and optional-field compatibility remain unchanged.
+
 ## Decision
 
 Each language in service copy gains optional `tariffs` and `goodToKnow` fields in the existing `site_services.copy_json`. A tariff has a required `name` (120 characters), `price` (160 characters), and short `summary` (600 characters). At most eight tariffs are allowed per language. Prices remain owner-authored text, including currency; this adds no booking, payment or price calculation. `goodToKnow` accepts up to 1,000 characters. Existing copy without these fields remains valid.

@@ -6,6 +6,7 @@ import {
   ServiceCardSchema, ServiceCardsSchema, ServiceCardUpdateSchema, ServiceCopySchema,
   ServiceIdSchema, ServiceImageUploadHeadersSchema, ServiceVariantSchema,
   ServiceImageRevisionSchema, ServiceImageUploadResponseSchema,
+  HomeHeroImageSourceSchema,
 } from '../../shared/schemas';
 import type { ServiceCard } from '../../shared/schemas';
 import { applyCachePolicy } from '../middleware/cacheHeaders';
@@ -92,6 +93,10 @@ async function listServices(db: D1Database): Promise<ServiceCard[]> {
   }));
 }
 
+function isPublicService(card: ServiceCard): boolean {
+  return (card.enabled || card.showOnHome) && (card.isBuiltin || Boolean(card.copy && card.imageSources.length === requiredVariants.length));
+}
+
 function requireOwner(context: { get(name: 'auth'): AppEnv['Variables']['auth'] }): void {
   if (context.get('auth').admin?.access !== 'manage') {
     throw new ApiException('ADMIN_AUTH_REQUIRED', 'errors.adminAuthRequired', 403);
@@ -158,7 +163,22 @@ async function reservedImage(context: Context<AppEnv>, owner: typeof reservedOwn
 }
 
 export function registerServiceRoutes(app: Hono<AppEnv>): void {
-  app.get('/home-hero-image/:variant', (context) => reservedImage(context, 'home-hero', context.env.SITE_HERO_IMAGE_URL || '/brand/demo-hero.webp'));
+  app.get('/home-hero-image/:variant', async (context) => {
+    const source = HomeHeroImageSourceSchema.safeParse(context.req.query('source'));
+    const variant = ServiceVariantSchema.safeParse(context.req.param('variant'));
+    if (!source.success || !variant.success) throw new ApiException('INVALID_MEDIA_PATH', 'errors.invalidMediaPath', 400);
+    if (source.data === 'first-session') {
+      // Resolve the same owner-controlled order and publication rules as Home.
+      // Redirects are not cached: a new order/photo revision must win immediately.
+      const first = (await listServices(context.env.DB)).find(card => card.showOnHome && isPublicService(card));
+      const photo = first?.imageSources.find(image => image.url.endsWith(`/${variant.data}`));
+      if (photo) {
+        context.header('Cache-Control', 'no-store');
+        return context.redirect(photo.url, 302);
+      }
+    }
+    return reservedImage(context, 'home-hero', context.env.SITE_HERO_IMAGE_URL || '/brand/demo-hero.webp');
+  });
   app.get('/about-hero-image/:variant', (context) => reservedImage(context, 'about-hero', '/brand/service-brand.webp'));
 
   app.get('/service-media/:id/:revision/:variant', async (context) => {
@@ -198,8 +218,7 @@ export function registerServiceRoutes(app: Hono<AppEnv>): void {
   app.get('/api/v1/services', async (context) => {
     applyCachePolicy(context, 'event-public');
     const cards = await listServices(context.env.DB);
-    return context.json(ServiceCardsSchema.parse(cards.filter((card) => (card.enabled || card.showOnHome) &&
-      (card.isBuiltin || (card.copy && card.imageSources.length === requiredVariants.length)))));
+    return context.json(ServiceCardsSchema.parse(cards.filter(isPublicService)));
   });
 
   app.get('/api/v1/admin/services', async (context) => {

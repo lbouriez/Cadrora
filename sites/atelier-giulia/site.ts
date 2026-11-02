@@ -31,6 +31,10 @@ export const atelierGiuliaSite = {
   navigation: ['portfolio', 'services', 'about', 'contact'],
   home: {
     presentation: 'session-slides',
+    immersiveFooter: 'always',
+    slideDirection: 'horizontal',
+    slidePhotoZoom: false,
+    sessionIntroduction: false,
     primaryAction: { href: '/contact', labelKey: 'gallery.contactCalloutAction', shortLabelKey: 'gallery.contactCalloutAction' },
     secondaryAction: { href: '#services', labelKey: 'gallery.services', shortLabelKey: 'gallery.services' },
     sections: ['services', 'approach', 'galleries', 'contact'],
@@ -51,6 +55,8 @@ export const atelierGiuliaSite = {
       galleryLead: 'Explore the galleries we have chosen to share. Private galleries open only through their own link.',
       contactCalloutTitle: 'Let’s talk about your plans.',
       footerTagline: 'Photography with feeling.',
+      contactTitle: 'Let’s talk about your session.',
+      contactBody: 'An idea, an occasion, a moment to remember? Tell us about your plans.',
       aboutPage: {
         title: 'Meet Giulia',
         body: "I'm Giulia, an Italian photographer living in Canada with a passion for family photography. I've always been the one grabbing the camera to capture happy moments — with a keen eye for aesthetics and, above all, making people feel at ease in front of the lens.",
@@ -69,6 +75,8 @@ export const atelierGiuliaSite = {
       galleryLead: 'Découvrez les galeries que nous avons choisi de partager. Les galeries privées sont accessibles uniquement par leur lien.',
       contactCalloutTitle: 'Parlons de votre projet.',
       footerTagline: 'Des images pleines de vie.',
+      contactTitle: 'Parlons de votre séance.',
+      contactBody: 'Une idée, une occasion, un moment à garder ? Racontez-nous votre projet.',
       aboutPage: {
         title: 'Rencontrez Giulia',
         body: 'Je suis Giulia, une Italienne installée au Canada et passionnée par la photographie de famille. J’ai toujours été celle qui saisit l’appareil pour garder les moments heureux, avec un œil sensible à l’esthétique et surtout l’envie de mettre chacun à l’aise devant l’objectif.',

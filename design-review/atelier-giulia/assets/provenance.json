@@ -1,0 +1,38 @@
+{
+  "capturedAt": "2026-11-02T15:38:39.892Z",
+  "current": "Production screenshots at 1440 × 1000 and 390 × 844. Consent dismissed except filenames ending first. Sections captured separately. Service pages shown in their actual modal; /services is disabled.",
+  "local": "Local source launched at :4185 and inspected. Local data differs: compiled defaults show extra services. local-home-desktop.jpg is explicitly separate from production evidence.",
+  "failure": "contact-failure.jpg is a Phase 1 production browser capture with public site and services API requests aborted. This is a simulated outage, not a claim of current downtime.",
+  "photos": [
+    {
+      "file": "assets/photos/family.webp",
+      "source": "https://ateliergiulia.com/service-media/family/4/large",
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "file": "assets/photos/maternity.webp",
+      "source": "https://ateliergiulia.com/service-media/maternity/1/large",
+      "width": 2560,
+      "height": 2579
+    },
+    {
+      "file": "assets/photos/portrait.webp",
+      "source": "https://ateliergiulia.com/service-media/portrait/1/large",
+      "width": 2560,
+      "height": 3840
+    },
+    {
+      "file": "assets/photos/couples.webp",
+      "source": "https://ateliergiulia.com/service-media/couples/3/large",
+      "width": 2560,
+      "height": 3840
+    },
+    {
+      "file": "assets/photos/birthday.webp",
+      "source": "https://ateliergiulia.com/service-media/5beb3b68-3389-423b-be37-142851a2a2ea/2/large",
+      "width": 1439,
+      "height": 1151
+    }
+  ]
+}

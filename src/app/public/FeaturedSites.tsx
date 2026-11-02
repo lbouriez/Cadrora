@@ -11,11 +11,11 @@ export function FeaturedSites({ sites }: { sites: readonly FeaturedSite[] }) {
   return <MotionReveal as="section" labelledBy="featured-sites-title" className="site-section featured-sites">
     <div className="site-section__heading">
       <p className="site-eyebrow">{t('gallery.featuredSites.eyebrow')}</p>
-      <h2 id="featured-sites-title">{t('gallery.featuredSites.title')}</h2>
-      <p>{t('gallery.featuredSites.lead')}</p>
+      <h2 id="featured-sites-title">{t(sites.length === 1 ? 'gallery.featuredSites.titleSingle' : 'gallery.featuredSites.title')}</h2>
+      <p>{t(sites.length === 1 ? 'gallery.featuredSites.leadSingle' : 'gallery.featuredSites.lead')}</p>
     </div>
     <div className="featured-sites__grid">
-      {sites.map((site) => <a className="featured-site-card" href={site.href} key={site.href} rel="noopener" target="_blank">
+      {sites.map((site) => <a className="featured-site-card" data-marketing-action="featured_site" href={site.href} key={site.href} rel="noopener" target="_blank">
         {site.logoUrl ? <BrandPhoto alt="" className="featured-site-card__logo" fit="contain" height={80} sizes="80px" src={site.logoUrl} width={80} /> : null}
         <div className="featured-site-card__copy">
           <h3>{site.name}</h3>

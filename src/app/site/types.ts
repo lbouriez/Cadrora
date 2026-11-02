@@ -4,7 +4,7 @@ import type { ServiceKey } from '../../shared/schemas/site';
 
 export type MarketingPage = 'home' | 'services' | 'galleries' | 'contact' | 'privacy';
 export type NavigationItem = 'home' | 'portfolio' | 'services' | 'galleries' | 'about' | 'contact';
-export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact';
+export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact' | 'workflow' | 'faq';
 
 export interface FeaturedSite {
   name: string;
@@ -37,7 +37,12 @@ export interface SiteDefinition {
   serviceImages: Readonly<Record<ServiceKey, string>>;
   navigation?: readonly NavigationItem[];
   home: {
-    presentation?: 'standard' | 'session-slides';
+    presentation?: 'standard' | 'editorial' | 'session-slides';
+    /** Immersive presentation only; editable session copy still comes from the catalog. */
+    immersiveFooter?: 'always' | 'last-slide';
+    slideDirection?: 'vertical' | 'horizontal';
+    slidePhotoZoom?: boolean;
+    sessionIntroduction?: boolean;
     primaryAction: SiteAction;
     secondaryAction: SiteAction;
     sections: readonly HomeSection[];

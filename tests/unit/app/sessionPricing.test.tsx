@@ -43,17 +43,21 @@ describe('session pricing', () => {
       show({ ...legacy, tariffs: [], goodToKnow: ' \n ' });
       expect(screen.getByText('$250–$650 CAD', { exact: false })).toBeTruthy();
       expect(screen.queryByRole('list')).toBeNull();
+      expect(screen.getAllByRole('link')).toHaveLength(1);
       expect(screen.queryByRole('region', { name: language === 'fr' ? 'Bon à savoir' : 'Good to know' })).toBeNull();
     });
-    it(`${language}: renders one tariff simply without a stale multi-price overview`, async () => {
+    it(`${language}: renders one package with the owner overview and a contextual action`, async () => {
       await i18n.changeLanguage(language);
       show({ ...legacy, tariffs: tariffs.slice(0, 1) });
-      expect(screen.getByText('Mini — $250 CAD', { exact: false })).toBeTruthy();
+      expect(screen.getByText('Mini')).toBeTruthy();
+      expect(screen.getByText('$250 CAD')).toBeTruthy();
       expect(screen.getByText('One hour and 40 photos.')).toBeTruthy();
-      expect(screen.queryByText('$250–$650 CAD', { exact: false })).toBeNull();
-      expect(screen.queryByRole('list')).toBeNull();
+      expect(screen.getByText('$250–$650 CAD', { exact: false })).toBeTruthy();
+      expect(screen.getAllByRole('listitem')).toHaveLength(1);
+      expect(within(screen.getByRole('listitem')).getByRole('link').getAttribute('href')).toBe(`/${language}/contact?session=family&tariff=0`);
+      expect(screen.getAllByRole('link').filter(link => link.getAttribute('href') === `/${language}/contact?session=family`)).toHaveLength(1);
     });
-    it(`${language}: shows an overview, package bullets, and practical information after inclusions`, async () => {
+    it(`${language}: shows package cards and practical information before inclusions`, async () => {
       await i18n.changeLanguage(language);
       show({ ...legacy, tariffs, points: ['Private gallery'], goodToKnow: '50% deposit.\nTravel included.' });
       const packages = screen.getByRole('region', { name: language === 'fr' ? 'Forfaits' : 'Packages' });
@@ -61,7 +65,7 @@ describe('session pricing', () => {
       expect(screen.getByText('$250–$650 CAD', { exact: false })).toBeTruthy();
       const practical = screen.getByRole('region', { name: language === 'fr' ? 'Bon à savoir' : 'Good to know' });
       expect(practical.textContent).toContain('50% deposit.');
-      expect(screen.getByText('Private gallery').compareDocumentPosition(practical) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(practical.compareDocumentPosition(screen.getByText('Private gallery')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
   }
 });

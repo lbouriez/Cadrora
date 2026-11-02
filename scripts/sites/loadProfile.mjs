@@ -31,7 +31,7 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
     const origin = new URL(profile.document.origin);
     if (origin.protocol !== 'https:' || origin.origin !== profile.document.origin
       || typeof profile.document.shareImage !== 'string'
-      || !/^\/(?:brand\/[a-z0-9-]+\.(?:png|jpg|webp)|home-hero-image\/large)$/u.test(profile.document.shareImage)) {
+      || !/^\/(?:brand\/[a-z0-9-]+\.(?:png|jpg|webp)|home-hero-image\/large(?:\?source=first-session)?)$/u.test(profile.document.shareImage)) {
       throw new Error(`Invalid SEO origin or share image for site profile: ${siteId}`);
     }
     const pages = ['home', 'services', 'portfolio', 'about', 'contact', 'privacy'];

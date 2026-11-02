@@ -20,8 +20,9 @@ export const findResources = {
     more: 'Look through more photos', noFaces: 'We could not find a clear face. Try a brighter photo with your face looking at the camera.',
     noMatches: 'We could not find a possible match in this gallery. You can still browse all its photos.', unavailable: 'Photo search is unavailable right now. You can still browse the gallery.',
     back: 'Back to gallery', imageAlt: 'Photo selected for face search', matchAlt: 'Possible matching event photo',
-    testPortraits: 'Want to try it?', testPortraitsHelp: 'Save one of these sample portraits, then choose it above to look for matching photos in the demo gallery.',
-    testPortraitAmelia: 'Save Amelia’s portrait', testPortraitDaniel: 'Save Daniel’s portrait', testPortraitNora: 'Save Nora’s portrait',
+    testPortraits: 'Want to try it?', testPortraitsHelp: 'After agreeing above, choose a fictional portrait. Then find a face and search this demo gallery. No camera or file download is needed.',
+    usePortraitAmelia: 'Use Amelia’s sample portrait', usePortraitDaniel: 'Use Daniel’s sample portrait', usePortraitNora: 'Use Nora’s sample portrait',
+    sampleUnavailable: 'The sample portrait could not be loaded. Try again or choose a photo.',
   } },
   fr: { faceFind: {
     eyebrow: 'Recherche photo privée', startTitle: 'Commencez avec une photo',
@@ -42,8 +43,9 @@ export const findResources = {
     more: 'Parcourir plus de photos', noFaces: 'Nous n’avons pas trouvé de visage net. Essayez une photo plus lumineuse, le visage tourné vers l’appareil.',
     noMatches: 'Nous n’avons pas trouvé de ressemblance dans cette galerie. Vous pouvez quand même parcourir toutes ses photos.', unavailable: 'La recherche de photos est indisponible pour le moment. Vous pouvez quand même parcourir la galerie.',
     back: 'Retour à la galerie', imageAlt: 'Photo choisie pour la recherche faciale', matchAlt: "Photo d'événement possiblement correspondante",
-    testPortraits: 'Envie d’essayer?', testPortraitsHelp: 'Enregistrez un de ces portraits d’exemple, puis choisissez-le ci-dessus pour chercher ses photos dans la galerie de démonstration.',
-    testPortraitAmelia: 'Enregistrer le portrait d’Amelia', testPortraitDaniel: 'Enregistrer le portrait de Daniel', testPortraitNora: 'Enregistrer le portrait de Nora',
+    testPortraits: 'Envie d’essayer?', testPortraitsHelp: 'Après avoir donné votre accord ci-dessus, choisissez un portrait fictif. Détectez ensuite un visage et cherchez dans cette galerie de démonstration, sans caméra ni fichier à enregistrer.',
+    usePortraitAmelia: 'Utiliser le portrait d’exemple d’Amelia', usePortraitDaniel: 'Utiliser le portrait d’exemple de Daniel', usePortraitNora: 'Utiliser le portrait d’exemple de Nora',
+    sampleUnavailable: 'Le portrait d’exemple n’a pas pu être chargé. Réessayez ou choisissez une photo.',
   } },
 } as const;
 

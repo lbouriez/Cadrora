@@ -32,7 +32,9 @@ test.beforeEach(async ({ page }) => {
 for (const language of ['fr', 'en'] as const) {
   test(`${language}: Home and Sessions share details, restore focus, and carry the session to Contact`, async ({ page }, testInfo) => {
     const label = language === 'fr' ? 'Découvrir cette séance' : 'Explore this session';
-    const contactLabel = language === 'fr' ? 'Parlons de votre séance' : 'Let’s talk about your session';
+    const contactLabel = immersive
+      ? language === 'fr' ? 'Parlons de votre séance' : 'Let’s talk about your session'
+      : language === 'fr' ? 'Voir la page Contact d’exemple' : 'View the sample Contact page';
     const title = session.copy[language].title;
     await page.goto(`/${language}/`);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
@@ -50,12 +52,15 @@ for (const language of ['fr', 'en'] as const) {
     const opener = homeCards.nth(homeIndex).getByRole('button', { name: label });
     await opener.click();
     const dialog = page.getByRole('dialog', { name: title });
+    await expect(dialog.getByRole('link', { name: contactLabel })).toHaveCount(1);
+    await expect(dialog.locator('details')).not.toHaveAttribute('open');
+    await dialog.locator('summary').click();
     await expect(dialog).toContainText(session.copy[language].description);
     await expect(dialog).toContainText(session.copy[language].duration);
     await expect(dialog).toContainText(session.copy[language].priceRange);
     await expect(dialog).toContainText(session.copy[language].points[0]);
     await expect(dialog).toContainText(session.copy[language].details.split('\n')[0] ?? '');
-    await expect(dialog.getByRole('link', { name: contactLabel })).toHaveAttribute('href', `/${language}/contact?session=${selectedId}`);
+    await expect(dialog.getByRole('link', { name: contactLabel }).first()).toHaveAttribute('href', `/${language}/contact?session=${selectedId}`);
     const homeDetails = await dialog.locator('.service-details-modal__body').innerText();
     await page.screenshot({ path: testInfo.outputPath('session-details.png') });
     if (testInfo.project.name === 'mobile-chromium') {
@@ -71,7 +76,7 @@ for (const language of ['fr', 'en'] as const) {
       await expect(homeCards.nth(homeIndex)).toHaveClass(/swiper-slide-active/u);
     }
     // Tab cycles within the dialog, then Escape returns to the same Home trigger.
-    await dialog.getByRole('link', { name: contactLabel }).focus();
+    await dialog.locator('summary').focus();
     await page.keyboard.press('Tab');
     await expect(dialog.getByRole('button')).toBeFocused();
     await page.keyboard.press('Escape');
@@ -93,11 +98,12 @@ for (const language of ['fr', 'en'] as const) {
     await expect(cards.first()).toContainText(session.copy[language].shortDescription);
     await expect(cards.first()).not.toContainText(session.copy[language].description);
     await cards.first().getByRole('button', { name: label }).click();
+    await dialog.locator('summary').click();
     await expect(dialog.locator('.service-details-modal__body')).toHaveText(homeDetails, { useInnerText: true });
-    await dialog.getByRole('link', { name: contactLabel }).click();
+    await dialog.getByRole('link', { name: contactLabel }).first().click();
     await expect(page).toHaveURL(`/${language}/contact?session=family`);
     await expect(page.locator('.contact-page__session')).toContainText(title);
-    await expect(page.getByRole('link', { name: 'hello@example.test' })).toHaveAttribute('href', 'mailto:hello@example.test');
+    await expect(page.getByRole('link', { name: 'hello@example.test' })).toHaveAttribute('href', `mailto:hello@example.test?subject=${encodeURIComponent(title)}`);
     if (await page.locator('.public-header__language').isHidden()) await page.locator('.public-header__menu').click();
     await page.locator('.public-header__language').click();
     const other = language === 'fr' ? 'en' : 'fr';

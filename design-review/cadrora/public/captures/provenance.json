@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-02",
+  "source": "Live cadrora.com, French, Chromium, reduced motion for settled screenshots",
+  "desktop": {
+    "width": 1440,
+    "height": 1000
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844
+  },
+  "pages": [
+    {
+      "key": "home",
+      "url": "https://cadrora.com/fr/"
+    },
+    {
+      "key": "services",
+      "url": "https://cadrora.com/fr/services"
+    },
+    {
+      "key": "about",
+      "url": "https://cadrora.com/fr/about"
+    },
+    {
+      "key": "contact",
+      "url": "https://cadrora.com/fr/contact"
+    },
+    {
+      "key": "gallery",
+      "url": "https://cadrora.com/e/lumiere-et-promesses"
+    },
+    {
+      "key": "directory",
+      "url": "https://cadrora.com/galleries"
+    },
+    {
+      "key": "finder",
+      "url": "https://cadrora.com/e/find-your-photos/find"
+    }
+  ],
+  "localInspection": "127.0.0.1:5186 started successfully; local D1 contains Atelier Giulia owner settings. Captures use production to avoid misrepresenting local data as Cadrora.",
+  "proposals": {
+    "origin": "http://127.0.0.1:4177/",
+    "direction": "a",
+    "language": "fr",
+    "note": "Screenshots of actual HTML prototypes. Section captures retain natural heights; only equal-size viewport captures use the reveal slider."
+  }
+}

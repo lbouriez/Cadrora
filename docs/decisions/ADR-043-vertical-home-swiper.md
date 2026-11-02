@@ -2,6 +2,8 @@
 
 Status: accepted by the owner's 2026-09-30 reference request. Updates the Home interaction in ADR-039.
 
+Current refinement: the owner's 2026-11-02 Direction A selection and motion clarification in [ADR-055](ADR-055-atelier-direction-a.md) supersede the vertical direction, final-slide-only footer and centered copy below. Atelier now selects a horizontal push with text fade at a constant photo scale, with bottom dash indicators. The header and footer remain visible on every prepared slide. Vertical wheel input, horizontal touch swipes, keyboard navigation, reduced motion and owner data contracts remain supported; the shared slider's default direction stays vertical.
+
 ## Context
 
 The Atelier Giulia Home previously animated `window.scrollY` between full-height panels with custom wheel, touch, and keyboard handlers. Momentum and changing viewport or session data made that animation less smooth than the requested [Swiper reference](https://swiperjs-slider-homepage.webflow.io/).

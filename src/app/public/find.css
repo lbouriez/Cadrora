@@ -176,7 +176,11 @@
   gap: var(--space-3);
   text-decoration: none;
   transition: border-color var(--motion-fast) ease, box-shadow var(--motion-standard) ease;
+  cursor: pointer;
+  text-align: left;
 }
+
+.face-find__test-card:disabled { cursor: not-allowed; opacity: .55; }
 
 .face-find__test-card:hover {
   border-color: var(--color-primary);

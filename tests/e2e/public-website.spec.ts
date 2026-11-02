@@ -22,7 +22,7 @@ test.describe('site vitrine statique', () => {
     });
   });
 
-  test('the complete Home waits for its photo during a slow load', async ({ page }) => {
+  test('editorial Home exposes owner-resolved copy while its selected photo loads', async ({ page }) => {
     let releaseImage = () => {};
     const imageReady = new Promise<void>((resolve) => { releaseImage = resolve; });
     await page.route('**/home-hero-image/**', async (route) => {
@@ -32,9 +32,10 @@ test.describe('site vitrine statique', () => {
     try {
       await page.goto('/', { waitUntil: 'domcontentloaded' });
       const hero = page.locator('.site-hero');
-      await expect(page.locator('.site-startup__brand')).toBeInViewport();
-      await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '0');
-      await expect(page.locator('.session-home__stage')).toHaveAttribute('inert', '');
+      await expect(hero.locator('.site-hero__copy')).toBeVisible();
+      await expect(page.locator('.site-startup')).toHaveCount(0);
+      await expect(page.locator('.session-home__stage')).not.toHaveAttribute('inert');
+      await expect(hero.locator('.progressive-photo')).toHaveCSS('opacity', '0');
       releaseImage();
       await expect(page.locator('.site-startup')).toHaveCount(0);
       await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
@@ -52,7 +53,7 @@ test.describe('site vitrine statique', () => {
   test('reste utile lorsque les galeries sont indisponibles', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(/vos photos\. vos galeries|your work\. your galleries/i);
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(/votre regard\.|your perspective\./i);
     await expect(page.getByRole('heading', { name: /présentez les séances|present the sessions/i })).toBeVisible();
     await expect(page.locator('.gallery-notice[role="status"]')).toContainText(/ne sont pas disponibles pour le moment|unavailable right now/i);
     await expect(page.getByRole('link', { name: /essayer la démo|try the demo/i })).toBeVisible();
@@ -161,7 +162,7 @@ test.describe('site vitrine statique', () => {
     await page.goto('/');
 
     const card = page.locator('.featured-site-card');
-    await expect(page.getByRole('heading', { name: 'Ils utilisent Cadrora.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Un site. Une autre personnalité.' })).toBeVisible();
     await expect(card).toHaveCount(1);
     await expect(card).toHaveAttribute('href', 'https://ateliergiulia.com/');
     await expect(card).toHaveAttribute('rel', 'noopener');
@@ -169,7 +170,7 @@ test.describe('site vitrine statique', () => {
     await expect(card).toContainText('Visiter le site');
 
     await page.getByRole('button', { name: 'Afficher en EN' }).click();
-    await expect(page.getByRole('heading', { name: 'See it in use.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'One website. Another personality.' })).toBeVisible();
     await expect(card).toContainText('Visit the website');
     await assertNoHorizontalOverflow(page);
   });
@@ -350,11 +351,8 @@ test.describe('site vitrine statique', () => {
     await expect(page.locator('.site-startup')).toHaveCount(0);
     await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
     await expect(heroCopy).toBeVisible();
-    // Desktop reveals the complete composition directly; phones fade the stage.
-    const desktop = await page.evaluate(() => matchMedia('(min-width: 55rem)').matches);
-    const stageDuration = await page.locator('.session-home__stage').evaluate((element) => getComputedStyle(element).transitionDuration);
-    if (desktop) expect(stageDuration).toBe('0s');
-    else expect(stageDuration).not.toBe('0s');
+    // Editorial content is usable before the separately fading photograph.
+    await expect(page.locator('.site-hero__art > .progressive-photo')).toHaveCSS('transition-duration', '1s');
     const demoCard = page.locator('.demo-experience-card').first();
     await demoCard.scrollIntoViewIfNeeded();
     await expect(demoCard).toHaveClass(/motion-reveal--visible/);
@@ -403,8 +401,8 @@ test.describe('site vitrine statique', () => {
     expect(actions).toHaveLength(2);
     const actionRows = await page.locator('.site-hero .site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
     expect(Math.abs((actionRows[0] ?? 0) - (actionRows[1] ?? 0))).toBeLessThan(1);
-    const portrait = await page.locator('.site-hero__ai-card .progressive-photo').boundingBox();
-    expect(portrait?.height).toBeLessThan(80);
+    await expect(page.locator('.site-hero__ai-card')).toHaveCount(0);
+    await expect(page.locator('.public-brand__name')).toBeVisible();
     await assertNoHorizontalOverflow(page);
 
     await page.getByRole('button', { name: /ouvrir le menu|open menu/i }).click();

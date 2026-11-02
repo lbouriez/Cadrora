@@ -5,9 +5,9 @@ import { ServicePhoto } from './ServicePhoto';
 import { serviceText } from './serviceCatalog';
 
 /** The live session slide and admin phone preview share the photo and text layout. */
-export function SessionStoryContent({ card, heading = 'h2', immediate = false, onVisualReady, onExplore, priority = false, preview = false, introduction = false }: {
+export function SessionStoryContent({ card, heading = 'h2', immediate = false, onVisualReady, onExplore, priority = false, preview = false, introduction = false, photoZoom = true }: {
   card: ServiceCard; heading?: 'h1' | 'h2'; immediate?: boolean; onVisualReady?: (() => void) | undefined;
-  priority?: boolean; preview?: boolean; introduction?: boolean;
+  priority?: boolean; preview?: boolean; introduction?: boolean; photoZoom?: boolean;
   onExplore?: (id: string) => void;
 }) {
   const { i18n, t } = useTranslation();
@@ -15,16 +15,18 @@ export function SessionStoryContent({ card, heading = 'h2', immediate = false, o
   const copy = serviceText(card, language, (key) => t(key));
   const Heading = heading;
   return <>
-    <div className="session-story__visual" {...(preview ? {} : { 'data-swiper-parallax-scale': '1.1' })}>
+    <div className="session-story__visual" {...(!preview && photoZoom ? { 'data-swiper-parallax-scale': '1.08' } : {})}>
       <ServicePhoto card={card} className="session-story__photo" immediate={immediate}
         onVisualReady={onVisualReady} visualReadyAt="display" priority={priority} sizes={preview ? '320px' : '100vw'} {...(preview ? { framing: 'mobile' as const } : {})} />
     </div>
     <div className="session-story__shade" />
-    <div aria-label={copy.title} className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-200', 'data-story-scroll': '', role: 'region', tabIndex: -1 })}>
+    <div className="session-story__copy" {...(preview ? {} : { 'data-swiper-parallax': '-160', 'data-swiper-parallax-opacity': '0.15' })}>
       <div className="session-story__content">
-        <Heading>{copy.title}</Heading>
-        {copy.shortDescription ? <p className="session-story__subtitle">{copy.shortDescription}</p> : null}
-        {introduction && !preview ? <p className="session-story__introduction">{t('gallery.heroLead')}</p> : null}
+        <div className="session-story__text" {...(preview ? {} : { 'aria-label': copy.title, 'data-story-scroll': '', role: 'region', tabIndex: -1 })}>
+          <Heading>{copy.title}</Heading>
+          {copy.shortDescription ? <p className="session-story__subtitle">{copy.shortDescription}</p> : null}
+          {introduction && !preview ? <p className="session-story__introduction">{t('gallery.heroLead')}</p> : null}
+        </div>
         {preview ? <span className="session-story__cta">{t('gallery.servicesPage.moreInfo')}</span>
           : <button aria-haspopup="dialog" className="session-story__cta" onClick={() => onExplore?.(card.id)} type="button">{t('gallery.servicesPage.moreInfo')}</button>}
       </div>

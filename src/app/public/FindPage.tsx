@@ -16,6 +16,11 @@ import { PublicLayout } from './PublicLayout';
 import { siteProfile } from './siteProfile';
 
 type RelatedPhoto = Awaited<ReturnType<typeof getRelatedPhotos>>['photos'][number];
+const demoPortraits = [
+  { src: '/demo/face-search/test-portrait-amelia.webp', label: 'faceFind.usePortraitAmelia' },
+  { src: '/demo/face-search/test-portrait-daniel.webp', label: 'faceFind.usePortraitDaniel' },
+  { src: '/demo/face-search/test-portrait-nora.webp', label: 'faceFind.usePortraitNora' },
+] as const;
 
 export function FindPage() {
   const { slug = '' } = useParams<{ slug: string }>();
@@ -49,13 +54,21 @@ export function FindPage() {
   const fileInput = useRef<HTMLInputElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const cameraStream = useRef<MediaStream | null>(null);
+  const consentGiven = useRef(false);
+  const workVersion = useRef(0);
+  const sampleRequest = useRef<AbortController | null>(null);
 
   useEffect(() => () => {
     image?.close();
     if (preview) URL.revokeObjectURL(preview);
   }, [image, preview]);
 
-  useEffect(() => () => cameraStream.current?.getTracks().forEach((track) => track.stop()), []);
+  useEffect(() => () => {
+    consentGiven.current = false;
+    workVersion.current++;
+    sampleRequest.current?.abort();
+    cameraStream.current?.getTracks().forEach((track) => track.stop());
+  }, []);
 
   useEffect(() => {
     if (!cameraOpen || !video.current || !cameraStream.current) return;
@@ -70,6 +83,7 @@ export function FindPage() {
   };
 
   const startCamera = async () => {
+    if (!consentGiven.current) return;
     if (!cameraSupported) {
       setCameraError(t('faceFind.cameraUnavailable'));
       return;
@@ -77,20 +91,23 @@ export function FindPage() {
     setCameraError(null);
     try {
       cameraStream.current = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'user' } });
+      if (!consentGiven.current) { stopCamera(); return; }
       setCameraOpen(true);
     } catch {
-      setCameraError(t('faceFind.cameraFailed'));
+      if (consentGiven.current) setCameraError(t('faceFind.cameraFailed'));
     }
   };
 
   const chooseFile = async (file: File | undefined) => {
-    if (!file || !consent) return;
+    if (!file || !consentGiven.current) return;
+    const version = ++workVersion.current;
     setError(null);
-    image?.close();
-    if (preview) URL.revokeObjectURL(preview);
     const nextPreview = URL.createObjectURL(file);
     try {
       const bitmap = await createImageBitmap(file);
+      if (!consentGiven.current || version !== workVersion.current) {
+        bitmap.close(); URL.revokeObjectURL(nextPreview); return;
+      }
       setImage(bitmap);
       setPreview(nextPreview);
       setFaces([]);
@@ -98,27 +115,66 @@ export function FindPage() {
       setRelated([]);
       setEmbedding(null);
       setSearchCompleted(false);
+      setCursor(null);
+      setRelatedBusy(false);
     } catch {
       URL.revokeObjectURL(nextPreview);
-      setError(t('faceFind.unavailable'));
+      if (consentGiven.current && version === workVersion.current) setError(t('faceFind.unavailable'));
+    }
+  };
+
+  const changeConsent = (value: boolean) => {
+    consentGiven.current = value;
+    setConsent(value);
+    if (value) return;
+    workVersion.current++;
+    sampleRequest.current?.abort();
+    sampleRequest.current = null;
+    stopCamera();
+    setImage(null); setPreview(null); setFaces([]); setEmbedding(null);
+    setMatches([]); setRelated([]); setSearchCompleted(false); setCursor(null);
+    setBusy(false); setRelatedBusy(false); setError(null); setCameraError(null);
+    saveFaceSearchResults(slug, []);
+  };
+
+  const chooseDemoPortrait = async (src: typeof demoPortraits[number]['src']) => {
+    if (!consentGiven.current || !siteProfile.demo.enabled || slug !== 'find-your-photos') return;
+    sampleRequest.current?.abort();
+    const controller = new AbortController();
+    sampleRequest.current = controller;
+    setBusy(true); setError(null);
+    try {
+      // Only bundled fictional portraits enter this path; never fetch a visitor URL.
+      const response = await fetch(src, { signal: controller.signal, credentials: 'omit' });
+      if (!response.ok) throw new Error('Sample portrait unavailable');
+      const blob = await response.blob();
+      if (controller.signal.aborted || !consentGiven.current) return;
+      await chooseFile(new File([blob], 'sample-portrait.webp', { type: 'image/webp' }));
+    } catch {
+      if (!controller.signal.aborted && consentGiven.current) setError(t('faceFind.sampleUnavailable'));
+    } finally {
+      if (sampleRequest.current === controller) { sampleRequest.current = null; setBusy(false); }
     }
   };
 
   const analyze = async () => {
-    if (!image || !consent) return;
+    if (!image || !consentGiven.current) return;
+    const version = workVersion.current;
     setBusy(true);
     setError(null);
     try {
       const inference = engine ?? await (await import('../../browser/faces')).FaceInference.load();
+      if (!consentGiven.current || version !== workVersion.current) return;
       setEngine(inference);
       const detected = await inference.detect(image);
+      if (!consentGiven.current || version !== workVersion.current) return;
       setFaces(detected);
       setSelected(0);
       if (detected.length === 0) setError(t('faceFind.noFaces'));
     } catch {
-      setError(t('faceFind.unavailable'));
+      if (consentGiven.current && version === workVersion.current) setError(t('faceFind.unavailable'));
     } finally {
-      setBusy(false);
+      if (version === workVersion.current) setBusy(false);
     }
   };
 
@@ -143,13 +199,16 @@ export function FindPage() {
 
   const runSearch = async (nextCursor?: string) => {
     const face = faces[selected];
-    if (!image || !engine || !face) return;
+    if (!image || !engine || !face || !consentGiven.current) return;
+    const version = workVersion.current;
     setBusy(true);
     setError(null);
     try {
       const vector = embedding ?? await engine.embed(image, face);
+      if (!consentGiven.current || version !== workVersion.current) return;
       setEmbedding(vector);
       const response = await searchEventFaces(slug, vector, nextCursor);
+      if (!consentGiven.current || version !== workVersion.current) return;
       const deduplicated = new Map(matches.map((match) => [match.photoId, match]));
       for (const match of response.matches) {
         const prior = deduplicated.get(match.photoId);
@@ -168,6 +227,7 @@ export function FindPage() {
       setRelatedBusy(true);
       void Promise.allSettled(response.matches.map((match) => getRelatedPhotos(slug, match.photoId)))
         .then((responses) => {
+          if (!consentGiven.current || version !== workVersion.current) return;
           const matchIds = new Set(nextMatches.map((match) => match.photoId));
           setRelated((current) => {
             const deduplicatedRelated = new Map(current.map((candidate) => [candidate.photoId, candidate]));
@@ -182,21 +242,26 @@ export function FindPage() {
             return nextRelated;
           });
         })
-        .finally(() => setRelatedBusy(false));
+        .finally(() => { if (version === workVersion.current) setRelatedBusy(false); });
     } catch {
-      setSearchCompleted(false);
-      setError(t('faceFind.unavailable'));
+      if (consentGiven.current && version === workVersion.current) {
+        setSearchCompleted(false); setError(t('faceFind.unavailable'));
+      }
     } finally {
-      setBusy(false);
+      if (version === workVersion.current) setBusy(false);
     }
   };
 
   const selectFace = (index: number) => {
+    if (busy) return;
+    workVersion.current++;
     setSelected(index);
     setEmbedding(null);
     setSearchCompleted(false);
     setMatches([]);
     setRelated([]);
+    setRelatedBusy(false);
+    setCursor(null);
   };
 
   return (
@@ -211,34 +276,27 @@ export function FindPage() {
         <div className="face-find__start-card">
           <h2>{t('faceFind.startTitle')}</h2>
           <label className="face-find__consent">
-            <input checked={consent} onChange={(event) => setConsent(event.target.checked)} type="checkbox" />
+            <input checked={consent} onChange={(event) => changeConsent(event.target.checked)} type="checkbox" />
             <span>{t('faceFind.consent')}</span>
           </label>
           <div className="face-find__actions">
-            <Button disabled={!consent || !cameraSupported} onClick={() => void startCamera()}>{t('faceFind.selfie')}</Button>
-            <Button disabled={!consent} onClick={() => fileInput.current?.click()} variant="secondary">{t('faceFind.choose')}</Button>
+            <Button disabled={!consent || busy || !cameraSupported} onClick={() => void startCamera()}>{t('faceFind.selfie')}</Button>
+            <Button disabled={!consent || busy} onClick={() => fileInput.current?.click()} variant="secondary">{t('faceFind.choose')}</Button>
             <input accept="image/jpeg,image/png,image/webp" disabled={!consent} hidden onChange={(event) => void chooseFile(event.target.files?.[0])} ref={fileInput} type="file" />
           </div>
           {!cameraSupported ? <p className="face-find__camera-message">{t('faceFind.cameraUnavailable')}</p> : null}
           {cameraError ? <p className="face-find__camera-message" role="alert">{cameraError}</p> : null}
         </div>
         {cameraOpen ? <section className="face-find__camera"><p>{t('faceFind.cameraAccess')}</p><video autoPlay muted playsInline ref={video} /><div className="face-find__actions"><Button onClick={() => void captureCamera()}>{t('faceFind.capture')}</Button><Button onClick={stopCamera} variant="secondary">{t('faceFind.cancelCamera')}</Button></div></section> : null}
-        {siteProfile.demo.enabled ? <aside className="face-find__test-portraits">
+        {siteProfile.demo.enabled && slug === 'find-your-photos' ? <aside className="face-find__test-portraits">
           <h2>{t('faceFind.testPortraits')}</h2>
           <p>{t('faceFind.testPortraitsHelp')}</p>
           <div className="face-find__test-links">
-            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-amelia.webp">
-              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-amelia.webp" />
-              <span>{t('faceFind.testPortraitAmelia')}</span>
-            </a>
-            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-daniel.webp">
-              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-daniel.webp" />
-              <span>{t('faceFind.testPortraitDaniel')}</span>
-            </a>
-            <a className="face-find__test-card" download href="/demo/face-search/test-portrait-nora.webp">
-              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src="/demo/face-search/test-portrait-nora.webp" />
-              <span>{t('faceFind.testPortraitNora')}</span>
-            </a>
+            {demoPortraits.map(portrait => <button className="face-find__test-card" disabled={!consent || busy}
+              key={portrait.src} onClick={() => void chooseDemoPortrait(portrait.src)} type="button">
+              <BrandPhoto alt="" className="face-find__test-photo" sizes="64px" src={portrait.src} />
+              <span>{t(portrait.label)}</span>
+            </button>)}
           </div>
         </aside> : null}
         {preview ? (
@@ -253,6 +311,7 @@ export function FindPage() {
                     aria-label={t('faceFind.faceNumber', { number: index + 1 })}
                     aria-pressed={selected === index}
                     className="face-find__face-box"
+                    disabled={busy}
                     key={`${face.box.x}-${face.box.y}`}
                     onClick={() => selectFace(index)}
                     style={{

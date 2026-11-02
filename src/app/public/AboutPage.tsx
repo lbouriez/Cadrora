@@ -22,7 +22,8 @@ export function AboutPage() {
   const copy = settings.data?.aboutCopy?.[language];
   const title = copy?.title ?? t('gallery.aboutPage.title');
   const body = copy?.body ?? t('gallery.aboutPage.body');
-  const alt = settings.data?.aboutImageRevision ? (copy?.imageAlt ?? '') : '';
+  // The owner decides whether the image is informative, including a retained default photo.
+  const alt = copy?.imageAlt ?? t('gallery.aboutPage.imageAlt');
   const imagePath = settings.data?.aboutImageRevision
     ? `/service-media/about-hero/${settings.data.aboutImageRevision}` : '/about-hero-image';
   const sources = [
@@ -41,7 +42,7 @@ export function AboutPage() {
           sources={sources} visualReadyAt="display" width={1280} />
         <div className="about-page__hero-copy">
           <h1>{title}</h1>
-          <Link className="about-page__action" to={localizedMarketingPath('/contact', language)}>{t('gallery.bookSession')}</Link>
+          <Link className="about-page__action" to={localizedMarketingPath('/contact', language)}>{t(siteProfile.demo.enabled ? 'gallery.sampleContact' : 'gallery.servicesPage.contactAction')}</Link>
         </div>
       </div>
       <section aria-label={title} className="about-page__story">

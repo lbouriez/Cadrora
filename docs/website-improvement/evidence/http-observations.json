@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-02",
+  "findings": [
+    {
+      "path": "/services",
+      "status": 404,
+      "data": [
+        "<meta name=\"robots\" content=\"noindex,nofollow\">"
+      ]
+    },
+    {
+      "path": "/fr/services/",
+      "status": 404,
+      "data": [
+        "<meta name=\"robots\" content=\"noindex,nofollow\">"
+      ]
+    },
+    {
+      "path": "/en/services/",
+      "status": 404,
+      "data": [
+        "<meta name=\"robots\" content=\"noindex,nofollow\">"
+      ]
+    },
+    {
+      "path": "/galleries",
+      "status": 200,
+      "data": [
+        "<meta\n      name=\"description\"\n      content=\"Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet.\"\n    />",
+        "<title>",
+        "<meta property=\"og:type\" content=\"website\">",
+        "<meta property=\"og:site_name\" content=\"Atelier Giulia\">",
+        "<meta property=\"og:locale\" content=\"fr_CA\">",
+        "<meta property=\"og:locale:alternate\" content=\"en_CA\">",
+        "<meta property=\"og:title\" content=\"Photographie de famille, maternité et portraits | Atelier Giulia\">",
+        "<meta property=\"og:description\" content=\"Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet.\">",
+        "<meta property=\"og:url\" content=\"https://ateliergiulia.com/fr/\">",
+        "<meta property=\"og:image\" content=\"https://ateliergiulia.com/home-hero-image/large\">",
+        "<meta name=\"twitter:title\" content=\"Photographie de famille, maternité et portraits | Atelier Giulia\">",
+        "<meta name=\"twitter:description\" content=\"Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet.\">",
+        "<meta name=\"robots\" content=\"noindex,nofollow\">"
+      ]
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "data": "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: https://ateliergiulia.com/sitemap.xml\n"
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n  <url><loc>https://ateliergiulia.com/fr/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/\"/></url>\n  <url><loc>https://ateliergiulia.com/en/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/\"/></url>\n  <url><loc>https://ateliergiulia.com/fr/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/portfolio/\"/></url>\n  <url><loc>https://ateliergiulia.com/en/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/portfolio/\"/></url>\n  <url><loc>https://ateliergiulia.com/fr/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/about/\"/></url>\n  <url><loc>https://ateliergiulia.com/en/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/about/\"/></url>\n  <url><loc>https://ateliergiulia.com/fr/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/contact/\"/></url>\n  <url><loc>https://ateliergiulia.com/en/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/contact/\"/></url>\n  <url><loc>https://ateliergiulia.com/fr/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/privacy/\"/></url>\n  <url><loc>https://ateliergiulia.com/en/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/privacy/\"/></url>\n</urlset>\n"
+    },
+    {
+      "path": "/fr/",
+      "status": 200,
+      "data": [
+        "<meta\n      name=\"description\"\n      content=\"Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet.\"\n    />",
+        "<title>",
+        "<link rel=\"canonical\" href=\"https://ateliergiulia.com/fr/\">",
+        "<link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/\">",
+        "<link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/\">",
+        "<link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/\">",
+        "<meta property=\"og:type\" content=\"website\">",
+        "<meta property=\"og:site_name\" content=\"Atelier Giulia\">",
+        "<meta property=\"og:locale\" content=\"fr_CA\">",
+        "<meta property=\"og:locale:alternate\" content=\"en_CA\">",
+        "<meta property=\"og:title\" content=\"Photographie de famille, maternité et portraits | Atelier Giulia\">",
+        "<meta property=\"og:description\" content=\"Atelier Giulia crée des portraits de famille, de maternité et de couple avec douceur. Découvrez les séances et racontez-nous votre projet.\">",
+        "<meta property=\"og:url\" content=\"https://ateliergiulia.com/fr/\">",
+        "<meta property=\"og:image\" content=\"https://ateliergiulia.com/home-hero-image/large\">"
+      ]
+    },
+    {
+      "path": "/en/contact/",
+      "status": 200,
+      "data": [
+        "<meta\n      name=\"description\"\n      content=\"Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.\"\n    />",
+        "<title>",
+        "<link rel=\"canonical\" href=\"https://ateliergiulia.com/en/contact/\">",
+        "<link rel=\"alternate\" hreflang=\"fr\" href=\"https://ateliergiulia.com/fr/contact/\">",
+        "<link rel=\"alternate\" hreflang=\"en\" href=\"https://ateliergiulia.com/en/contact/\">",
+        "<link rel=\"alternate\" hreflang=\"x-default\" href=\"https://ateliergiulia.com/fr/contact/\">",
+        "<meta property=\"og:type\" content=\"website\">",
+        "<meta property=\"og:site_name\" content=\"Atelier Giulia\">",
+        "<meta property=\"og:locale\" content=\"en_CA\">",
+        "<meta property=\"og:locale:alternate\" content=\"fr_CA\">",
+        "<meta property=\"og:title\" content=\"Contact and bookings | Atelier Giulia\">",
+        "<meta property=\"og:description\" content=\"Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.\">",
+        "<meta property=\"og:url\" content=\"https://ateliergiulia.com/en/contact/\">",
+        "<meta property=\"og:image\" content=\"https://ateliergiulia.com/home-hero-image/large\">"
+      ]
+    }
+  ]
+}

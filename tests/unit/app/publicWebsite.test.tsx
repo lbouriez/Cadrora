@@ -95,7 +95,7 @@ describe('public photographer website', () => {
     renderPage(<HomePage />);
 
     await completeHomePhoto();
-    expect(await screen.findByRole('heading', { level: 1, name: 'Vos photos. Vos galeries. Votre propre site.' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Votre regard. Un espace à vous.' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Présentez les séances que vous proposez.' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: 'Retrouver des photos avec l’IA' })).toBeNull();
     const atelierLink = screen.getByRole('link', { name: /Atelier Giulia.*Visiter le site/u });
@@ -221,8 +221,8 @@ describe('public photographer website', () => {
     expect(document.querySelector('.site-hero__art > .progressive-photo img')).toBeNull();
     await waitFor(() => expect(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__preview')).not.toBeNull());
     fireEvent.load(document.querySelector('.site-hero__art > .progressive-photo .progressive-photo__preview')!);
-    expect(document.querySelector('.site-startup')).not.toBeNull();
-    expect(screen.queryByRole('heading', { name: 'Votre lumière' })).toBeNull();
+    expect(document.querySelector('.site-startup')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy();
     await completeHomePhoto();
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Votre lumière' })).toBeTruthy());
     fireEvent.load(screen.getByRole('img', { name: 'Portrait au soleil' }));
@@ -264,7 +264,7 @@ describe('public photographer website', () => {
     await completeHomePhoto();
     await waitFor(() => expect(screen.queryByRole('heading', { name: 'Galeries' })).toBeNull());
     expect(fetchMock.mock.calls.map(([url]) => url)).not.toContain('/api/v1/galleries?access=public&limit=12');
-    expect((await screen.findByRole('link', { name: 'Créer mon site' })).getAttribute('href')).toBe('#installation');
+    expect((await screen.findByRole('link', { name: 'Voir l’installation' })).getAttribute('href')).toBe('#installation');
   });
 
   it('uses the portfolio as the public destination when the gallery directory is hidden', async () => {

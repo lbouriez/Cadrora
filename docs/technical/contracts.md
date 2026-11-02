@@ -1,5 +1,7 @@
 # Frozen technical contracts
 
+ADR-055 refines the approved studio presentation and adds optional `source=hero|first-session` to `GET /home-hero-image/:variant` (omitted retains `hero`). `first-session` selects the ordered public Home catalogue, redirects uncached to its published variant, and retains the existing hero fallback when that first session has no uploaded image. Contact accepts a validated session ID and optional package index 0–7; labels are resolved from current public owner data. See [ADR-055](../decisions/ADR-055-atelier-direction-a.md) for compatibility, content authority and validation.
+
 ADR-054 adds optional localized `tariffs` (up to eight named prices with short summaries) and `goodToKnow` to existing service copy. Legacy copy stays valid; the shared dialog and admin editor use these fields without new routes or tables. Deploy schema support before populating them. See [ADR-054](../decisions/ADR-054-session-pricing-packages.md).
 
 ADR-048 replaces the global SPA fallback with localized static 404 documents. Only recognized dynamic gallery/admin client routes request an HTML shell, after existing middleware; public marketing documents stay asset-first and the gallery directory remains unindexed. See [ADR-048](../decisions/ADR-048-static-not-found-documents.md).

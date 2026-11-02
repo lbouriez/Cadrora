@@ -98,7 +98,7 @@ export function PortfolioDetailPage() {
       <div className="photo-grid" ref={gridRef}
         style={{ gridTemplateColumns: columnWidths.map((width) => `minmax(0, ${width}fr)`).join(' ') }}>
         {columns.map((column, columnIndex) => <div className="photo-grid__column" key={columnIndex}>
-          {column.map((photo, photoIndex) => <Link aria-label={photo.filename} className="photo-tile" key={photo.id}
+          {column.map((photo, photoIndex) => <Link aria-label={t('gallery.openPhoto', { filename: photo.filename })} className="photo-tile" key={photo.id}
             to={`?photo=${encodeURIComponent(photo.id)}`}>
             <ProgressivePhoto alt={photo.filename} height={photo.height} immediate={photoIndex === 0}
               priority={columnIndex === 0 && photoIndex === 0}

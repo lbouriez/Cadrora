@@ -12,6 +12,7 @@ import { PublicRouteFallback } from '../public/PublicRouteFallback';
 import { installPublicResources } from '../public/i18n';
 import { GalleriesPage, ServicesPage } from '../public/ShowcasePages';
 import '../public/public.css';
+import '../public/editorial.css';
 
 installPublicResources(i18n);
 installFaceFindResources();

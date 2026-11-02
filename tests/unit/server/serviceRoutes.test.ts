@@ -24,6 +24,48 @@ function testApp(withAnonymousAuth = false, withOwnerAuth = false, access: 'mana
 }
 
 describe('service catalog routes', () => {
+  it('resolves the first public Home session at its published revision and follows owner reordering', async () => {
+    const row = { is_builtin: 1, enabled: 1, show_on_home: 1, copy_json: null,
+      image_revision: 3, pending_image_revision: 4, photo_alignment: 'center', mobile_photo_alignment: null };
+    const rows = [
+      { ...row, id: 'wedding', sort_order: 0, show_on_home: 0 },
+      { ...row, id: 'family', sort_order: 1, enabled: 0 },
+      { ...row, id: 'portrait', sort_order: 2 },
+    ];
+    const variants = rows.flatMap(card => [3, 4].map(revision => ({ service_id: card.id, revision,
+      variant: 'large', storage_key: `${card.id}/${revision}/large.webp`, content_type: 'image/webp',
+      byte_size: 100, width: 2560, height: 1707, checksum_sha256: 'a'.repeat(64) })));
+    const database = { prepare: vi.fn((query: string) => ({
+      all: () => Promise.resolve({ results: query.includes('FROM site_services')
+        ? [...rows].sort((a, b) => a.sort_order - b.sort_order) : variants }),
+    })) } as unknown as D1Database;
+    const request = () => testApp().request('/home-hero-image/large?source=first-session', undefined, { DB: database });
+    const response = await request();
+    expect(response.status).toBe(302);
+    expect(response.headers.get('Location')).toBe('/service-media/family/3/large');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    rows[0]!.sort_order = 3;
+    rows[2]!.sort_order = 0;
+    expect((await request()).headers.get('Location')).toBe('/service-media/portrait/3/large');
+    rows[2]!.enabled = 0;
+    rows[2]!.show_on_home = 0;
+    expect((await request()).headers.get('Location')).toBe('/service-media/family/3/large');
+  });
+
+  it('retains the reserved Home image fallback for an empty Home and rejects invalid image selectors', async () => {
+    const assetFetch = vi.fn().mockResolvedValue(new Response('fallback'));
+    const database = { prepare: vi.fn(() => ({
+      all: () => Promise.resolve({ results: [] }), bind: () => ({ first: () => Promise.resolve(null) }),
+    })) } as unknown as D1Database;
+    const response = await testApp().request('/home-hero-image/large?source=first-session', undefined, {
+      DB: database, ASSETS: { fetch: assetFetch }, SITE_HERO_IMAGE_URL: '/brand/demo-hero.webp',
+    });
+    expect(response.status).toBe(200);
+    for (const path of ['/home-hero-image/large?source=private', '/home-hero-image/original?source=first-session']) {
+      expect((await testApp().request(path)).status).toBe(400);
+    }
+  });
+
   it('validates alignment choices while accepting older clients without framing fields', () => {
     const input = { enabled: true, showOnHome: true, sortOrder: 0, copy: null };
     expect(ServiceCardUpdateSchema.parse(input)).toEqual(input);

@@ -1,4 +1,4 @@
-const FOCUSABLE = 'button, input, select, textarea, [href], [tabindex]';
+const FOCUSABLE = 'button, input, select, textarea, summary, [href], [tabindex]';
 
 export function modalTabStops(dialog: HTMLElement): HTMLElement[] {
   return [...dialog.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((element) => {

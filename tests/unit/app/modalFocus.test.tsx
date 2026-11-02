@@ -8,6 +8,18 @@ import { Modal } from '../../../src/app/components/Modal';
 afterEach(cleanup);
 
 describe('modal focus and background isolation', () => {
+  it('includes native disclosures and excludes controls in their collapsed content', () => {
+    render(<Modal closeLabel="Close" onClose={() => {}} open title="Session">
+      <details><summary>Full story</summary><button type="button">Hidden action</button></details>
+    </Modal>);
+    const close = screen.getByRole('button', { name: 'Close' });
+    const summary = screen.getByText('Full story');
+    close.focus();
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(summary);
+    fireEvent.keyDown(summary, { key: 'Tab' });
+    expect(document.activeElement).toBe(close);
+  });
   it('wraps over visible controls when the trailing thumbnail rail is hidden', () => {
     render(<Modal closeLabel="Close" onClose={() => {}} open title="Photo">
       <button type="button">Download</button>
