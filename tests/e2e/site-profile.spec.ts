@@ -389,6 +389,8 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
+    await expect.poll(() => page.locator('.vertical-story-slider').evaluate(element =>
+      (element as HTMLElement & { swiper: { animating: boolean } }).swiper.animating)).toBe(false);
     const mastheadBox = (await page.locator('.public-masthead').boundingBox())!;
     const contentBox = (await page.locator('.swiper-slide-active .session-story__content').boundingBox())!;
     const photoTop = mastheadBox.y + mastheadBox.height;
@@ -399,11 +401,12 @@ test('even strong wheel or finger gestures settle on exactly one session', async
     if (testInfo.project.name === 'mobile-chromium') {
       const session = await page.context().newCDPSession(page);
       const width = viewport?.width ?? 390;
-      const startX = direction > 0 ? width * 0.82 : width * 0.18;
-      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y, id: 0 }] });
+      const travel = Math.min(180, (contentBox.y - photoTop) * 0.7);
+      const startY = y + direction * travel / 2;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: width / 2, y: startY, id: 0 }] });
       for (let step = 1; step <= 5; step += 1) {
         await session.send('Input.dispatchTouchEvent', {
-          type: 'touchMove', touchPoints: [{ x: startX - direction * width * 0.7 * step / 5, y, id: 0 }],
+          type: 'touchMove', touchPoints: [{ x: width / 2, y: startY - direction * travel * step / 5, id: 0 }],
         });
         await page.waitForTimeout(12);
       }
@@ -462,17 +465,18 @@ test('Atelier respects reduced motion for wheel, touch, and keyboard slides', as
   await page.goto('/');
   await dismissConsent(page);
   await expect(page.locator('.session-story__panel')).toHaveCount(3);
+  await expect(page.locator('.site-startup--overlay')).toHaveCount(0);
+  await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   if (testInfo.project.name === 'mobile-chromium') {
     const session = await page.context().newCDPSession(page);
     const width = viewport?.width ?? 390;
-    const startX = width * 0.82;
-    const y = height / 2;
-    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y, id: 0 }] });
+    const startY = height * 0.55;
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: width / 2, y: startY, id: 0 }] });
     for (let step = 1; step <= 5; step += 1) {
       await session.send('Input.dispatchTouchEvent', {
-        type: 'touchMove', touchPoints: [{ x: startX - width * 0.5 * step / 5, y, id: 0 }],
+        type: 'touchMove', touchPoints: [{ x: width / 2, y: startY - height * 0.3 * step / 5, id: 0 }],
       });
       await page.waitForTimeout(16);
     }

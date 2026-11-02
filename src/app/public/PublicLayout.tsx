@@ -235,7 +235,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   }, [menuOpen]);
 
   return (
-    <div ref={shell} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div ref={shell} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${marketingPath === '/about' ? ' public-shell--about' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       <a className="public-skip-link" href="#public-content" onClick={() => setMenuOpen(false)}>{t('gallery.skipContent')}</a>
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}

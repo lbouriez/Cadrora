@@ -33,7 +33,7 @@ export const atelierGiuliaSite = {
   home: {
     presentation: 'session-slides',
     immersiveFooter: 'last-slide',
-    slideDirection: 'horizontal',
+    slideDirection: 'vertical',
     slidePhotoZoom: false,
     sessionIntroduction: false,
     primaryAction: { href: '/contact', labelKey: 'gallery.contactCalloutAction', shortLabelKey: 'gallery.contactCalloutAction' },

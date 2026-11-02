@@ -29,13 +29,13 @@ test.beforeEach(async ({ page }) => {
   await page.route(/google-analytics|googletagmanager/u, route => route.abort());
 });
 
-test('vertical wheel turns pages horizontally with a fixed header and footer only on the last slide', async ({ page }) => {
-  test.skip(!immersive, 'Atelier horizontal presentation.');
+test('vertical wheel turns pages from top to bottom with a fixed header and footer only on the last slide', async ({ page }) => {
+  test.skip(!immersive, 'Atelier vertical presentation.');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/fr/');
   await page.getByRole('button', { name: /nécessaire seulement/iu }).click();
   const slider = page.locator('.vertical-story-slider');
-  await expect(slider).toHaveClass(/swiper-horizontal/u);
+  await expect(slider).toHaveClass(/swiper-vertical/u);
   const masthead = page.locator('.public-masthead');
   const footer = page.locator('.public-footer');
   await expect(footer).toBeHidden();
@@ -46,8 +46,8 @@ test('vertical wheel turns pages horizontally with a fixed header and footer onl
     const transform = new DOMMatrixReadOnly(getComputedStyle(element).transform);
     return { x: transform.m41, y: transform.m42 };
   });
-  await expect.poll(async () => (await matrix()).x).toBeLessThan(-1);
-  expect((await matrix()).y).toBe(0);
+  await expect.poll(async () => (await matrix()).y).toBeLessThan(-1);
+  expect((await matrix()).x).toBe(0);
   const photoScales = await page.locator('.session-story__visual').evaluateAll(async (elements) => {
     const samples: number[] = [];
     for (let frame = 0; frame < 20; frame += 1) {
@@ -67,16 +67,42 @@ test('vertical wheel turns pages horizontally with a fixed header and footer onl
   await expect(page.locator('.vertical-story-slider__pagination button').nth(1)).toHaveAttribute('aria-current', 'step');
   await expect.poll(() => slider.evaluate(element =>
     (element as HTMLElement & { swiper?: { animating: boolean } }).swiper?.animating)).toBe(false);
-  expect((await matrix()).x).toBeCloseTo(-(page.viewportSize()?.width ?? 0), 0);
+  expect((await matrix()).y).toBeCloseTo(-(page.viewportSize()?.height ?? 0), 0);
   expect(await page.evaluate(() => scrollY)).toBe(0);
   await slider.focus();
-  await page.keyboard.press('ArrowLeft');
+  await page.keyboard.press('ArrowUp');
   await expect(page.locator('.vertical-story-slider__pagination button').first()).toHaveAttribute('aria-current', 'step');
   await expect(footer).toBeHidden();
   await expect(footer).toHaveAttribute('inert');
 });
 
 for (const language of ['fr', 'en'] as const) {
+  test(`${language}: About fits a large screen without empty scrolling and grows for long owner copy`, async ({ page }) => {
+    test.skip(!immersive, 'Atelier split About presentation.');
+    await page.setViewportSize({ width: 2560, height: 1245 });
+    await page.goto(`/${language}/about`);
+    await page.getByRole('button', { name: /nécessaire seulement|necessary only/iu }).click();
+    await expect(page.locator('.public-footer')).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => document.documentElement.scrollHeight - innerHeight)).toBeLessThanOrEqual(1);
+    expect((await page.locator('.public-footer').boundingBox())!.y).toBeGreaterThan(1100);
+
+    await page.route('**/api/v1/site', route => route.fulfill({ json: { ...ownerSettings, aboutCopy: {
+      fr: { title: 'Rencontrez la photographe', body: 'Une biographie qui raconte notre parcours. '.repeat(40), imageAlt: '' },
+      en: { title: 'Meet the photographer', body: 'A biography telling the story of our journey. '.repeat(40), imageAlt: '' },
+    } } }));
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.reload();
+    await expect(page.locator('.about-page__story')).toContainText(language === 'fr' ? 'notre parcours' : 'our journey');
+    const text = (await page.locator('.about-page__story').boundingBox())!;
+    const action = (await page.locator('.about-page__action').boundingBox())!;
+    const footer = (await page.locator('.public-footer').boundingBox())!;
+    expect(action.y).toBeGreaterThanOrEqual(text.y + text.height);
+    expect(footer.y).toBeGreaterThan(action.y + action.height);
+    await page.locator('.about-page__action').focus();
+    await expect(page.locator('.about-page__action')).toBeInViewport({ ratio: 1 });
+    await assertNoHorizontalOverflow(page);
+  });
+
   test(`${language}: right-side dots keep the current session reachable in a short viewport`, async ({ page }) => {
     test.skip(!immersive, 'Atelier side pagination.');
     await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -104,13 +130,13 @@ for (const language of ['fr', 'en'] as const) {
     }
     await page.locator('.vertical-story-slider').focus();
     for (let index = 1; index < cards.length; index += 1) {
-      await page.keyboard.press('ArrowRight');
+      await page.keyboard.press('ArrowDown');
       await expect(buttons.nth(index)).toHaveAttribute('aria-current', 'step');
       await expect(buttons.nth(index)).toBeInViewport({ ratio: 1 });
     }
     expect(await pagination.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
     for (let index = cards.length - 2; index >= 0; index -= 1) {
-      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('ArrowUp');
       await expect(buttons.nth(index)).toHaveAttribute('aria-current', 'step');
       await expect(buttons.nth(index)).toBeInViewport({ ratio: 1 });
     }

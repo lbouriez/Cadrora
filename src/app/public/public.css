@@ -99,8 +99,12 @@
 /* Keep following sections below the first viewport while optional owner data resolves. */
 .public-data-region--pending { min-height: 100svh; align-content: start; }
 
-.public-shell--contact { display: flex; min-height: 100svh; flex-direction: column; }
-.public-shell--contact .public-main { flex: 1; min-height: 0; padding-bottom: 0; }
+.public-shell--contact,
+.public-shell--about { display: flex; min-height: 100svh; flex-direction: column; }
+.public-shell--contact .public-main,
+.public-shell--about .public-main { flex: 1; min-height: 0; }
+.public-shell--contact .public-main { padding-bottom: 0; }
+.public-shell--about .public-main { display: grid; align-items: center; padding-block: var(--space-6); }
 
 .public-footer {
   display: flex;
