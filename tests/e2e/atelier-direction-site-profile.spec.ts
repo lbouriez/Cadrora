@@ -29,7 +29,7 @@ test.beforeEach(async ({ page }) => {
   await page.route(/google-analytics|googletagmanager/u, route => route.abort());
 });
 
-test('vertical wheel turns pages horizontally while header and footer stay visible', async ({ page }) => {
+test('vertical wheel turns pages horizontally with a fixed header and footer only on the last slide', async ({ page }) => {
   test.skip(!immersive, 'Atelier horizontal presentation.');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/fr/');
@@ -38,7 +38,8 @@ test('vertical wheel turns pages horizontally while header and footer stay visib
   await expect(slider).toHaveClass(/swiper-horizontal/u);
   const masthead = page.locator('.public-masthead');
   const footer = page.locator('.public-footer');
-  const footerBefore = (await footer.boundingBox())!;
+  await expect(footer).toBeHidden();
+  await expect(footer).toHaveAttribute('inert');
   await page.mouse.move(100, 200);
   await page.mouse.wheel(0, 400);
   const matrix = () => page.locator('.swiper-wrapper').evaluate(element => {
@@ -61,7 +62,8 @@ test('vertical wheel turns pages horizontally while header and footer stay visib
   for (const scale of photoScales) expect(scale).toBeCloseTo(1, 4);
   await expect(masthead).toBeInViewport({ ratio: 1 });
   await expect(footer).toBeInViewport({ ratio: 1 });
-  expect((await footer.boundingBox())?.y).toBeCloseTo(footerBefore.y, 0);
+  await expect(footer).toBeVisible();
+  await expect(footer).not.toHaveAttribute('inert');
   await expect(page.locator('.vertical-story-slider__pagination button').nth(1)).toHaveAttribute('aria-current', 'step');
   await expect.poll(() => slider.evaluate(element =>
     (element as HTMLElement & { swiper?: { animating: boolean } }).swiper?.animating)).toBe(false);
@@ -70,11 +72,13 @@ test('vertical wheel turns pages horizontally while header and footer stay visib
   await slider.focus();
   await page.keyboard.press('ArrowLeft');
   await expect(page.locator('.vertical-story-slider__pagination button').first()).toHaveAttribute('aria-current', 'step');
+  await expect(footer).toBeHidden();
+  await expect(footer).toHaveAttribute('inert');
 });
 
 for (const language of ['fr', 'en'] as const) {
-  test(`${language}: bottom dashes keep the current session reachable in a narrow strip`, async ({ page }) => {
-    test.skip(!immersive, 'Atelier bottom pagination.');
+  test(`${language}: right-side dots keep the current session reachable in a short viewport`, async ({ page }) => {
+    test.skip(!immersive, 'Atelier side pagination.');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const cards = ['family', 'portrait', 'wedding', 'maternity', 'brand', 'work', 'kids', 'events', 'other']
       .map((id, sortOrder) => ({ ...card, id, sortOrder }));
@@ -87,15 +91,16 @@ for (const language of ['fr', 'en'] as const) {
     await expect(buttons).toHaveCount(cards.length);
     await expect(pagination).toBeInViewport({ ratio: 1 });
     const box = (await pagination.boundingBox())!;
-    const footer = (await page.locator('.public-footer').boundingBox())!;
-    expect(box.y + box.height).toBeCloseTo(footer.y, 0);
+    expect(box.x).toBeGreaterThan(270);
+    expect(box.width).toBe(44);
     for (const button of await buttons.all()) {
       const target = (await button.boundingBox())!;
-      const dash = (await button.locator('span').boundingBox())!;
+      const dot = (await button.locator('span').boundingBox())!;
       expect(target.width).toBeGreaterThanOrEqual(44);
       expect(target.height).toBeGreaterThanOrEqual(44);
-      expect(target.y).toBeCloseTo(box.y, 0);
-      expect(dash.width).toBeGreaterThan(dash.height * 5);
+      expect(target.x).toBeCloseTo(box.x, 0);
+      expect(dot.width).toBeCloseTo(dot.height, 1);
+      expect(dot.width).toBeLessThan(10);
     }
     await page.locator('.vertical-story-slider').focus();
     for (let index = 1; index < cards.length; index += 1) {
@@ -103,7 +108,7 @@ for (const language of ['fr', 'en'] as const) {
       await expect(buttons.nth(index)).toHaveAttribute('aria-current', 'step');
       await expect(buttons.nth(index)).toBeInViewport({ ratio: 1 });
     }
-    expect(await pagination.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+    expect(await pagination.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
     for (let index = cards.length - 2; index >= 0; index -= 1) {
       await page.keyboard.press('ArrowLeft');
       await expect(buttons.nth(index)).toHaveAttribute('aria-current', 'step');
@@ -148,14 +153,14 @@ for (const language of ['fr', 'en'] as const) {
   });
 }
 
-test('first visit keeps title, action, consent choices and footer reachable in short viewports', async ({ page }) => {
+test('first visit keeps title, action and consent choices reachable, with the footer on the last slide', async ({ page }) => {
   test.skip(!immersive, 'Atelier immersive presentation.');
   await page.goto('/fr/');
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await page.setViewportSize(viewport);
     const action = page.locator('.swiper-slide-active .session-story__cta');
     await expect(action).toBeInViewport({ ratio: 1 });
-    await expect(page.locator('.public-footer')).toBeInViewport({ ratio: 1 });
+    await expect(page.locator('.public-footer')).toBeHidden();
     for (const button of await page.locator('.privacy-consent__actions button').all()) {
       await expect(button).toBeInViewport({ ratio: 1 });
       expect((await button.boundingBox())?.height).toBeGreaterThanOrEqual(44);
@@ -170,15 +175,21 @@ test('first visit keeps title, action, consent choices and footer reachable in s
     const consentBox = (await page.locator('.privacy-consent').boundingBox())!;
     const paginationBox = (await page.locator('.vertical-story-slider__pagination').boundingBox())!;
     await expect(page.locator('.vertical-story-slider__pagination')).toBeInViewport({ ratio: 1 });
-    expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(paginationBox.y);
+    expect(actionBox.x + actionBox.width).toBeLessThanOrEqual(paginationBox.x);
+    expect(actionBox.y + actionBox.height).toBeLessThanOrEqual(consentBox.y);
     expect(paginationBox.y + paginationBox.height).toBeLessThanOrEqual(consentBox.y + 1);
     await assertNoHorizontalOverflow(page);
   }
   await expect(page.locator('script[src*="googletagmanager"]')).toHaveCount(0);
   await page.getByRole('button', { name: /nécessaire seulement/iu }).click();
   await expect(page.locator('script[src*="googletagmanager"]')).toHaveCount(0);
+  await page.locator('.vertical-story-slider__page').last().click();
+  await expect(page.locator('.public-footer')).toBeVisible();
   await page.getByRole('button', { name: 'Gérer mes choix' }).click();
   await expect(page.locator('.privacy-consent')).toBeVisible();
+  const footerBox = (await page.locator('.public-footer').boundingBox())!;
+  const consentBox = (await page.locator('.privacy-consent').boundingBox())!;
+  expect(consentBox.y + consentBox.height).toBeCloseTo(footerBox.y, 0);
 });
 
 test('long owner text scrolls independently while the action stays visible at enlarged type', async ({ page }) => {
@@ -209,5 +220,22 @@ test('About keeps owner alt text, including an explicit decorative choice', asyn
     await expect(page.locator('.about-page__image img').first()).toHaveAttribute('alt', imageAlt);
     await expect(page.locator('.about-page__story')).toHaveText('Biographie du propriétaire.');
     await expect(page.locator('.about-page__action')).toContainText(immersive ? 'Parlons de votre séance' : 'Contact');
+    if (immersive) {
+      const photo = page.locator('.about-page__image');
+      const biography = page.locator('.about-page__hero-copy');
+      await expect(photo.locator('img').first()).toHaveCSS('object-fit', 'contain');
+      const photoBox = (await photo.boundingBox())!;
+      const textBox = (await biography.boundingBox())!;
+      expect(photoBox.width).toBeGreaterThan(page.viewportSize()!.width * 0.3);
+      if (page.viewportSize()!.width > 864) {
+        expect(photoBox.x + photoBox.width).toBeLessThan(textBox.x);
+        expect(Math.abs(photoBox.y + photoBox.height / 2 - textBox.y - textBox.height / 2)).toBeLessThan(1);
+      } else {
+        expect(photoBox.y + photoBox.height).toBeLessThan(textBox.y);
+        expect(textBox.x).toBeCloseTo(photoBox.x, 0);
+      }
+      await expect(biography.locator('.about-page__story')).toHaveText('Biographie du propriétaire.');
+      await assertNoHorizontalOverflow(page);
+    }
   }
 });

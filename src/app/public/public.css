@@ -2123,9 +2123,9 @@
   .session-home__stage { transition: none; }
   .session-home__stage--media { transition: opacity var(--motion-standard) ease; }
   .session-home__stage--media .session-story__visual,
-  .session-home__stage--media .about-page--immersive .about-page__image { opacity: 0; transition: opacity var(--motion-photo-reveal) linear; }
+  .session-home__stage--media .about-page__image { opacity: 0; transition: opacity var(--motion-photo-reveal) linear; }
   .session-home__stage--media-photo-ready .session-story__visual,
-  .session-home__stage--media-photo-ready .about-page--immersive .about-page__image { opacity: 1; }
+  .session-home__stage--media-photo-ready .about-page__image { opacity: 1; }
 }
 .session-story__panel { display: grid; height: 100%; overflow: hidden; place-items: center; isolation: isolate; }
 /* Swiper's lazy-loaded stylesheet arrives later; keep its slides centered after it loads. */
@@ -2180,7 +2180,7 @@
 @media (prefers-reduced-motion: reduce) {
   .session-home__stage { transition: none; }
   .session-home__stage--media .session-story__visual,
-  .session-home__stage--media .about-page--immersive .about-page__image { transition: none; }
+  .session-home__stage--media .about-page__image { transition: none; }
   .session-story__cta { transition: none; }
 }
 
@@ -2203,10 +2203,15 @@
 .about-page--immersive .about-page__action:hover { background: var(--color-surface); }
 .about-page--immersive .about-page__story { width: 100%; max-width: none; padding: clamp(4rem, 9vw, 8rem) max(1.5rem, calc((100vw - 48rem) / 2)); background: var(--color-background); }
 .about-page--immersive .about-page__story p { font-family: var(--font-display); font-size: clamp(1.45rem, 2.5vw, 2rem); line-height: 1.55; }
+.about-page--split .about-page__image { grid-column: 1; width: 100%; height: auto; }
+.about-page--split .about-page__hero-copy { grid-column: 2; padding: 0; }
+.about-page--split .about-page__story { width: 100%; margin: 0; padding: var(--space-5) 0 0; }
 @media (max-width: 54rem) {
   .about-page__hero { min-height: auto; grid-template-columns: 1fr; gap: 0; }
   .about-page__image { grid-column: 1; grid-row: 1; height: 24rem; }
   .about-page__hero-copy { grid-column: 1; grid-row: 2; }
   .about-page--immersive .about-page__hero { min-height: calc(100svh - 4.75rem); }
   .about-page--immersive .about-page__image, .about-page--immersive .about-page__hero-copy { grid-row: 1; }
+  .about-page--split .about-page__hero { gap: var(--space-6); }
+  .about-page--split .about-page__hero-copy { grid-column: 1; }
 }

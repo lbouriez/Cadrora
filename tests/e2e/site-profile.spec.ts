@@ -384,8 +384,8 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(page.locator('.site-startup--overlay')).toHaveCount(0);
   await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
   const footer = page.locator('.public-footer');
-  await expect(footer).toBeVisible();
-  await expect(footer).not.toHaveAttribute('inert');
+  await expect(footer).toBeHidden();
+  await expect(footer).toHaveAttribute('inert');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
@@ -433,7 +433,8 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(footer).not.toHaveAttribute('inert');
   await gesture(-1);
   await settledAt(1);
-  await expect(footer).toBeVisible();
+  await expect(footer).toBeHidden();
+  await expect(footer).toHaveAttribute('inert');
   await gesture(1);
   await settledAt(2);
   await gesture(1);

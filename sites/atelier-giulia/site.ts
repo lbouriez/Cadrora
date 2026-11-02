@@ -29,9 +29,10 @@ export const atelierGiuliaSite = {
     couples: '/brand/service-couples.webp',
   },
   navigation: ['portfolio', 'services', 'about', 'contact'],
+  about: { presentation: 'split' },
   home: {
     presentation: 'session-slides',
-    immersiveFooter: 'always',
+    immersiveFooter: 'last-slide',
     slideDirection: 'horizontal',
     slidePhotoZoom: false,
     sessionIntroduction: false,

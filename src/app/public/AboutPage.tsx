@@ -32,25 +32,29 @@ export function AboutPage() {
     { url: `${imagePath}/medium`, width: settings.data?.aboutImageMediumWidth ?? 960 },
     { url: `${imagePath}/large`, width: settings.data?.aboutImageLargeWidth ?? 1280 },
   ];
-  const immersive = siteProfile.home.presentation === 'session-slides';
+  const presentation = siteProfile.about?.presentation
+    ?? (siteProfile.home.presentation === 'session-slides' ? 'immersive' : 'standard');
+  const immersive = presentation === 'immersive';
+  const split = presentation === 'split';
+  const revealPhoto = immersive || split;
+  const story = <section aria-label={title} className="about-page__story"><p>{body}</p></section>;
 
   const page = <PublicLayout fullBleed={immersive} pageTitle={title}>
-    <article className={`about-page${immersive ? ' about-page--immersive' : ''}`}>
+    <article className={`about-page about-page--${presentation}`}>
       <div className="about-page__hero">
-        <ProgressivePhoto alt={alt} className="about-page__image" enabled={!settings.isPending} height={853} immediate
-          onVisualReady={immersive ? markHeroPhotoReady : undefined} priority sizes={immersive ? '100vw' : '(max-width: 48rem) 100vw, 48vw'}
+        <ProgressivePhoto alt={alt} className="about-page__image" enabled={!settings.isPending} fit={split ? 'contain' : 'cover'} height={853} immediate
+          onVisualReady={revealPhoto ? markHeroPhotoReady : undefined} priority sizes={immersive ? '100vw' : '(max-width: 48rem) 100vw, 48vw'}
           sources={sources} visualReadyAt="display" width={1280} />
         <div className="about-page__hero-copy">
           <h1>{title}</h1>
+          {split ? story : null}
           <Link className="about-page__action" to={localizedMarketingPath('/contact', language)}>{t(siteProfile.demo.enabled ? 'gallery.sampleContact' : 'gallery.servicesPage.contactAction')}</Link>
         </div>
       </div>
-      <section aria-label={title} className="about-page__story">
-        <p>{body}</p>
-      </section>
+      {!split ? story : null}
     </article>
   </PublicLayout>;
-  if (!immersive) return page;
+  if (!revealPhoto) return page;
   const ready = !settings.isPending && heroPhotoReady;
   return <div className={`session-home${ready ? '' : ' session-home--pending'}`}>
     <FirstFrameReveal mediaReveal prepared={!settings.isPending} ready={ready}>{page}</FirstFrameReveal>

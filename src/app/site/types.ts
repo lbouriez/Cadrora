@@ -36,6 +36,7 @@ export interface SiteDefinition {
   privateGalleryCoverUrl: string;
   serviceImages: Readonly<Record<ServiceKey, string>>;
   navigation?: readonly NavigationItem[];
+  about?: { presentation: 'standard' | 'immersive' | 'split' };
   home: {
     presentation?: 'standard' | 'editorial' | 'session-slides';
     /** Immersive presentation only; editable session copy still comes from the catalog. */

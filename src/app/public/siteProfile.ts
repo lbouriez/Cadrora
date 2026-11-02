@@ -27,6 +27,7 @@ export const siteProfile = {
   serviceImages: activeSite.serviceImages,
   navigation: activeSite.navigation,
   home: activeSite.home,
+  about: activeSite.about,
   pages: activeSite.pages,
   contact: {
     phone: optionalValue(import.meta.env.VITE_CONTACT_PHONE),
