@@ -379,17 +379,27 @@ test('even strong wheel or finger gestures settle on exactly one session', async
   await expect(page.locator('.session-story__panel')).toHaveCount(3);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Enfants');
   await dismissConsent(page);
+  // Raw CDP touch input skips Playwright's actionability checks. Wait for the
+  // complete opening frame before starting a gesture on a freshly loaded page.
+  await expect(page.locator('.site-startup--overlay')).toHaveCount(0);
+  await expect(page.locator('.session-home__stage')).toHaveCSS('opacity', '1');
   const footer = page.locator('.public-footer');
   await expect(footer).toBeVisible();
   await expect(footer).not.toHaveAttribute('inert');
   const viewport = page.viewportSize();
   const height = viewport?.height ?? 844;
   const gesture = async (direction: 1 | -1) => {
+    const mastheadBox = (await page.locator('.public-masthead').boundingBox())!;
+    const contentBox = (await page.locator('.swiper-slide-active .session-story__content').boundingBox())!;
+    const photoTop = mastheadBox.y + mastheadBox.height;
+    // Exercise page navigation on the photo, outside text that may own native
+    // scrolling after font/layout differences on the CI host.
+    expect(contentBox.y - photoTop).toBeGreaterThan(44);
+    const y = photoTop + (contentBox.y - photoTop) / 2;
     if (testInfo.project.name === 'mobile-chromium') {
       const session = await page.context().newCDPSession(page);
       const width = viewport?.width ?? 390;
       const startX = direction > 0 ? width * 0.82 : width * 0.18;
-      const y = height / 2;
       await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: startX, y, id: 0 }] });
       for (let step = 1; step <= 5; step += 1) {
         await session.send('Input.dispatchTouchEvent', {
@@ -400,7 +410,7 @@ test('even strong wheel or finger gestures settle on exactly one session', async
       await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await session.detach();
     } else {
-      await page.mouse.move((viewport?.width ?? 1_440) / 2, height / 2);
+      await page.mouse.move((viewport?.width ?? 1_440) / 2, y);
       await page.mouse.wheel(0, direction * height * 3);
       for (let pulse = 0; pulse < 3; pulse += 1) {
         await page.mouse.wheel(0, direction * 150);
