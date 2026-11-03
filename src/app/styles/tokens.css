@@ -17,6 +17,9 @@
   --color-on-photo: #ffffff;
   --color-photo-canvas: #241822;
   --color-photo-accent: #f4c3e0;
+  /* Brand marks keep their original ink colors on this surface in either theme. */
+  --color-brand-mark-surface: #f6f1e7;
+  --color-brand-mark-border: #e7dcc8;
   --gradient-brand: linear-gradient(135deg, #ffb45c 0%, #e43b9a 55%, #7137e8 100%);
 
   --space-1: 0.25rem;

@@ -1985,7 +1985,8 @@
 .featured-site-card {
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  min-width: 0;
   min-height: 11rem;
   padding: var(--space-5);
   border: 0.0625rem solid var(--color-border);
@@ -1999,10 +2000,29 @@
 
 .featured-site-card:hover { box-shadow: var(--shadow-float); transform: translateY(-0.2rem); }
 .featured-site-card:focus-visible { outline: 0.1875rem solid var(--color-primary); outline-offset: 0.1875rem; }
+.featured-site-card__logo-frame {
+  display: grid;
+  place-items: center;
+  flex: 0 0 5.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  border: 0.0625rem solid var(--color-brand-mark-border);
+  border-radius: var(--space-1);
+  background: var(--color-brand-mark-surface);
+}
 .featured-site-card__logo { width: 5rem; height: 5rem; object-fit: contain; flex: 0 0 auto; }
+.featured-site-card__copy { min-width: 0; overflow-wrap: anywhere; }
 .featured-site-card__copy h3 { margin: 0 0 var(--space-2); font-size: 1.5rem; }
 .featured-site-card__copy p { margin: 0 0 var(--space-4); color: var(--color-text-muted); line-height: 1.6; }
 .featured-site-card__action { color: var(--color-primary); font-weight: 700; }
+
+@media (max-width: 23.125rem) {
+  .featured-site-card { gap: var(--space-3); padding: var(--space-4); }
+  .featured-site-card__logo-frame { flex-basis: 4.75rem; width: 4.75rem; height: 4.75rem; }
+  .featured-site-card__logo { width: 4.375rem; height: 4.375rem; }
+  .featured-site-card__copy h3 { font-size: 1.3125rem; }
+  .featured-site-card__copy p, .featured-site-card__action { font-size: var(--text-sm); }
+}
 
 .service-card {
   position: relative;
@@ -2117,7 +2137,6 @@
   .site-hero__accent-photo { width: 3.5rem; height: 3.5rem; }
   .site-hero__art figcaption { top: var(--space-3); right: auto; bottom: auto; left: var(--space-3); }
   .demo-experience-grid { grid-template-columns: 1fr; }
-  .featured-site-card { align-items: flex-start; }
   .demo-experience-card--feature { grid-column: auto; grid-template-columns: 1fr; }
   .demo-experience-card--feature .demo-experience-card__visual { height: 13rem; min-height: 0; }
   .demo-experience-card--admin { grid-column: auto; }

@@ -15,10 +15,12 @@ for (const [url, expected] of Object.entries(dimensions)) {
   if (actual.width !== expected.width || actual.height !== expected.height) {
     throw new Error(`Update brand-photo-dimensions.json for ${filename}: expected ${expected.width}x${expected.height}, found ${actual.width}x${actual.height}`);
   }
-  const widths = url.endsWith('-logo.png') ? [32, 64, 128] : url.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
+  const isLogo = url.endsWith('-logo.png');
+  const widths = isLogo ? [32, 64, 128, 256] : url.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
   for (const width of widths) {
     if (width >= expected.width) continue;
-    const bytes = await sharp(input).resize({ width, withoutEnlargement: true }).webp({ quality: 72, effort: 5 }).toBuffer();
+    const bytes = await sharp(input).resize({ width, withoutEnlargement: true })
+      .webp(isLogo ? { lossless: true, effort: 5 } : { quality: 72, effort: 5 }).toBuffer();
     await writeFile(new URL(`${filename.replace(/\.(?:webp|png)$/u, '')}-${width}.webp`, output), bytes);
   }
 }

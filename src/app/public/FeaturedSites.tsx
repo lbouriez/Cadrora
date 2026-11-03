@@ -16,7 +16,9 @@ export function FeaturedSites({ sites }: { sites: readonly FeaturedSite[] }) {
     </div>
     <div className="featured-sites__grid">
       {sites.map((site) => <a className="featured-site-card" data-marketing-action="featured_site" href={site.href} key={site.href} rel="noopener" target="_blank">
-        {site.logoUrl ? <BrandPhoto alt="" className="featured-site-card__logo" fit="contain" height={80} sizes="80px" src={site.logoUrl} width={80} /> : null}
+        {site.logoUrl ? <span className="featured-site-card__logo-frame">
+          <BrandPhoto alt="" className="featured-site-card__logo" fit="contain" height={80} sizes="80px" src={site.logoUrl} width={80} />
+        </span> : null}
         <div className="featured-site-card__copy">
           <h3>{site.name}</h3>
           <p>{t(site.descriptionKey)}</p>

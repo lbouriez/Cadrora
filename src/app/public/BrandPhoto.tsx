@@ -24,7 +24,7 @@ export function BrandPhoto({ alt, className, fit = 'cover', height, immediate = 
     {...(height === undefined ? {} : { height })} {...(width === undefined ? {} : { width })}
     immediate={immediate} lazyPreview={lazyPreview} onVisualReady={onVisualReady} visualReadyAt={visualReadyAt} priority={priority} sizes={sizes} src={src} />;
   const basename = src.slice(src.startsWith('/brand/') ? '/brand/'.length : 1).replace(/\.(?:webp|png)$/u, '').replaceAll('/', '-');
-  const widths = src.endsWith('-logo.png') ? [32, 64, 128] : src.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
+  const widths = src.endsWith('-logo.png') ? [32, 64, 128, 256] : src.startsWith('/demo/') ? [64, 128, 320, 640, 960, 1280] : [320, 640, 960, 1280];
   const sources = widths.filter((width) => width < photo.width).map((width) => ({
     url: `/brand/responsive/${basename}-${width}.webp`, width,
   }));
