@@ -2,6 +2,10 @@
 
 ## Scope
 
+Approved QA-001 / QA-002 revision 1: mobile tests separate compact short-brand height from long-brand readability, non-overlap, overflow and keyboard behavior. Long names remain owner-editable and may wrap. Worker collection/session errors retain real 404/503 statuses, `no-store` and `noindex,nofollow`, and now render shared FR/EN copy, the optional owner identity, the profile stylesheet and useful links without JavaScript. A bounded optional identity read falls back to the build profile. A 404 links to Portfolio/Home; a 503 links to the same URL for retry and Home. No disabled page or private content is initialized.
+
+Approved PERF-002 revision 1: [ADR-056](../decisions/ADR-056-owner-resolved-home-preload.md) defines the narrow optional Home HTML enhancement. A profile capability opts in; the current Cadrora editorial layout uses shared responsive sources and `95vw` for both preload and renderer. A validated server public-settings snapshot preserves owner overrides without a duplicate initial site request. Invalid, missing or slow settings leave the static shell and client fallback intact. Atelier does not opt in. No custom content is moved out of the administration.
+
 Approved SEO review (SEO-001–004, revision 1): the login document has a localized identity and HTML/HTTP `noindex,nofollow`, without marketing canonicals, alternates or share tags. Only the exact `/admin/login` path and its query variants are crawlable in `robots.txt`; the existing password/Access guard still runs first. Other admin HTML responses also carry the HTTP exclusion. Client navigation to login clears the previous public metadata, and returning to a public page restores that page's metadata. The owner site name and default language remain authoritative; a D1 failure falls back to profile values without blocking login.
 
 Cadrora's default Home eyebrow and FR/EN Home metadata describe the photo website, private galleries and self-hosting. These defaults belong only to `sites/cadrora`; saved `homeHeroCopy` still wins and other profiles are unchanged. Existing showcase description authority (ADR-052) remains unchanged.

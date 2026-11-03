@@ -1,0 +1,122 @@
+{
+  "base": "886603d1fbdfb710d812e923a4cb7d5fa480f469",
+  "codeHash": "779d79c0a6b3ff3b605b9e0dfd4e1a255ae3f17c3a03088f6db2b314eeceaceb",
+  "files": [
+    {
+      "file": "docs/architecture.md",
+      "sha256": "f7af0f286c65508aca099a5790280616ede073a9801ecd87d7a9380063d87f36"
+    },
+    {
+      "file": "docs/decisions/ADR-056-owner-resolved-home-preload.md",
+      "sha256": "0ee1b38e4055b5ae0bde50a91ab081f2b66257ae09cdd9c6800783889daba273"
+    },
+    {
+      "file": "docs/implementation-plan.md",
+      "sha256": "131432277b8197b49af530a461c4325fdda93789f3b7b58d54a2cd94dfe9e997"
+    },
+    {
+      "file": "docs/technical/contracts.md",
+      "sha256": "db76f5571dad1d9b84300928009664ffd61dfa0ecf4da11ebf9005fd5524e939"
+    },
+    {
+      "file": "docs/technical/public-website.md",
+      "sha256": "a7f9cc267538225fbc734558cfd85a66cdee7f0d3a7dc6aaab935a38402f4770"
+    },
+    {
+      "file": "public/public-requests.js",
+      "sha256": "a4d373aa2172e1fdc843f015a29951f2946d7b4248901688e4bd26eddd931840"
+    },
+    {
+      "file": "scripts/build/generateLocalizedPages.mjs",
+      "sha256": "515de3e8c1a367c9e21fda524a04b6431125ff85b832d834fd1d3d0288f41b8f"
+    },
+    {
+      "file": "scripts/sites/loadProfile.mjs",
+      "sha256": "9689ccc961f5f4c2426c30f8090292c695571b7ed95888c7771ccb3efeba9299"
+    },
+    {
+      "file": "sites/cadrora/profile.json",
+      "sha256": "aa44925eb7192e2dcee977199de39b30fe9dfb4eb6ca5d7985147fedb31d5d54"
+    },
+    {
+      "file": "src/app/components/ProgressivePhoto.tsx",
+      "sha256": "9537fa02028351872423c39e927fc530b973f98effd9f21d2acd94541c8cfd4f"
+    },
+    {
+      "file": "src/app/public/HomePage.tsx",
+      "sha256": "fcdbab4ecbff3a6ec094845de8573d26b0e624ffc77fceff8245b1617562ab87"
+    },
+    {
+      "file": "src/app/public/initialPublicRequests.ts",
+      "sha256": "980572b7e7e7aa15198d1efae0801f485b6272b1d31a5c8a7cf4f8009ca70646"
+    },
+    {
+      "file": "src/app/styles/startup.css",
+      "sha256": "dd8936ebb1c31809aa2f0b11fda9669d0d0abd6b2cb6915d566f11b15e87d7c5"
+    },
+    {
+      "file": "src/server/app.ts",
+      "sha256": "1b653c632752b7bdab0fdfd022c0e7e32fe4cc489b7e500d799f00d3475e9ebb"
+    },
+    {
+      "file": "src/server/http/homeImageDocument.ts",
+      "sha256": "3bd1a150a1fba21e8ef89f139cc44bc90ee0be5229da1e6896c7038f91fb3b68"
+    },
+    {
+      "file": "src/server/http/optionalRead.ts",
+      "sha256": "d4875493eb39bf94599f6eef03a067c71426d758e3d2a49f45d5c921dd12c332"
+    },
+    {
+      "file": "src/server/http/unavailableDocument.ts",
+      "sha256": "81583ee2c50ec79bf72be5ea3855ab5d09ad0bc4a773e5dbbe59e05bca3009b4"
+    },
+    {
+      "file": "src/server/routes/homeDocument.ts",
+      "sha256": "ef87e959c4a2b24f926eb1e311c912ad1c701ddcc325fc8233a4979968a60687"
+    },
+    {
+      "file": "src/server/routes/portfolioSeo.ts",
+      "sha256": "fed718cdf54a54fa0b89737c25ebe4539765d9b57710c4b3ee78724d08662dd7"
+    },
+    {
+      "file": "src/shared/homeHeroPhoto.ts",
+      "sha256": "85b9ef7f7489465ce424b117a18d43d7e0caf61fa4c04df83dba42fe7a579668"
+    },
+    {
+      "file": "src/shared/i18n/publicStartup.json",
+      "sha256": "4bdcc865a719da151300f478fc905bc8aede075ab7bfe84e4a70d34d682d2db2"
+    },
+    {
+      "file": "tests/e2e/home-preload-build.spec.ts",
+      "sha256": "691409afe5e1e696b038f3409c5dee4439f99d936c414c8462a5e099578b0822"
+    },
+    {
+      "file": "tests/e2e/public-website.spec.ts",
+      "sha256": "d89583d089bfb0b7bd32931c59dfb5ae4363152ca9a64bbd8a95c7e968f74d8b"
+    },
+    {
+      "file": "tests/e2e/startup-build.spec.ts",
+      "sha256": "3687baf470c988b45bcea1151891b8b2c8f09acfaaaa47e9f443694c2a210bcd"
+    },
+    {
+      "file": "tests/unit/app/initialPublicRequests.test.ts",
+      "sha256": "086ef2fcc0f1769c15264202815b42d9a6220ea492cbcb4426ad08e589a8c818"
+    },
+    {
+      "file": "tests/unit/server/app.test.ts",
+      "sha256": "a1b123488f2771cc24164415d1465e964521209e380d7fbb42c677974ff12911"
+    },
+    {
+      "file": "tests/unit/server/homeImageDocument.test.ts",
+      "sha256": "3d1cbd02da79d3b966264ca21a32fb4ef0e90ad23c13b090933daebb0afa6578"
+    },
+    {
+      "file": "tests/unit/server/portfolioSeo.test.ts",
+      "sha256": "38cd56948f99ea88a5e8debccf3becb311fafc81b759e3082f211b84b5cbd5eb"
+    },
+    {
+      "file": "wrangler.jsonc",
+      "sha256": "8bc7fd623a762820f737dab629048ce59494209c5452b9a355646b7d54c289c6"
+    }
+  ]
+}

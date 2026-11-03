@@ -1,9 +1,10 @@
-import type { Context, Hono } from 'hono';
+import type { Hono } from 'hono';
 
 import startupCopy from '../../shared/i18n/publicStartup.json';
 import { PortfolioCollectionTextSchema } from '../../shared/schemas/portfolio';
 import { SlugSchema } from '../../shared/schemas/primitives';
 import type { AppEnv } from '../types';
+import { unavailableDocument } from '../http/unavailableDocument';
 
 interface PortfolioSeoRow {
   id: string;
@@ -29,12 +30,6 @@ async function siteSeoRow(db: D1Database): Promise<SiteSeoRow | null> {
 
 function defaultLanguage(row: SiteSeoRow | null, fallback: string): 'fr' | 'en' {
   return (row?.default_language ?? fallback) === 'en' ? 'en' : 'fr';
-}
-
-function unavailableDocument(context: Context<AppEnv>, status: 404 | 503) {
-  context.header('Cache-Control', 'no-store');
-  context.header('X-Robots-Tag', 'noindex, nofollow');
-  return context.html('<!doctype html><html><head><meta name="robots" content="noindex,nofollow"></head><body></body></html>', status);
 }
 
 function escapeHtml(value: string): string {
@@ -138,8 +133,7 @@ export function registerPortfolioSeoRoutes(app: Hono<AppEnv>): void {
           row = await context.env.DB.prepare(`SELECT id, copy_json, cover_photo_id FROM portfolio_collections
             WHERE slug = ? AND published = 1`).bind(slug.data).first<PortfolioSeoRow>();
         } catch {
-          context.header('Cache-Control', 'no-store');
-          return context.html(template, 503);
+          return unavailableDocument(context, 503);
         }
         if (!row) {
           return unavailableDocument(context, 404);

@@ -1,0 +1,12 @@
+{
+  "faq": {
+    "question": "Does Cadrora host my website?",
+    "opened": true,
+    "closed": true
+  },
+  "demoAnchor": {
+    "url": "http://127.0.0.1:5207/en/#demo",
+    "visible": true
+  },
+  "scope": "UI réelle sur build local ; clics et réglages fictifs, aucune écriture distante."
+}

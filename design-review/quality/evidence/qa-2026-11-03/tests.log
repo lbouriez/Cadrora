@@ -1,0 +1,30 @@
+
+> cadrora@0.1.0 test
+> vitest run --maxWorkers=2
+
+
+ RUN  v5.0.1 C:/GIT/Cadrora
+
+(node:46992) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:43408) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73612) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Uploading 40 generated portfolio variants.
+(node:73064) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Demo R2 upload failed (attempt 1/3); retrying.
+Demo R2 upload failed (attempt 1/3); retrying.
+Demo R2 upload failed (attempt 2/3); retrying.
+(node:10820) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  105 passed (105)
+      Tests  569 passed | 1 skipped (570)
+   Start at  10:29:27
+   Duration  102.12s (tests 45%, setup 20%, environment 18%, import 12%, transform 5%)
+
+    Isolate  105 workers spawned · ~607ms startup each (spawn + environment, per file)
+             at least ~31.26s faster with isolate: false — reuses workers across files instead of one per file
+

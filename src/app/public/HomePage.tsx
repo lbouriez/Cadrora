@@ -20,6 +20,7 @@ import { BrandPhoto } from './BrandPhoto';
 import { localizedMarketingPath } from './localizedMarketingPath';
 import { ProductFaq, ProductInstallation, ProductWorkflow } from './ProductSections';
 import type { HomeSection, SiteAction } from '../site/types';
+import { HOME_HERO_RESPONSIVE_SIZES, homeHeroSources } from '../../shared/homeHeroPhoto';
 
 export function HomePage() {
   const Override = siteProfile.pages?.home;
@@ -53,8 +54,6 @@ export function DefaultHomePage() {
   const hero = settings.data?.homeHeroCopy;
   const editorial = siteProfile.home.presentation === 'editorial';
   const heroText = hero?.[language];
-  const heroImagePath = settings.data?.homeHeroImageRevision
-    ? `/service-media/home-hero/${settings.data.homeHeroImageRevision}` : '/home-hero-image';
   const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
     && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
   const demoActionHidden = (href: string) => href === '#demo' && (!siteProfile.demo.enabled || !galleryDirectoryEnabled);
@@ -97,12 +96,8 @@ export function DefaultHomePage() {
             <figure className="site-hero__art">
               <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
                 height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes={editorial ? '100vw' : '(max-width: 48rem) 100vw, 42vw'} width={1280}
-                sources={[
-                  { url: `${heroImagePath}/preview`, width: 320 },
-                  { url: `${heroImagePath}/small`, width: 640 },
-                  { url: `${heroImagePath}/medium`, width: settings.data?.homeHeroImageMediumWidth ?? 960 },
-                  { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
-                ]} />
+                responsiveSizes={editorial ? HOME_HERO_RESPONSIVE_SIZES : undefined}
+                sources={homeHeroSources(settings.data)} />
               {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
               {siteProfile.heroAccentImageUrl && !editorial ? <div className="site-hero__ai-card">
                 <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />

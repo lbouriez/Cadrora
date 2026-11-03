@@ -4,6 +4,21 @@ import { ApiErrorSchema } from '../../../src/shared/schemas';
 import { app } from '../../../src/server/app';
 
 describe('worker app', () => {
+  it('keeps public Home usable with stale admin credentials and unavailable D1', async () => {
+    const template = '<html><head><meta name="cadrora-home-image" content="full-width"></head><body>Static Home</body></html>';
+    const queries: string[] = [];
+    const env = { ADMIN_AUTH_MODE: 'password', ASSETS: { fetch: () => Promise.resolve(new Response(template, { headers: { 'Content-Type': 'text/html' } })) },
+      DB: { prepare: (sql: string) => { queries.push(sql); throw new Error('D1 unavailable'); } },
+    } as unknown as CloudflareBindings;
+    for (const method of ['GET', 'HEAD']) {
+      const response = await app.request('https://example.test/fr/', { method, headers: { Cookie: '__Host-cadrora-admin=stale', 'Cf-Access-Jwt-Assertion': 'invalid' } }, env);
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Security-Policy')).toContain("default-src 'self'");
+      if (method === 'GET') expect(await response.text()).toBe(template);
+    }
+    expect(queries).toHaveLength(2);
+    expect(queries.every(sql => sql.includes('FROM site_settings'))).toBe(true);
+  });
   it.each(['fr', 'en'] as const)('isolates login metadata in %s while preserving public indexing and Access protection', async (language) => {
     const template = `<!doctype html><html lang="fr"><head><title>Home</title>
       <meta name="description" content="Home description"><meta name="robots" content="index,follow">

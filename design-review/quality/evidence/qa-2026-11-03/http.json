@@ -1,0 +1,289 @@
+[
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr",
+    "status": 307,
+    "location": "/fr/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en",
+    "status": 307,
+    "location": "/en/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/contact",
+    "status": 307,
+    "location": "/fr/contact/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/services",
+    "status": 307,
+    "location": "/en/services/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/sitemap.xml",
+    "status": 200,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n  <url><loc>https://cadrora.com/fr/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/en/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/fr/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/en/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/fr/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/en/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/fr/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/en/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/fr/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/en/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n</urlset>\n"
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/robots.txt",
+    "status": 200,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": "User-agent: *\nAllow: /\nDisallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/\nDisallow: /media/\nSitemap: https://cadrora.com/sitemap.xml\n"
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/admin/login",
+    "status": 200,
+    "location": null,
+    "robots": "noindex, nofollow",
+    "title": "Connexion photographe | Atelier Giulia",
+    "canonical": null,
+    "hreflang": [],
+    "description": "Connectez-vous à l’administration de votre site photo.",
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/admin",
+    "status": 302,
+    "location": "/admin/login",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/api/v1/admin/site-settings",
+    "status": 401,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/e/qa-missing-gallery",
+    "status": 200,
+    "location": null,
+    "robots": "noindex, nofollow",
+    "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+    "canonical": "https://cadrora.com/fr/",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+    "ogImage": "https://cadrora.com/home-hero-image/large",
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/qa-missing-route",
+    "status": 404,
+    "location": null,
+    "robots": "noindex,nofollow",
+    "title": "Page introuvable | Cadrora",
+    "canonical": null,
+    "hreflang": [],
+    "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+    "excerpt": null
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/design-review/quality/review-data.json",
+    "status": 404,
+    "location": null,
+    "robots": "noindex,nofollow",
+    "title": "Page introuvable | Cadrora",
+    "canonical": null,
+    "hreflang": [],
+    "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/fr",
+    "status": 307,
+    "location": "/fr/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/en",
+    "status": 307,
+    "location": "/en/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/fr/contact",
+    "status": 307,
+    "location": "/fr/contact/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/en/services",
+    "status": 307,
+    "location": "/en/services/",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/sitemap.xml",
+    "status": 200,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n  <url><loc>https://cadrora.com/fr/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/en/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/fr/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/en/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/fr/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/en/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/fr/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/en/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/fr/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/en/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n</urlset>\n"
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/robots.txt",
+    "status": 200,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: https://cadrora.com/sitemap.xml\n"
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/admin/login",
+    "status": 200,
+    "location": null,
+    "robots": null,
+    "title": "Galeries photo privées et site photographe | Cadrora",
+    "canonical": "https://cadrora.com/fr/",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+    "ogImage": "https://cadrora.com/home-hero-image/large",
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/admin",
+    "status": 302,
+    "location": "/admin/login",
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/api/v1/admin/site-settings",
+    "status": 401,
+    "location": null,
+    "robots": null,
+    "title": "",
+    "canonical": null,
+    "hreflang": [],
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/e/qa-missing-gallery",
+    "status": 200,
+    "location": null,
+    "robots": "noindex, nofollow",
+    "title": "Galeries photo privées et site photographe | Cadrora",
+    "canonical": "https://cadrora.com/fr/",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+    "ogImage": "https://cadrora.com/home-hero-image/large",
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/qa-missing-route",
+    "status": 404,
+    "location": null,
+    "robots": "noindex,nofollow",
+    "title": "Page introuvable | Cadrora",
+    "canonical": null,
+    "hreflang": [],
+    "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+    "excerpt": null
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/design-review/quality/review-data.json",
+    "status": 404,
+    "location": null,
+    "robots": "noindex,nofollow",
+    "title": "Page introuvable | Cadrora",
+    "canonical": null,
+    "hreflang": [],
+    "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+    "excerpt": null
+  }
+]

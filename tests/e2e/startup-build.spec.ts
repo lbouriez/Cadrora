@@ -231,6 +231,14 @@ test.describe('Cadrora first frame', () => {
 });
 
 async function installOwnerHome(page: Page) {
+  // These API-only fixtures exercise the client fallback when the optional server
+  // snapshot is absent. home-preload-build.spec.ts covers the server snapshot path.
+  await page.route(/\/(?:fr|en)\/$/u, async route => {
+    const response = await route.fetch();
+    const body = (await response.text()).replace(/<link data-home-photo-preload[^>]*>/gu, '')
+      .replace(/<script id="cadrora-initial-site"[^>]*>[\s\S]*?<\/script>/gu, '');
+    await route.fulfill({ response, body });
+  });
   await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
   await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],

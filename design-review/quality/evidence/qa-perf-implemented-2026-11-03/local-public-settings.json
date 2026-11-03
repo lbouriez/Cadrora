@@ -1,0 +1,56 @@
+{
+  "siteName": "Atelier Giulia",
+  "siteCopy": {
+    "fr": {
+      "description": "Atelier Giulia, portraits, célébrations et galeries photo.",
+      "footerTagline": "Des images pleines de vie."
+    },
+    "en": {
+      "description": "Portrait and celebration photography by Atelier Giulia. Explore our photo galleries.",
+      "footerTagline": "Photography with feeling."
+    }
+  },
+  "defaultLanguage": "fr",
+  "enabledLanguages": [
+    "fr",
+    "en"
+  ],
+  "contactEmail": null,
+  "contactPhone": null,
+  "contactAddress": null,
+  "serviceArea": null,
+  "map": {
+    "centerLatitude": null,
+    "centerLongitude": null,
+    "radiusKm": null
+  },
+  "enabledServices": [
+    "wedding",
+    "family",
+    "brand",
+    "corporate",
+    "children",
+    "maternity",
+    "portrait",
+    "couples"
+  ],
+  "constructionNoticeEnabled": false,
+  "galleryDirectoryEnabled": true,
+  "sessionsPageEnabled": true,
+  "homeGalleries": {
+    "enabled": true,
+    "limit": 6
+  },
+  "homeHeroCopy": null,
+  "homeHeroImageRevision": null,
+  "homeHeroImageMediumWidth": null,
+  "homeHeroImageLargeWidth": null,
+  "aboutEnabled": true,
+  "aboutCopy": null,
+  "aboutImageRevision": null,
+  "aboutImageMediumWidth": null,
+  "aboutImageLargeWidth": null,
+  "analyticsMeasurementId": null,
+  "themeMode": "both",
+  "updatedAt": "2026-09-24T00:00:00.000Z"
+}

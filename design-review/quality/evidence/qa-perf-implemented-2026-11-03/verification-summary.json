@@ -1,0 +1,84 @@
+{
+  "mode": "implement-approved",
+  "issues": [
+    {
+      "id": "QA-002",
+      "revision": 1,
+      "status": "implemented",
+      "verification": "passed-local"
+    },
+    {
+      "id": "QA-001",
+      "revision": 1,
+      "status": "implemented",
+      "verification": "passed-local"
+    },
+    {
+      "id": "PERF-002",
+      "revision": 1,
+      "status": "implemented",
+      "verification": "passed-local"
+    }
+  ],
+  "check": "passed",
+  "unit": {
+    "passed": 580,
+    "skipped": 1
+  },
+  "visitor": {
+    "initialPassed": 70,
+    "initialNewTestSelectorFailures": 2,
+    "targetedFinalPassed": 9,
+    "uniquePassedAfterRetest": 72
+  },
+  "builds": {
+    "cadrora": "passed",
+    "atelier": "passed"
+  },
+  "buildBrowser": {
+    "cadrora": 37,
+    "atelier": 53,
+    "finalCadroraRetest": 11
+  },
+  "performance": {
+    "before": {
+      "lcpMedian": 9472,
+      "lcpRange": [
+        9348,
+        10312
+      ],
+      "heroStartMedian": 7284,
+      "heroTransferBytes": [
+        51796,
+        51796,
+        51796
+      ],
+      "cls": [
+        0,
+        0,
+        0
+      ]
+    },
+    "after": {
+      "lcpMedian": 6960,
+      "lcpRange": [
+        6948,
+        8152
+      ],
+      "heroStartMedian": 310.70000000298023,
+      "heroTransferBytes": [
+        51796,
+        51796,
+        51796
+      ],
+      "cls": [
+        0,
+        0,
+        0
+      ]
+    },
+    "limit": "Local Chromium, warm uncompressed optimized server, 390x844 DPR1, CPU4x RTT150ms/down1.6Mbps/cache off. Same actual D1, no mocks. 3+3 runs. Photo transfer scope includes preview and selected display image, not entire page. Field INP/CWV and compressed preproduction not measured."
+  },
+  "artifactFingerprint": "779d79c0a6b3ff3b605b9e0dfd4e1a255ae3f17c3a03088f6db2b314eeceaceb",
+  "release": "NO-GO: provider/device evidence not performed; no publish/commit/push"
+}

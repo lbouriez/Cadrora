@@ -1,0 +1,50 @@
+[
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/qa-inexistent-collection/",
+    "status": 404,
+    "contentType": "text/html; charset=UTF-8",
+    "body": "<!doctype html><html><head><meta name=\"robots\" content=\"noindex,nofollow\"></head><body></body></html>",
+    "length": 101
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/qa-inexistent-collection/",
+    "status": 404,
+    "contentType": "text/html; charset=UTF-8",
+    "body": "<!doctype html><html><head><meta name=\"robots\" content=\"noindex,nofollow\"></head><body></body></html>",
+    "length": 101
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/qa-inexistent/",
+    "status": 404,
+    "contentType": "text/html; charset=utf-8",
+    "body": "<!doctype html>\r\n<html lang=\"fr\" data-site=\"cadrora\">\r\n  <head>\r\n    <meta charset=\"UTF-8\" />\r\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\r\n    <meta name=\"theme-color\" content=\"#17111f\" />\r\n    <meta\r\n      name=\"des",
+    "length": 1553
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/en/portfolio/qa-inexistent-collection/",
+    "status": 404,
+    "contentType": "text/html; charset=UTF-8",
+    "body": "<!doctype html><html><head><meta name=\"robots\" content=\"noindex,nofollow\"></head><body></body></html>",
+    "length": 101
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/fr/portfolio/qa-inexistent-collection/",
+    "status": 404,
+    "contentType": "text/html; charset=UTF-8",
+    "body": "<!doctype html><html><head><meta name=\"robots\" content=\"noindex,nofollow\"></head><body></body></html>",
+    "length": 101
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/qa-inexistent/",
+    "status": 404,
+    "contentType": "text/html",
+    "body": "<!doctype html>\n<html lang=\"fr\" data-site=\"cadrora\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <meta name=\"theme-color\" content=\"#17111f\" />\n    <meta\n      name=\"descriptio",
+    "length": 1535
+  }
+]

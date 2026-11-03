@@ -2,11 +2,27 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { GalleryApiError, getPublicServices } from '../../../src/app/public/api';
+import { takeInitialPublicRequest } from '../../../src/app/public/initialPublicRequests';
 
 const bootstrap = readFileSync(new URL('../../../public/public-requests.js', import.meta.url), 'utf8');
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe('early public metadata', () => {
+  it('shares the non-executable server snapshot once without requesting different site settings', async () => {
+    const snapshot = { textContent: '{"siteName":"Owner"}', remove: vi.fn() };
+    const document = { getElementById: vi.fn(() => snapshot) };
+    const window = { location: { pathname: '/fr/' }, document, cadroraInitialPublicRequests: new Map<string, Promise<Response>>() };
+    const fetch = vi.fn().mockResolvedValue(Response.json([]));
+    runInNewContext(bootstrap, { window, fetch, Map, Response, AbortController, setTimeout, clearTimeout });
+    expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/services']);
+    expect(await (await window.cadroraInitialPublicRequests.get('/api/v1/site'))?.json()).toEqual({ siteName: 'Owner' });
+    expect(snapshot.remove).toHaveBeenCalledOnce();
+    // The app may win the race before the deferred bootstrap runs.
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('document', document);
+    expect(await (await takeInitialPublicRequest('/api/v1/site'))?.json()).toEqual({ siteName: 'Owner' });
+    expect(snapshot.remove).toHaveBeenCalledTimes(2);
+  });
   it('waits for the owner response and aborts a stalled read only at the deadline', async () => {
     vi.useFakeTimers();
     const fetch = vi.fn(() => new Promise<Response>(() => {}));

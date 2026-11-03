@@ -20,6 +20,8 @@ interface CommonPhotoProps {
   visualReadyAt?: 'preview' | 'display';
   priority?: boolean;
   sizes: string;
+  /** Exact known responsive layout; also used by its server preload. Other images stay measured. */
+  responsiveSizes?: string | undefined;
 }
 
 export type ProgressivePhotoProps = CommonPhotoProps & (
@@ -28,7 +30,7 @@ export type ProgressivePhotoProps = CommonPhotoProps & (
 );
 
 /** Select a display-sized source after the preview, or render one unblurred local/static source. */
-export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, visualReadyAt = 'preview', priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
+export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, visualReadyAt = 'preview', priority = false, sizes, responsiveSizes, sources, src, width }: ProgressivePhotoProps) {
   const frame = useRef<HTMLSpanElement>(null);
   const previewFailed = useRef(false);
   const optimizedFailed = useRef(false);
@@ -48,9 +50,9 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
   // than downloading the next variant at almost twice the required width.
   const targetWidth = (displayWidth ?? 0) * pixelRatio;
   const displaySource = responsiveSources.find((source) => source.width >= targetWidth * 0.95) ?? responsiveSources.at(-1);
-  const displaySources = displayWidth ? responsiveSources.filter((source) => source.width <= (displaySource?.width ?? 0)) : responsiveSources;
+  const displaySources = displayWidth && !responsiveSizes ? responsiveSources.filter((source) => source.width <= (displaySource?.width ?? 0)) : responsiveSources;
   const sourceCount = responsiveSources.length;
-  const measureEnabled = enabled && sourceCount > 1 && (nearby || immediate || priority);
+  const measureEnabled = enabled && !responsiveSizes && sourceCount > 1 && (nearby || immediate || priority);
   const observeNearby = !immediate && !priority && (lazyPreview || sourceCount > 1);
 
   useLayoutEffect(() => {
@@ -90,7 +92,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
   }, [observeNearby]);
 
   // Priority photos start both layers together, after owner-managed sources and frame sizing resolve.
-  const revealOptimized = enabled && displayWidth !== null && (nearby || immediate || priority)
+  const revealOptimized = enabled && (displayWidth !== null || Boolean(responsiveSizes)) && (nearby || immediate || priority)
     && (previewReady || priority) && responsiveSources.length > 1;
   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
   const reportVisualReady = useCallback(() => {
@@ -144,7 +146,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
       loading="eager"
       onError={(event) => settleImage(event.currentTarget, true, true)}
       onLoad={(event) => settleImage(event.currentTarget, true)}
-      sizes={displayWidth ? `${displayWidth}px` : sizes}
+      sizes={responsiveSizes ?? (displayWidth ? `${displayWidth}px` : sizes)}
       src={displaySources.at(-1)?.url}
       srcSet={displaySources.map((source) => `${source.url} ${source.width}w`).join(', ')}
     /> : null}

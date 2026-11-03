@@ -1,0 +1,137 @@
+{
+  "checkedAt": "2026-11-03T15:29:30.367Z",
+  "runs": [
+    {
+      "id": 41662512035,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/lbouriez/Cadrora/actions/runs/41662512035",
+      "sha": "886603d1fbdfb710d812e923a4cb7d5fa480f469"
+    }
+  ],
+  "jobs": [
+    {
+      "id": 126009131344,
+      "name": "verify",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install browser for profile smoke test",
+          "conclusion": "success"
+        },
+        {
+          "name": "Apply local D1 migrations for Worker HTML checks",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build Cadrora showcase",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check the built Cadrora first frame",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build Atelier Giulia",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check the built Atelier first frame before deployment",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Atelier Giulia on desktop and phone",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 126012887467,
+      "name": "deploy",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci",
+          "conclusion": "success"
+        },
+        {
+          "name": "Refuse to deploy an outdated commit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Deploy the isolated Atelier Giulia instance",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify public HTTPS pages",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify domain HTTPS policy",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "note": "Workflow Atelier: vérification et déploiement réussis. Ne prouve pas la version de cadrora.com. Aucun déclenchement par cette revue."
+}

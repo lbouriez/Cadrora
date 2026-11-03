@@ -69,7 +69,7 @@ function documentFor(language, page, path) {
   return shell.replace(/(<html\b[^>]*\blang=")[^"]*(")/u, `$1${language}$2`)
     .replace(/<title>[^<]*<\/title>/u, `<title>${title}</title>`)
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${description}$2`)
-    .replace('</head>', `${metadata}\n  </head>`)
+    .replace('</head>', `${metadata}${page === 'home' && site.homeImagePreload === 'full-width' ? '<meta name="cadrora-home-image" content="full-width">' : ''}\n  </head>`)
     .replace('<div id="root"></div>', `<div id="root">${fallback}</div>`);
 }
 

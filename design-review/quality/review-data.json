@@ -490,16 +490,19 @@
       "sourcePrompt": "website.shared.03@2.1",
       "proposalRevision": 1,
       "proposalStatus": "proposed",
-      "approvalStatus": "pending",
+      "approvalStatus": "approved",
       "approval": {
-        "decision": null,
-        "revision": null,
-        "scope": []
+        "decision": "Approbation explicite du propriétaire dans le chat, pour cadrora-quality-2026-11-02, révision 1.",
+        "revision": 1,
+        "scope": [
+          "PERF-002"
+        ],
+        "timestamp": "2026-11-03T16:15:58.132Z"
       },
-      "implementationStatus": "not-started",
-      "verificationStatus": "not-tested",
-      "testedRevision": "872c91912c50ba797ab84489562b4292a72a98c8",
-      "after": "not measured",
+      "implementationStatus": "implemented",
+      "verificationStatus": "passed",
+      "testedRevision": "886603d1fbdf + changements locaux 779d79c0a6b3",
+      "after": "La photo sélectionnée est découverte dans le HTML, puis réutilisée par ProgressivePhoto.",
       "id": "PERF-002",
       "priority": "P2",
       "category": "Performance",
@@ -560,7 +563,117 @@
         }
       ],
       "notes": "Proposition technique à risque explicite ; aucun preload ajouté au site. Les gains sont attendus, jamais chiffrés avant mesure. Cette correction exige de garder le contrat de source propriétaire et les routes média existantes.",
-      "evidenceState": "Baseline avant les corrections approuvées ; PERF-002 non appliqué, LCP après non mesuré"
+      "evidenceState": "Baseline originale conservée ; après implémentation, nouvelles mesures comparables dans evidence/qa-perf-implemented-2026-11-03.",
+      "applicability": {
+        "result": "R1 recontrôlée avant modification sur 886603d : cause toujours présente ; proposition applicable. Aucun élargissement aux autres IDs."
+      },
+      "baselineStatus": "Observation initiale conservée, antérieure au correctif local.",
+      "implementation": {
+        "codeFingerprint": "evidence/qa-perf-implemented-2026-11-03/code-fingerprint.json",
+        "patch": "evidence/qa-perf-implemented-2026-11-03/application.patch",
+        "extraEvidence": [
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/check.log",
+            "label": "Types et lint"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/unit-final.log",
+            "label": "Tests unitaires finaux"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-cadrora-final.log",
+            "label": "Build Cadrora"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-atelier-final.log",
+            "label": "Build Atelier"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/performance-before.json",
+            "label": "Avant : trois passages comparables"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/performance-after.json",
+            "label": "Après : trois passages comparables"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/performance-summary.json",
+            "label": "Résumé chiffré"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/atelier-final.json",
+            "label": "Atelier sans hint ni snapshot"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/performance-after-intermediate.json",
+            "label": "Essais intermédiaires conservés"
+          }
+        ],
+        "summary": "La photo sélectionnée est découverte dans le HTML, puis réutilisée par ProgressivePhoto.",
+        "residual": "D1 facultatif, délai borné à 250 ms. Une lecture par document Cadrora ; en cas d’incertitude, HTML statique sans indice. Atelier ne participe pas. LCP terrain et préproduction compressée restent à mesurer.",
+        "files": [
+          "src/shared/homeHeroPhoto.ts",
+          "src/server/http/homeImageDocument.ts",
+          "src/server/http/optionalRead.ts",
+          "src/server/routes/homeDocument.ts",
+          "src/server/app.ts",
+          "src/app/public/HomePage.tsx",
+          "src/app/components/ProgressivePhoto.tsx",
+          "src/app/public/initialPublicRequests.ts",
+          "public/public-requests.js",
+          "scripts/build/generateLocalizedPages.mjs",
+          "scripts/sites/loadProfile.mjs",
+          "sites/cadrora/profile.json",
+          "wrangler.jsonc",
+          "docs/decisions/ADR-056-owner-resolved-home-preload.md",
+          "tests/unit/server/homeImageDocument.test.ts",
+          "tests/unit/server/app.test.ts",
+          "tests/unit/app/initialPublicRequests.test.ts",
+          "tests/e2e/home-preload-build.spec.ts",
+          "tests/e2e/startup-build.spec.ts"
+        ],
+        "flow": [
+          {
+            "value": "7,284 → 0,311 s",
+            "label": "départ médian de la photo"
+          },
+          {
+            "value": "9,472 → 6,960 s",
+            "label": "LCP médian local"
+          },
+          {
+            "value": "51 796 octets",
+            "label": "photos transférées, identiques"
+          }
+        ]
+      },
+      "verification": {
+        "checks": [
+          {
+            "label": "Même source avant/après React",
+            "result": "8 tailles/DPR : première photo avant libération du bundle ; même URL réutilisée une seule fois ; aucun défaut téléchargé sous override administrateur.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-home-final.log"
+          },
+          {
+            "label": "Validation serveur et panne",
+            "result": "Révision D1 publiée, défaut seulement confirmé, DTO invalide/timeout → shell statique, JSON échappé, aucune donnée privée, routes exactes.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/unit-final.log"
+          },
+          {
+            "label": "Mesures comparables",
+            "result": "LCP, découverte, volume des deux variantes et CLS : voir la comparaison fraîche. Valeurs locales, sans prétention de Core Web Vitals terrain.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/performance-summary.json"
+          },
+          {
+            "label": "Réutilisation Atelier",
+            "result": "53 tests du build Atelier passent ; HTML final FR/EN sans photo préchargée ni snapshot. Slider et contrôles de révélation conservés.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-build-atelier.log"
+          }
+        ],
+        "gaps": [
+          "LCP/INP terrain, TTFB fournisseur, préproduction compressée et vrai R2 sous override non mesurés. Le test owner navigateur utilise une sortie serveur contrôlée et un média de fixture ; la sélection D1 est testée séparément."
+        ]
+      }
     },
     {
       "sourcePrompt": "website.shared.04@2.1",
@@ -1192,6 +1305,308 @@
           "condition": "390 × 844 · FR · build Cadrora · réglages publics de référence simulés ; images réelles"
         }
       }
+    },
+    {
+      "sourcePrompt": "website.shared.05@2.1",
+      "proposalRevision": 1,
+      "proposalStatus": "proposed",
+      "approvalStatus": "approved",
+      "approval": {
+        "decision": "Approbation explicite du propriétaire dans le chat, pour cadrora-qa-2026-11-03, révision 1.",
+        "revision": 1,
+        "scope": [
+          "QA-002"
+        ],
+        "timestamp": "2026-11-03T16:15:58.132Z"
+      },
+      "implementationStatus": "implemented",
+      "verificationStatus": "passed",
+      "testedRevision": "886603d1fbdf + changements locaux 779d79c0a6b3",
+      "after": "404/503 localisés, lisibles et navigables sans JavaScript.",
+      "id": "QA-002",
+      "priority": "P2",
+      "category": "Parcours / erreurs",
+      "classification": "Défaut observé — local et production",
+      "title": "Une collection absente ouvre une page blanche.",
+      "problem": "Un ancien lien, une faute de saisie ou une collection dépubliée mène à un document vide. Le serveur répond correctement 404, mais le visiteur ne voit ni explication ni lien de retour. Le même générateur vide sert certains refus de page Séances et erreurs 503, d’après le code.",
+      "location": "/fr/portfolio/qa-inexistent-collection/ et /en/portfolio/qa-inexistent-collection/ · 390 × 844 et 1440 × 900",
+      "pages": [
+        "Portfolio",
+        "Séances"
+      ],
+      "proposal": "Remplacer le corps vide de unavailableDocument par un document d’erreur statique, localisé FR/EN, visible sans JavaScript. Réutiliser les tokens et ressources de texte existants ; ajouter les textes 503 aux ressources bilingues. 404 : Portfolio et Accueil. 503 : Réessayer et Accueil. Conserver les statuts 404/503, noindex et no-store. Utiliser le nom administré lorsqu’il est disponible, sinon le nom du profil compilé. Ne pas initialiser les pages désactivées pour afficher ce secours.",
+      "complexity": "Faible à moyen — un helper serveur partagé et ses tests",
+      "risk": "Faible si les barrières et statuts restent inchangés ; vérifier le cas D1 indisponible sans dépendre de D1 pour le secours.",
+      "adminContract": "Une page ou collection désactivée reste indisponible. Aucun contenu privé ni nom de collection non publiée n’est exposé. Le nom Cadrora dans la maquette est un exemple de profil, pas une nouvelle constante produit.",
+      "acceptance": [
+        "Collections inconnues/dépubliées : 404 réel, lang, title, h1, message et liens utilisables sans JavaScript, en FR et EN.",
+        "503 : message distinct et réessai ; no-store/noindex conservés. La page Séances désactivée reste 404 et ne révèle aucun contenu.",
+        "320/390/768/1440 px, clavier, texte 200 %, marque longue et profil Atelier : aucune coupure ; nom issu du réglage lorsque disponible.",
+        "Tests Worker couvrant corps visible + statuts + en-têtes ; build et navigateurs sur les routes réelles."
+      ],
+      "repro": [
+        "Ouvrir directement /en/portfolio/qa-inexistent-collection/.",
+        "Observer la page blanche, puis la réponse HTML de 101 octets avec un body vide.",
+        "Comparer une URL inconnue ordinaire : elle possède déjà un vrai écran 404. Le problème est propre au helper de portfolioSeo."
+      ],
+      "source": "src/server/routes/portfolioSeo.ts:34–38 — unavailableDocument renvoie <body></body>. Appels : 107/109 (Séances), 121/131/134/145 (collections).\ntests/unit/server/portfolioSeo.test.ts vérifie le statut et les en-têtes, sans assertion de contenu utile.\nSources à réutiliser : src/shared/i18n/publicStartup.json, src/app/styles/startup.css et tokens du profil.",
+      "visual": {
+        "current": "evidence/qa-2026-11-03/collection-missing-en-390.png",
+        "currentAlt": "Page blanche actuelle pour une collection absente, à 390 pixels.",
+        "proposed": "evidence/qa-2026-11-03/qa002-proposed-en-390.png",
+        "proposedAlt": "Proposition de page 404 avec message et liens Portfolio et Home.",
+        "condition": "Même route absente · EN · 390 × 844 · Chromium DPR1. Proposition statique isolée, non appliquée.",
+        "mockup": "mockups/qa-002-r1/index.html"
+      },
+      "evidence": [
+        {
+          "path": "evidence/qa-2026-11-03/missing-collection.json",
+          "label": "Réponses locales et publiques"
+        },
+        {
+          "path": "evidence/qa-2026-11-03/qa002-current-en-1440.png",
+          "label": "Actuel bureau"
+        },
+        {
+          "path": "evidence/qa-2026-11-03/qa002-proposed-en-1440.png",
+          "label": "Proposé bureau"
+        },
+        {
+          "path": "evidence/qa-2026-11-03/mockup-validation.json",
+          "label": "Contrôles des quatre maquettes"
+        }
+      ],
+      "references": [
+        {
+          "url": "https://www.w3.org/TR/WCAG22/#page-titled",
+          "label": "WCAG 2.2 — titre de page"
+        }
+      ],
+      "notes": "Le défaut 404 est observé. Les autres branches 503/pages désactivées sont confirmées par lecture de la fonction partagée, pas provoquées en production. Aucun correctif ni changement de réglage.",
+      "applicability": {
+        "result": "R1 recontrôlée avant modification sur 886603d : cause toujours présente ; proposition applicable. Aucun élargissement aux autres IDs."
+      },
+      "baselineStatus": "Observation initiale conservée, antérieure au correctif local.",
+      "implementation": {
+        "codeFingerprint": "evidence/qa-perf-implemented-2026-11-03/code-fingerprint.json",
+        "patch": "evidence/qa-perf-implemented-2026-11-03/application.patch",
+        "extraEvidence": [
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/check.log",
+            "label": "Types et lint"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/unit-final.log",
+            "label": "Tests unitaires finaux"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-cadrora-final.log",
+            "label": "Build Cadrora"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-atelier-final.log",
+            "label": "Build Atelier"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/mockup-comparison.json",
+            "label": "Comparaison des huit captures"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/qa002-fr-404-390.png",
+            "label": "404 réel, nom administré"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/qa002-atelier-en-404-390.png",
+            "label": "Profil Atelier"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/qa002-en-503-390-fixture.png",
+            "label": "503 EN"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/qa002-fr-503-390-fixture.png",
+            "label": "503 FR"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/error-reflow-cadrora.json",
+            "label": "Reflow Cadrora 100/200 %"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/error-reflow-atelier.json",
+            "label": "Reflow Atelier 100/200 %"
+          }
+        ],
+        "summary": "404/503 localisés, lisibles et navigables sans JavaScript.",
+        "residual": "Nom Cadrora utilisé uniquement pour la comparaison de maquette. Le vrai D1 local fournit Atelier Giulia ; le profil Atelier conserve ses tokens. 503 testé avec le vrai helper et des bindings contrôlés, aucune panne provoquée en production.",
+        "files": [
+          "src/server/http/unavailableDocument.ts",
+          "src/server/routes/portfolioSeo.ts",
+          "src/shared/i18n/publicStartup.json",
+          "src/app/styles/startup.css",
+          "tests/unit/server/portfolioSeo.test.ts",
+          "tests/e2e/home-preload-build.spec.ts"
+        ],
+        "visual": {
+          "path": "evidence/qa-perf-implemented-2026-11-03/qa002-en-404-390-fixture.png",
+          "alt": "Page 404 corrigée, identité Cadrora et liens Portfolio et Home.",
+          "condition": "EN · 390×844 · vrai helper et CSS du build ; identité fixture identique à la référence."
+        }
+      },
+      "verification": {
+        "checks": [
+          {
+            "label": "Statuts, contenu, sécurité et repli",
+            "result": "Tests Worker réussis : 404/503, no-store/noindex, identité échappée, contenus désactivés non rendus. Repli sans D1, liens sans script.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/targeted-unit-final.log"
+          },
+          {
+            "label": "Routes réelles sans JavaScript",
+            "result": "FR/EN : navigation clavier sans JS ; 11 tests ciblés du build final réussis, après les 37 de la suite Cadrora.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-home-final.log"
+          },
+          {
+            "label": "Fidélité et accessibilité",
+            "result": "8 états FR/EN à 390/1440 : aucune violation axe ; écart pixel maximal 0,028 %. Texte 200 % vérifié et profil Atelier contrôlé.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/error-visual.json"
+          },
+          {
+            "label": "Marque longue et reflow Atelier",
+            "result": "320/390/768/1440, texte 100/200 % : aucun débordement. Liens et marque entière conservés.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/error-reflow-atelier.json"
+          }
+        ],
+        "gaps": [
+          "503 provoqué seulement avec des bindings contrôlés. Pas de test de panne réelle Cloudflare."
+        ]
+      }
+    },
+    {
+      "sourcePrompt": "website.shared.05@2.1",
+      "proposalRevision": 1,
+      "proposalStatus": "proposed",
+      "approvalStatus": "approved",
+      "approval": {
+        "decision": "Approbation explicite du propriétaire dans le chat, pour cadrora-qa-2026-11-03, révision 1.",
+        "revision": 1,
+        "scope": [
+          "QA-001"
+        ],
+        "timestamp": "2026-11-03T16:15:58.132Z"
+      },
+      "implementationStatus": "implemented",
+      "verificationStatus": "passed",
+      "testedRevision": "886603d1fbdf + changements locaux 779d79c0a6b3",
+      "after": "Nom court compact ; nom long entier et commandes accessibles.",
+      "id": "QA-001",
+      "priority": "P2",
+      "category": "Tests de régression",
+      "classification": "Échec de test reproduit — attente devenue incompatible",
+      "title": "Le test du menu impose une hauteur contraire au nom adaptable.",
+      "problem": "Deux exécutions du même scénario attendent moins de 85 px à 330 px de large. Avec « Atelier Cadrora », le header mesure 109 px parce que MOB-001 R1 autorise le retour à la ligne. Le test s’arrête avant de vérifier les boutons et le menu ; ce résultat ne démontre pas une régression de l’interface.",
+      "location": "tests/e2e/public-website.spec.ts:393–411 · projets desktop et mobile · viewport forcé à 330 × 740",
+      "pages": [
+        "Accueil",
+        "Navigation"
+      ],
+      "proposal": "Séparer le cas de marque courte compacte du cas de marque longue. Garder une vérification de hauteur pour la marque courte connue ; pour la marque longue, vérifier le nom entier, l’absence de chevauchement et de débordement, ainsi que l’accès clavier aux commandes. Conserver les assertions des deux CTA et du menu. Réutiliser les critères de public-quality.spec.ts ; documenter ce contrat dans le guide e2e. Aucun changement CSS.",
+      "complexity": "Faible — test ciblé et documentation",
+      "risk": "Faible ; ne pas simplement relever la limite à 110 px ni supprimer la protection de compacité.",
+      "adminContract": "Préserve MOB-001 R1 : le propriétaire peut choisir un nom long. Aucun texte ni réglage administrable n’est raccourci pour satisfaire le test.",
+      "acceptance": [
+        "Le nom court reste compact à 330 px ; le nom long s’affiche intégralement sans recouvrement.",
+        "Les commandes restent visibles et utilisables au clavier à 320/330/390 px et texte 200 %.",
+        "Les deux projets du scénario passent ; conserver les 5 tests public-quality et les assertions de navigation/actions."
+      ],
+      "repro": [
+        "Exécuter la commande e2e de la vue Couverture, avec le serveur de test et ses variables.",
+        "Le fixture siteName vaut Atelier Cadrora ; le test force 330 × 740.",
+        "Comparer Expected <85 / Received 109 avec le contrat approuvé MOB-001."
+      ],
+      "source": "tests/e2e/public-website.spec.ts:4 : siteName = Atelier Cadrora\ntests/e2e/public-website.spec.ts:399 : expect(header.height).toBeLessThan(85)\ntests/e2e/public-quality.spec.ts:63 : nom long, texte 200 %, absence de chevauchement.\nDocumentation proposée : docs/technical/e2e-testing.md.",
+      "technical": {
+        "summary": "Le test échoue sur un seuil fixe, avant de tester le menu.",
+        "flow": [
+          {
+            "value": "330 px",
+            "label": "largeur imposée dans les deux projets"
+          },
+          {
+            "value": "109 px",
+            "label": "hauteur actuelle avec marque longue"
+          },
+          {
+            "value": "< 85 px",
+            "label": "ancienne attente, incompatible avec MOB-001"
+          }
+        ],
+        "limit": "68 autres scénarios passent. La proposition change la preuve attendue, pas le design approuvé. Référence croisée : MOB-001."
+      },
+      "proposedEvidence": "Cas court : siteName = Cadrora → garder le contrôle de compacité.\nCas long : nom complet + rectangles marque/commandes séparés + largeur du document ≤ viewport.\nDans les deux cas : deux CTA, menu ouvert, navigation vers Séances, retour focus.\nConserver les contrôles à 200 % de public-quality.spec.ts.",
+      "evidence": [
+        {
+          "path": "evidence/qa-2026-11-03/e2e.log",
+          "label": "Échecs et 68 réussites"
+        },
+        {
+          "path": "evidence/qa-2026-11-03/qa001-mobile.png",
+          "label": "Header observé à 330 px"
+        },
+        {
+          "path": "#MOB-001",
+          "label": "Contrat MOB-001 approuvé"
+        }
+      ],
+      "references": [],
+      "notes": "Aucune modification du test existant dans cette revue. La CI verte ne lance pas cette suite complète : voir le détail des étapes enregistré.",
+      "applicability": {
+        "result": "R1 recontrôlée avant modification sur 886603d : cause toujours présente ; proposition applicable. Aucun élargissement aux autres IDs."
+      },
+      "baselineStatus": "Observation initiale conservée, antérieure au correctif local.",
+      "implementation": {
+        "codeFingerprint": "evidence/qa-perf-implemented-2026-11-03/code-fingerprint.json",
+        "patch": "evidence/qa-perf-implemented-2026-11-03/application.patch",
+        "extraEvidence": [
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/check.log",
+            "label": "Types et lint"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/unit-final.log",
+            "label": "Tests unitaires finaux"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-cadrora-final.log",
+            "label": "Build Cadrora"
+          },
+          {
+            "path": "evidence/qa-perf-implemented-2026-11-03/build-atelier-final.log",
+            "label": "Build Atelier"
+          }
+        ],
+        "summary": "Nom court compact ; nom long entier et commandes accessibles.",
+        "residual": "Aucun style d’en-tête modifié. L’échec intermédiaire du nouveau test venait du nom accessible du bouton qui change à l’ouverture ; sélecteur stable corrigé, assertions conservées.",
+        "files": [
+          "tests/e2e/public-website.spec.ts",
+          "docs/technical/public-website.md"
+        ]
+      },
+      "verification": {
+        "checks": [
+          {
+            "label": "Suite visiteurs",
+            "result": "70/72 au premier passage ; les deux échecs du nouveau test ont été corrigés puis réussis. 72 scénarios uniques passent au total.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-dev.log"
+          },
+          {
+            "label": "Contrôle final ciblé",
+            "result": "9/9 : marque courte/longue dans deux projets, consentement FR/EN, texte 200 %, paysage et focus. Aucun changement CSS.",
+            "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-header-final.log"
+          }
+        ],
+        "gaps": [
+          "Safari, téléphone physique et lecteur écran non exécutés."
+        ]
+      }
     }
   ],
   "coverage": {
@@ -1310,7 +1725,7 @@
       }
     ],
     "caveat": "Le build est optimisé mais le serveur local ne compresse pas les ressources (748 648 octets de corps de ressources reçus, hors document). /api/v1/site est une réponse locale simulée immédiate ; les autres GET utilisent les données de démonstration locales. Ces résultats ne mesurent ni le CDN ni cadrora.com.",
-    "after": "LCP / CLS après correction : non remesurés. PERF-002 n’est pas approuvé et reste inchangé. Ces mesures initiales ne décrivent pas le code corrigé ; aucun résultat terrain disponible.",
+    "after": "Mesures initiales conservées ci-dessous. PERF-002 R1 est maintenant appliqué : comparaison fraîche et traces dans QA finale / PERF-002.",
     "interpretation": "La photo principale représente 37 058 octets pour la variante choisie, mais démarre après le code applicatif. Les longues tâches observées sont conservées dans les traces sans les baptiser INP ou TBT Lighthouse. Aucun script analytique n’est activé dans ce scénario ; les polices du profil Cadrora sont des polices système. Un passage chevauchant les tests a été exclu et remplacé.",
     "approvedFix": {
       "summary": "Les lectures de galerie cessent immédiatement après un refus permanent. Une seule relance reste disponible pour une panne temporaire. Le formulaire de mot de passe conserve ses contrôles.",
@@ -1346,7 +1761,8 @@
       ],
       "residual": "Formulaire détecté entre 503 et 1 045 ms (médiane 996 ms), contre 1 528 ms sur le passage de référence. Un seul passage avant et la cadence de détection du navigateur limitent la comparaison temporelle. La suppression des doublons est confirmée ; aucun gain terrain promis."
     },
-    "guidanceCheckedAt": "2026-11-03T00:41:10.201Z"
+    "guidanceCheckedAt": "2026-11-03T00:41:10.201Z",
+    "baselineAfter": "LCP / CLS après correction : non remesurés. PERF-002 n’est pas approuvé et reste inchangé. Ces mesures initiales ne décrivent pas le code corrigé ; aucun résultat terrain disponible."
   },
   "commands": [
     {
@@ -1583,7 +1999,16 @@
       "path": "evidence/implemented/review-axe.json"
     },
     "buildIsolation": "No quality/design-review/review-data files in dist/client",
-    "applicationRevision": "872c91912c50 + fichiers locaux cc61525019c0"
+    "applicationRevision": "872c91912c50 + fichiers locaux cc61525019c0",
+    "currentImplementation": {
+      "status": "passed",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/review-validation.json",
+      "views": 16,
+      "axeStates": 6,
+      "noHorizontalOverflow": true,
+      "productionReviewPaths": "404",
+      "notes": "Les corrections ciblées sont vérifiées localement ; les jalons de release restent séparés."
+    }
   },
   "seoRun": {
     "id": "cadrora-seo-2026-11-03",
@@ -5830,5 +6255,651 @@
       ],
       "documentation": "Aucun document produit changé : mode review uniquement. Les preuves, propositions et limites restent dans ce workspace. Documentation antérieure préservée."
     }
-  }
+  },
+  "qaRun": {
+    "id": "cadrora-qa-2026-11-03",
+    "timestamp": "2026-11-03T16:15:58.132Z",
+    "revision": "886603d1fbdfb710d812e923a4cb7d5fa480f469",
+    "mode": "implement-approved",
+    "promptStatus": "NOT VALIDATED",
+    "verdict": "NO-GO",
+    "scope": "Corrections locales QA-002 R1, QA-001 R1 et PERF-002 R1 sur 886603d ; aucun déploiement.",
+    "summary": "Les trois corrections approuvées sont appliquées. Les réglages administrables restent prioritaires. Pages d’erreur visibles, tests mobile adaptés et photo d’accueil découverte dès le HTML. Le feu vert production attend toujours le parcours réel avec D1/R2/Turnstile.",
+    "reason": "Les corrections sont vérifiées localement. La publication reste NO-GO faute de preuve des parcours essentiels dans l’environnement cible ; ce n’est pas un constat de panne générale.",
+    "gap": "Version finale dans une préproduction isolée : vraie galerie protégée, refus anonyme des médias, déverrouillage Turnstile, accès R2 et rechargement. Compression, réseau réel et appareils physiques restent à contrôler.",
+    "stack": "src/app/public + sites/ + src/app/routes/publicRoutes.tsx ; React 19.3 / TypeScript 6 strict / Vite 8.3 / Hono 4 / Cloudflare Worker, D1 et R2.",
+    "commands": [
+      {
+        "command": "npm run check",
+        "result": "Réussi : TypeScript strict et ESLint",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/check.log"
+      },
+      {
+        "command": "npm run test -- --maxWorkers=2",
+        "result": "580 réussis, 1 ignoré ; 106 fichiers",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/unit-final.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_SEED_DEMO='true'\nnpm run build",
+        "result": "Build final Cadrora réussi",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/build-cadrora-final.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='atelier-giulia'\n$env:CADRORA_SEED_DEMO='false'\nnpm run build",
+        "result": "Build final Atelier réussi",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/build-atelier-final.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_E2E_PORT='5210'\nnpx playwright test tests/e2e/public-website.spec.ts tests/e2e/public-quality.spec.ts tests/e2e/gallery.spec.ts tests/e2e/face-search.spec.ts tests/e2e/metadata-site-profile.spec.ts tests/e2e/request-policy-site-profile.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa-perf-dev",
+        "result": "70/72 au premier passage ; deux erreurs du sélecteur du nouveau test, corrigées et retestées ci-dessous.",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-dev.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_E2E_PORT='5210'\nnpx playwright test tests/e2e/public-website.spec.ts tests/e2e/public-quality.spec.ts --grep 'compactes|nom long|consent leaves|enlarged header' --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa-perf-header",
+        "result": "9/9 contrôles finaux réussis ; 72 scénarios visiteurs uniques réussis au total.",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-header-final.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_E2E_BUILD='true'\n$env:CADRORA_E2E_PORT='5211'\nnpx playwright test tests/e2e/startup-build.spec.ts tests/e2e/home-preload-build.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa-perf-build",
+        "result": "37 réussis ; 32 réservés à Atelier ignorés",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-build-cadrora.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='atelier-giulia'\n$env:CADRORA_E2E_BUILD='true'\n$env:CADRORA_E2E_PORT='5211'\nnpx playwright test tests/e2e/startup-build.spec.ts tests/e2e/home-preload-build.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa-perf-atelier",
+        "result": "53 réussis ; 20 réservés à Cadrora ignorés",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-build-atelier.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_E2E_BUILD='true'\n$env:CADRORA_E2E_PORT='5211'\nnpx playwright test tests/e2e/home-preload-build.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa-perf-final",
+        "result": "11/11 sur le build final : preload owner aux huit tailles/DPR, routes HTML et 404 sans JS",
+        "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-home-final.log"
+      }
+    ],
+    "references": [
+      {
+        "label": "WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      },
+      {
+        "label": "Comparaisons visuelles Playwright",
+        "url": "https://playwright.dev/docs/test-snapshots"
+      },
+      {
+        "label": "Mesures labo et terrain Web Vitals",
+        "url": "https://web.dev/articles/vitals"
+      },
+      {
+        "label": "Google Search Essentials",
+        "url": "https://developers.google.com/search/docs/essentials"
+      }
+    ],
+    "historicalDesign": "Les quatre maquettes QA-002 R1 et les propositions originales sont conservées. Comparaison à 390×844 et 1440×900 avec identité Cadrora identique : écart maximum 0,028 % des pixels au seuil de 10/255 ; six comparaisons sur huit sans différence.",
+    "approvedIds": [
+      "QA-002",
+      "QA-001",
+      "PERF-002"
+    ],
+    "localStats": {
+      "fixes": 3,
+      "unit": 580,
+      "unitSkipped": 1,
+      "visitor": 72,
+      "cadroraBuild": 37,
+      "atelierBuild": 53
+    },
+    "performance": {
+      "before": {
+        "lcpMedian": 9472,
+        "lcpRange": [
+          9348,
+          10312
+        ],
+        "heroStartMedian": 7284,
+        "heroTransferBytes": [
+          51796,
+          51796,
+          51796
+        ],
+        "cls": [
+          0,
+          0,
+          0
+        ]
+      },
+      "after": {
+        "lcpMedian": 6960,
+        "lcpRange": [
+          6948,
+          8152
+        ],
+        "heroStartMedian": 310.70000000298023,
+        "heroTransferBytes": [
+          51796,
+          51796,
+          51796
+        ],
+        "cls": [
+          0,
+          0,
+          0
+        ]
+      },
+      "limit": "Local Chromium, warm uncompressed optimized server, 390x844 DPR1, CPU4x RTT150ms/down1.6Mbps/cache off. Same actual D1, no mocks. 3+3 runs. Photo transfer scope includes preview and selected display image, not entire page. Field INP/CWV and compressed preproduction not measured."
+    },
+    "localFingerprint": "779d79c0a6b3ff3b605b9e0dfd4e1a255ae3f17c3a03088f6db2b314eeceaceb"
+  },
+  "qaCoverage": [
+    {
+      "area": "Accueil, Contact, Séances, À propos, Confidentialité",
+      "environment": "Build optimisé 5207 ; réglages Cadrora publics simulés",
+      "expected": "Pages lisibles, contenu FR/EN, sans débordement",
+      "observed": "1440×900, 768×1024, 390×844 et Contact EN 320×844 échantillonnés. Parcours complets et bas de page inspectés après défilement.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/visual.json"
+    },
+    {
+      "area": "Navigation, langue, thème, menu",
+      "environment": "Chromium local ; clic/clavier + e2e",
+      "expected": "Changement de page/langue, thème réversible, Échap remet le focus",
+      "observed": "Menu ouvert/fermé ; thème clair→sombre→clair ; EN→FR. Les e2e couvrent retour en haut, liens de Séances, confidentialité et contexte de langue.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/manual.json"
+    },
+    {
+      "area": "Consentement, clavier et nom propriétaire agrandi",
+      "environment": "FR/EN ; 320/390 ; paysage 667×375 ; texte 200 %",
+      "expected": "Focus non masqué, contrôle utilisable, nom entier",
+      "observed": "5 scénarios public-quality réussis ; retour de focus et réouverture du bandeau. MOB-001 et A11Y-001 conservés.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Ancienne assertion header 85 px",
+      "environment": "330×740 ; deux projets Playwright ; correction locale",
+      "expected": "Contrat de compacité compatible avec le nom administrable",
+      "observed": "Nom court : hauteur <85 px conservée. Nom long : texte entier, aucune superposition ni débordement, menu Entrée/Échap et focus. 9 tests ciblés passent.",
+      "status": "passed",
+      "issue": "QA-001",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-header-final.log"
+    },
+    {
+      "area": "Collection inconnue, lien profond + rafraîchissement",
+      "environment": "Build local final + helper réel avec bindings contrôlés",
+      "expected": "404 visible avec sortie vers le site",
+      "observed": "404 FR/EN réel sans JavaScript ; 503 et pages désactivées en tests Worker. 8 comparaisons de maquettes, aucun résultat axe en erreur, reflow 320 à 1440 à 200 % dans les deux profils.",
+      "status": "passed",
+      "issue": "QA-002",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/error-visual.json"
+    },
+    {
+      "area": "Portfolio existant et images",
+      "environment": "D1 local présent, R2 local incomplet",
+      "expected": "Images visibles, visionneuse et liens",
+      "observed": "Métadonnées valides ; images portfolio locales 404. Les 5 couvertures publiques actuelles sont 200, mais cette version distante est différente. Ce manque local n’est pas qualifié de bug produit.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/live-public-covers.json"
+    },
+    {
+      "area": "Galerie publique, visionneuse, sélection, favoris et téléchargement",
+      "environment": "UI réelle ; APIs/medias locaux simulés",
+      "expected": "Ouvrir/fermer, sélectionner, recharger, télécharger sans double action",
+      "observed": "16 scénarios gallery passent : grille/visionneuse, Ctrl+A/Maj, ZIP, répertoire simulé, favoris publics/privés et retouche.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Déverrouillage galerie protégée",
+      "environment": "UI + API + Turnstile simulés uniquement",
+      "expected": "Mot de passe envoyé une fois et accès obtenu dans le scénario",
+      "observed": "Scénario réussi ; ne valide pas les secrets, Turnstile réel ni les objets R2 protégés.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Parcours essentiel réel de galerie protégée / médias",
+      "environment": "Environnement cible isolé avec vrais bindings",
+      "expected": "Déverrouillage réel, refus anonyme des médias, accès autorisé, rechargement",
+      "observed": "Non exécuté. Aucun environnement cible complet ni preuve provider de ce SHA recueilli. Jalon bloquant pour le feu vert production.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/inventory.json"
+    },
+    {
+      "area": "Recherche de visage et consentement",
+      "environment": "Portrait fictif local ; API simulée",
+      "expected": "Aucune recherche sans consentement, retrait annule la sélection",
+      "observed": "3 scénarios réussis. Aucun vrai encodage ONNX/appareil physique ni recherche Vectorize de bout en bout.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Contact, carte et analytics",
+      "environment": "Coordonnées fictives ; aucun message envoyé",
+      "expected": "Liens directs ; pas de formulaire ou carte/analytics avant consentement",
+      "observed": "Liens contact, absence de requête distante initiale et GA4 simulé après consentement testés. Révocation/choix couverts. Aucune preuve de réception d’e-mail ni de statistiques réelles.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Pannes API, photo et personnalisation admin",
+      "environment": "Routes navigateur interceptées localement",
+      "expected": "Repli utile ; overrides conservés ; aucun défaut chargé avant décision owner",
+      "observed": "37 tests du build Cadrora et 53 Atelier passent : attente owner, repli photo/metadata, démarrage sans JS. Ajout : D1 optionnel borné, pas de dépendance à une ancienne session admin sur Home.",
+      "status": "passed",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-build-cadrora.log"
+    },
+    {
+      "area": "Accessibilité automatique",
+      "environment": "Build local final + helper réel avec bindings contrôlés",
+      "expected": "Pas de violation détectée dans les états examinés",
+      "observed": "404 FR/EN réel sans JavaScript ; 503 et pages désactivées en tests Worker. 8 comparaisons de maquettes, aucun résultat axe en erreur, reflow 320 à 1440 à 200 % dans les deux profils.",
+      "status": "passed",
+      "issue": "QA-002",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/error-visual.json"
+    },
+    {
+      "area": "SEO et protections anonymes",
+      "environment": "22 URL sitemap locales + GET réels complémentaires",
+      "expected": "200/canonical/lang/JSON-LD ; admin et galeries non indexables",
+      "observed": "22 URL répondent 200 ; login local noindex et titre dédié ; /admin redirige, API admin 401 ; route inconnue 404 ; revue 404. Aucun index/ranking/Search Console vérifié.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/seo-routes.json"
+    },
+    {
+      "area": "Code, tests unitaires, artefact",
+      "environment": "886603d + changements locaux 779d79c0a6b3",
+      "expected": "Types/lint/tests et build optimisé valides",
+      "observed": "check réussi, 580 tests réussis / 1 ignoré, builds finaux Cadrora et Atelier réussis.",
+      "status": "passed",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/unit-final.log"
+    },
+    {
+      "area": "Variante Atelier et limite CI",
+      "environment": "Build local courant ; CI historique séparée",
+      "expected": "Vérifier les étapes réelles et distinguer le déploiement",
+      "observed": "53 scénarios du build Atelier passent ; routes finales sans preload. Le run CI 41662512035 concerne 886603d avant ces modifications ; aucun nouveau push ou workflow déclenché.",
+      "status": "passed",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/e2e-build-atelier.log"
+    },
+    {
+      "area": "Version effectivement servie par cadrora.com",
+      "environment": "GET anonyme public au moment de cette revue",
+      "expected": "Ne pas confondre main et site distant",
+      "observed": "Ancien titre et login sans noindex encore observés. SEO-001/004 restent appliqués au code local ; preuve de publication Cadrora absente.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/http.json"
+    },
+    {
+      "area": "Performance",
+      "environment": "CPU ×4 ; RTT150ms ; 1,6Mbit/s ; cache désactivé",
+      "expected": "Mesure reproductible, séparation labo/terrain",
+      "observed": "Avant/après : médiane LCP 9,472 → 6,960 s ; départ photo 7,284 → 0,311 s ; 51 796 octets de photos et CLS 0 inchangés. Trois passages comparables par état, données D1 locales réelles. Pas de résultat terrain.",
+      "status": "measured",
+      "evidence": "evidence/qa-perf-implemented-2026-11-03/performance-summary.json"
+    },
+    {
+      "area": "Référence historique / appareils / lecteur écran",
+      "environment": "Aucune maquette historique imposée ; Chromium émulé",
+      "expected": "Ne pas présenter une émulation comme un appareil physique",
+      "observed": "Fidélité historique non applicable. Safari/iOS/Android physiques et lecteur écran non exécutés ; protocole de revue, pas certification de la plateforme.",
+      "status": "not-tested",
+      "evidence": "evidence/qa-2026-11-03/inventory.json"
+    }
+  ],
+  "qaActions": [
+    {
+      "title": "QA-002 R1, QA-001 R1 et PERF-002 R1",
+      "owner": "Approbation explicite dans le chat",
+      "status": "Implémentés localement",
+      "detail": "Périmètre recontrôlé sur 886603d. Aucun réglage propriétaire ni prototype remplacé. Les captures avant et les propositions R1 restent consultables."
+    },
+    {
+      "title": "Lever le jalon des vrais services",
+      "owner": "Opérateur Cloudflare + QA",
+      "status": "Requis avant GO production",
+      "detail": "Dans une instance isolée, vérifier le SHA, D1/R2 et secrets sans les exporter ; charger une galerie fictive complète, parcourir portfolio/visionneuse et faire un vrai déverrouillage Turnstile. Vérifier refus anonyme des médias puis accès autorisé/rechargement. Pas de données client ni de transaction réelle."
+    },
+    {
+      "title": "Identifier la cible de publication",
+      "owner": "Opérateur de cadrora.com",
+      "status": "Non exécuté",
+      "detail": "La revue initiale a observé le workflow Atelier et d’anciennes métadonnées sur cadrora.com. Aucune nouvelle publication ni vérification distante effectuée dans ce lot ; choisir explicitement la cible avant déploiement."
+    },
+    {
+      "title": "Smoke après publication autorisée",
+      "owner": "QA / propriétaire",
+      "status": "Non exécuté",
+      "detail": "/fr/, /en/, /contact, /services, portfolio publié, collection absente, /galleries, galerie publique, déverrouillage protégé et login admin. Vérifier 404/503, noindex/canonical, langue et source des photos personnalisées."
+    },
+    {
+      "title": "Surveillance et récupération",
+      "owner": "Opérateur Cloudflare",
+      "status": "À documenter avant publication",
+      "detail": "Conserver l’identifiant de la version Worker précédente et le mapping des ressources. Tester le retour à cette version dans le compte Cloudflare en respectant la compatibilité D1 ; aucune commande rollback applicative n’existe dans le dépôt. Garder le point de restauration D1 et les procédures fournisseur ; ne pas confondre revert Git et restauration de données. Surveiller erreurs Worker, médias 4xx/5xx et maintenance_jobs ; désigner un responsable."
+    },
+    {
+      "title": "Mesures après mise en ligne",
+      "owner": "Propriétaire / QA",
+      "status": "Non exécuté",
+      "detail": "Relever Web Vitals terrain et Search Console si disponibles ; contrôler iOS/Safari et lecteur écran. Le LCP local ne donne pas un score de performance de cadrora.com."
+    }
+  ],
+  "qaGallery": [
+    {
+      "path": "evidence/qa-2026-11-03/home-fr-1440.png",
+      "label": "Accueil FR · bureau · page complète après défilement"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/home-en-390.png",
+      "label": "Accueil EN · mobile · page complète"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/sessions-en-768.png",
+      "label": "Séances EN · tablette"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/contact-fr-390.png",
+      "label": "Contact FR · mobile avec consentement"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/contact-en-320.png",
+      "label": "Contact EN · largeur 320"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/privacy-fr-1440.png",
+      "label": "Confidentialité FR · bureau"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/about-en-390.png",
+      "label": "À propos EN · mobile"
+    },
+    {
+      "path": "evidence/qa-2026-11-03/portfolio-fr-1440.png",
+      "label": "Portfolio · R2 local incomplet (limite identifiée)"
+    }
+  ],
+  "qaReviewBaseline": {
+    "id": "cadrora-qa-2026-11-03",
+    "timestamp": "2026-11-03T15:39:23.024Z",
+    "revision": "886603d1fbdfb710d812e923a4cb7d5fa480f469",
+    "mode": "review",
+    "promptStatus": "NOT VALIDATED",
+    "verdict": "NO-GO",
+    "scope": "Feu vert de publication de la version 886603d : site public Cadrora FR/EN et parcours visiteurs des galeries. Variante Atelier couverte par la CI de ce SHA.",
+    "summary": "Le build et les tests unitaires passent. Deux propositions ciblées restent à valider. Le feu vert production manque surtout d’une preuve sur les parcours réels avec D1/R2/Turnstile pour cette version : les tests visiteurs sont simulés et les médias locaux incomplets.",
+    "reason": "NO-GO de validation, pas constat d’une panne générale en production : aucun défaut critique observé, mais la preuve d’un parcours essentiel reste absente.",
+    "gap": "Déverrouillage protégé + média protégé + galerie/portfolio sur stockage complet, avec les vrais bindings de l’environnement cible. La démonstration simulée et le site public encore ancien ne prouvent pas ce parcours pour 886603d.",
+    "stack": "src/app/public + sites/ + src/app/routes/publicRoutes.tsx ; React 19.3 / TypeScript 6 strict / Vite 8.3 / Hono 4 / Cloudflare Worker, D1 et R2.",
+    "commands": [
+      {
+        "command": "npm run check",
+        "result": "Réussi — TypeScript et ESLint",
+        "evidence": "evidence/qa-2026-11-03/check.log"
+      },
+      {
+        "command": "npm run test -- --maxWorkers=2",
+        "result": "569 réussis, 1 ignoré, 105 fichiers. Concurrence limitée à 2 ; aucun test désactivé.",
+        "evidence": "evidence/qa-2026-11-03/tests.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_SEED_DEMO='true'\nnpm run build",
+        "result": "Réussi — artefact optimisé recréé",
+        "evidence": "evidence/qa-2026-11-03/build.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_E2E_PORT='5210'\nnpx playwright test tests/e2e/public-website.spec.ts tests/e2e/public-quality.spec.ts tests/e2e/gallery.spec.ts tests/e2e/face-search.spec.ts tests/e2e/metadata-site-profile.spec.ts tests/e2e/request-policy-site-profile.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa05-e2e",
+        "result": "68 réussis / 2 échecs : QA-001, même assertion sur deux projets. CADRORA_E2E_PORT=5210, CADRORA_SITE=cadrora.",
+        "evidence": "evidence/qa-2026-11-03/e2e.log"
+      },
+      {
+        "command": "$env:CADRORA_SITE='cadrora'\n$env:CADRORA_SEED_DEMO='true'\n$env:CADRORA_E2E_BUILD='true'\n$env:CADRORA_E2E_PORT='5211'\nnpx playwright test tests/e2e/startup-build.spec.ts --workers=2 --reporter=list --output=C:/Users/tanlbou/AppData/Local/Temp/cadrora-qa05-build",
+        "result": "26 réussis / 32 ignorés car réservés au profil Atelier ; aucun échec.",
+        "evidence": "evidence/qa-2026-11-03/startup.log"
+      },
+      {
+        "command": "git diff --check ; git diff --name-only",
+        "result": "Contrôle final indiqué dans integrity.json ; application et tests inchangés.",
+        "evidence": "evidence/qa-2026-11-03/integrity.json"
+      }
+    ],
+    "references": [
+      {
+        "label": "WCAG 2.2",
+        "url": "https://www.w3.org/TR/WCAG22/"
+      },
+      {
+        "label": "Comparaisons visuelles Playwright",
+        "url": "https://playwright.dev/docs/test-snapshots"
+      },
+      {
+        "label": "Mesures labo et terrain Web Vitals",
+        "url": "https://web.dev/articles/vitals"
+      },
+      {
+        "label": "Google Search Essentials",
+        "url": "https://developers.google.com/search/docs/essentials"
+      }
+    ],
+    "historicalDesign": "Non applicable : aucune ancienne maquette imposée. L’implémentation actuelle est la référence ; les prototypes approuvés antérieurs restent inchangés."
+  },
+  "qaCoverageBaseline": [
+    {
+      "area": "Accueil, Contact, Séances, À propos, Confidentialité",
+      "environment": "Build optimisé 5207 ; réglages Cadrora publics simulés",
+      "expected": "Pages lisibles, contenu FR/EN, sans débordement",
+      "observed": "1440×900, 768×1024, 390×844 et Contact EN 320×844 échantillonnés. Parcours complets et bas de page inspectés après défilement.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/visual.json"
+    },
+    {
+      "area": "Navigation, langue, thème, menu",
+      "environment": "Chromium local ; clic/clavier + e2e",
+      "expected": "Changement de page/langue, thème réversible, Échap remet le focus",
+      "observed": "Menu ouvert/fermé ; thème clair→sombre→clair ; EN→FR. Les e2e couvrent retour en haut, liens de Séances, confidentialité et contexte de langue.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/manual.json"
+    },
+    {
+      "area": "Consentement, clavier et nom propriétaire agrandi",
+      "environment": "FR/EN ; 320/390 ; paysage 667×375 ; texte 200 %",
+      "expected": "Focus non masqué, contrôle utilisable, nom entier",
+      "observed": "5 scénarios public-quality réussis ; retour de focus et réouverture du bandeau. MOB-001 et A11Y-001 conservés.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Ancienne assertion header 85 px",
+      "environment": "330×740, deux projets Playwright",
+      "expected": "Contrat de compacité compatible avec le nom administrable",
+      "observed": "2 échecs : hauteur 109, attendue <85. QA-001 propose une validation adaptée, sans toucher au CSS.",
+      "status": "failed",
+      "issue": "QA-001",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Collection inconnue, lien profond + rafraîchissement",
+      "environment": "Build local et cadrora.com ; FR/EN",
+      "expected": "404 visible avec sortie vers le site",
+      "observed": "404 de 101 octets, body vide. Aucun titre/langue/h1. Même cause pour les branches du helper : QA-002.",
+      "status": "failed",
+      "issue": "QA-002",
+      "evidence": "evidence/qa-2026-11-03/missing-collection.json"
+    },
+    {
+      "area": "Portfolio existant et images",
+      "environment": "D1 local présent, R2 local incomplet",
+      "expected": "Images visibles, visionneuse et liens",
+      "observed": "Métadonnées valides ; images portfolio locales 404. Les 5 couvertures publiques actuelles sont 200, mais cette version distante est différente. Ce manque local n’est pas qualifié de bug produit.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/live-public-covers.json"
+    },
+    {
+      "area": "Galerie publique, visionneuse, sélection, favoris et téléchargement",
+      "environment": "UI réelle ; APIs/medias locaux simulés",
+      "expected": "Ouvrir/fermer, sélectionner, recharger, télécharger sans double action",
+      "observed": "16 scénarios gallery passent : grille/visionneuse, Ctrl+A/Maj, ZIP, répertoire simulé, favoris publics/privés et retouche.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Déverrouillage galerie protégée",
+      "environment": "UI + API + Turnstile simulés uniquement",
+      "expected": "Mot de passe envoyé une fois et accès obtenu dans le scénario",
+      "observed": "Scénario réussi ; ne valide pas les secrets, Turnstile réel ni les objets R2 protégés.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Parcours essentiel réel de galerie protégée / médias",
+      "environment": "Environnement cible isolé avec vrais bindings",
+      "expected": "Déverrouillage réel, refus anonyme des médias, accès autorisé, rechargement",
+      "observed": "Non exécuté. Aucun environnement cible complet ni preuve provider de ce SHA recueilli. Jalon bloquant pour le feu vert production.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/inventory.json"
+    },
+    {
+      "area": "Recherche de visage et consentement",
+      "environment": "Portrait fictif local ; API simulée",
+      "expected": "Aucune recherche sans consentement, retrait annule la sélection",
+      "observed": "3 scénarios réussis. Aucun vrai encodage ONNX/appareil physique ni recherche Vectorize de bout en bout.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Contact, carte et analytics",
+      "environment": "Coordonnées fictives ; aucun message envoyé",
+      "expected": "Liens directs ; pas de formulaire ou carte/analytics avant consentement",
+      "observed": "Liens contact, absence de requête distante initiale et GA4 simulé après consentement testés. Révocation/choix couverts. Aucune preuve de réception d’e-mail ni de statistiques réelles.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/e2e.log"
+    },
+    {
+      "area": "Pannes API, photo et personnalisation admin",
+      "environment": "Routes navigateur interceptées localement",
+      "expected": "Repli utile ; overrides conservés ; aucun défaut chargé avant décision owner",
+      "observed": "Accueil/photo en erreur, galeries indisponibles, champs D1 vidés, métadonnées owner et langue autorisée testés. 26 tests de premier rendu du build réussis, y compris JS absent/retardé.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/startup.log"
+    },
+    {
+      "area": "Accessibilité automatique",
+      "environment": "axe 4.13, Chromium ; pages capturées",
+      "expected": "Pas de violation détectée dans les états examinés",
+      "observed": "États normaux échantillonnés sans violation ; la page blanche détecte document-title et html-has-lang (QA-002). Ce résultat n’est pas une certification WCAG.",
+      "status": "failed",
+      "issue": "QA-002",
+      "evidence": "evidence/qa-2026-11-03/visual.json"
+    },
+    {
+      "area": "SEO et protections anonymes",
+      "environment": "22 URL sitemap locales + GET réels complémentaires",
+      "expected": "200/canonical/lang/JSON-LD ; admin et galeries non indexables",
+      "observed": "22 URL répondent 200 ; login local noindex et titre dédié ; /admin redirige, API admin 401 ; route inconnue 404 ; revue 404. Aucun index/ranking/Search Console vérifié.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/seo-routes.json"
+    },
+    {
+      "area": "Code, tests unitaires, artefact",
+      "environment": "Windows local, SHA 886603d",
+      "expected": "Types/lint/tests et build optimisé valides",
+      "observed": "check réussi ; 569 tests réussis et 1 ignoré ; build réussi. Concurrence Vitest limitée à 2.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/tests.log"
+    },
+    {
+      "area": "CI et variante Atelier",
+      "environment": "GitHub run 41662512035 du même SHA",
+      "expected": "Vérifier les étapes réelles et distinguer le déploiement",
+      "observed": "verify et deploy Atelier réussis ; builds des deux profils et smoke HTTPS exécutés par le workflow. La CI n’exécute pas la suite complète public-website. Aucun workflow déclenché ici.",
+      "status": "passed",
+      "evidence": "evidence/qa-2026-11-03/ci.json"
+    },
+    {
+      "area": "Version effectivement servie par cadrora.com",
+      "environment": "GET anonyme public au moment de cette revue",
+      "expected": "Ne pas confondre main et site distant",
+      "observed": "Ancien titre et login sans noindex encore observés. SEO-001/004 restent appliqués au code local ; preuve de publication Cadrora absente.",
+      "status": "blocked",
+      "evidence": "evidence/qa-2026-11-03/http.json"
+    },
+    {
+      "area": "Performance",
+      "environment": "CPU ×4 ; RTT150ms ; 1,6Mbit/s ; cache désactivé",
+      "expected": "Mesure reproductible, séparation labo/terrain",
+      "observed": "3 essais par page. LCP médian accueil 6,368 s ; Contact 5,940 s. Somme CLS accueil 0, Contact 0,0414. Images découvertes tard : PERF-002 déjà ouvert. Aucun gain annoncé, INP/terrain non mesurés.",
+      "status": "measured",
+      "evidence": "evidence/qa-2026-11-03/performance.json"
+    },
+    {
+      "area": "Référence historique / appareils / lecteur écran",
+      "environment": "Aucune maquette historique imposée ; Chromium émulé",
+      "expected": "Ne pas présenter une émulation comme un appareil physique",
+      "observed": "Fidélité historique non applicable. Safari/iOS/Android physiques et lecteur écran non exécutés ; protocole de revue, pas certification de la plateforme.",
+      "status": "not-tested",
+      "evidence": "evidence/qa-2026-11-03/inventory.json"
+    }
+  ],
+  "qaActionsBaseline": [
+    {
+      "title": "Valider les corrections QA-001 et QA-002",
+      "owner": "Propriétaire du projet",
+      "status": "À décider",
+      "detail": "Deux propositions R1 uniquement. PERF-002 appartient au prompt 03 et reste une décision séparée. Aucun choix dans le navigateur n’autorise une modification."
+    },
+    {
+      "title": "Lever le jalon des vrais services",
+      "owner": "Opérateur Cloudflare + QA",
+      "status": "Requis avant GO production",
+      "detail": "Dans une instance isolée, vérifier le SHA, D1/R2 et secrets sans les exporter ; charger une galerie fictive complète, parcourir portfolio/visionneuse et faire un vrai déverrouillage Turnstile. Vérifier refus anonyme des médias puis accès autorisé/rechargement. Pas de données client ni de transaction réelle."
+    },
+    {
+      "title": "Identifier la cible de publication",
+      "owner": "Opérateur de cadrora.com",
+      "status": "Non exécuté",
+      "detail": "Le workflow observé publie Atelier Giulia. cadrora.com sert encore les anciennes métadonnées. Toute publication Cadrora demande une autorisation séparée et une vérification de ses ressources ; aucun redeploy déclenché dans cette revue."
+    },
+    {
+      "title": "Smoke après publication autorisée",
+      "owner": "QA / propriétaire",
+      "status": "Non exécuté",
+      "detail": "/fr/, /en/, /contact, /services, portfolio publié, collection absente, /galleries, galerie publique, déverrouillage protégé et login admin. Vérifier 404/503, noindex/canonical, langue et source des photos personnalisées."
+    },
+    {
+      "title": "Surveillance et récupération",
+      "owner": "Opérateur Cloudflare",
+      "status": "À documenter avant publication",
+      "detail": "Conserver l’identifiant de la version Worker précédente et le mapping des ressources. Tester le retour à cette version dans le compte Cloudflare en respectant la compatibilité D1 ; aucune commande rollback applicative n’existe dans le dépôt. Garder le point de restauration D1 et les procédures fournisseur ; ne pas confondre revert Git et restauration de données. Surveiller erreurs Worker, médias 4xx/5xx et maintenance_jobs ; désigner un responsable."
+    },
+    {
+      "title": "Mesures après mise en ligne",
+      "owner": "Propriétaire / QA",
+      "status": "Non exécuté",
+      "detail": "Relever Web Vitals terrain et Search Console si disponibles ; contrôler iOS/Safari et lecteur écran. Le LCP local ne donne pas un score de performance de cadrora.com."
+    }
+  ],
+  "qaGalleryAfter": [
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-en-404-390-fixture.png",
+      "label": "404 EN — comparaison identique à la maquette"
+    },
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-fr-503-390-fixture.png",
+      "label": "503 FR — helper réel, panne contrôlée"
+    },
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-fr-404-390.png",
+      "label": "404 réel — marque lue dans D1 local"
+    },
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-atelier-en-404-390.png",
+      "label": "404 Atelier — tokens du profil conservés"
+    },
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-cadrora-long-brand-320-text200.png",
+      "label": "Cadrora, marque longue, texte 200 %, 320 px"
+    },
+    {
+      "path": "evidence/qa-perf-implemented-2026-11-03/qa002-atelier-long-brand-320-text200.png",
+      "label": "Atelier, marque longue, texte 200 %, 320 px"
+    }
+  ]
 }

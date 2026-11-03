@@ -1,0 +1,193 @@
+[WebServer] (node:76200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:57940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9230 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 72 tests using 2 workers
+
+(node:40796) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:62044) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  2 [desktop-chromium] › tests\e2e\face-search.spec.ts:8:1 › garde la photo locale avant toute recherche faciale (1.9s)
+  ok  1 [desktop-chromium] › tests\e2e\face-search.spec.ts:31:1 › selects a fictional portrait locally after consent and clears it on withdrawal (2.3s)
+  ok  3 [desktop-chromium] › tests\e2e\face-search.spec.ts:58:1 › withdrawal cancels a pending sample portrait selection (2.3s)
+  ok  4 [desktop-chromium] › tests\e2e\gallery.spec.ts:3:1 › demande les photos sans attendre les details de la galerie (2.1s)
+  ok  5 [desktop-chromium] › tests\e2e\gallery.spec.ts:23:1 › charge les pages et choisit les variantes selon la largeur sans répéter la couverture (2.6s)
+  ok  6 [desktop-chromium] › tests\e2e\gallery.spec.ts:72:1 › la visionneuse montre la petite photo puis charge directement la taille adaptee (3.7s)
+  ok  8 [desktop-chromium] › tests\e2e\gallery.spec.ts:205:1 › selectionne des photos et cree le ZIP de secours avec un bouton retour entier (3.1s)
+  ok  7 [desktop-chromium] › tests\e2e\gallery.spec.ts:124:1 › ouvre une galerie publique et sa visionneuse (5.2s)
+  ok 10 [desktop-chromium] › tests\e2e\gallery.spec.ts:264:1 › propose le ZIP apres un dossier refuse par le navigateur (3.0s)
+  ok  9 [desktop-chromium] › tests\e2e\gallery.spec.ts:234:1 › partage le même retour visuel entre la galerie et la recherche (4.8s)
+  ok 11 [desktop-chromium] › tests\e2e\gallery.spec.ts:283:1 › enregistre deux fichiers séparés directement dans le dossier choisi (2.3s)
+  ok 12 [desktop-chromium] › tests\e2e\gallery.spec.ts:313:1 › selectionne une plage avec Maj et toutes les photos disponibles avec Ctrl+A (2.9s)
+  ok 13 [desktop-chromium] › tests\e2e\gallery.spec.ts:350:1 › conserve les resultats IA dans la session et filtre la galerie (2.0s)
+  ok 15 [desktop-chromium] › tests\e2e\gallery.spec.ts:396:1 › demande puis echange le mot de passe d une galerie protegee (2.0s)
+  ok 14 [desktop-chromium] › tests\e2e\gallery.spec.ts:375:1 › revient aux resultats de recherche apres fermeture de la visionneuse (2.9s)
+  ok 17 [desktop-chromium] › tests\e2e\gallery.spec.ts:440:1 › garde les coeurs publics dans le navigateur sans ecriture serveur (3.8s)
+  ok 16 [desktop-chromium] › tests\e2e\gallery.spec.ts:408:1 › partage un coeur entre la mosaïque et la visionneuse privée, puis le retrouve après rechargement (5.7s)
+  ok 18 [desktop-chromium] › tests\e2e\gallery.spec.ts:458:1 › garde la sélection retouche distincte du coeur sur téléphone (2.3s)
+  ok 19 [desktop-chromium] › tests\e2e\gallery.spec.ts:480:1 › masque la sélection retouche fermée et garde les coeurs privés (2.5s)
+  ok 20 [desktop-chromium] › tests\e2e\metadata-site-profile.spec.ts:7:3 › brand metadata keeps the correct source in fr (4.7s)
+  ok 21 [desktop-chromium] › tests\e2e\metadata-site-profile.spec.ts:7:3 › brand metadata keeps the correct source in en (4.7s)
+  ok 22 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics false) (3.0s)
+  ok 23 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics true) (3.0s)
+  ok 24 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics false) (2.8s)
+  ok 25 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics true) (2.6s)
+  ok 26 [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control (2.4s)
+  ok 27 [desktop-chromium] › tests\e2e\public-website.spec.ts:25:3 › site vitrine statique › editorial Home exposes owner-resolved copy while its selected photo loads (2.0s)
+  ok 28 [desktop-chromium] › tests\e2e\public-website.spec.ts:46:3 › site vitrine statique › the Home copy remains available when its photo fails (2.1s)
+  ok 29 [desktop-chromium] › tests\e2e\public-website.spec.ts:53:3 › site vitrine statique › reste utile lorsque les galeries sont indisponibles (3.5s)
+  ok 31 [desktop-chromium] › tests\e2e\public-website.spec.ts:146:3 › site vitrine statique › ne référence pas la page Galeries et rétablit le référencement du Portfolio (1.5s)
+  ok 32 [desktop-chromium] › tests\e2e\public-website.spec.ts:160:3 › site vitrine statique › présente les sites créés avec Cadrora dans les deux langues (2.4s)
+  ok 30 [desktop-chromium] › tests\e2e\public-website.spec.ts:64:3 › site vitrine statique › présente les tarifs du service et le portfolio sans annuaire de galeries (7.0s)
+  ok 33 [desktop-chromium] › tests\e2e\public-website.spec.ts:178:3 › site vitrine statique › ouvre les nouvelles pages en haut après une navigation depuis le bas (2.1s)
+  ok 34 [desktop-chromium] › tests\e2e\public-website.spec.ts:199:3 › site vitrine statique › publie les coordonnees sans formulaire ni dependance distante (1.9s)
+  ok 35 [desktop-chromium] › tests\e2e\public-website.spec.ts:251:3 › site vitrine statique › charge GA4 avec un identifiant D1 fictif seulement après consentement (2.3s)
+  ok 36 [desktop-chromium] › tests\e2e\public-website.spec.ts:281:3 › site vitrine statique › ne montre pas de carte si le rayon est absent des reglages (1.7s)
+  ok 37 [desktop-chromium] › tests\e2e\public-website.spec.ts:296:3 › site vitrine statique › Contact ends near its footer and uses the logo to return Home (1.7s)
+  ok 38 [desktop-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés (2.4s)
+  ok 39 [desktop-chromium] › tests\e2e\public-website.spec.ts:346:3 › site vitrine statique › reveals landing cards with motion unless the visitor requests reduced motion (1.9s)
+  ok 41 [desktop-chromium] › tests\e2e\public-website.spec.ts:386:3 › site vitrine statique › ne conserve pas de redirection depuis l ancienne route events (1.1s)
+  ok 40 [desktop-chromium] › tests\e2e\public-website.spec.ts:364:3 › site vitrine statique › relie les services, les demonstrations et la confidentialite (2.7s)
+  ok 42 [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (1.4s)
+  ok 44 [desktop-chromium] › tests\e2e\public-website.spec.ts:451:3 › site vitrine statique › garde la legende photo lisible en theme sombre (1.5s)
+  ok 45 [desktop-chromium] › tests\e2e\public-website.spec.ts:466:1 › presente les galeries publiees avec une couverture plein cadre et les visages visibles (2.8s)
+  x  43 [desktop-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier (6.6s)
+  ok 46 [desktop-chromium] › tests\e2e\request-policy-site-profile.spec.ts:12:1 › disabled URL language redirects with context intact and replaces history (2.3s)
+(node:56492) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 47 [desktop-chromium] › tests\e2e\request-policy-site-profile.spec.ts:38:1 › Home waits for owner metadata and falls back only after the request deadline (1.6s)
+  ok 48 [desktop-chromium] › tests\e2e\request-policy-site-profile.spec.ts:28:1 › English-only policy overrides a French URL too (1.4s)
+(node:78608) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:74216) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 49 [mobile-chromium] › tests\e2e\metadata-site-profile.spec.ts:7:3 › brand metadata keeps the correct source in fr (5.1s)
+  ok 50 [mobile-chromium] › tests\e2e\metadata-site-profile.spec.ts:7:3 › brand metadata keeps the correct source in en (5.1s)
+  ok 51 [mobile-chromium] › tests\e2e\public-website.spec.ts:25:3 › site vitrine statique › editorial Home exposes owner-resolved copy while its selected photo loads (3.0s)
+  ok 52 [mobile-chromium] › tests\e2e\public-website.spec.ts:46:3 › site vitrine statique › the Home copy remains available when its photo fails (3.1s)
+  ok 53 [mobile-chromium] › tests\e2e\public-website.spec.ts:53:3 › site vitrine statique › reste utile lorsque les galeries sont indisponibles (4.1s)
+  ok 55 [mobile-chromium] › tests\e2e\public-website.spec.ts:146:3 › site vitrine statique › ne référence pas la page Galeries et rétablit le référencement du Portfolio (1.8s)
+  ok 54 [mobile-chromium] › tests\e2e\public-website.spec.ts:64:3 › site vitrine statique › présente les tarifs du service et le portfolio sans annuaire de galeries (6.7s)
+  ok 56 [mobile-chromium] › tests\e2e\public-website.spec.ts:160:3 › site vitrine statique › présente les sites créés avec Cadrora dans les deux langues (2.8s)
+  ok 57 [mobile-chromium] › tests\e2e\public-website.spec.ts:178:3 › site vitrine statique › ouvre les nouvelles pages en haut après une navigation depuis le bas (2.5s)
+  ok 58 [mobile-chromium] › tests\e2e\public-website.spec.ts:199:3 › site vitrine statique › publie les coordonnees sans formulaire ni dependance distante (2.4s)
+  ok 59 [mobile-chromium] › tests\e2e\public-website.spec.ts:251:3 › site vitrine statique › charge GA4 avec un identifiant D1 fictif seulement après consentement (3.1s)
+  ok 60 [mobile-chromium] › tests\e2e\public-website.spec.ts:281:3 › site vitrine statique › ne montre pas de carte si le rayon est absent des reglages (2.0s)
+  ok 61 [mobile-chromium] › tests\e2e\public-website.spec.ts:296:3 › site vitrine statique › Contact ends near its footer and uses the logo to return Home (2.8s)
+  ok 62 [mobile-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés (2.8s)
+  ok 63 [mobile-chromium] › tests\e2e\public-website.spec.ts:346:3 › site vitrine statique › reveals landing cards with motion unless the visitor requests reduced motion (2.3s)
+  ok 65 [mobile-chromium] › tests\e2e\public-website.spec.ts:386:3 › site vitrine statique › ne conserve pas de redirection depuis l ancienne route events (1.4s)
+  ok 64 [mobile-chromium] › tests\e2e\public-website.spec.ts:364:3 › site vitrine statique › relie les services, les demonstrations et la confidentialite (3.8s)
+  ok 66 [mobile-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (1.9s)
+  ok 68 [mobile-chromium] › tests\e2e\public-website.spec.ts:451:3 › site vitrine statique › garde la legende photo lisible en theme sombre (2.1s)
+  ok 69 [mobile-chromium] › tests\e2e\public-website.spec.ts:466:1 › presente les galeries publiees avec une couverture plein cadre et les visages visibles (3.3s)
+  x  67 [mobile-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier (7.7s)
+(node:73384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 70 [mobile-chromium] › tests\e2e\request-policy-site-profile.spec.ts:12:1 › disabled URL language redirects with context intact and replaces history (3.1s)
+  ok 71 [mobile-chromium] › tests\e2e\request-policy-site-profile.spec.ts:28:1 › English-only policy overrides a French URL too (1.2s)
+  ok 72 [mobile-chromium] › tests\e2e\request-policy-site-profile.spec.ts:38:1 › Home waits for owner metadata and falls back only after the request deadline (1.7s)
+
+
+  1) [desktop-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator: getByRole('button', { name: /ouvrir le menu|open menu/i })
+    Expected: "true"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveAttribute" getByRole('button', { name: /ouvrir le menu|open menu/i }) with timeout 5000ms
+      - waiting for getByRole('button', { name: /ouvrir le menu|open menu/i })
+
+
+      443 |     await menu.focus();
+      444 |     await page.keyboard.press('Enter');
+    > 445 |     await expect(menu).toHaveAttribute('aria-expanded', 'true');
+          |                        ^
+      446 |     await page.keyboard.press('Escape');
+      447 |     await expect(menu).toBeFocused();
+      448 |     await expect(menu).toHaveAttribute('aria-expanded', 'false');
+        at C:\GIT\Cadrora\tests\e2e\public-website.spec.ts:445:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier 
+
+    Error: expect(locator).toHaveAttribute(expected) failed
+
+    Locator: getByRole('button', { name: /ouvrir le menu|open menu/i })
+    Expected: "true"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveAttribute" getByRole('button', { name: /ouvrir le menu|open menu/i }) with timeout 5000ms
+      - waiting for getByRole('button', { name: /ouvrir le menu|open menu/i })
+
+
+      443 |     await menu.focus();
+      444 |     await page.keyboard.press('Enter');
+    > 445 |     await expect(menu).toHaveAttribute('aria-expanded', 'true');
+          |                        ^
+      446 |     await page.keyboard.press('Escape');
+      447 |     await expect(menu).toBeFocused();
+      448 |     await expect(menu).toHaveAttribute('aria-expanded', 'false');
+        at C:\GIT\Cadrora\tests\e2e\public-website.spec.ts:445:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-mobile-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-mobile-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-mobile-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-mobile-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\Users\tanlbou\AppData\Local\Temp\cadrora-qa-perf-dev\public-website-site-vitrin-888ee-s-et-utilisables-au-clavier-mobile-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier 
+    [mobile-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier 
+  70 passed (2.2m)

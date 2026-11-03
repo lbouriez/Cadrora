@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-11-03T15:46:57.9956049Z",
+  "revision": "886603d1fbdfb710d812e923a4cb7d5fa480f469",
+  "mode": "review",
+  "applicationChanged": false,
+  "changedApplicationFiles": [],
+  "trackedReviewFiles": [
+    "design-review/quality/index.html",
+    "design-review/quality/review-data.json"
+  ],
+  "status": [
+    " M design-review/quality/index.html",
+    " M design-review/quality/review-data.json",
+    "?? .codex-remote-attachments/",
+    "?? design-review/quality/evidence/qa-2026-11-03/",
+    "?? design-review/quality/mockups/qa-002-r1/"
+  ],
+  "existingIssuesAndApprovalsUnchanged": [
+    "A11Y-001",
+    "MOB-001",
+    "PERF-001",
+    "PERF-002",
+    "SEO-001",
+    "SEO-002",
+    "SEO-003",
+    "SEO-004"
+  ],
+  "oldMockupsChanged": [],
+  "checkFinal": "npm run check passed",
+  "notes": "Only review HTML/data plus new QA evidence and QA-002 R1 mockups. Unrelated .codex-remote-attachments preserved. No application source/config/tests changed. No commit/push/deploy performed."
+}

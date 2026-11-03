@@ -1,0 +1,119 @@
+{
+  "conditions": "Production build; Chromium 153.0.8010.12; Windows; 390x844 DPR1; CPU4x; latency150ms/down1.6Mbps/up750Kbps; cache disabled; warm local server; actual public D1 settings, no API interception; sample6.5s after load.",
+  "runs": [
+    {
+      "run": 1,
+      "lcp": {
+        "start": 7988,
+        "url": "http://127.0.0.1:5207/home-hero-image/small"
+      },
+      "cls": 0,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:5207/assets/index-BuPu8d6c.js",
+          "start": 309.29999999701977,
+          "duration": 3917.4000000059605,
+          "bytes": 389838,
+          "initiator": "script"
+        },
+        {
+          "name": "http://127.0.0.1:5207/assets/index-DUsr_BYp.css",
+          "start": 312.1000000089407,
+          "duration": 2106.199999988079,
+          "bytes": 89734,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 312.6000000089407,
+          "duration": 1397.0999999940395,
+          "bytes": 37358,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 6652,
+          "duration": 253.90000000596046,
+          "bytes": 14438,
+          "initiator": "img"
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "lcp": {
+        "start": 7732,
+        "url": "http://127.0.0.1:5207/home-hero-image/small"
+      },
+      "cls": 0,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:5207/assets/index-BuPu8d6c.js",
+          "start": 337.20000000298023,
+          "duration": 3939.7999999970198,
+          "bytes": 389838,
+          "initiator": "script"
+        },
+        {
+          "name": "http://127.0.0.1:5207/assets/index-DUsr_BYp.css",
+          "start": 340.6000000089407,
+          "duration": 2111.5999999940395,
+          "bytes": 89734,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 341,
+          "duration": 1393.7000000029802,
+          "bytes": 37358,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 6049.100000008941,
+          "duration": 275.19999998807907,
+          "bytes": 14438,
+          "initiator": "img"
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "lcp": {
+        "start": 6276,
+        "url": "http://127.0.0.1:5207/home-hero-image/small"
+      },
+      "cls": 0,
+      "resources": [
+        {
+          "name": "http://127.0.0.1:5207/assets/index-BuPu8d6c.js",
+          "start": 291.5,
+          "duration": 3925,
+          "bytes": 389838,
+          "initiator": "script"
+        },
+        {
+          "name": "http://127.0.0.1:5207/assets/index-DUsr_BYp.css",
+          "start": 294.1000000089407,
+          "duration": 2114.2999999970198,
+          "bytes": 89734,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 294.40000000596046,
+          "duration": 1395.9000000059605,
+          "bytes": 37358,
+          "initiator": "link"
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 5126.300000011921,
+          "duration": 272.69999998807907,
+          "bytes": 14438,
+          "initiator": "img"
+        }
+      ]
+    }
+  ]
+}

@@ -58,7 +58,11 @@ describe('localized portfolio documents', () => {
     expect(response.status).toBe(404);
     expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
     expect(response.headers.get('Cache-Control')).toBe('no-store');
-    expect(await response.text()).not.toContain('Portfolio | Cadrora');
+    const html = await response.text();
+    expect(html).toContain(`<html lang="${path.startsWith('/en') ? 'en' : 'fr'}"`);
+    expect(html).toContain(path.startsWith('/en') ? '<h1>Page not found</h1>' : '<h1>Page introuvable</h1>');
+    expect(html).toContain('class="site-startup__brand">Cadrora');
+    expect(html).not.toContain('<script');
   });
 
   it('serves static localized sessions when enabled and preserves legacy redirects', async () => {
@@ -76,6 +80,7 @@ describe('localized portfolio documents', () => {
     const response = await app().request('https://cadrora.com/fr/services/', undefined, env);
     expect(response.status).toBe(503);
     expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+    expect(await response.text()).toContain('<h1>Le chargement a été interrompu.</h1>');
   });
 
   it('serves bilingual collection metadata, reciprocal alternates, and its cover', async () => {
@@ -109,5 +114,23 @@ describe('localized portfolio documents', () => {
     const response = await app().request('https://cadrora.com/en/portfolio/marques/', undefined, env);
     expect(response.status).toBe(503);
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+    const html = await response.text();
+    expect(html).toContain('href="/en/portfolio/marques/">Try again</a>');
+    expect(html).toContain('href="/en/">Home</a>');
+    expect(html).not.toContain('<script');
+    expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+  });
+
+  it('uses escaped owner branding and preserves a safe same-page retry query without scripts', async () => {
+    const env = bindings(false);
+    env.DB = { prepare: (sql: string) => ({
+      first: () => Promise.resolve({ site_name: 'Owner <studio> $&', default_language: 'en' }),
+      bind: () => ({ first: () => sql.includes('portfolio_collections') ? Promise.reject(new Error('offline')) : Promise.resolve(null) }),
+    }) } as unknown as D1Database;
+    const response = await app().request('https://cadrora.com/en/portfolio/marques/?next=%22%3E', undefined, env);
+    const html = await response.text();
+    expect(html).toContain('Owner &lt;studio&gt; $&amp;');
+    expect(html).toContain('href="/en/portfolio/marques/?next=%22%3E"');
+    expect(html).not.toContain('onclick');
   });
 });

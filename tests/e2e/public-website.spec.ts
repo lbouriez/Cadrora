@@ -391,6 +391,7 @@ test.describe('site vitrine statique', () => {
   });
 
   test('garde la navigation et les actions principales compactes sur telephone', async ({ page }) => {
+    await page.route('**/api/v1/site', route => route.fulfill({ json: { ...siteSettingsFixture, siteName: 'Cadrora' } }));
     await page.setViewportSize({ width: 330, height: 740 });
     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
     await page.goto('/');
@@ -410,6 +411,42 @@ test.describe('site vitrine statique', () => {
     await page.getByRole('navigation', { name: /navigation principale|primary navigation/i }).getByRole('link', { name: /séances|sessions/i }).click();
     await expect(page.getByRole('button', { name: /ouvrir le menu|open menu/i })).toBeVisible();
     await assertNoHorizontalOverflow(page);
+  });
+
+  test('un nom long reste entier avec des commandes séparées et utilisables au clavier', async ({ page }) => {
+    const siteName = 'Studio de photographie et portraits';
+    await page.route('**/api/v1/site', route => route.fulfill({ json: { ...siteSettingsFixture, siteName } }));
+    await page.setViewportSize({ width: 330, height: 740 });
+    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+    await page.goto('/');
+    const brand = page.locator('.public-brand__name');
+    await expect(brand).toHaveText(siteName);
+    await expect(brand).toBeVisible();
+    expect(await brand.evaluate(element => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth)).toBe(true);
+    const bounds = await page.locator('.public-header').evaluate(element => {
+      const brand = element.querySelector('.public-brand')!.getBoundingClientRect();
+      const controls = element.querySelector('.public-header__controls')!.getBoundingClientRect();
+      return brand.bottom <= controls.top || brand.right <= controls.left;
+    });
+    expect(bounds).toBe(true);
+    await assertNoHorizontalOverflow(page);
+    for (const control of await page.locator('.public-header__controls button').all()) {
+      await control.focus();
+      await expect(control).toBeFocused();
+      expect(await control.evaluate(element => {
+        const rect = element.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        return hit === element || element.contains(hit);
+      })).toBe(true);
+    }
+    // Its accessible name changes from Open to Close when expanded.
+    const menu = page.locator('.public-header__menu');
+    await menu.focus();
+    await page.keyboard.press('Enter');
+    await expect(menu).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeFocused();
+    await expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 
   test('garde la legende photo lisible en theme sombre', async ({ page }) => {

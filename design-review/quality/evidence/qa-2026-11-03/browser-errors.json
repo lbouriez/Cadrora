@@ -1,0 +1,77 @@
+[
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-brand-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-corporate-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-wedding-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-children-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-brand-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-corporate-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-children-01/preview"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-wedding-01/small"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/small"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-brand-01/small"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-corporate-01/small"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/portfolio-media/demo-portfolio-children-01/small"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:5207/en/portfolio/family"
+  }
+]

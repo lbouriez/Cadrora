@@ -1,0 +1,74 @@
+[
+  {
+    "lang": "fr",
+    "status": 404,
+    "width": 390,
+    "reference": "reference-fr-404-390.png",
+    "implemented": "qa002-fr-404-390-fixture.png",
+    "differentPixelsOver10Percent": 0.027342325920524973,
+    "sameSize": true
+  },
+  {
+    "lang": "fr",
+    "status": 404,
+    "width": 1440,
+    "reference": "reference-fr-404-1440.png",
+    "implemented": "qa002-fr-404-1440-fixture.png",
+    "differentPixelsOver10Percent": 0.006944444444444444,
+    "sameSize": true
+  },
+  {
+    "lang": "fr",
+    "status": 503,
+    "width": 390,
+    "reference": "reference-fr-503-390.png",
+    "implemented": "qa002-fr-503-390-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  },
+  {
+    "lang": "fr",
+    "status": 503,
+    "width": 1440,
+    "reference": "reference-fr-503-1440.png",
+    "implemented": "qa002-fr-503-1440-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  },
+  {
+    "lang": "en",
+    "status": 404,
+    "width": 390,
+    "reference": "reference-en-404-390.png",
+    "implemented": "qa002-en-404-390-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  },
+  {
+    "lang": "en",
+    "status": 404,
+    "width": 1440,
+    "reference": "reference-en-404-1440.png",
+    "implemented": "qa002-en-404-1440-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  },
+  {
+    "lang": "en",
+    "status": 503,
+    "width": 390,
+    "reference": "reference-en-503-390.png",
+    "implemented": "qa002-en-503-390-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  },
+  {
+    "lang": "en",
+    "status": 503,
+    "width": 1440,
+    "reference": "reference-en-503-1440.png",
+    "implemented": "qa002-en-503-1440-fixture.png",
+    "differentPixelsOver10Percent": 0,
+    "sameSize": true
+  }
+]

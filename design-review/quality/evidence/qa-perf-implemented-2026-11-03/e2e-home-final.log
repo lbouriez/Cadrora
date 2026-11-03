@@ -1,0 +1,32 @@
+[WebServer] (node:58204) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:57684) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9230 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: ADMIN_SECRET_HASH, AUTH_PEPPER, TURNSTILE_SECRET_KEY. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 11 tests using 2 workers
+
+(node:71884) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:7:1 › only the opted-in Home document carries a public settings snapshot and photo hint (126ms)
+  ok  2 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 320px DPR 1 (2.1s)
+  ok  3 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 320px DPR 2 (2.6s)
+  ok  4 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 390px DPR 1 (2.0s)
+  ok  5 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 390px DPR 2 (2.5s)
+  ok  6 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 768px DPR 1 (2.1s)
+  ok  7 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 768px DPR 2 (2.3s)
+  ok  8 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 1440px DPR 1 (2.0s)
+  ok 10 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:68:3 › collection 404 is readable and navigable without JavaScript (fr) (494ms)
+  ok 11 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:68:3 › collection 404 is readable and navigable without JavaScript (en) (474ms)
+  ok  9 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 1440px DPR 2 (2.8s)
+
+  11 passed (22.7s)

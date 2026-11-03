@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-03T15:41:14.970Z",
+  "directory": "dist/client",
+  "count": 146,
+  "reviewOrTestArtifacts": [],
+  "environmentFiles": [],
+  "configuration": "wrangler.jsonc assets.directory=./dist/client. Review files outside static asset root; build strips local development variables. Runtime review URL returns 404.",
+  "configurationEvidence": "wrangler.jsonc:15; scripts/build/stripLocalSecrets.mjs",
+  "notes": "Filenames and build boundaries checked; not a penetration test or exhaustive secret scan."
+}

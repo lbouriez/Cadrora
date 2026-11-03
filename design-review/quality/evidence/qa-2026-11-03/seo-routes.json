@@ -1,0 +1,470 @@
+[
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/",
+    "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+    "canonical": "https://cadrora.com/fr/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/",
+    "title": "Self-hosted photo website and private galleries | Cadrora",
+    "canonical": "https://cadrora.com/en/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/services/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/services/",
+    "title": "Séances et services photo | Cadrora",
+    "canonical": "https://cadrora.com/fr/services/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/services/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/services/",
+    "title": "Photography sessions and services | Cadrora",
+    "canonical": "https://cadrora.com/en/services/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/",
+    "title": "Portfolio photo | Cadrora",
+    "canonical": "https://cadrora.com/fr/portfolio/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/",
+    "title": "Photography portfolio | Cadrora",
+    "canonical": "https://cadrora.com/en/portfolio/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/about/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/about/",
+    "title": "À propos | Cadrora",
+    "canonical": "https://cadrora.com/fr/about/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/about/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/about/",
+    "title": "About | Cadrora",
+    "canonical": "https://cadrora.com/en/about/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/contact/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/contact/",
+    "title": "Contact | Cadrora",
+    "canonical": "https://cadrora.com/fr/contact/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/contact/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/contact/",
+    "title": "Contact | Cadrora",
+    "canonical": "https://cadrora.com/en/contact/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/privacy/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/privacy/",
+    "title": "Confidentialité | Cadrora",
+    "canonical": "https://cadrora.com/fr/privacy/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/privacy/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/privacy/",
+    "title": "Privacy | Cadrora",
+    "canonical": "https://cadrora.com/en/privacy/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/mariages/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/mariages/",
+    "title": "Moments de mariage | Atelier Giulia",
+    "canonical": "https://cadrora.com/fr/portfolio/mariages/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/mariages/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/mariages/",
+    "title": "Wedding moments | Atelier Giulia",
+    "canonical": "https://cadrora.com/en/portfolio/mariages/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/familles/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/familles/",
+    "title": "Instants en famille | Atelier Giulia",
+    "canonical": "https://cadrora.com/fr/portfolio/familles/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/familles/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/familles/",
+    "title": "Family moments | Atelier Giulia",
+    "canonical": "https://cadrora.com/en/portfolio/familles/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/marques/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/marques/",
+    "title": "Portraits de marque | Atelier Giulia",
+    "canonical": "https://cadrora.com/fr/portfolio/marques/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/marques/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/marques/",
+    "title": "Brand portraits | Atelier Giulia",
+    "canonical": "https://cadrora.com/en/portfolio/marques/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/entreprises/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/entreprises/",
+    "title": "Vie d’équipe | Atelier Giulia",
+    "canonical": "https://cadrora.com/fr/portfolio/entreprises/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/entreprises/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/entreprises/",
+    "title": "Team life | Atelier Giulia",
+    "canonical": "https://cadrora.com/en/portfolio/entreprises/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/fr/portfolio/enfance/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/fr/portfolio/enfance/",
+    "title": "Enfance en lumière | Atelier Giulia",
+    "canonical": "https://cadrora.com/fr/portfolio/enfance/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "http://127.0.0.1:5207",
+    "path": "/en/portfolio/enfance/",
+    "status": 200,
+    "finalURL": "http://127.0.0.1:5207/en/portfolio/enfance/",
+    "title": "Childhood in light | Atelier Giulia",
+    "canonical": "https://cadrora.com/en/portfolio/enfance/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/fr/",
+    "status": 200,
+    "finalURL": "https://cadrora.com/fr/",
+    "title": "Galeries photo privées et site photographe | Cadrora",
+    "canonical": "https://cadrora.com/fr/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/en/",
+    "status": 200,
+    "finalURL": "https://cadrora.com/en/",
+    "title": "Private photo galleries and photographer website | Cadrora",
+    "canonical": "https://cadrora.com/en/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/fr/contact/",
+    "status": 200,
+    "finalURL": "https://cadrora.com/fr/contact/",
+    "title": "Contact | Cadrora",
+    "canonical": "https://cadrora.com/fr/contact/",
+    "robots": null,
+    "lang": "fr",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  },
+  {
+    "origin": "https://cadrora.com",
+    "path": "/en/services/",
+    "status": 200,
+    "finalURL": "https://cadrora.com/en/services/",
+    "title": "Photography sessions and services | Cadrora",
+    "canonical": "https://cadrora.com/en/services/",
+    "robots": null,
+    "lang": "en",
+    "hreflang": [
+      "fr",
+      "en",
+      "x-default"
+    ],
+    "jsonLd": [
+      "Organization"
+    ]
+  }
+]

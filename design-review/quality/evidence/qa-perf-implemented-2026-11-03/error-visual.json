@@ -1,0 +1,66 @@
+[
+  {
+    "lang": "fr",
+    "status": 404,
+    "width": 390,
+    "screenshot": "qa002-fr-404-390-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "fr",
+    "status": 404,
+    "width": 1440,
+    "screenshot": "qa002-fr-404-1440-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "fr",
+    "status": 503,
+    "width": 390,
+    "screenshot": "qa002-fr-503-390-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "fr",
+    "status": 503,
+    "width": 1440,
+    "screenshot": "qa002-fr-503-1440-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "en",
+    "status": 404,
+    "width": 390,
+    "screenshot": "qa002-en-404-390-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "en",
+    "status": 404,
+    "width": 1440,
+    "screenshot": "qa002-en-404-1440-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "en",
+    "status": 503,
+    "width": 390,
+    "screenshot": "qa002-en-503-390-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  },
+  {
+    "lang": "en",
+    "status": 503,
+    "width": 1440,
+    "screenshot": "qa002-en-503-1440-fixture.png",
+    "source": "Actual unavailableDocument helper with public identity/asset fixture; real status and stylesheet; no production mutation",
+    "violations": []
+  }
+]

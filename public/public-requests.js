@@ -8,6 +8,12 @@
   const urls = ['/api/v1/site'];
   if (pathname === '/' || pathname === '/services') urls.push('/api/v1/services');
   for (const url of urls) {
+    const snapshot = url === '/api/v1/site' ? window.document?.getElementById('cadrora-initial-site') : null;
+    if (snapshot) {
+      requests.set(url, Promise.resolve(new Response(snapshot.textContent, { headers: { 'Content-Type': 'application/json' } })));
+      snapshot.remove();
+      continue;
+    }
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15_000);
     requests.set(url, fetch(url, { signal: controller.signal }).then(async (response) => {

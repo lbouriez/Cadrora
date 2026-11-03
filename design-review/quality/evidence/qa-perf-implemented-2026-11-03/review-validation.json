@@ -1,0 +1,503 @@
+{
+  "views": [
+    {
+      "width": 390,
+      "view": "qa",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "view": "QA-002",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "view": "QA-001",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "view": "PERF-002",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "view": "qa-coverage",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "view": "qa-actions",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "view": "qa-shots",
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "view": "measurements",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "view": "qa",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "view": "QA-002",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "view": "QA-001",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "view": "PERF-002",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "view": "qa-coverage",
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "view": "qa-actions",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "view": "qa-shots",
+      "overflow": false
+    },
+    {
+      "width": 1440,
+      "view": "measurements",
+      "overflow": false
+    }
+  ],
+  "links": [
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/approved-review.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/application.patch",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/visual.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/manual.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/e2e.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/e2e-header-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/error-visual.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/live-public-covers.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/inventory.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/e2e-build-cadrora.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/seo-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/unit-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/e2e-build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/http.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/performance-summary.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/performance-before.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/performance-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/check.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/build-cadrora-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/build-atelier-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/e2e-dev.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/e2e-home-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/mockup-comparison.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-en-404-390-fixture.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-fr-503-390-fixture.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-fr-404-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-atelier-en-404-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-cadrora-long-brand-320-text200.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/qa002-atelier-long-brand-320-text200.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/home-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/home-en-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/sessions-en-768.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/contact-fr-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/contact-en-320.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/privacy-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/about-en-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-2026-11-03/portfolio-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-footer.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-quality-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/enlarged-consent.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-menu.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-dialog.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/application.patch",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/public-quality.spec.ts.txt",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-menu-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-landscape-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001-landscape",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/text-200-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/MOB-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=MOB-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/MOB-001-header-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/viewport-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/axe-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-current.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-proposed.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/PERF-001-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-gallery.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-access-trace.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-ready.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/manual-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/atelier-final.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/performance-after-intermediate.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/performance-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/lab-run-2.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/axe-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/check.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-cadrora-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/review-data.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-extra-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=fr",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=en",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/http-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/collection-browser.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/mockup-comparison.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/owner-overrides.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/browser-regressions.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/approved-review.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/review-validation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/route-validation.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/check-passed.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/tests-bounded.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/build-cadrora.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/browser-fixture-recheck.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/starting-worktree.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/qa-perf-implemented-2026-11-03/integrity.json",
+      "status": 200
+    }
+  ],
+  "productionArtifactHttp": [
+    {
+      "path": "/design-review/quality/",
+      "status": 404
+    },
+    {
+      "path": "/design-review/quality/review-data.json",
+      "status": 404
+    }
+  ],
+  "pageErrors": []
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/fr/",
+    "status": 200,
+    "hasPreload": false,
+    "hasSnapshot": false,
+    "profile": "atelier-giulia"
+  },
+  {
+    "path": "/en/",
+    "status": 200,
+    "hasPreload": false,
+    "hasSnapshot": false,
+    "profile": "atelier-giulia"
+  },
+  {
+    "path": "/fr/contact/",
+    "status": 200,
+    "hasPreload": false,
+    "hasSnapshot": false,
+    "profile": "atelier-giulia"
+  },
+  {
+    "error404": []
+  }
+]

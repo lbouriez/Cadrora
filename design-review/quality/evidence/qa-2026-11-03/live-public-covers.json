@@ -1,0 +1,40 @@
+{
+  "note": "Lecture anonyme de couvertures publiques seulement. Version déployée différente du code examiné; aucune donnée protégée.",
+  "covers": [
+    {
+      "slug": "mariages",
+      "url": "/portfolio-media/demo-portfolio-wedding-01/large",
+      "status": 200,
+      "type": "image/webp",
+      "bytes": 96658
+    },
+    {
+      "slug": "familles",
+      "url": "/portfolio-media/demo-portfolio-family-01/large",
+      "status": 200,
+      "type": "image/webp",
+      "bytes": 128536
+    },
+    {
+      "slug": "marques",
+      "url": "/portfolio-media/demo-portfolio-brand-01/large",
+      "status": 200,
+      "type": "image/webp",
+      "bytes": 91694
+    },
+    {
+      "slug": "entreprises",
+      "url": "/portfolio-media/demo-portfolio-corporate-01/large",
+      "status": 200,
+      "type": "image/webp",
+      "bytes": 80192
+    },
+    {
+      "slug": "enfance",
+      "url": "/portfolio-media/demo-portfolio-children-01/large",
+      "status": 200,
+      "type": "image/webp",
+      "bytes": 132186
+    }
+  ]
+}

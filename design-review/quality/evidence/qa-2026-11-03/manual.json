@@ -1,0 +1,14 @@
+{
+  "menu": {
+    "opened": "true",
+    "closed": "false",
+    "escapeReturnsFocus": true
+  },
+  "dark": "dark",
+  "light": "light",
+  "fr": {
+    "url": "http://127.0.0.1:5207/fr/contact",
+    "lang": "en"
+  },
+  "notes": "Menu ouvert/fermé avec clic et Échap; thème clair→sombre→clair; EN→FR. Les tests e2e couvrent aussi les allers-retours de consentement, le focus, le zoom texte 200%, les overrides admin et le mouvement réduit."
+}

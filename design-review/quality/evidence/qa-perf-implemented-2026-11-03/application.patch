@@ -1,0 +1,870 @@
+diff --git a/docs/architecture.md b/docs/architecture.md
+index e68ed9c..58b2cf8 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -23,7 +23,7 @@ flowchart LR
+ 
+ The React SPA is static. It contains a public photographer website at `/` and `/contact`, event galleries under `/e/*`, and the browser-operated admin surface under `/admin/*`. Cloudflare invokes the Worker first for `/api/*`, `/media/*`, authenticated admin pages, model artifacts, and event pages under `/e/*`. Event pages pass through the Worker only so recognized crawlers can receive a narrow metadata shell; ordinary navigation delegates to the static-assets binding and its SPA fallback. The public landing and contact pages retain compiled fallback content and no mandatory external runtime dependency, so they stay useful if D1/gallery API, analytics, or the optional click-to-load map is unavailable.
+ 
+-Marketing pages also have static `/fr/` and `/en/` variants for Home, Sessions, Portfolio, About, Contact, and Privacy. Their build-time HTML carries localized canonical, `hreflang`, and share metadata without moving Home or Contact behind the Worker. ADR-046 routes session HTML through the Worker to enforce the owner’s page availability setting before serving static assets; disabled session URLs return 404. The client reads owner Contact settings to add the configured service area to rendered metadata. Demo gallery translations are optional D1 JSON; legacy gallery title and description columns remain the fallback. See ADR-045.
++Marketing pages also have static `/fr/` and `/en/` variants for Home, Sessions, Portfolio, About, Contact, and Privacy. Their build-time HTML carries localized canonical, `hreflang`, and share metadata. ADR-056 narrowly routes exact Home aliases through the Worker for an optional owner-resolved photo preload and initial public settings snapshot, bounded to 250 ms with the original static shell as fallback; Contact retains asset-first routing. ADR-046 routes session HTML through the Worker to enforce the owner’s page availability setting before serving static assets; disabled session URLs return a useful localized static 404. The client reads owner Contact settings to add the configured service area to rendered metadata. Demo gallery translations are optional D1 JSON; legacy gallery title and description columns remain the fallback. See ADR-045.
+ 
+ ## Runtime responsibilities
+ 
+diff --git a/docs/implementation-plan.md b/docs/implementation-plan.md
+index 9b05da9..a1baeda 100644
+--- a/docs/implementation-plan.md
++++ b/docs/implementation-plan.md
+@@ -1,5 +1,7 @@
+ # Approved implementation plan
+ 
++Approved 2026-11-03 QA/PERF extension: QA-001 updates PB mobile acceptance for short and long owner branding; QA-002 adds localized static Worker error documents across PB/PD; PERF-002 spans PB/PD and the profile build pipeline under ADR-056. Acceptance requires preserved admin authority, meaningful no-JavaScript errors, bounded optional Home data reads, shared responsive source selection, no owner/default double download, and both profile builds. Provider and physical-device release gates remain separate.
++
+ Post-plan extension (2026-11-02): [ADR-055](decisions/ADR-055-atelier-direction-a.md) implements the owner's Atelier Direction A selection in the existing checkout. PB owns shared compact consent, session/package presentation, contextual contact and About alternatives; PA adds portrait-alternative guidance; the Worker resolves the owner-selected first Home photo for sharing. Atelier styling and presentation options stay in its profile. Acceptance covers persistent footer, wheel/push/fade and reduced motion, FR/EN short screens, configured content/visibility/framing, package-to-email context and copy feedback, both profile builds, media revision/order, and guarded migration 049. Excluded recommendations and unprovided owner content remain untouched.
+ 
+ Post-plan extension (2026-10-25): ADR-054 adds optional bilingual session pricing packages and practical information across PA admin editing, PB shared public session details, and shared API schemas. Reuse `site_services.copy_json`, existing routes and localized fields. Acceptance includes legacy/single/multiple price rendering, optional-block omission, FR/EN save/reload and mobile/keyboard coverage, both profile builds, and shared-code deployment before the separate Atelier content migration.
+diff --git a/docs/technical/contracts.md b/docs/technical/contracts.md
+index c57c226..7f48488 100644
+--- a/docs/technical/contracts.md
++++ b/docs/technical/contracts.md
+@@ -4,7 +4,9 @@ ADR-055 refines the approved studio presentation and adds optional `source=hero|
+ 
+ ADR-054 adds optional localized `tariffs` (up to eight named prices with short summaries) and `goodToKnow` to existing service copy. Legacy copy stays valid; the shared dialog and admin editor use these fields without new routes or tables. Deploy schema support before populating them. See [ADR-054](../decisions/ADR-054-session-pricing-packages.md).
+ 
+-ADR-048 replaces the global SPA fallback with localized static 404 documents. Only recognized dynamic gallery/admin client routes request an HTML shell, after existing middleware; public marketing documents stay asset-first and the gallery directory remains unindexed. See [ADR-048](../decisions/ADR-048-static-not-found-documents.md).
++ADR-048 replaces the global SPA fallback with localized static 404 documents. Only recognized dynamic gallery/admin client routes request an HTML shell, after existing middleware; public marketing documents stay asset-first except for the explicitly bounded Home optimization in ADR-056 and existing Sessions/collection handling. The gallery directory remains unindexed. See [ADR-048](../decisions/ADR-048-static-not-found-documents.md).
++
++ADR-056 adds an optional, 250 ms bounded public-settings read to exact Home HTML aliases for the profile that opts into a full-width photo preload. Validated public settings select one responsive hint and supply the same initial client snapshot; unavailable data returns the static shell. Owner documents are never cached; no API, admin, gallery or media authorization contract changes. See [ADR-056](../decisions/ADR-056-owner-resolved-home-preload.md).
+ 
+ Status: accepted on 2026-09-22. Changes require an ADR and explicit human validation. Gallery lifecycle and presentation changes are recorded in [`ADR-005`](../decisions/ADR-005-gallery-lifecycle-and-presentation.md); isolated deployment and owner quota decisions are recorded in [`ADR-006`](../decisions/ADR-006-isolated-instances-and-owner-quotas.md); owner-approved public-site configuration changes are recorded in [`ADR-008`](../decisions/ADR-008-runtime-website-settings-and-maps.md).
+ The gallery-count cap removal is recorded in [`ADR-017`](../decisions/ADR-017-remove-gallery-count-limit.md).
+diff --git a/docs/technical/public-website.md b/docs/technical/public-website.md
+index b081f2a..dad3469 100644
+--- a/docs/technical/public-website.md
++++ b/docs/technical/public-website.md
+@@ -2,6 +2,10 @@
+ 
+ ## Scope
+ 
++Approved QA-001 / QA-002 revision 1: mobile tests separate compact short-brand height from long-brand readability, non-overlap, overflow and keyboard behavior. Long names remain owner-editable and may wrap. Worker collection/session errors retain real 404/503 statuses, `no-store` and `noindex,nofollow`, and now render shared FR/EN copy, the optional owner identity, the profile stylesheet and useful links without JavaScript. A bounded optional identity read falls back to the build profile. A 404 links to Portfolio/Home; a 503 links to the same URL for retry and Home. No disabled page or private content is initialized.
++
++Approved PERF-002 revision 1: [ADR-056](../decisions/ADR-056-owner-resolved-home-preload.md) defines the narrow optional Home HTML enhancement. A profile capability opts in; the current Cadrora editorial layout uses shared responsive sources and `95vw` for both preload and renderer. A validated server public-settings snapshot preserves owner overrides without a duplicate initial site request. Invalid, missing or slow settings leave the static shell and client fallback intact. Atelier does not opt in. No custom content is moved out of the administration.
++
+ Approved SEO review (SEO-001–004, revision 1): the login document has a localized identity and HTML/HTTP `noindex,nofollow`, without marketing canonicals, alternates or share tags. Only the exact `/admin/login` path and its query variants are crawlable in `robots.txt`; the existing password/Access guard still runs first. Other admin HTML responses also carry the HTTP exclusion. Client navigation to login clears the previous public metadata, and returning to a public page restores that page's metadata. The owner site name and default language remain authoritative; a D1 failure falls back to profile values without blocking login.
+ 
+ Cadrora's default Home eyebrow and FR/EN Home metadata describe the photo website, private galleries and self-hosting. These defaults belong only to `sites/cadrora`; saved `homeHeroCopy` still wins and other profiles are unchanged. Existing showcase description authority (ADR-052) remains unchanged.
+diff --git a/public/public-requests.js b/public/public-requests.js
+index e9c1158..c956003 100644
+--- a/public/public-requests.js
++++ b/public/public-requests.js
+@@ -8,6 +8,12 @@
+   const urls = ['/api/v1/site'];
+   if (pathname === '/' || pathname === '/services') urls.push('/api/v1/services');
+   for (const url of urls) {
++    const snapshot = url === '/api/v1/site' ? window.document?.getElementById('cadrora-initial-site') : null;
++    if (snapshot) {
++      requests.set(url, Promise.resolve(new Response(snapshot.textContent, { headers: { 'Content-Type': 'application/json' } })));
++      snapshot.remove();
++      continue;
++    }
+     const controller = new AbortController();
+     const timer = setTimeout(() => controller.abort(), 15_000);
+     requests.set(url, fetch(url, { signal: controller.signal }).then(async (response) => {
+diff --git a/scripts/build/generateLocalizedPages.mjs b/scripts/build/generateLocalizedPages.mjs
+index 551693f..1b4ccd9 100644
+--- a/scripts/build/generateLocalizedPages.mjs
++++ b/scripts/build/generateLocalizedPages.mjs
+@@ -69,7 +69,7 @@ function documentFor(language, page, path) {
+   return shell.replace(/(<html\b[^>]*\blang=")[^"]*(")/u, `$1${language}$2`)
+     .replace(/<title>[^<]*<\/title>/u, `<title>${title}</title>`)
+     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s*\/>)/u, `$1${description}$2`)
+-    .replace('</head>', `${metadata}\n  </head>`)
++    .replace('</head>', `${metadata}${page === 'home' && site.homeImagePreload === 'full-width' ? '<meta name="cadrora-home-image" content="full-width">' : ''}\n  </head>`)
+     .replace('<div id="root"></div>', `<div id="root">${fallback}</div>`);
+ }
+ 
+diff --git a/scripts/sites/loadProfile.mjs b/scripts/sites/loadProfile.mjs
+index 4ea3fb9..1edaba9 100644
+--- a/scripts/sites/loadProfile.mjs
++++ b/scripts/sites/loadProfile.mjs
+@@ -21,6 +21,9 @@ export function loadSiteProfile(siteId, workspace = process.cwd()) {
+   if (profile.startupPresentation !== undefined && profile.startupPresentation !== 'media') {
+     throw new Error(`Invalid startupPresentation for site profile: ${siteId}`);
+   }
++  if (profile.homeImagePreload !== undefined && profile.homeImagePreload !== 'full-width') {
++    throw new Error(`Invalid homeImagePreload for site profile: ${siteId}`);
++  }
+   if (profile.document.fonts !== undefined && (!Array.isArray(profile.document.fonts)
+       || profile.document.fonts.some((font) => typeof font !== 'string'
+         || !new RegExp(`^/sites/${siteId}/fonts/[a-zA-Z0-9-]+\\.woff2$`, 'u').test(font)
+diff --git a/sites/cadrora/profile.json b/sites/cadrora/profile.json
+index 417bf03..38346c3 100644
+--- a/sites/cadrora/profile.json
++++ b/sites/cadrora/profile.json
+@@ -2,6 +2,7 @@
+   "id": "cadrora",
+   "name": "Cadrora",
+   "heroImageUrl": "/brand/demo-hero.webp",
++  "homeImagePreload": "full-width",
+   "document": {
+     "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+     "origin": "https://cadrora.com",
+diff --git a/src/app/components/ProgressivePhoto.tsx b/src/app/components/ProgressivePhoto.tsx
+index 456bc68..534c7d6 100644
+--- a/src/app/components/ProgressivePhoto.tsx
++++ b/src/app/components/ProgressivePhoto.tsx
+@@ -20,6 +20,8 @@ interface CommonPhotoProps {
+   visualReadyAt?: 'preview' | 'display';
+   priority?: boolean;
+   sizes: string;
++  /** Exact known responsive layout; also used by its server preload. Other images stay measured. */
++  responsiveSizes?: string | undefined;
+ }
+ 
+ export type ProgressivePhotoProps = CommonPhotoProps & (
+@@ -28,7 +30,7 @@ export type ProgressivePhotoProps = CommonPhotoProps & (
+ );
+ 
+ /** Select a display-sized source after the preview, or render one unblurred local/static source. */
+-export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, visualReadyAt = 'preview', priority = false, sizes, sources, src, width }: ProgressivePhotoProps) {
++export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover', height, immediate = false, lazyPreview = false, maxQuality = 'full', onVisualReady, visualReadyAt = 'preview', priority = false, sizes, responsiveSizes, sources, src, width }: ProgressivePhotoProps) {
+   const frame = useRef<HTMLSpanElement>(null);
+   const previewFailed = useRef(false);
+   const optimizedFailed = useRef(false);
+@@ -48,9 +50,9 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
+   // than downloading the next variant at almost twice the required width.
+   const targetWidth = (displayWidth ?? 0) * pixelRatio;
+   const displaySource = responsiveSources.find((source) => source.width >= targetWidth * 0.95) ?? responsiveSources.at(-1);
+-  const displaySources = displayWidth ? responsiveSources.filter((source) => source.width <= (displaySource?.width ?? 0)) : responsiveSources;
++  const displaySources = displayWidth && !responsiveSizes ? responsiveSources.filter((source) => source.width <= (displaySource?.width ?? 0)) : responsiveSources;
+   const sourceCount = responsiveSources.length;
+-  const measureEnabled = enabled && sourceCount > 1 && (nearby || immediate || priority);
++  const measureEnabled = enabled && !responsiveSizes && sourceCount > 1 && (nearby || immediate || priority);
+   const observeNearby = !immediate && !priority && (lazyPreview || sourceCount > 1);
+ 
+   useLayoutEffect(() => {
+@@ -90,7 +92,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
+   }, [observeNearby]);
+ 
+   // Priority photos start both layers together, after owner-managed sources and frame sizing resolve.
+-  const revealOptimized = enabled && displayWidth !== null && (nearby || immediate || priority)
++  const revealOptimized = enabled && (displayWidth !== null || Boolean(responsiveSizes)) && (nearby || immediate || priority)
+     && (previewReady || priority) && responsiveSources.length > 1;
+   const ready = optimizedReady || (previewReady && responsiveSources.length <= 1);
+   const reportVisualReady = useCallback(() => {
+@@ -144,7 +146,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
+       loading="eager"
+       onError={(event) => settleImage(event.currentTarget, true, true)}
+       onLoad={(event) => settleImage(event.currentTarget, true)}
+-      sizes={displayWidth ? `${displayWidth}px` : sizes}
++      sizes={responsiveSizes ?? (displayWidth ? `${displayWidth}px` : sizes)}
+       src={displaySources.at(-1)?.url}
+       srcSet={displaySources.map((source) => `${source.url} ${source.width}w`).join(', ')}
+     /> : null}
+diff --git a/src/app/public/HomePage.tsx b/src/app/public/HomePage.tsx
+index df671d9..17fc0e8 100644
+--- a/src/app/public/HomePage.tsx
++++ b/src/app/public/HomePage.tsx
+@@ -20,6 +20,7 @@ import { BrandPhoto } from './BrandPhoto';
+ import { localizedMarketingPath } from './localizedMarketingPath';
+ import { ProductFaq, ProductInstallation, ProductWorkflow } from './ProductSections';
+ import type { HomeSection, SiteAction } from '../site/types';
++import { HOME_HERO_RESPONSIVE_SIZES, homeHeroSources } from '../../shared/homeHeroPhoto';
+ 
+ export function HomePage() {
+   const Override = siteProfile.pages?.home;
+@@ -53,8 +54,6 @@ export function DefaultHomePage() {
+   const hero = settings.data?.homeHeroCopy;
+   const editorial = siteProfile.home.presentation === 'editorial';
+   const heroText = hero?.[language];
+-  const heroImagePath = settings.data?.homeHeroImageRevision
+-    ? `/service-media/home-hero/${settings.data.homeHeroImageRevision}` : '/home-hero-image';
+   const galleryActionHidden = (href: string) => !galleryDirectoryEnabled
+     && (href === '#galleries' || href === '/galleries' || href.startsWith('/e/'));
+   const demoActionHidden = (href: string) => href === '#demo' && (!siteProfile.demo.enabled || !galleryDirectoryEnabled);
+@@ -97,12 +96,8 @@ export function DefaultHomePage() {
+             <figure className="site-hero__art">
+               <ProgressivePhoto alt={heroText?.imageAlt ?? t('gallery.heroImageAlt')} enabled={!settings.isPending}
+                 height={853} immediate onVisualReady={markHeroPhotoReady} visualReadyAt="display" priority sizes={editorial ? '100vw' : '(max-width: 48rem) 100vw, 42vw'} width={1280}
+-                sources={[
+-                  { url: `${heroImagePath}/preview`, width: 320 },
+-                  { url: `${heroImagePath}/small`, width: 640 },
+-                  { url: `${heroImagePath}/medium`, width: settings.data?.homeHeroImageMediumWidth ?? 960 },
+-                  { url: `${heroImagePath}/large`, width: settings.data?.homeHeroImageLargeWidth ?? 1280 },
+-                ]} />
++                responsiveSizes={editorial ? HOME_HERO_RESPONSIVE_SIZES : undefined}
++                sources={homeHeroSources(settings.data)} />
+               {(heroText?.caption ?? t('gallery.heroArtCaption')) ? <figcaption>{heroText?.caption ?? t('gallery.heroArtCaption')}</figcaption> : null}
+               {siteProfile.heroAccentImageUrl && !editorial ? <div className="site-hero__ai-card">
+                 <BrandPhoto alt="" className="site-hero__accent-photo" immediate sizes="56px" src={siteProfile.heroAccentImageUrl} />
+diff --git a/src/app/public/initialPublicRequests.ts b/src/app/public/initialPublicRequests.ts
+index 37f758e..07bad40 100644
+--- a/src/app/public/initialPublicRequests.ts
++++ b/src/app/public/initialPublicRequests.ts
+@@ -8,6 +8,12 @@ declare global {
+ /** Consume the optional early GET once; api.ts remains the validation boundary. */
+ export function takeInitialPublicRequest(url: string) {
+   if (typeof window !== 'undefined') window.cadroraPublicRequestsConsumed = true;
++  const snapshot = url === '/api/v1/site' && typeof document !== 'undefined'
++    ? document.getElementById('cadrora-initial-site') : null;
++  if (snapshot) {
++    snapshot.remove();
++    return Promise.resolve(new Response(snapshot.textContent, { headers: { 'Content-Type': 'application/json' } }));
++  }
+   const requests = typeof window === 'undefined' ? undefined : window.cadroraInitialPublicRequests;
+   const response = requests?.get(url);
+   requests?.delete(url);
+diff --git a/src/app/styles/startup.css b/src/app/styles/startup.css
+index fc60bb7..2f77fea 100644
+--- a/src/app/styles/startup.css
++++ b/src/app/styles/startup.css
+@@ -65,3 +65,8 @@
+ .site-startup__content p { line-height: 1.6; }
+ .site-startup__content nav { display: grid; gap: var(--space-2); }
+ .site-startup__content a { display: block; min-height: var(--control-min-size); padding: var(--space-3); text-decoration: underline; }
++
++.site-unavailable .site-startup__identity { width: min(100%, 46rem); margin: auto; }
++.site-unavailable h1 { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; margin: var(--space-5) 0 var(--space-4); overflow-wrap: anywhere; }
++.site-unavailable__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4); margin: var(--space-6) 0; }
++.site-unavailable__code { letter-spacing: .16em; color: var(--color-text-muted); font-size: var(--text-sm); }
+diff --git a/src/server/app.ts b/src/server/app.ts
+index 702ff78..ca3d145 100644
+--- a/src/server/app.ts
++++ b/src/server/app.ts
+@@ -33,6 +33,7 @@ import { registerMediaRoutes } from './routes/media';
+ import { registerServiceRoutes } from './routes/services';
+ import { registerPortfolioRoutes } from './routes/portfolio';
+ import { registerPortfolioSeoRoutes } from './routes/portfolioSeo';
++import { registerHomeDocumentRoutes } from './routes/homeDocument';
+ import { registerPublicRoutes } from './routes/public';
+ import { registerSearchIndexRoutes } from './routes/searchIndex';
+ import { purgeAppHistory } from './services/appLog';
+@@ -44,11 +45,14 @@ export { ServiceMediaCache } from './services/publicMediaCache';
+ 
+ export const app = new Hono<AppEnv>();
+ 
+-// Frozen order: requestId -> errorBoundary -> securityHeaders -> authContext ->
++// Frozen API/protected-route order: requestId -> errorBoundary -> securityHeaders -> authContext ->
+ // abuseRateLimit -> turnstile -> rateLimit -> routes -> cacheHeaders.
+ app.use('*', requestId);
+ app.onError(errorBoundary);
+ app.use('*', securityHeaders);
++// ADR-056: these exact public asset aliases never depend on an admin session,
++// Access assertion or API rate limiter, including when their optional D1 read fails.
++registerHomeDocumentRoutes(app);
+ app.use('*', authContext);
+ app.use('*', adminPageGuard);
+ app.use('*', abuseRateLimit);
+diff --git a/src/server/routes/portfolioSeo.ts b/src/server/routes/portfolioSeo.ts
+index 2bad0fa..74c5d05 100644
+--- a/src/server/routes/portfolioSeo.ts
++++ b/src/server/routes/portfolioSeo.ts
+@@ -1,9 +1,10 @@
+-import type { Context, Hono } from 'hono';
++import type { Hono } from 'hono';
+ 
+ import startupCopy from '../../shared/i18n/publicStartup.json';
+ import { PortfolioCollectionTextSchema } from '../../shared/schemas/portfolio';
+ import { SlugSchema } from '../../shared/schemas/primitives';
+ import type { AppEnv } from '../types';
++import { unavailableDocument } from '../http/unavailableDocument';
+ 
+ interface PortfolioSeoRow {
+   id: string;
+@@ -31,12 +32,6 @@ function defaultLanguage(row: SiteSeoRow | null, fallback: string): 'fr' | 'en'
+   return (row?.default_language ?? fallback) === 'en' ? 'en' : 'fr';
+ }
+ 
+-function unavailableDocument(context: Context<AppEnv>, status: 404 | 503) {
+-  context.header('Cache-Control', 'no-store');
+-  context.header('X-Robots-Tag', 'noindex, nofollow');
+-  return context.html('<!doctype html><html><head><meta name="robots" content="noindex,nofollow"></head><body></body></html>', status);
+-}
+-
+ function escapeHtml(value: string): string {
+   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+     .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+@@ -138,8 +133,7 @@ export function registerPortfolioSeoRoutes(app: Hono<AppEnv>): void {
+           row = await context.env.DB.prepare(`SELECT id, copy_json, cover_photo_id FROM portfolio_collections
+             WHERE slug = ? AND published = 1`).bind(slug.data).first<PortfolioSeoRow>();
+         } catch {
+-          context.header('Cache-Control', 'no-store');
+-          return context.html(template, 503);
++          return unavailableDocument(context, 503);
+         }
+         if (!row) {
+           return unavailableDocument(context, 404);
+diff --git a/src/shared/i18n/publicStartup.json b/src/shared/i18n/publicStartup.json
+index f70114d..20dec95 100644
+--- a/src/shared/i18n/publicStartup.json
++++ b/src/shared/i18n/publicStartup.json
+@@ -3,6 +3,8 @@
+     "loading": "Chargement du site",
+     "navigation": "Accéder aux pages",
+     "unavailable": "Le chargement a été interrompu.",
++    "unavailableLead": "Cette page est temporairement indisponible. Réessayez dans quelques instants.",
++    "portfolio": "Portfolio",
+     "retry": "Réessayer",
+     "notFound": "Page introuvable",
+     "notFoundLead": "Cette page n’existe pas ou n’est plus disponible.",
+@@ -13,6 +15,8 @@
+     "loading": "Loading the website",
+     "navigation": "Browse pages",
+     "unavailable": "Loading was interrupted.",
++    "unavailableLead": "This page is temporarily unavailable. Please try again shortly.",
++    "portfolio": "Portfolio",
+     "retry": "Try again",
+     "notFound": "Page not found",
+     "notFoundLead": "This page does not exist or is no longer available.",
+diff --git a/tests/e2e/public-website.spec.ts b/tests/e2e/public-website.spec.ts
+index e2d4182..4135275 100644
+--- a/tests/e2e/public-website.spec.ts
++++ b/tests/e2e/public-website.spec.ts
+@@ -391,6 +391,7 @@ test.describe('site vitrine statique', () => {
+   });
+ 
+   test('garde la navigation et les actions principales compactes sur telephone', async ({ page }) => {
++    await page.route('**/api/v1/site', route => route.fulfill({ json: { ...siteSettingsFixture, siteName: 'Cadrora' } }));
+     await page.setViewportSize({ width: 330, height: 740 });
+     await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+     await page.goto('/');
+@@ -412,6 +413,42 @@ test.describe('site vitrine statique', () => {
+     await assertNoHorizontalOverflow(page);
+   });
+ 
++  test('un nom long reste entier avec des commandes séparées et utilisables au clavier', async ({ page }) => {
++    const siteName = 'Studio de photographie et portraits';
++    await page.route('**/api/v1/site', route => route.fulfill({ json: { ...siteSettingsFixture, siteName } }));
++    await page.setViewportSize({ width: 330, height: 740 });
++    await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
++    await page.goto('/');
++    const brand = page.locator('.public-brand__name');
++    await expect(brand).toHaveText(siteName);
++    await expect(brand).toBeVisible();
++    expect(await brand.evaluate(element => element.scrollHeight <= element.clientHeight && element.scrollWidth <= element.clientWidth)).toBe(true);
++    const bounds = await page.locator('.public-header').evaluate(element => {
++      const brand = element.querySelector('.public-brand')!.getBoundingClientRect();
++      const controls = element.querySelector('.public-header__controls')!.getBoundingClientRect();
++      return brand.bottom <= controls.top || brand.right <= controls.left;
++    });
++    expect(bounds).toBe(true);
++    await assertNoHorizontalOverflow(page);
++    for (const control of await page.locator('.public-header__controls button').all()) {
++      await control.focus();
++      await expect(control).toBeFocused();
++      expect(await control.evaluate(element => {
++        const rect = element.getBoundingClientRect();
++        const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
++        return hit === element || element.contains(hit);
++      })).toBe(true);
++    }
++    // Its accessible name changes from Open to Close when expanded.
++    const menu = page.locator('.public-header__menu');
++    await menu.focus();
++    await page.keyboard.press('Enter');
++    await expect(menu).toHaveAttribute('aria-expanded', 'true');
++    await page.keyboard.press('Escape');
++    await expect(menu).toBeFocused();
++    await expect(menu).toHaveAttribute('aria-expanded', 'false');
++  });
++
+   test('garde la legende photo lisible en theme sombre', async ({ page }) => {
+     await page.addInitScript(() => {
+       localStorage.setItem('cadrora-theme', 'dark');
+diff --git a/tests/e2e/startup-build.spec.ts b/tests/e2e/startup-build.spec.ts
+index 1973d7f..81f5216 100644
+--- a/tests/e2e/startup-build.spec.ts
++++ b/tests/e2e/startup-build.spec.ts
+@@ -231,6 +231,14 @@ test.describe('Cadrora first frame', () => {
+ });
+ 
+ async function installOwnerHome(page: Page) {
++  // These API-only fixtures exercise the client fallback when the optional server
++  // snapshot is absent. home-preload-build.spec.ts covers the server snapshot path.
++  await page.route(/\/(?:fr|en)\/$/u, async route => {
++    const response = await route.fetch();
++    const body = (await response.text()).replace(/<link data-home-photo-preload[^>]*>/gu, '')
++      .replace(/<script id="cadrora-initial-site"[^>]*>[\s\S]*?<\/script>/gu, '');
++    await route.fulfill({ response, body });
++  });
+   await page.addInitScript(() => localStorage.setItem('cadrora-privacy-consent-v1', 'necessary'));
+   await page.route('**/api/v1/site', (route) => route.fulfill({ json: {
+     siteName: 'Atelier Giulia', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
+diff --git a/tests/unit/app/initialPublicRequests.test.ts b/tests/unit/app/initialPublicRequests.test.ts
+index aac2daf..0207b8d 100644
+--- a/tests/unit/app/initialPublicRequests.test.ts
++++ b/tests/unit/app/initialPublicRequests.test.ts
+@@ -2,11 +2,27 @@ import { readFileSync } from 'node:fs';
+ import { runInNewContext } from 'node:vm';
+ import { afterEach, describe, expect, it, vi } from 'vitest';
+ import { GalleryApiError, getPublicServices } from '../../../src/app/public/api';
++import { takeInitialPublicRequest } from '../../../src/app/public/initialPublicRequests';
+ 
+ const bootstrap = readFileSync(new URL('../../../public/public-requests.js', import.meta.url), 'utf8');
+ afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
+ 
+ describe('early public metadata', () => {
++  it('shares the non-executable server snapshot once without requesting different site settings', async () => {
++    const snapshot = { textContent: '{"siteName":"Owner"}', remove: vi.fn() };
++    const document = { getElementById: vi.fn(() => snapshot) };
++    const window = { location: { pathname: '/fr/' }, document, cadroraInitialPublicRequests: new Map<string, Promise<Response>>() };
++    const fetch = vi.fn().mockResolvedValue(Response.json([]));
++    runInNewContext(bootstrap, { window, fetch, Map, Response, AbortController, setTimeout, clearTimeout });
++    expect(fetch.mock.calls.map((call: unknown[]) => call[0])).toEqual(['/api/v1/services']);
++    expect(await (await window.cadroraInitialPublicRequests.get('/api/v1/site'))?.json()).toEqual({ siteName: 'Owner' });
++    expect(snapshot.remove).toHaveBeenCalledOnce();
++    // The app may win the race before the deferred bootstrap runs.
++    vi.stubGlobal('window', {});
++    vi.stubGlobal('document', document);
++    expect(await (await takeInitialPublicRequest('/api/v1/site'))?.json()).toEqual({ siteName: 'Owner' });
++    expect(snapshot.remove).toHaveBeenCalledTimes(2);
++  });
+   it('waits for the owner response and aborts a stalled read only at the deadline', async () => {
+     vi.useFakeTimers();
+     const fetch = vi.fn(() => new Promise<Response>(() => {}));
+diff --git a/tests/unit/server/app.test.ts b/tests/unit/server/app.test.ts
+index b4fd0f0..58b3ecd 100644
+--- a/tests/unit/server/app.test.ts
++++ b/tests/unit/server/app.test.ts
+@@ -4,6 +4,21 @@ import { ApiErrorSchema } from '../../../src/shared/schemas';
+ import { app } from '../../../src/server/app';
+ 
+ describe('worker app', () => {
++  it('keeps public Home usable with stale admin credentials and unavailable D1', async () => {
++    const template = '<html><head><meta name="cadrora-home-image" content="full-width"></head><body>Static Home</body></html>';
++    const queries: string[] = [];
++    const env = { ADMIN_AUTH_MODE: 'password', ASSETS: { fetch: () => Promise.resolve(new Response(template, { headers: { 'Content-Type': 'text/html' } })) },
++      DB: { prepare: (sql: string) => { queries.push(sql); throw new Error('D1 unavailable'); } },
++    } as unknown as CloudflareBindings;
++    for (const method of ['GET', 'HEAD']) {
++      const response = await app.request('https://example.test/fr/', { method, headers: { Cookie: '__Host-cadrora-admin=stale', 'Cf-Access-Jwt-Assertion': 'invalid' } }, env);
++      expect(response.status).toBe(200);
++      expect(response.headers.get('Content-Security-Policy')).toContain("default-src 'self'");
++      if (method === 'GET') expect(await response.text()).toBe(template);
++    }
++    expect(queries).toHaveLength(2);
++    expect(queries.every(sql => sql.includes('FROM site_settings'))).toBe(true);
++  });
+   it.each(['fr', 'en'] as const)('isolates login metadata in %s while preserving public indexing and Access protection', async (language) => {
+     const template = `<!doctype html><html lang="fr"><head><title>Home</title>
+       <meta name="description" content="Home description"><meta name="robots" content="index,follow">
+diff --git a/tests/unit/server/portfolioSeo.test.ts b/tests/unit/server/portfolioSeo.test.ts
+index 1d67f06..2e52936 100644
+--- a/tests/unit/server/portfolioSeo.test.ts
++++ b/tests/unit/server/portfolioSeo.test.ts
+@@ -58,7 +58,11 @@ describe('localized portfolio documents', () => {
+     expect(response.status).toBe(404);
+     expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+     expect(response.headers.get('Cache-Control')).toBe('no-store');
+-    expect(await response.text()).not.toContain('Portfolio | Cadrora');
++    const html = await response.text();
++    expect(html).toContain(`<html lang="${path.startsWith('/en') ? 'en' : 'fr'}"`);
++    expect(html).toContain(path.startsWith('/en') ? '<h1>Page not found</h1>' : '<h1>Page introuvable</h1>');
++    expect(html).toContain('class="site-startup__brand">Cadrora');
++    expect(html).not.toContain('<script');
+   });
+ 
+   it('serves static localized sessions when enabled and preserves legacy redirects', async () => {
+@@ -76,6 +80,7 @@ describe('localized portfolio documents', () => {
+     const response = await app().request('https://cadrora.com/fr/services/', undefined, env);
+     expect(response.status).toBe(503);
+     expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
++    expect(await response.text()).toContain('<h1>Le chargement a été interrompu.</h1>');
+   });
+ 
+   it('serves bilingual collection metadata, reciprocal alternates, and its cover', async () => {
+@@ -109,5 +114,23 @@ describe('localized portfolio documents', () => {
+     const response = await app().request('https://cadrora.com/en/portfolio/marques/', undefined, env);
+     expect(response.status).toBe(503);
+     expect(response.headers.get('Cache-Control')).toBe('no-store');
++    const html = await response.text();
++    expect(html).toContain('href="/en/portfolio/marques/">Try again</a>');
++    expect(html).toContain('href="/en/">Home</a>');
++    expect(html).not.toContain('<script');
++    expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
++  });
++
++  it('uses escaped owner branding and preserves a safe same-page retry query without scripts', async () => {
++    const env = bindings(false);
++    env.DB = { prepare: (sql: string) => ({
++      first: () => Promise.resolve({ site_name: 'Owner <studio> $&', default_language: 'en' }),
++      bind: () => ({ first: () => sql.includes('portfolio_collections') ? Promise.reject(new Error('offline')) : Promise.resolve(null) }),
++    }) } as unknown as D1Database;
++    const response = await app().request('https://cadrora.com/en/portfolio/marques/?next=%22%3E', undefined, env);
++    const html = await response.text();
++    expect(html).toContain('Owner &lt;studio&gt; $&amp;');
++    expect(html).toContain('href="/en/portfolio/marques/?next=%22%3E"');
++    expect(html).not.toContain('onclick');
+   });
+ });
+diff --git a/wrangler.jsonc b/wrangler.jsonc
+index 830df86..5edc49e 100644
+--- a/wrangler.jsonc
++++ b/wrangler.jsonc
+@@ -14,7 +14,7 @@
+     "directory": "./dist/client",
+     "binding": "ASSETS",
+     "not_found_handling": "404-page",
+-    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/portfolio-media/*", "/home-hero-image/*", "/about-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt", "/services", "/services/", "/fr/services", "/fr/services/", "/en/services", "/en/services/", "/portfolio", "/portfolio/*", "/about", "/about/", "/contact", "/contact/", "/privacy", "/privacy/", "/fr/portfolio/*", "/en/portfolio/*", "!/fr/portfolio/", "!/en/portfolio/"]
++    "run_worker_first": ["/", "/fr", "/fr/", "/en", "/en/", "/api/*", "/media/*", "/service-media/*", "/portfolio-media/*", "/home-hero-image/*", "/about-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt", "/services", "/services/", "/fr/services", "/fr/services/", "/en/services", "/en/services/", "/portfolio", "/portfolio/*", "/about", "/about/", "/contact", "/contact/", "/privacy", "/privacy/", "/fr/portfolio/*", "/en/portfolio/*", "!/fr/portfolio/", "!/en/portfolio/"]
+   },
+   "vars": {
+     "ADMIN_AUTH_MODE": "password",
+diff --git a/docs/decisions/ADR-056-owner-resolved-home-preload.md b/docs/decisions/ADR-056-owner-resolved-home-preload.md
+new file mode 100644
+--- /dev/null
++++ b/docs/decisions/ADR-056-owner-resolved-home-preload.md
+@@ -0,0 +1,23 @@
++# ADR-056: Optional owner-resolved Home photo preload
++
++Status: Accepted, 2026-11-03, within the user's explicit approval of PERF-002 revision 1 in `cadrora-quality-2026-11-02`.
++
++## Decision
++
++The Cadrora editorial Home opts into `homeImagePreload: "full-width"` in its build profile. Only its generated Home documents carry the capability marker. Exact Home aliases `/`, `/fr`, `/fr/`, `/en`, `/en/` delegate through the Worker to the existing static asset, then optionally read the public site settings with a 250 ms deadline. Contact and other static marketing pages keep their existing routing. The unmarked Atelier profile performs no extra settings read or preload and retains its slider gates.
++
++A successful, shared-schema-validated read selects the current published owner hero revision, or confirms that the compiled fallback is appropriate. Unknown published dimensions, invalid data, failure or timeout return the original useful static HTML without a photo hint. No gallery, authentication, remote service or successful D1 read is required to serve Home. The uncancellable late read has no side effects.
++
++The document contains one responsive `imagesrcset`/`imagesizes` preload and a non-executable, escaped JSON snapshot of the existing public DTO. No admin-only data, secrets, grants or new API fields are serialized. The bootstrap or app consumes the snapshot exactly once through the existing validation boundary. Later refreshes use the existing API. Sharing the read prevents an older API cache entry from selecting a different image during startup. Documents on this optional path are `no-store, no-transform`, without ETag; media authorization and revision fences remain unchanged.
++
++The shared `homeHeroSources` function and `95vw` sizing contract are used by both the hint and the full-width editorial `ProgressivePhoto`. The latter retains owner resolution, preview, decoding, error and reduced-motion behavior. Other images retain measured sizing. No `href` fallback is provided on the responsive hint, avoiding an incorrect preload in browsers without responsive-preload support; see the [HTML standard](https://html.spec.whatwg.org/dev/semantics.html#the-link-element). No dependency is added.
++
++## Scope and tradeoffs
++
++This supersedes asset-first routing only for the exact Home aliases. It does not approve or implement the broad server rendering/hydration proposal in ADR-049. React still renders the page; the hint removes image discovery from that dependency chain. Each opted-in document costs at most one optional settings query and up to 250 ms waiting. The usual static fallback remains mandatory. Local controlled measurements are not field Core Web Vitals or proof of provider latency.
++
++The exact public Home GET/HEAD routes run after request identity/security headers and before auth/API middleware. This preserves their former independence from admin cookies, Access proofs and API rate limits. Every API, admin, gallery and media route retains the frozen middleware order and authorization; no wildcard bypass is added.
++
++## Acceptance
++
++Validate default and owner sources, missing/invalid/stalled reads, safe serialization, no read on unmarked profiles, both profile builds, responsive request reuse at 320/390/768/1440 px and DPR 1/2, client fallback startup gates, and comparable before/after measurements. Preserve admin content/photo/theme/language controls. No release or production claim follows automatically from these checks.
+diff --git a/src/server/http/homeImageDocument.ts b/src/server/http/homeImageDocument.ts
+new file mode 100644
+--- /dev/null
++++ b/src/server/http/homeImageDocument.ts
+@@ -0,0 +1,31 @@
++import { HOME_HERO_RESPONSIVE_SIZES, homeHeroSources } from '../../shared/homeHeroPhoto';
++import { SiteSettingsSchema } from '../../shared/schemas/site';
++import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from '../routes/siteSettings';
++import type { SiteSettingsRow } from '../routes/siteSettings';
++import { optionalRead } from './optionalRead';
++
++export const HOME_IMAGE_MARKER = '<meta name="cadrora-home-image" content="full-width">';
++
++/** Only validated PUBLIC settings enter this non-executable snapshot. No secrets/bindings. */
++export function homeImageDocument(template: string, value: unknown): string {
++  const parsed = SiteSettingsSchema.safeParse(value);
++  if (!template.includes(HOME_IMAGE_MARKER) || !parsed.success) return template;
++  const settings = parsed.data;
++  // A published owner revision with unknown dimensions is uncertain: do not hint a default.
++  if (settings.homeHeroImageRevision && (!settings.homeHeroImageMediumWidth || !settings.homeHeroImageLargeWidth)) return template;
++  const sources = homeHeroSources(settings).sort((a, b) => a.width - b.width);
++  const hint = `<link data-home-photo-preload rel="preload" as="image" fetchpriority="high" imagesrcset="${sources.map(s => `${s.url} ${s.width}w`).join(', ')}" imagesizes="${HOME_HERO_RESPONSIVE_SIZES}">`;
++  const snapshot = JSON.stringify(settings).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
++  // The browser consumes this snapshot through the same SiteSettingsSchema as /api/v1/site.
++  // Sharing one read prevents an older cached API response choosing a different image.
++  return template.replace('</head>', () => `${hint}<script id="cadrora-initial-site" type="application/json">${snapshot}</script></head>`);
++}
++
++export async function readHomeImageDocument(template: string, env: CloudflareBindings): Promise<string> {
++  if (!template.includes(HOME_IMAGE_MARKER)) return template;
++  const settings = await optionalRead(async () => {
++    const row = await env.DB.prepare(SITE_SETTINGS_SELECT).first<SiteSettingsRow>();
++    return row ? siteSettingsFromRow(row) : null;
++  });
++  return settings ? homeImageDocument(template, settings) : template;
++}
+diff --git a/src/server/http/optionalRead.ts b/src/server/http/optionalRead.ts
+new file mode 100644
+--- /dev/null
++++ b/src/server/http/optionalRead.ts
+@@ -0,0 +1,10 @@
++/** Optional HTML enhancements never wait indefinitely for a provider read. */
++export async function optionalRead<T>(read: () => Promise<T>, deadlineMs = 250): Promise<T | null> {
++  let timer: ReturnType<typeof setTimeout> | undefined;
++  try {
++    return await Promise.race([
++      Promise.resolve().then(read).catch(() => null),
++      new Promise<null>((resolve) => { timer = setTimeout(() => resolve(null), deadlineMs); }),
++    ]);
++  } finally { clearTimeout(timer); }
++}
+diff --git a/src/server/http/unavailableDocument.ts b/src/server/http/unavailableDocument.ts
+new file mode 100644
+--- /dev/null
++++ b/src/server/http/unavailableDocument.ts
+@@ -0,0 +1,45 @@
++import type { Context } from 'hono';
++import startupCopy from '../../shared/i18n/publicStartup.json';
++import { SiteSettingsSchema } from '../../shared/schemas/site';
++import type { AppEnv } from '../types';
++import { optionalRead } from './optionalRead';
++
++function escapeHtml(value: string): string {
++  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
++}
++
++/** A useful static error, including when optional owner settings or assets fail. */
++export async function unavailableDocument(context: Context<AppEnv>, status: 404 | 503): Promise<Response> {
++  const [identity, template] = await Promise.all([
++    optionalRead(() => context.env.DB.prepare('SELECT site_name, default_language FROM site_settings WHERE id = 1')
++      .first<{ site_name: unknown; default_language: unknown }>()),
++    optionalRead(async () => {
++      const asset = await context.env.ASSETS.fetch(new Request(new URL('/', context.req.url)));
++      return asset.ok && asset.headers.get('Content-Type')?.includes('text/html') ? asset.text() : null;
++    }),
++  ]);
++  const name = SiteSettingsSchema.shape.siteName.safeParse(identity?.site_name);
++  const locale = SiteSettingsSchema.shape.defaultLanguage.safeParse(identity?.default_language);
++  const prefix = /^\/(fr|en)(?:\/|$)/u.exec(new URL(context.req.url).pathname)?.[1];
++  const language = (prefix ?? (locale.success ? locale.data : context.env.SITE_DEFAULT_LANG)) === 'en' ? 'en' : 'fr';
++  const copy = startupCopy[language];
++  const siteName = escapeHtml(name.success ? name.data : context.env.SITE_NAME);
++  const title = status === 404 ? copy.notFound : copy.unavailable;
++  const lead = status === 404 ? copy.notFoundLead : copy.unavailableLead;
++  // Only trusted build-time styling is retained; never execute the application on an error.
++  const styles = (template?.match(/<link\b[^>]*>/gu) ?? []).filter(link => /rel="stylesheet"/u.test(link)).join('');
++  const profile = template?.match(/\bdata-site="([a-z0-9-]+)"/u)?.[1];
++  const action = status === 404 ? `/${language}/portfolio/` : `${new URL(context.req.url).pathname}${new URL(context.req.url).search}`;
++  context.header('Cache-Control', 'no-store');
++  context.header('X-Robots-Tag', 'noindex, nofollow');
++  return context.html(`<!doctype html><html lang="${language}"${profile ? ` data-site="${profile}"` : ''}><head>
++<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
++<title>${escapeHtml(title)} | ${siteName}</title><meta name="robots" content="noindex,nofollow">${styles}</head>
++<body><main class="site-startup site-unavailable"><section class="site-startup__identity">
++<p class="site-startup__brand">${siteName}</p><p class="site-unavailable__code">${status}</p>
++<h1>${escapeHtml(title)}</h1><p>${escapeHtml(lead)}</p><nav class="site-unavailable__actions" aria-label="${escapeHtml(copy.navigation)}">
++<a class="button button--primary" href="${escapeHtml(action)}">${escapeHtml(status === 404 ? copy.portfolio : copy.retry)}</a>
++<a class="button" href="/${language}/">${escapeHtml(copy.home)}</a></nav>
++</section></main></body></html>`, status);
++}
+diff --git a/src/server/routes/homeDocument.ts b/src/server/routes/homeDocument.ts
+new file mode 100644
+--- /dev/null
++++ b/src/server/routes/homeDocument.ts
+@@ -0,0 +1,22 @@
++import type { Hono } from 'hono';
++import { HOME_IMAGE_MARKER, readHomeImageDocument } from '../http/homeImageDocument';
++import type { AppEnv } from '../types';
++
++/** Narrow optional Home hint; Contact and all other marketing assets remain asset-first. */
++export function registerHomeDocumentRoutes(app: Hono<AppEnv>): void {
++  for (const path of ['/', '/fr', '/fr/', '/en', '/en/']) {
++    app.get(path, async (context) => {
++      const asset = await context.env.ASSETS.fetch(context.req.raw);
++      if (!asset.ok || !asset.headers.get('Content-Type')?.includes('text/html')) return asset;
++      const template = await asset.text();
++      if (!template.includes(HOME_IMAGE_MARKER)) return new Response(template, { status: asset.status, headers: asset.headers });
++      const html = await readHomeImageDocument(template, context.env);
++      const headers = new Headers(asset.headers);
++      // An owner change must not reuse a document carrying the previous photo/copy snapshot.
++      headers.set('Cache-Control', 'no-store, no-transform');
++      headers.delete('ETag');
++      headers.delete('Content-Length');
++      return new Response(html, { status: asset.status, headers });
++    });
++  }
++}
+diff --git a/src/shared/homeHeroPhoto.ts b/src/shared/homeHeroPhoto.ts
+new file mode 100644
+--- /dev/null
++++ b/src/shared/homeHeroPhoto.ts
+@@ -0,0 +1,17 @@
++import type { SiteSettings } from './schemas/site';
++
++/** Full-width editorial Home accepts the same 5% density tolerance as measured photos.
++ * The preload and renderer must use identical candidates AND sizes for cache reuse. */
++export const HOME_HERO_RESPONSIVE_SIZES = '95vw';
++
++export function homeHeroSources(settings?: Pick<SiteSettings,
++  'homeHeroImageRevision' | 'homeHeroImageMediumWidth' | 'homeHeroImageLargeWidth'>) {
++  const path = settings?.homeHeroImageRevision
++    ? `/service-media/home-hero/${settings.homeHeroImageRevision}` : '/home-hero-image';
++  return [
++    { url: `${path}/preview`, width: 320 },
++    { url: `${path}/small`, width: 640 },
++    { url: `${path}/medium`, width: settings?.homeHeroImageMediumWidth ?? 960 },
++    { url: `${path}/large`, width: settings?.homeHeroImageLargeWidth ?? 1280 },
++  ];
++}
+diff --git a/tests/e2e/home-preload-build.spec.ts b/tests/e2e/home-preload-build.spec.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/e2e/home-preload-build.spec.ts
+@@ -0,0 +1,82 @@
++import { expect, test } from '@playwright/test';
++import { resolve } from 'node:path';
++
++test.skip(process.env.CADRORA_E2E_BUILD !== 'true', 'Requires the optimized build.');
++const atelier = process.env.CADRORA_SITE === 'atelier-giulia';
++
++test('only the opted-in Home document carries a public settings snapshot and photo hint', async ({ request }) => {
++  for (const path of ['/', '/fr/', '/en/']) {
++    const response = await request.get(path);
++    const html = await response.text();
++    expect(html.includes('data-home-photo-preload')).toBe(!atelier);
++    expect(html.includes('id="cadrora-initial-site"')).toBe(!atelier);
++  }
++  expect(await (await request.get('/fr/contact/')).text()).not.toContain('data-home-photo-preload');
++});
++
++for (const width of [320, 390, 768, 1440]) {
++  for (const dpr of [1, 2]) {
++    test(`owner photo preload is reused at ${width}px DPR ${dpr}`, async ({ browser, baseURL }) => {
++      test.skip(atelier, 'Atelier has no editorial photo hint.');
++      const context = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: dpr });
++      const page = await context.newPage();
++      const images: string[] = [];
++      let bundleReleased = false;
++      let photoBeforeBundle = false;
++      try {
++        await page.route('**/fr/', async route => {
++          const response = await route.fetch();
++          const template = (await response.text()).replace(/<link data-home-photo-preload[^>]*>/gu, '')
++            .replace(/<script id="cadrora-initial-site"[^>]*>[\s\S]*?<\/script>/gu, '');
++          // A server-output fixture; unit tests cover D1 selection and failure behavior.
++          const settings = await (await context.request.get(`${baseURL}/api/v1/site`)).json() as Record<string, unknown>;
++          const snapshot = { ...settings, siteName: 'Published owner', homeHeroImageRevision: 7,
++            homeHeroImageMediumWidth: 960, homeHeroImageLargeWidth: 1280 };
++          const hint = '<link data-home-photo-preload rel="preload" as="image" fetchpriority="high" imagesrcset="/service-media/home-hero/7/preview 320w, /service-media/home-hero/7/small 640w, /service-media/home-hero/7/medium 960w, /service-media/home-hero/7/large 1280w" imagesizes="95vw">';
++          const json = JSON.stringify(snapshot).replaceAll('<', '\\u003c');
++          await route.fulfill({ response, body: template.replace('</head>', () => `${hint}<script id="cadrora-initial-site" type="application/json">${json}</script></head>`) });
++        });
++        await page.route('**/assets/index-*.js', async route => {
++          await new Promise(resolve => setTimeout(resolve, 900));
++          bundleReleased = true;
++          await route.continue();
++        });
++        await page.route('**/api/v1/site', route => route.abort());
++        await page.route('**/service-media/home-hero/7/*', route => {
++          images.push(route.request().url());
++          if (!bundleReleased) photoBeforeBundle = true;
++          return route.fulfill({ path: resolve('public/brand/demo-hero.webp'), contentType: 'image/webp' });
++        });
++        const defaults: string[] = [];
++        page.on('request', request => { if (request.url().includes('/home-hero-image/')) defaults.push(request.url()); });
++        await page.goto(`${baseURL}/fr/`);
++        await expect(page.locator('.public-brand__name')).toHaveText('Published owner');
++        const photo = page.locator('.site-hero__art .progressive-photo__optimized');
++        await expect(photo).toBeVisible();
++        const selected = await photo.evaluate((image: HTMLImageElement) => image.currentSrc);
++        expect(photoBeforeBundle).toBe(true);
++        expect(images[0]).toBe(selected);
++        expect(images.filter(url => url === selected)).toHaveLength(1);
++        expect(defaults).toEqual([]);
++        await expect(photo).toHaveAttribute('sizes', '95vw');
++      } finally { await context.close(); }
++    });
++  }
++}
++
++for (const language of ['fr', 'en']) {
++  test(`collection 404 is readable and navigable without JavaScript (${language})`, async ({ browser, baseURL }) => {
++    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 320, height: 740 } });
++    try {
++      const page = await context.newPage();
++      const response = await page.goto(`${baseURL}/${language}/portfolio/nonexistent-qa-collection/`);
++      expect(response?.status()).toBe(404);
++      await expect(page.getByRole('heading', { level: 1 })).toHaveText(language === 'fr' ? 'Page introuvable' : 'Page not found');
++      await expect(page.locator('html')).toHaveAttribute('lang', language);
++      await page.keyboard.press('Tab');
++      await expect(page.getByRole('link', { name: 'Portfolio', exact: true })).toBeFocused();
++      await page.keyboard.press('Tab');
++      await expect(page.getByRole('link', { name: language === 'fr' ? 'Accueil' : 'Home', exact: true })).toBeFocused();
++    } finally { await context.close(); }
++  });
++}
+diff --git a/tests/unit/server/homeImageDocument.test.ts b/tests/unit/server/homeImageDocument.test.ts
+new file mode 100644
+--- /dev/null
++++ b/tests/unit/server/homeImageDocument.test.ts
+@@ -0,0 +1,88 @@
++import { Hono } from 'hono';
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { HOME_IMAGE_MARKER, homeImageDocument, readHomeImageDocument } from '../../../src/server/http/homeImageDocument';
++import { registerHomeDocumentRoutes } from '../../../src/server/routes/homeDocument';
++import type { AppEnv } from '../../../src/server/types';
++
++const settings = {
++  siteName: 'Owner studio', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
++  contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
++  map: { centerLatitude: null, centerLongitude: null, radiusKm: null }, enabledServices: ['wedding'],
++  homeGalleries: { enabled: false, limit: 6 }, analyticsMeasurementId: null, themeMode: 'both', updatedAt: '2026-11-03T00:00:00.000Z',
++};
++const template = `<html><head>${HOME_IMAGE_MARKER}</head><body>Static fallback</body></html>`;
++afterEach(() => vi.useRealTimers());
++
++describe('optional owner-resolved Home document', () => {
++  it('selects the published owner revision without hinting any compiled fallback', () => {
++    const html = homeImageDocument(template, { ...settings, homeHeroImageRevision: 8, homeHeroImageMediumWidth: 1100, homeHeroImageLargeWidth: 2200 });
++    expect(html).toContain('imagesrcset="/service-media/home-hero/8/preview 320w, /service-media/home-hero/8/small 640w, /service-media/home-hero/8/medium 1100w, /service-media/home-hero/8/large 2200w"');
++    expect(html).toContain('imagesizes="95vw"');
++    expect(html).not.toContain('/home-hero-image/');
++    expect(html.match(/data-home-photo-preload/gu)).toHaveLength(1);
++  });
++  it('hints the compiled image only after a valid settings read confirms no owner revision', () => {
++    expect(homeImageDocument(template, settings)).toContain('/home-hero-image/small 640w');
++    for (const value of [null, {}, { ...settings, homeHeroImageRevision: 3 }, { ...settings, defaultLanguage: 'xx' }]) {
++      expect(homeImageDocument(template, value)).toBe(template);
++    }
++  });
++  it('escapes the validated public snapshot without serializing extra private fields', () => {
++    const html = homeImageDocument(template, { ...settings, siteName: '</script><script>alert("$&")</script>', secret: 'never-serialize' });
++    expect(html).not.toContain('<script>alert');
++    expect(html).not.toContain('never-serialize');
++    const json = /type="application\/json">([\s\S]*?)<\/script>/u.exec(html)?.[1] ?? '';
++    expect(JSON.parse(json)).toMatchObject({ siteName: '</script><script>alert("$&")</script>' });
++  });
++  it('leaves profiles without the marker unchanged without accessing D1', async () => {
++    const prepare = vi.fn();
++    const env = { DB: { prepare } } as unknown as CloudflareBindings;
++    expect(await readHomeImageDocument('<html>Atelier</html>', env)).toBe('<html>Atelier</html>');
++    expect(prepare).not.toHaveBeenCalled();
++  });
++  it('bounds a stalled D1 read and returns the original static shell after 250ms', async () => {
++    vi.useFakeTimers();
++    const env = { DB: { prepare: () => ({ first: () => new Promise(() => {}) }) } } as unknown as CloudflareBindings;
++    const pending = readHomeImageDocument(template, env);
++    await vi.advanceTimersByTimeAsync(250);
++    expect(await pending).toBe(template);
++    expect(vi.getTimerCount()).toBe(0);
++  });
++  it('contains failures and invalid D1 rows without blocking the public Home', async () => {
++    for (const first of [() => Promise.reject(new Error('offline')), () => Promise.resolve({ site_name: 'incomplete' })]) {
++      const env = { DB: { prepare: () => ({ first }) } } as unknown as CloudflareBindings;
++      expect(await readHomeImageDocument(template, env)).toBe(template);
++    }
++  });
++  it('validates and maps a real public D1 row before selecting the published revision', async () => {
++    const row = {
++      site_name: 'Published owner', default_language: 'fr', enabled_languages: '["fr","en"]', enabled_services: '["wedding"]',
++      contact_email: null, contact_phone: null, contact_address: null, service_area: null,
++      map_center_latitude: null, map_center_longitude: null, map_radius_km: null,
++      home_galleries_enabled: 0, home_galleries_limit: 6, analytics_measurement_id: null, theme_mode: 'both',
++      updated_at: '2026-11-03T00:00:00.000Z', home_hero_image_revision: 12,
++      home_hero_image_medium_width: 1024, home_hero_image_large_width: 2048,
++    };
++    const first = vi.fn().mockResolvedValue(row);
++    const env = { DB: { prepare: () => ({ first }) } } as unknown as CloudflareBindings;
++    const html = await readHomeImageDocument(template, env);
++    expect(first).toHaveBeenCalledOnce();
++    expect(html).toContain('/service-media/home-hero/12/medium 1024w');
++    expect(html).not.toContain('/home-hero-image/');
++    expect(html).toContain('"siteName":"Published owner"');
++  });
++  it('routes only Home aliases and prevents caching owner snapshots', async () => {
++    const server = new Hono<AppEnv>();
++    registerHomeDocumentRoutes(server);
++    const env = { ASSETS: { fetch: () => Promise.resolve(new Response(template, { headers: { 'Content-Type': 'text/html', ETag: 'old' } })) },
++      DB: { prepare: () => ({ first: () => Promise.resolve(null) }) } } as unknown as CloudflareBindings;
++    for (const path of ['/', '/fr', '/fr/', '/en', '/en/']) {
++      const response = await server.request(`https://example.com${path}`, undefined, env);
++      expect(response.status).toBe(200);
++      expect(response.headers.get('Cache-Control')).toBe('no-store, no-transform');
++      expect(response.headers.has('ETag')).toBe(false);
++      expect(await response.text()).toContain('Static fallback');
++    }
++    expect((await server.request('https://example.com/fr/contact/', undefined, env)).status).toBe(404);
++  });
++});

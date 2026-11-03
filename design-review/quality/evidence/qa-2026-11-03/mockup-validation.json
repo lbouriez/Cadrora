@@ -1,0 +1,34 @@
+[
+  {
+    "variant": "fr-404.html",
+    "lang": "fr",
+    "title": "Page introuvable | Cadrora",
+    "violations": [],
+    "overflow": false,
+    "focus": "Portfolio"
+  },
+  {
+    "variant": "en-404.html",
+    "lang": "en",
+    "title": "Page not found | Cadrora",
+    "violations": [],
+    "overflow": false,
+    "focus": "Portfolio"
+  },
+  {
+    "variant": "fr-503.html",
+    "lang": "fr",
+    "title": "Le chargement a été interrompu. | Cadrora",
+    "violations": [],
+    "overflow": false,
+    "focus": "Réessayer"
+  },
+  {
+    "variant": "en-503.html",
+    "lang": "en",
+    "title": "Loading was interrupted. | Cadrora",
+    "violations": [],
+    "overflow": false,
+    "focus": "Try again"
+  }
+]

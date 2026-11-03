@@ -65,3 +65,8 @@
 .site-startup__content p { line-height: 1.6; }
 .site-startup__content nav { display: grid; gap: var(--space-2); }
 .site-startup__content a { display: block; min-height: var(--control-min-size); padding: var(--space-3); text-decoration: underline; }
+
+.site-unavailable .site-startup__identity { width: min(100%, 46rem); margin: auto; }
+.site-unavailable h1 { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 3rem); line-height: 1.15; margin: var(--space-5) 0 var(--space-4); overflow-wrap: anywhere; }
+.site-unavailable__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-4); margin: var(--space-6) 0; }
+.site-unavailable__code { letter-spacing: .16em; color: var(--color-text-muted); font-size: var(--text-sm); }

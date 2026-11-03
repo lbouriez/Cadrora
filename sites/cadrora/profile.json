@@ -2,6 +2,7 @@
   "id": "cadrora",
   "name": "Cadrora",
   "heroImageUrl": "/brand/demo-hero.webp",
+  "homeImagePreload": "full-width",
   "document": {
     "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
     "origin": "https://cadrora.com",

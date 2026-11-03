@@ -33,6 +33,7 @@ import { registerMediaRoutes } from './routes/media';
 import { registerServiceRoutes } from './routes/services';
 import { registerPortfolioRoutes } from './routes/portfolio';
 import { registerPortfolioSeoRoutes } from './routes/portfolioSeo';
+import { registerHomeDocumentRoutes } from './routes/homeDocument';
 import { registerPublicRoutes } from './routes/public';
 import { registerSearchIndexRoutes } from './routes/searchIndex';
 import { purgeAppHistory } from './services/appLog';
@@ -44,11 +45,14 @@ export { ServiceMediaCache } from './services/publicMediaCache';
 
 export const app = new Hono<AppEnv>();
 
-// Frozen order: requestId -> errorBoundary -> securityHeaders -> authContext ->
+// Frozen API/protected-route order: requestId -> errorBoundary -> securityHeaders -> authContext ->
 // abuseRateLimit -> turnstile -> rateLimit -> routes -> cacheHeaders.
 app.use('*', requestId);
 app.onError(errorBoundary);
 app.use('*', securityHeaders);
+// ADR-056: these exact public asset aliases never depend on an admin session,
+// Access assertion or API rate limiter, including when their optional D1 read fails.
+registerHomeDocumentRoutes(app);
 app.use('*', authContext);
 app.use('*', adminPageGuard);
 app.use('*', abuseRateLimit);

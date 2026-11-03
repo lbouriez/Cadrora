@@ -1,0 +1,97 @@
+[WebServer] (node:75216) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:71376) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] ▲ [WARNING] Missing required secrets: ADMIN_SECRET_HASH, AUTH_PEPPER, TURNSTILE_SECRET_KEY. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 73 tests using 2 workers
+
+(node:77100) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:39376) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  2 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:7:1 › only the opted-in Home document carries a public settings snapshot and photo hint (123ms)
+  -   1 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 320px DPR 1
+  -   4 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 390px DPR 1
+  -   5 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 390px DPR 2
+  -   6 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 768px DPR 1
+  -   7 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 768px DPR 2
+  -   8 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 1440px DPR 1
+  -   9 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 1440px DPR 2
+  -   3 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:19:5 › owner photo preload is reused at 320px DPR 2
+  ok 10 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:68:3 › collection 404 is readable and navigable without JavaScript (fr) (676ms)
+  ok 11 [desktop-chromium] › tests\e2e\home-preload-build.spec.ts:68:3 › collection 404 is readable and navigable without JavaScript (en) (617ms)
+  ok 13 [desktop-chromium] › tests\e2e\startup-build.spec.ts:14:1 › unknown documents are real localized 404s and marketing stays static (102ms)
+  -  14 [desktop-chromium] › tests\e2e\startup-build.spec.ts:136:3 › Cadrora first frame › loads lower gallery covers only when the visitor approaches them
+  -  15 [desktop-chromium] › tests\e2e\startup-build.spec.ts:173:5 › Cadrora first frame › fr exposes owner-resolved content before the display photo is ready
+  -  16 [desktop-chromium] › tests\e2e\startup-build.spec.ts:173:5 › Cadrora first frame › en exposes owner-resolved content before the display photo is ready
+  -  17 [desktop-chromium] › tests\e2e\startup-build.spec.ts:218:5 › Cadrora first frame › recovers when display hero sources fail
+  -  18 [desktop-chromium] › tests\e2e\startup-build.spec.ts:218:5 › Cadrora first frame › recovers when all hero sources fail
+  -  12 [desktop-chromium] › tests\e2e\startup-build.spec.ts:32:1 › Cadrora resolves the optional demo before exposing the sections below it
+  ok 19 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow slider-js (2.5s)
+  ok 20 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow slider-css (3.3s)
+  ok 21 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow settings (2.7s)
+  ok 23 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow font (2.2s)
+  ok 22 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow display-photo (4.4s)
+  ok 24 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow slider-js (2.6s)
+  ok 25 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow slider-css (2.6s)
+  ok 26 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow settings (2.5s)
+  ok 28 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow font (1.9s)
+  ok 27 [desktop-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow display-photo (4.1s)
+  ok 30 [desktop-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed all-photos (1.2s)
+  ok 29 [desktop-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed display-photo (1.4s)
+  ok 31 [desktop-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed slider (788ms)
+  ok 32 [desktop-chromium] › tests\e2e\startup-build.spec.ts:369:5 › immersive About first frame › fr reveals the complete About photo and title together (3.0s)
+  ok 33 [desktop-chromium] › tests\e2e\startup-build.spec.ts:369:5 › immersive About first frame › en reveals the complete About photo and title together (3.0s)
+  ok 34 [desktop-chromium] › tests\e2e\startup-build.spec.ts:455:3 › immersive About first frame › releases About when both photo sources fail (838ms)
+  ok 36 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/about/ has a styled startup before JavaScript and hands over to React (1.1s)
+  ok 35 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/ has a styled startup before JavaScript and hands over to React (1.5s)
+  ok 37 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/contact/ has a styled startup before JavaScript and hands over to React (842ms)
+  ok 38 [desktop-chromium] › tests\e2e\startup-build.spec.ts:507:3 › fr fallback navigation works with JavaScript disabled (778ms)
+  ok 40 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/about/ has a styled startup before JavaScript and hands over to React (1.2s)
+  ok 39 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/ has a styled startup before JavaScript and hands over to React (1.4s)
+  ok 42 [desktop-chromium] › tests\e2e\startup-build.spec.ts:507:3 › en fallback navigation works with JavaScript disabled (666ms)
+  ok 41 [desktop-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/contact/ has a styled startup before JavaScript and hands over to React (820ms)
+(node:64932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:78144) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 43 [mobile-chromium] › tests\e2e\startup-build.spec.ts:14:1 › unknown documents are real localized 404s and marketing stays static (102ms)
+  -  44 [mobile-chromium] › tests\e2e\startup-build.spec.ts:136:3 › Cadrora first frame › loads lower gallery covers only when the visitor approaches them
+  -  45 [mobile-chromium] › tests\e2e\startup-build.spec.ts:173:5 › Cadrora first frame › fr exposes owner-resolved content before the display photo is ready
+  -  46 [mobile-chromium] › tests\e2e\startup-build.spec.ts:173:5 › Cadrora first frame › en exposes owner-resolved content before the display photo is ready
+  -  47 [mobile-chromium] › tests\e2e\startup-build.spec.ts:218:5 › Cadrora first frame › recovers when display hero sources fail
+  -  48 [mobile-chromium] › tests\e2e\startup-build.spec.ts:218:5 › Cadrora first frame › recovers when all hero sources fail
+  -  50 [mobile-chromium] › tests\e2e\startup-build.spec.ts:32:1 › Cadrora resolves the optional demo before exposing the sections below it
+  ok 49 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow slider-js (2.9s)
+  ok 51 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow slider-css (2.9s)
+  ok 52 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow settings (2.2s)
+  ok 53 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow display-photo (2.5s)
+  ok 54 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › fr reveals one complete frame with slow font (2.3s)
+  ok 55 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow slider-js (2.8s)
+  ok 56 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow slider-css (2.9s)
+  ok 57 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow settings (2.2s)
+  ok 58 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow display-photo (2.5s)
+  ok 59 [mobile-chromium] › tests\e2e\startup-build.spec.ts:267:7 › immersive first frame › en reveals one complete frame with slow font (2.3s)
+  ok 60 [mobile-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed display-photo (1.5s)
+  ok 61 [mobile-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed all-photos (982ms)
+  ok 62 [mobile-chromium] › tests\e2e\startup-build.spec.ts:342:5 › immersive first frame › recovers from failed slider (891ms)
+  ok 63 [mobile-chromium] › tests\e2e\startup-build.spec.ts:369:5 › immersive About first frame › fr reveals the complete About photo and title together (1.4s)
+  ok 64 [mobile-chromium] › tests\e2e\startup-build.spec.ts:369:5 › immersive About first frame › en reveals the complete About photo and title together (1.4s)
+  ok 65 [mobile-chromium] › tests\e2e\startup-build.spec.ts:455:3 › immersive About first frame › releases About when both photo sources fail (1.1s)
+  ok 66 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/ has a styled startup before JavaScript and hands over to React (1.6s)
+  ok 67 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/about/ has a styled startup before JavaScript and hands over to React (1.4s)
+  ok 69 [mobile-chromium] › tests\e2e\startup-build.spec.ts:507:3 › fr fallback navigation works with JavaScript disabled (754ms)
+  ok 68 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › fr/contact/ has a styled startup before JavaScript and hands over to React (948ms)
+  ok 71 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/about/ has a styled startup before JavaScript and hands over to React (1.3s)
+  ok 70 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/ has a styled startup before JavaScript and hands over to React (1.6s)
+  ok 73 [mobile-chromium] › tests\e2e\startup-build.spec.ts:507:3 › en fallback navigation works with JavaScript disabled (795ms)
+  ok 72 [mobile-chromium] › tests\e2e\startup-build.spec.ts:473:5 › en/contact/ has a styled startup before JavaScript and hands over to React (1.0s)
+
+  20 skipped
+  53 passed (1.0m)

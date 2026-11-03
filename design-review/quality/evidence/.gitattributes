@@ -1,0 +1,4 @@
+# Preserve verbatim tool output and unified-diff context lines in review evidence.
+# Source code and review UI retain Git's normal whitespace checks.
+*.log -whitespace
+*.patch -whitespace

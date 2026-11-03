@@ -1,0 +1,39 @@
+{
+  "before": {
+    "lcpMedian": 9472,
+    "lcpRange": [
+      9348,
+      10312
+    ],
+    "heroStartMedian": 7284,
+    "heroTransferBytes": [
+      51796,
+      51796,
+      51796
+    ],
+    "cls": [
+      0,
+      0,
+      0
+    ]
+  },
+  "after": {
+    "lcpMedian": 6960,
+    "lcpRange": [
+      6948,
+      8152
+    ],
+    "heroStartMedian": 310.70000000298023,
+    "heroTransferBytes": [
+      51796,
+      51796,
+      51796
+    ],
+    "cls": [
+      0,
+      0,
+      0
+    ]
+  },
+  "limit": "Local Chromium, warm uncompressed optimized server, 390x844 DPR1, CPU4x RTT150ms/down1.6Mbps/cache off. Same actual D1, no mocks. 3+3 runs. Photo transfer scope includes preview and selected display image, not entire page. Field INP/CWV and compressed preproduction not measured."
+}

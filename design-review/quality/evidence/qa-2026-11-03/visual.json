@@ -1,0 +1,309 @@
+[
+  {
+    "path": "/fr/",
+    "width": 1440,
+    "height": 900,
+    "screenshot": "home-fr-1440.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Votre regard. Un espace à vous."
+    ],
+    "brokenImages": [],
+    "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "aria-prohibited-attr",
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/",
+    "width": 390,
+    "height": 844,
+    "screenshot": "home-en-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Your perspective. A space of your own."
+    ],
+    "brokenImages": [],
+    "title": "Self-hosted photo website and private galleries | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "aria-prohibited-attr",
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/fr/contact/",
+    "width": 390,
+    "height": 844,
+    "screenshot": "contact-fr-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Un exemple de page Contact."
+    ],
+    "brokenImages": [],
+    "title": "Contact | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/services/",
+    "width": 768,
+    "height": 1024,
+    "screenshot": "sessions-en-768.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "An example Sessions page."
+    ],
+    "brokenImages": [],
+    "title": "Photography sessions and services | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/fr/privacy/",
+    "width": 1440,
+    "height": 900,
+    "screenshot": "privacy-fr-1440.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Politique de confidentialité"
+    ],
+    "brokenImages": [],
+    "title": "Confidentialité | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/about/",
+    "width": 390,
+    "height": 844,
+    "screenshot": "about-en-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "An example studio introduction"
+    ],
+    "brokenImages": [],
+    "title": "An example studio introduction | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/fr/portfolio/",
+    "width": 1440,
+    "height": 900,
+    "screenshot": "portfolio-fr-1440.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Un exemple de portfolio."
+    ],
+    "brokenImages": [
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-wedding-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-wedding-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-brand-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-brand-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-corporate-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-corporate-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-children-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-children-01/preview"
+    ],
+    "title": "Portfolio | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/portfolio/family",
+    "width": 390,
+    "height": 844,
+    "screenshot": "collection-en-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [],
+    "brokenImages": [],
+    "title": "",
+    "axe": {
+      "violations": [
+        {
+          "id": "document-title",
+          "impact": "serious",
+          "description": "Ensure each HTML document contains a non-empty <title> element",
+          "nodes": [
+            {
+              "html": "<html><head><meta name=\"robots\" content=\"noindex,nofollow\"><script src=\"http://127.0.0.1:5207/__qa/axe.js\"></script></head><body></body></html>",
+              "target": [
+                "html"
+              ],
+              "failure": "Fix any of the following:\n  Document does not have a non-empty <title> element"
+            }
+          ]
+        },
+        {
+          "id": "html-has-lang",
+          "impact": "serious",
+          "description": "Ensure every HTML document has a lang attribute",
+          "nodes": [
+            {
+              "html": "<html><head><meta name=\"robots\" content=\"noindex,nofollow\"><script src=\"http://127.0.0.1:5207/__qa/axe.js\"></script></head><body></body></html>",
+              "target": [
+                "html"
+              ],
+              "failure": "Fix any of the following:\n  The <html> element does not have a lang attribute"
+            }
+          ]
+        }
+      ],
+      "incomplete": []
+    }
+  },
+  {
+    "path": "/en/contact/",
+    "width": 320,
+    "height": 844,
+    "screenshot": "contact-en-320.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "An example Contact page."
+    ],
+    "brokenImages": [],
+    "title": "Contact | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/fr/",
+    "width": 768,
+    "height": 1024,
+    "screenshot": "home-fr-768.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Votre regard. Un espace à vous."
+    ],
+    "brokenImages": [],
+    "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "aria-prohibited-attr",
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/portfolio/familles/",
+    "width": 390,
+    "height": 844,
+    "screenshot": "collection-existing-en-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [
+      "Family moments"
+    ],
+    "brokenImages": [
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-01/small",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-02/preview",
+      "http://127.0.0.1:5207/portfolio-media/demo-portfolio-family-02/small"
+    ],
+    "title": "Family moments | Cadrora",
+    "brand": "Cadrora",
+    "axe": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    }
+  },
+  {
+    "path": "/en/portfolio/qa-inexistent-collection/",
+    "width": 390,
+    "height": 844,
+    "screenshot": "collection-missing-en-390.png",
+    "conditions": "Build production actuel; /api/v1/site remplacé par réglages Cadrora publics fictifs. Autres API locales réelles (R2 portfolio incomplet).",
+    "overflow": false,
+    "h1": [],
+    "brokenImages": [],
+    "title": "",
+    "axe": {
+      "violations": [
+        {
+          "id": "document-title",
+          "impact": "serious",
+          "description": "Ensure each HTML document contains a non-empty <title> element",
+          "nodes": [
+            {
+              "html": "<html><head><meta name=\"robots\" content=\"noindex,nofollow\"><script src=\"http://127.0.0.1:5207/__qa/axe.js\"></script></head><body></body></html>",
+              "target": [
+                "html"
+              ],
+              "failure": "Fix any of the following:\n  Document does not have a non-empty <title> element"
+            }
+          ]
+        },
+        {
+          "id": "html-has-lang",
+          "impact": "serious",
+          "description": "Ensure every HTML document has a lang attribute",
+          "nodes": [
+            {
+              "html": "<html><head><meta name=\"robots\" content=\"noindex,nofollow\"><script src=\"http://127.0.0.1:5207/__qa/axe.js\"></script></head><body></body></html>",
+              "target": [
+                "html"
+              ],
+              "failure": "Fix any of the following:\n  The <html> element does not have a lang attribute"
+            }
+          ]
+        }
+      ],
+      "incomplete": []
+    }
+  }
+]

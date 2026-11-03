@@ -1,0 +1,40 @@
+[WebServer] (node:56916) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:57128) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9230 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 9 tests using 2 workers
+
+(node:54088) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:78336) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics true) (2.4s)
+  ok 2 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics false) (2.5s)
+  ok 3 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics false) (2.6s)
+  ok 4 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics true) (2.6s)
+  ok 6 [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (1.7s)
+  ok 5 [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control (2.3s)
+(node:75888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 7 [desktop-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier (1.8s)
+(node:41136) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 8 [mobile-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (1.7s)
+  ok 9 [mobile-chromium] › tests\e2e\public-website.spec.ts:416:3 › site vitrine statique › un nom long reste entier avec des commandes séparées et utilisables au clavier (1.8s)
+
+  9 passed (27.0s)

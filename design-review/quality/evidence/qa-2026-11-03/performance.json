@@ -1,0 +1,236 @@
+{
+  "conditions": "Chromium 153.0.8010.12; Windows local optimized build; 390x844 DPR1; cache disabled; CPU4x; RTT150ms; download1.6Mbps/upload750Kbps; server warm; settings fixture; 6.5s after load; CLS sum of shifts without recent input, no interaction INP or field data.",
+  "runs": [
+    {
+      "path": "/fr/",
+      "run": 1,
+      "lcp": {
+        "start": 6320,
+        "size": 249600,
+        "url": "http://127.0.0.1:5207/home-hero-image/small",
+        "tag": "IMG"
+      },
+      "cls": 0,
+      "shifts": [],
+      "longTasks": [
+        157,
+        65,
+        420,
+        56,
+        67
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2300
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2300
+        }
+      ],
+      "hero": [
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 4730.70000000298,
+          "duration": 375.59999999403954,
+          "bytes": 14438
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 4731.70000000298,
+          "duration": 499.79999999701977,
+          "bytes": 37358
+        }
+      ]
+    },
+    {
+      "path": "/fr/",
+      "run": 2,
+      "lcp": {
+        "start": 6368,
+        "size": 249600,
+        "url": "http://127.0.0.1:5207/home-hero-image/small",
+        "tag": "IMG"
+      },
+      "cls": 0,
+      "shifts": [],
+      "longTasks": [
+        187,
+        61,
+        460,
+        54,
+        77
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2268
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2268
+        }
+      ],
+      "hero": [
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 4786.29999999702,
+          "duration": 375.30000001192093,
+          "bytes": 14438
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 4787.9000000059605,
+          "duration": 484.29999999701977,
+          "bytes": 37358
+        }
+      ]
+    },
+    {
+      "path": "/fr/",
+      "run": 3,
+      "lcp": {
+        "start": 9056,
+        "size": 249600,
+        "url": "http://127.0.0.1:5207/home-hero-image/small",
+        "tag": "IMG"
+      },
+      "cls": 0,
+      "shifts": [],
+      "longTasks": [
+        843,
+        248,
+        50,
+        64,
+        1392,
+        306,
+        432,
+        152,
+        111
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2332
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2332
+        }
+      ],
+      "hero": [
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/preview",
+          "start": 6717.600000008941,
+          "duration": 383.5,
+          "bytes": 14438
+        },
+        {
+          "name": "http://127.0.0.1:5207/home-hero-image/small",
+          "start": 6720.800000011921,
+          "duration": 506.79999999701977,
+          "bytes": 37358
+        }
+      ]
+    },
+    {
+      "path": "/en/contact/",
+      "run": 1,
+      "lcp": {
+        "start": 6944,
+        "size": 45537,
+        "url": "",
+        "tag": "P"
+      },
+      "cls": 0.0414166406057873,
+      "shifts": [
+        {
+          "start": 6289.29999999702,
+          "value": 0.0414166406057873
+        }
+      ],
+      "longTasks": [
+        886,
+        844,
+        104,
+        102
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2280
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2280
+        }
+      ],
+      "hero": []
+    },
+    {
+      "path": "/en/contact/",
+      "run": 2,
+      "lcp": {
+        "start": 5940,
+        "size": 45537,
+        "url": "",
+        "tag": "P"
+      },
+      "cls": 0.0414166406057873,
+      "shifts": [
+        {
+          "start": 5260.5999999940395,
+          "value": 0.0414166406057873
+        }
+      ],
+      "longTasks": [
+        494,
+        508
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2288
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2288
+        }
+      ],
+      "hero": []
+    },
+    {
+      "path": "/en/contact/",
+      "run": 3,
+      "lcp": {
+        "start": 5420,
+        "size": 45537,
+        "url": "",
+        "tag": "P"
+      },
+      "cls": 0.0414166406057873,
+      "shifts": [
+        {
+          "start": 4775.29999999702,
+          "value": 0.0414166406057873
+        }
+      ],
+      "longTasks": [
+        216,
+        370
+      ],
+      "paint": [
+        {
+          "name": "first-paint",
+          "start": 2296
+        },
+        {
+          "name": "first-contentful-paint",
+          "start": 2296
+        }
+      ],
+      "hero": []
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+
+> cadrora@0.1.0 check
+> npm run typecheck && npm run lint
+
+
+> cadrora@0.1.0 typecheck
+> tsc -b
+
+
+> cadrora@0.1.0 lint
+> eslint . --max-warnings 0
+

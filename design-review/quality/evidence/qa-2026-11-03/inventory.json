@@ -1,0 +1,60 @@
+{
+  "revision": "886603d1fbdfb710d812e923a4cb7d5fa480f469",
+  "mode": "review",
+  "capturedAt": "2026-11-03T15:29:11.613Z",
+  "scope": "Website public Cadrora FR/EN et contrats UI visiteurs; contrôles partagés Atelier; publication Cloudflare non autorisée.",
+  "baseline": "Implementation courante; aucune référence de design historique imposée.",
+  "treeBefore": "?? .codex-remote-attachments/",
+  "checks": [
+    {
+      "area": "Marketing",
+      "routes": [
+        "/fr",
+        "/en",
+        "/contact",
+        "/privacy",
+        "/about",
+        "/services",
+        "/portfolio",
+        "/portfolio/:slug"
+      ],
+      "controls": "navigation, langue, menu, thème, liens contact/séance, actualisation, retour",
+      "states": "normal, API indisponible, collection vide/erreur, route absente",
+      "evidence": "captures desktop/mobile/tablet, HTTP, console, e2e"
+    },
+    {
+      "area": "Galeries",
+      "routes": [
+        "/galleries",
+        "/e/:slug",
+        "/e/:slug/photo/:photoId",
+        "/e/:slug/find"
+      ],
+      "controls": "déverrouillage, visionneuse, filtre/sélection, téléchargement, consentement selfie",
+      "states": "public, protégé, introuvable, erreur, vide",
+      "evidence": "e2e APIs/Turnstile simulés; pas de donnée client ni transaction"
+    },
+    {
+      "area": "Accessibilité",
+      "controls": "Tab/ShiftTab, Escape, lien évitement, menu, consentement, focus",
+      "states": "390,320,768,1440; texte 200%; mouvement réduit",
+      "evidence": "axe+clavier+catures; pas de lecteur écran ni téléphone physique"
+    },
+    {
+      "area": "Performance",
+      "states": "build optimisé, cache froid, mobile réseau/CPU limités",
+      "evidence": "3 essais locaux LCP/CLS; aucune mesure terrain/INP certifiée"
+    },
+    {
+      "area": "Release",
+      "controls": "check,tests,build,CI,artefacts,SEO,auth anonyme",
+      "states": "local, GitHub exact SHA, GET public",
+      "evidence": "logs et matrice, aucun déploiement"
+    }
+  ],
+  "exploratory": [
+    "Panne des settings puis navigation contact/pricing, double retour de langue",
+    "Nom long + texte agrandi + consentement + focus clavier",
+    "Collection introuvable et accès admin anonyme"
+  ]
+}
