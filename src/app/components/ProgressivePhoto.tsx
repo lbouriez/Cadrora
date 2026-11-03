@@ -113,6 +113,7 @@ export function ProgressivePhoto({ alt, className, enabled = true, fit = 'cover'
     if (failed) {
       if (optimized) {
         optimizedFailed.current = true;
+        setOptimizedReady(false);
         if (previewFailed.current || previewDecoded.current) reportVisualReady();
       } else {
         previewFailed.current = true;

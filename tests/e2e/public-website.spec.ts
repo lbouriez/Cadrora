@@ -22,6 +22,43 @@ test.describe('site vitrine statique', () => {
     });
   });
 
+  for (const language of ['fr', 'en']) {
+    for (const outcome of ['loaded', 'failed'] as const) {
+      test(`transparent featured logo preserves its preview until the display image ${outcome}: ${language}`, async ({ page }) => {
+        let releaseDisplay = () => {};
+        const displayGate = new Promise<void>((resolve) => { releaseDisplay = resolve; });
+        await page.route(/\/brand\/(?:responsive\/atelier-giulia-logo-\d+\.webp|atelier-giulia-logo\.png)$/u, async (route) => {
+          if (route.request().url().endsWith('-32.webp')) { await route.continue(); return; }
+          await displayGate;
+          if (outcome === 'failed') await route.abort();
+          else await route.continue();
+        });
+        try {
+          await page.goto(`/${language}/`, { waitUntil: 'domcontentloaded' });
+          const logo = page.locator('.featured-site-card__logo');
+          await logo.scrollIntoViewIfNeeded();
+          const preview = logo.locator('.progressive-photo__preview');
+          const display = logo.locator('.progressive-photo__optimized');
+          await expect(display).toHaveCount(1);
+          await expect.poll(() => preview.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+          await expect(preview).toHaveCSS('opacity', '1');
+          await expect(display).toHaveCSS('opacity', '0');
+          releaseDisplay();
+          await expect.poll(() => display.evaluate((image: HTMLImageElement) => image.complete)).toBe(true);
+          if (outcome === 'loaded') {
+            await expect(preview).toHaveCSS('opacity', '0');
+            await expect(display).toHaveCSS('opacity', '1');
+            await expect.poll(() => display.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+          } else {
+            await expect(preview).toHaveCSS('opacity', '1');
+            await expect(display).toHaveCSS('opacity', '0');
+            await expect(logo).not.toHaveClass(/progressive-photo--ready/u);
+          }
+        } finally { releaseDisplay(); }
+      });
+    }
+  }
+
   test('editorial Home exposes owner-resolved copy while its selected photo loads', async ({ page }) => {
     let releaseImage = () => {};
     const imageReady = new Promise<void>((resolve) => { releaseImage = resolve; });

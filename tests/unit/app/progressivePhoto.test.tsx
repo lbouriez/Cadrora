@@ -167,6 +167,20 @@ describe('ProgressivePhoto', () => {
     expect(container.firstElementChild).not.toHaveClass('progressive-photo--ready');
   });
 
+  it('restores the preview if a later responsive display request fails', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(80);
+    const { container } = render(<ProgressivePhoto alt="Transparent logo" height={256} width={256} priority
+      sizes="80px" sources={[{ url: '/preview.webp', width: 32 }, { url: '/display.png', width: 256 }]} />);
+    const preview = screen.getByRole('img');
+    const display = container.querySelector('.progressive-photo__optimized') as HTMLImageElement;
+    fireEvent.load(preview);
+    fireEvent.load(display);
+    expect(container.firstElementChild).toHaveClass('progressive-photo--ready');
+    fireEvent.error(display);
+    expect(container.firstElementChild).not.toHaveClass('progressive-photo--ready');
+    expect(preview).toBeInTheDocument();
+  });
+
   it('updates the responsive size when its frame changes without a window resize', () => {
     let frameWidth = 350;
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => frameWidth);
