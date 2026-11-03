@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { Button, Input } from '../components';
 import { siteProfile } from '../public/siteProfile';
+import { getPublicSiteSettings } from '../public/api';
+import metadataCopy from '../../shared/i18n/adminMetadata.json';
 
 export type TurnstileTokenProvider = () => Promise<string>;
 
@@ -42,7 +45,23 @@ async function login(password: string, turnstileToken: string, demoMode: boolean
 
 /** Password login surface. The app integration supplies its rendered Turnstile token provider. */
 export function AdminLoginPage({ demoMode = false, onAuthenticated, requestTurnstileToken }: AdminLoginPageProps) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const settings = useQuery({ queryKey: ['public-site-settings'], queryFn: getPublicSiteSettings,
+    retry: false, retryOnMount: false, staleTime: 60_000 });
+  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
+  const siteName = settings.data?.siteName ?? siteProfile.siteName;
+  useEffect(() => {
+    // A client-side link to login must also discard the previous public page's identity.
+    document.title = `${metadataCopy[language].title} | ${siteName}`;
+    document.querySelectorAll('link[rel="canonical"], link[rel="alternate"][hreflang], meta[property^="og:"], meta[name^="twitter:"], #site-organization')
+      .forEach((element) => element.remove());
+    for (const [name, content] of [['description', metadataCopy[language].description], ['robots', 'noindex,nofollow']] as const) {
+      const meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`) ?? document.createElement('meta');
+      meta.name = name;
+      meta.content = content;
+      if (!meta.parentNode) document.head.append(meta);
+    }
+  }, [language, siteName]);
   const [error, setError] = useState<'configuration' | 'credentials' | 'turnstile' | null>(null);
   const [pending, setPending] = useState(false);
 

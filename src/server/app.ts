@@ -4,6 +4,7 @@ import { eventGrantCookie, eventGrantSigningSecret } from './auth';
 import { ApiException } from '../shared/errors/ApiError';
 import { apiErrorResponse } from './http/apiErrorResponse';
 import { clientDocumentPath } from './http/clientDocument';
+import { adminLoginDocument } from './http/adminLoginDocument';
 import {
   adminCsrf,
   abuseRateLimit,
@@ -98,10 +99,18 @@ app.notFound(async (context) => {
       ? new Request(new URL(shell, context.req.url), { method: context.req.method }) : context.req.raw);
     if (!response.headers.get('Content-Type')?.includes('text/html')) return response;
     const headers = new Headers(response.headers);
-    headers.set('Cache-Control', context.req.path === '/admin' || context.req.path.startsWith('/admin/') ? 'no-store'
+    const isAdmin = context.req.path === '/admin' || context.req.path.startsWith('/admin/');
+    headers.set('Cache-Control', isAdmin ? 'no-store'
       : 'public, max-age=0, must-revalidate, no-transform');
-    if (response.status === 404) headers.set('X-Robots-Tag', 'noindex, nofollow');
+    if (response.status === 404 || isAdmin) headers.set('X-Robots-Tag', 'noindex, nofollow');
     if (context.req.path.startsWith('/e/')) headers.set('X-Robots-Tag', 'noindex, nofollow');
+    if (context.req.path === '/admin/login' && response.ok) {
+      headers.delete('Content-Length');
+      headers.delete('ETag');
+      return new Response(await adminLoginDocument(await response.text(), context.env), {
+        status: response.status, statusText: response.statusText, headers,
+      });
+    }
     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
   }
   return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');

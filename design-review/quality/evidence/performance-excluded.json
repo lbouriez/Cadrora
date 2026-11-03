@@ -1,0 +1,249 @@
+{
+  "reason": "Le troisième passage a chevauché les contrôles TypeScript et Vitest. Exclu de la série comparable ; remplacé après leur fin.",
+  "run": {
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+    "metrics": {
+      "lcp": [
+        {
+          "time": 2784,
+          "size": 3456,
+          "url": "",
+          "element": "<p class=\"site-startup__brand\">Cadrora</p>"
+        },
+        {
+          "time": 6696,
+          "size": 51554,
+          "url": "",
+          "element": "<h1>Votre regard. Un espace à vous.</h1>"
+        },
+        {
+          "time": 8268,
+          "size": 253110,
+          "url": "http://127.0.0.1:5190/home-hero-image/small",
+          "element": "<img alt=\"\" aria-hidden=\"true\" class=\"progressive-photo__optimized\" decoding=\"async\" fetchpriority=\"high\" loading=\"eager\" sizes=\"390px\" srcset=\"/home-hero-image/preview 320w, /home-hero-image/small 640w\" src=\"/home-hero-image/small\">"
+        }
+      ],
+      "cls": [],
+      "longtasks": [
+        {
+          "start": 4573.099999997765,
+          "duration": 563
+        },
+        {
+          "start": 5140.199999999255,
+          "duration": 188
+        },
+        {
+          "start": 5503.599999997765,
+          "duration": 1035
+        },
+        {
+          "start": 6539.29999999702,
+          "duration": 146
+        },
+        {
+          "start": 6803.79999999702,
+          "duration": 166
+        },
+        {
+          "start": 6976.39999999851,
+          "duration": 73
+        },
+        {
+          "start": 7125,
+          "duration": 65
+        }
+      ]
+    },
+    "resources": [
+      {
+        "url": "/assets/index-B3B3Gaet.js",
+        "start": 776.5,
+        "duration": 3754.199999999255,
+        "transfer": 388211,
+        "encoded": 387911,
+        "type": "script"
+      },
+      {
+        "url": "/assets/rolldown-runtime-W7wSyTde.js",
+        "start": 777.5,
+        "duration": 234.29999999701977,
+        "transfer": 1279,
+        "encoded": 979,
+        "type": "other"
+      },
+      {
+        "url": "/assets/jsx-runtime-DLyUyuBb.js",
+        "start": 777.5999999977648,
+        "duration": 405.30000000074506,
+        "transfer": 8592,
+        "encoded": 8292,
+        "type": "other"
+      },
+      {
+        "url": "/assets/preload-helper-BZ1Pz5am.js",
+        "start": 777.6999999992549,
+        "duration": 249.59999999776483,
+        "transfer": 1518,
+        "encoded": 1218,
+        "type": "other"
+      },
+      {
+        "url": "/assets/components-D56sAiOz.js",
+        "start": 777.6999999992549,
+        "duration": 1534.5,
+        "transfer": 62487,
+        "encoded": 62187,
+        "type": "other"
+      },
+      {
+        "url": "/assets/portfolio-BzjsYIw5.js",
+        "start": 777.7999999970198,
+        "duration": 2528.60000000149,
+        "transfer": 140138,
+        "encoded": 139838,
+        "type": "other"
+      },
+      {
+        "url": "/assets/index-H16hqM_d.css",
+        "start": 777.8999999985099,
+        "duration": 1908.300000000745,
+        "transfer": 88717,
+        "encoded": 88417,
+        "type": "link"
+      },
+      {
+        "url": "/public-requests.js",
+        "start": 778.8999999985099,
+        "duration": 470.3999999985099,
+        "transfer": 1553,
+        "encoded": 1253,
+        "type": "script"
+      },
+      {
+        "url": "/api/v1/site",
+        "start": 1261.2999999970198,
+        "duration": 6,
+        "transfer": 1140,
+        "encoded": 840,
+        "type": "fetch"
+      },
+      {
+        "url": "/api/v1/services",
+        "start": 1263,
+        "duration": 241.59999999776483,
+        "transfer": 1792,
+        "encoded": 1492,
+        "type": "fetch"
+      },
+      {
+        "url": "/api/v1/galleries",
+        "start": 6495.099999997765,
+        "duration": 268.19999999925494,
+        "transfer": 2893,
+        "encoded": 2593,
+        "type": "fetch"
+      },
+      {
+        "url": "/brand/responsive/cadrora-logo-32.webp",
+        "start": 6535.89999999851,
+        "duration": 211.39999999850988,
+        "transfer": 1524,
+        "encoded": 1224,
+        "type": "img"
+      },
+      {
+        "url": "/home-hero-image/preview",
+        "start": 6536.5,
+        "duration": 382.0999999977648,
+        "transfer": 14438,
+        "encoded": 14138,
+        "type": "img"
+      },
+      {
+        "url": "/home-hero-image/small",
+        "start": 6539,
+        "duration": 489.29999999701977,
+        "transfer": 37358,
+        "encoded": 37058,
+        "type": "img"
+      },
+      {
+        "url": "/brand/responsive/demo-face-search-test-portrait-amelia-64.webp",
+        "start": 6685.099999997765,
+        "duration": 202.80000000074506,
+        "transfer": 1508,
+        "encoded": 1208,
+        "type": "img"
+      }
+    ],
+    "navigation": {
+      "name": "http://127.0.0.1:5190/fr/",
+      "entryType": "navigation",
+      "startTime": 0,
+      "duration": 5134.29999999702,
+      "navigationId": 5692,
+      "initiatorType": "navigation",
+      "deliveryType": "",
+      "nextHopProtocol": "http/1.1",
+      "renderBlockingStatus": "non-blocking",
+      "contentType": "text/html",
+      "contentEncoding": "",
+      "workerStart": 0,
+      "workerRouterEvaluationStart": 0,
+      "workerCacheLookupStart": 0,
+      "workerMatchedSourceType": "",
+      "workerFinalSourceType": "",
+      "redirectStart": 0.29999999701976776,
+      "redirectEnd": 190.89999999850988,
+      "fetchStart": 190.89999999850988,
+      "domainLookupStart": 190.89999999850988,
+      "domainLookupEnd": 190.89999999850988,
+      "connectStart": 190.89999999850988,
+      "secureConnectionStart": 0,
+      "connectEnd": 190.89999999850988,
+      "requestStart": 194.59999999776483,
+      "responseStart": 201.39999999850988,
+      "firstInterimResponseStart": 0,
+      "finalResponseHeadersStart": 201.39999999850988,
+      "responseEnd": 390.0999999977648,
+      "transferSize": 4212,
+      "encodedBodySize": 3912,
+      "decodedBodySize": 3912,
+      "responseStatus": 200,
+      "serverTiming": [],
+      "unloadEventStart": 0,
+      "unloadEventEnd": 0,
+      "domInteractive": 908.1999999992549,
+      "domContentLoadedEventStart": 5131.699999999255,
+      "domContentLoadedEventEnd": 5132,
+      "domComplete": 5134.099999997765,
+      "loadEventStart": 5134.29999999702,
+      "loadEventEnd": 5134.29999999702,
+      "type": "navigate",
+      "redirectCount": 1,
+      "activationStart": 0,
+      "criticalCHRestart": 0,
+      "notRestoredReasons": null,
+      "confidence": {
+        "randomizedTriggerRate": 0.4994798,
+        "value": "low"
+      }
+    },
+    "hero": [
+      {
+        "currentSrc": "http://127.0.0.1:5190/home-hero-image/preview",
+        "width": 390,
+        "naturalWidth": 320,
+        "complete": true
+      },
+      {
+        "currentSrc": "http://127.0.0.1:5190/home-hero-image/small",
+        "width": 390,
+        "naturalWidth": 390,
+        "complete": true
+      }
+    ],
+    "time": 15020
+  }
+}

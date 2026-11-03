@@ -1,0 +1,389 @@
+[
+  {
+    "id": "single-language",
+    "fixture": {
+      "enabledLanguages": [
+        "fr"
+      ],
+      "defaultLanguage": "fr"
+    },
+    "initialStatus": 200,
+    "initial": {
+      "lang": "en",
+      "title": "Contact | Cadrora",
+      "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website.",
+      "robots": null,
+      "canonical": "https://cadrora.com/en/contact/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/contact/"
+        }
+      ],
+      "og": {
+        "title": "Contact | Cadrora",
+        "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/en/contact/"
+      },
+      "twitter": {
+        "title": "Contact | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Contact | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Private photo galleries and photographer website | Cadrora",
+          "href": "/en/"
+        },
+        {
+          "text": "Photography sessions and services | Cadrora",
+          "href": "/en/services/"
+        },
+        {
+          "text": "Photography portfolio | Cadrora",
+          "href": "/en/portfolio/"
+        },
+        {
+          "text": "About | Cadrora",
+          "href": "/en/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/en/contact/"
+        },
+        {
+          "text": "Privacy | Cadrora",
+          "href": "/en/privacy/"
+        }
+      ]
+    },
+    "renderedUrl": "http://127.0.0.1:5204/fr/contact?source=seo#contact",
+    "rendered": {
+      "lang": "fr",
+      "title": "Contact | Cadrora",
+      "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/fr/contact/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/contact/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/contact/"
+        }
+      ],
+      "og": {
+        "title": "Contact | Cadrora",
+        "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/contact/"
+      },
+      "twitter": {
+        "title": "Contact | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Un exemple de page Contact."
+      ],
+      "links": [
+        {
+          "text": "Aller au contenu",
+          "href": "#public-content"
+        },
+        {
+          "text": "Cadrora",
+          "href": "/fr"
+        },
+        {
+          "text": "Accueil",
+          "href": "/fr"
+        },
+        {
+          "text": "Séances",
+          "href": "/fr/services"
+        },
+        {
+          "text": "Portfolio",
+          "href": "/fr/portfolio"
+        },
+        {
+          "text": "Galeries",
+          "href": "/galleries"
+        },
+        {
+          "text": "À propos",
+          "href": "/fr/about"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "bonjour@example.com",
+          "href": "mailto:bonjour@example.com"
+        },
+        {
+          "text": "Confidentialité",
+          "href": "/fr/privacy"
+        },
+        {
+          "text": "Démo admin",
+          "href": "/admin/login?demo=1"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "Lire l'avis de confidentialité",
+          "href": "/fr/privacy"
+        }
+      ]
+    }
+  },
+  {
+    "id": "about-disabled",
+    "fixture": {
+      "aboutEnabled": false
+    },
+    "initialStatus": 200,
+    "initial": {
+      "lang": "fr",
+      "title": "À propos | Cadrora",
+      "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora.",
+      "robots": null,
+      "canonical": "https://cadrora.com/fr/about/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/about/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/about/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/about/"
+        }
+      ],
+      "og": {
+        "title": "À propos | Cadrora",
+        "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/about/"
+      },
+      "twitter": {
+        "title": "À propos | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "À propos | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Galeries photo privées et site photographe | Cadrora",
+          "href": "/fr/"
+        },
+        {
+          "text": "Séances et services photo | Cadrora",
+          "href": "/fr/services/"
+        },
+        {
+          "text": "Portfolio photo | Cadrora",
+          "href": "/fr/portfolio/"
+        },
+        {
+          "text": "À propos | Cadrora",
+          "href": "/fr/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/fr/contact/"
+        },
+        {
+          "text": "Confidentialité | Cadrora",
+          "href": "/fr/privacy/"
+        }
+      ]
+    },
+    "renderedUrl": "http://127.0.0.1:5204/fr",
+    "rendered": {
+      "lang": "fr",
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/fr/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/"
+        }
+      ],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Votre regard. Un espace à vous."
+      ],
+      "links": [
+        {
+          "text": "Aller au contenu",
+          "href": "#public-content"
+        },
+        {
+          "text": "Cadrora",
+          "href": "/fr"
+        },
+        {
+          "text": "Accueil",
+          "href": "/fr"
+        },
+        {
+          "text": "Séances",
+          "href": "/fr/services"
+        },
+        {
+          "text": "Portfolio",
+          "href": "/fr/portfolio"
+        },
+        {
+          "text": "Galeries",
+          "href": "/galleries"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "href": "#demo"
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "href": "#installation"
+        },
+        {
+          "text": "Essayer la recherche de photos avec l’IA",
+          "href": "/e/find-your-photos/find"
+        },
+        {
+          "text": "Explorer la galerie publique",
+          "href": "/e/lumiere-et-promesses"
+        },
+        {
+          "text": "Déverrouiller la démo privée",
+          "href": "/e/instants-en-famille"
+        },
+        {
+          "text": "Ouvrir l'admin en lecture seule",
+          "href": "/admin/login?demo=1"
+        },
+        {
+          "text": "Atelier GiuliaPortraits, célébrations et galeries photo sur un site adapté au studio.Visiter le site ↗",
+          "href": "https://ateliergiulia.com/"
+        },
+        {
+          "text": "Voir toutes les séances",
+          "href": "/fr/services"
+        },
+        {
+          "text": "Découvrir le portfolio",
+          "href": "/fr/portfolio"
+        },
+        {
+          "text": "Événements30 août 2026Retrouvez vos photosDémonstration de recherche de photos : dix-neuf images fictives avec plusieurs invités. Essayez « Trouver mes photos » pour voir les correspondances possibles et les images prises au même moment.→",
+          "href": "/e/find-your-photos"
+        },
+        {
+          "text": "Mariage14 juin 2026Lumière et promessesUne célébration d’été racontée avec naturel, de la cérémonie jusqu’aux éclats de rire sur la piste de danse. Photos fictives créées pour la démonstration Cadrora.→",
+          "href": "/e/lumiere-et-promesses"
+        },
+        {
+          "text": "Lire le guide d’installation sur GitHub ↗",
+          "href": "https://github.com/lbouriez/Cadrora/blob/main/docs/deployment.md"
+        },
+        {
+          "text": "Confidentialité",
+          "href": "/fr/privacy"
+        },
+        {
+          "text": "Démo admin",
+          "href": "/admin/login?demo=1"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "Lire l'avis de confidentialité",
+          "href": "/fr/privacy"
+        }
+      ]
+    }
+  }
+]

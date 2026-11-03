@@ -1,0 +1,537 @@
+--- a/src/server/http/adminLoginDocument.ts
++++ b/src/server/http/adminLoginDocument.ts
+@@ -0,0 +1,32 @@
++import copy from '../../shared/i18n/adminMetadata.json';
++import { SiteSettingsSchema } from '../../shared/schemas/site';
++
++function escapeHtml(value: string): string {
++  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
++    .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
++}
++
++/** Called only after the existing admin guard; metadata never grants access. */
++export async function adminLoginDocument(template: string, env: CloudflareBindings): Promise<string> {
++  let language: 'fr' | 'en' = env.SITE_DEFAULT_LANG === 'en' ? 'en' : 'fr';
++  let siteName = env.SITE_NAME || '';
++  try {
++    const row = await env.DB.prepare('SELECT site_name, default_language FROM site_settings WHERE id = 1')
++      .first<{ site_name: unknown; default_language: unknown }>();
++    const name = SiteSettingsSchema.shape.siteName.safeParse(row?.site_name);
++    const locale = SiteSettingsSchema.shape.defaultLanguage.safeParse(row?.default_language);
++    if (name.success) siteName = name.data;
++    if (locale.success) language = locale.data;
++  } catch { /* A settings outage must not block the login form. */ }
++  const title = escapeHtml(`${copy[language].title}${siteName ? ` | ${siteName}` : ''}`);
++  const description = escapeHtml(copy[language].description);
++  return template
++    .replace(/(<html\b[^>]*\blang=")[^"]*/u, `$1${language}`)
++    .replace(/<title>[^<]*<\/title>/u, () => `<title>${title}</title>`)
++    .replace(/<meta\b[^>]*\b(?:name="(?:description|robots|twitter:[^"]+)"|property="og:[^"]+")[^>]*>/gu, '')
++    .replace(/<link\b[^>]*\brel="(?:canonical|alternate)"[^>]*>/gu, '')
++    .replace(/<script id="site-organization"[^>]*>[\s\S]*?<\/script>/u, '')
++    .replace('</head>', () => `<meta name="description" content="${description}"><meta name="robots" content="noindex,nofollow"></head>`)
++    .replace(/<div id="root">[\s\S]*?<\/div>/u,
++      () => `<div id="root"><main class="site-startup"><section class="site-startup__identity"><h1>${title}</h1><p>${description}</p></section></main></div>`);
++}
+--- a/src/server/app.ts
++++ b/src/server/app.ts
+@@ -4,6 +4,7 @@
+ import { ApiException } from '../shared/errors/ApiError';
+ import { apiErrorResponse } from './http/apiErrorResponse';
+ import { clientDocumentPath } from './http/clientDocument';
++import { adminLoginDocument } from './http/adminLoginDocument';
+ import {
+   adminCsrf,
+   abuseRateLimit,
+@@ -98,10 +99,18 @@
+       ? new Request(new URL(shell, context.req.url), { method: context.req.method }) : context.req.raw);
+     if (!response.headers.get('Content-Type')?.includes('text/html')) return response;
+     const headers = new Headers(response.headers);
+-    headers.set('Cache-Control', context.req.path === '/admin' || context.req.path.startsWith('/admin/') ? 'no-store'
++    const isAdmin = context.req.path === '/admin' || context.req.path.startsWith('/admin/');
++    headers.set('Cache-Control', isAdmin ? 'no-store'
+       : 'public, max-age=0, must-revalidate, no-transform');
+-    if (response.status === 404) headers.set('X-Robots-Tag', 'noindex, nofollow');
++    if (response.status === 404 || isAdmin) headers.set('X-Robots-Tag', 'noindex, nofollow');
+     if (context.req.path.startsWith('/e/')) headers.set('X-Robots-Tag', 'noindex, nofollow');
++    if (context.req.path === '/admin/login' && response.ok) {
++      headers.delete('Content-Length');
++      headers.delete('ETag');
++      return new Response(await adminLoginDocument(await response.text(), context.env), {
++        status: response.status, statusText: response.statusText, headers,
++      });
++    }
+     return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+   }
+   return apiErrorResponse(context, 404, 'ROUTE_NOT_FOUND', 'errors.routeNotFound');
+--- a/src/server/routes/searchIndex.ts
++++ b/src/server/routes/searchIndex.ts
+@@ -1,5 +1,6 @@
+ import type { Hono } from 'hono';
+ import { PortfolioSitemapRowsSchema } from '../../shared/schemas/portfolio';
++import { SiteSettingsSchema } from '../../shared/schemas/site';
+ 
+ import type { AppEnv } from '../types';
+ import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from './siteSettings';
+@@ -50,7 +51,7 @@
+   app.get('/robots.txt', (context) => {
+     const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
+     context.header('Cache-Control', 'public, max-age=3600');
+-    return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
++    return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
+   });
+ 
+   app.get('/sitemap.xml', async (context) => {
+@@ -59,6 +60,8 @@
+     let aboutEnabled = false;
+     let sessionsPageEnabled = false;
+     let defaultLanguage: 'fr' | 'en' = context.env.SITE_DEFAULT_LANG === 'en' ? 'en' : 'fr';
++    // Match the static bilingual documents if settings are missing or invalid.
++    let enabledLanguages: ('fr' | 'en')[] = ['fr', 'en'];
+     try {
+       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
+         WHERE c.published = 1
+@@ -66,21 +69,24 @@
+       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
+     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
+     try {
+-      const row = await context.env.DB.prepare('SELECT about_enabled, sessions_page_enabled, default_language FROM site_settings WHERE id = 1')
+-        .first<{ about_enabled: number; sessions_page_enabled: number; default_language: string }>();
++      const row = await context.env.DB.prepare('SELECT about_enabled, sessions_page_enabled, default_language, enabled_languages FROM site_settings WHERE id = 1')
++        .first<{ about_enabled: number; sessions_page_enabled: number; default_language: string; enabled_languages: string }>();
+       aboutEnabled = row?.about_enabled === 1;
+       sessionsPageEnabled = row?.sessions_page_enabled === 1;
+       if (row?.default_language === 'fr' || row?.default_language === 'en') defaultLanguage = row.default_language;
+-    } catch { /* Keep optional pages hidden while their availability is unknown. */ }
++      const languages = SiteSettingsSchema.shape.enabledLanguages.safeParse(JSON.parse(row?.enabled_languages ?? '["fr","en"]') as unknown);
++      if (languages.success) enabledLanguages = languages.data;
++    } catch { /* Keep bilingual fallback; optional pages require confirmed availability. */ }
++    if (!enabledLanguages.includes(defaultLanguage)) defaultLanguage = enabledLanguages[0]!;
+     context.header('Cache-Control', 'no-store');
+     const paths = [
+       ...publicPages.filter((page) => (page.path !== '/about' || aboutEnabled)
+         && (page.path !== '/services' || sessionsPageEnabled)).map((page) => page.path),
+       ...portfolioPaths,
+     ];
+-    const marketingUrls = paths.flatMap((path) => (['fr', 'en'] as const).map((language) => {
++    const marketingUrls = paths.flatMap((path) => enabledLanguages.map((language) => {
+       const localized = (lang: 'fr' | 'en') => `${origin}/${lang}${path === '/' ? '/' : `${path}/`}`;
+-      const alternates = (['fr', 'en', 'x-default'] as const).map((lang) =>
++      const alternates = ([...enabledLanguages, 'x-default'] as const).map((lang) =>
+         `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(localized(lang === 'x-default'
+           ? defaultLanguage : lang))}"/>`).join('');
+       return `  <url><loc>${escapeXml(localized(language))}</loc>${alternates}</url>`;
+--- a/src/app/admin/AdminLoginPage.tsx
++++ b/src/app/admin/AdminLoginPage.tsx
+@@ -1,10 +1,13 @@
+-import { useState } from 'react';
++import { useQuery } from '@tanstack/react-query';
++import { useEffect, useState } from 'react';
+ import type { FormEvent } from 'react';
+ import { useTranslation } from 'react-i18next';
+ import { Link } from 'react-router-dom';
+ 
+ import { Button, Input } from '../components';
+ import { siteProfile } from '../public/siteProfile';
++import { getPublicSiteSettings } from '../public/api';
++import metadataCopy from '../../shared/i18n/adminMetadata.json';
+ 
+ export type TurnstileTokenProvider = () => Promise<string>;
+ 
+@@ -42,7 +45,23 @@
+ 
+ /** Password login surface. The app integration supplies its rendered Turnstile token provider. */
+ export function AdminLoginPage({ demoMode = false, onAuthenticated, requestTurnstileToken }: AdminLoginPageProps) {
+-  const { t } = useTranslation();
++  const { i18n, t } = useTranslation();
++  const settings = useQuery({ queryKey: ['public-site-settings'], queryFn: getPublicSiteSettings,
++    retry: false, retryOnMount: false, staleTime: 60_000 });
++  const language = i18n.resolvedLanguage?.startsWith('en') ? 'en' : 'fr';
++  const siteName = settings.data?.siteName ?? siteProfile.siteName;
++  useEffect(() => {
++    // A client-side link to login must also discard the previous public page's identity.
++    document.title = `${metadataCopy[language].title} | ${siteName}`;
++    document.querySelectorAll('link[rel="canonical"], link[rel="alternate"][hreflang], meta[property^="og:"], meta[name^="twitter:"], #site-organization')
++      .forEach((element) => element.remove());
++    for (const [name, content] of [['description', metadataCopy[language].description], ['robots', 'noindex,nofollow']] as const) {
++      const meta = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`) ?? document.createElement('meta');
++      meta.name = name;
++      meta.content = content;
++      if (!meta.parentNode) document.head.append(meta);
++    }
++  }, [language, siteName]);
+   const [error, setError] = useState<'configuration' | 'credentials' | 'turnstile' | null>(null);
+   const [pending, setPending] = useState(false);
+ 
+--- a/src/shared/i18n/adminMetadata.json
++++ b/src/shared/i18n/adminMetadata.json
+@@ -0,0 +1,10 @@
++{
++  "fr": {
++    "title": "Connexion photographe",
++    "description": "Connectez-vous à l’administration de votre site photo."
++  },
++  "en": {
++    "title": "Photographer sign in",
++    "description": "Sign in to manage your photography website."
++  }
++}
+--- a/tests/unit/server/app.test.ts
++++ b/tests/unit/server/app.test.ts
+@@ -4,6 +4,51 @@
+ import { app } from '../../../src/server/app';
+ 
+ describe('worker app', () => {
++  it.each(['fr', 'en'] as const)('isolates login metadata in %s while preserving public indexing and Access protection', async (language) => {
++    const template = `<!doctype html><html lang="fr"><head><title>Home</title>
++      <meta name="description" content="Home description"><meta name="robots" content="index,follow">
++      <link rel="canonical" href="https://example.test/fr/">
++      <link rel="alternate" hreflang="en" href="https://example.test/en/">
++      <meta property="og:url" content="https://example.test/fr/"><meta name="twitter:image" content="home.webp">
++      <script id="site-organization" type="application/ld+json">{}</script>
++      <script type="module" src="/assets/app.js"></script></head><body><div id="root"><h1>Home</h1></div></body></html>`;
++    const assetFetch = vi.fn(() => Promise.resolve(new Response(template, { headers: { 'Content-Type': 'text/html', ETag: 'home' } })));
++    const env = { ADMIN_AUTH_MODE: 'password', SITE_NAME: 'Fallback', SITE_DEFAULT_LANG: 'fr', ASSETS: { fetch: assetFetch },
++      DB: { prepare: () => ({ first: () => Promise.resolve({ site_name: 'Studio <été> $&', default_language: language }) }) },
++    } as unknown as CloudflareBindings;
++    for (const path of ['/admin/login', '/admin/login?demo=1']) {
++      const response = await app.request(path, undefined, env);
++      const html = await response.text();
++      expect(response.status).toBe(200);
++      expect(response.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
++      expect(response.headers.get('ETag')).toBeNull();
++      expect(html).toContain('name="robots" content="noindex,nofollow"');
++      expect(html).toContain(`<html lang="${language}">`);
++      expect(html).toContain(language === 'fr' ? 'Connexion photographe | Studio &lt;été&gt; $&amp;' : 'Photographer sign in | Studio &lt;été&gt; $&amp;');
++      expect(html).not.toMatch(/canonical|hreflang|og:url|twitter:|site-organization|<h1>Home/u);
++      expect(html).toContain('/assets/app.js');
++    }
++    for (const path of ['/fr/', '/en/']) {
++      const response = await app.request(path, undefined, env);
++      expect(response.headers.get('X-Robots-Tag')).toBeNull();
++      expect(await response.text()).toBe(template);
++    }
++    assetFetch.mockClear();
++    const denied = await app.request('/admin/login', undefined, { ...env, ADMIN_AUTH_MODE: 'cloudflare-access' });
++    expect(denied.status).toBe(401);
++    expect(assetFetch).not.toHaveBeenCalled();
++  });
++
++  it('keeps login usable with profile metadata when settings are unavailable', async () => {
++    const response = await app.request('/admin/login', undefined, {
++      ADMIN_AUTH_MODE: 'password', SITE_NAME: 'Studio', SITE_DEFAULT_LANG: 'en',
++      DB: { prepare: () => { throw new Error('Unavailable'); } },
++      ASSETS: { fetch: () => Promise.resolve(new Response('<html lang="fr"><head><title>Home</title></head></html>', { headers: { 'Content-Type': 'text/html' } })) },
++    });
++    expect(response.status).toBe(200);
++    expect(await response.text()).toContain('<title>Photographer sign in | Studio</title>');
++  });
++
+   it('serves known client documents after the admin guard and preserves unknown status', async () => {
+     const assetFetch = vi.fn((request: Request) => Promise.resolve(new Response('<!doctype html><title>Shell</title>', {
+       status: new URL(request.url).pathname === '/' ? 200 : 404,
+--- a/tests/unit/server/searchIndex.test.ts
++++ b/tests/unit/server/searchIndex.test.ts
+@@ -7,6 +7,33 @@
+ describe('search index routes', () => {
+   const app = new Hono<AppEnv>();
+   registerSearchIndexRoutes(app);
++
++  it.each([
++    { languages: '["fr"]', defaultLanguage: 'fr', expected: ['fr'], fallback: 'fr' },
++    { languages: '["en"]', defaultLanguage: 'en', expected: ['en'], fallback: 'en' },
++    { languages: '["fr","en"]', defaultLanguage: 'en', expected: ['fr', 'en'], fallback: 'en' },
++    { languages: '["en"]', defaultLanguage: 'fr', expected: ['en'], fallback: 'en' },
++    { languages: '[]', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
++    { languages: '["de"]', defaultLanguage: 'invalid', expected: ['fr', 'en'], fallback: 'fr' },
++    { languages: '["fr","fr"]', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
++    { languages: 'invalid-json', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
++  ])('uses validated owner languages: $languages / $defaultLanguage', async ({ languages, defaultLanguage, expected, fallback }) => {
++    const response = await app.request('https://example.test/sitemap.xml', undefined, {
++      SITE_DEFAULT_LANG: 'fr', DB: { prepare: (sql: string) => sql.includes('site_settings')
++        ? { first: () => Promise.resolve({ enabled_languages: languages, default_language: defaultLanguage, about_enabled: 0, sessions_page_enabled: 0 }) }
++        : { all: () => Promise.resolve({ results: [{ slug: 'family' }] }) } },
++    });
++    const body = await response.text();
++    expect(response.status).toBe(200);
++    for (const lang of ['fr', 'en']) {
++      for (const path of ['contact', 'portfolio/family']) {
++        expect(body.includes(`<loc>https://example.test/${lang}/${path}/</loc>`)).toBe(expected.includes(lang));
++        expect(body.includes(`hreflang="${lang}" href="https://example.test/${lang}/${path}/"`)).toBe(expected.includes(lang));
++      }
++    }
++    expect(body).toContain(`hreflang="x-default" href="https://example.test/${fallback}/contact/"`);
++    expect(body).not.toMatch(/\/about\/|\/services\/|\/galleries|\/e\//u);
++  });
+ 
+   it('serves a site-specific Markdown guide without requiring the gallery database', async () => {
+     const response = await app.request('https://example.test/llms.txt', undefined, {
+@@ -86,7 +113,9 @@
+   it('serves a text robots file pointing at this hostname', async () => {
+     const response = await app.request('https://example.test/robots.txt');
+     expect(response.headers.get('Content-Type')).toContain('text/plain');
+-    expect(await response.text()).toContain('Sitemap: https://example.test/sitemap.xml');
++    const body = await response.text();
++    expect(body).toContain('Sitemap: https://example.test/sitemap.xml');
++    expect(body).toContain('Disallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/');
+   });
+ 
+   it('lists portfolio collections without exposing any customer gallery', async () => {
+--- a/tests/unit/app/seoMetadata.test.tsx
++++ b/tests/unit/app/seoMetadata.test.tsx
+@@ -0,0 +1,99 @@
++// @vitest-environment jsdom
++import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
++import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
++import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
++import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
++
++import { AdminLoginPage } from '../../../src/app/admin/AdminLoginPage';
++import { i18n } from '../../../src/app/i18n';
++import { PortfolioDetailPage } from '../../../src/app/public/PortfolioPage';
++import { PublicLayout } from '../../../src/app/public/PublicLayout';
++import { installPublicResources } from '../../../src/app/public/i18n';
++import { siteProfile } from '../../../src/app/public/siteProfile';
++
++const settings = {
++  siteName: 'Studio Boréal', defaultLanguage: 'fr', enabledLanguages: ['fr', 'en'],
++  contactEmail: null, contactPhone: null, contactAddress: null, serviceArea: null,
++  map: { centerLatitude: null, centerLongitude: null, radiusKm: null },
++  enabledServices: ['wedding'], analyticsMeasurementId: null, themeMode: 'both',
++  homeGalleries: { enabled: false, limit: 6 }, updatedAt: '2026-11-03T00:00:00.000Z',
++};
++
++function collection(slug: string, hasCover = true) {
++  return { id: slug, slug, categoryId: 'family', sortOrder: 0, published: true, coverPhotoId: `${slug}-owner-cover`,
++    copy: { fr: { title: 'Famille', description: 'Portraits' }, en: { title: 'Family', description: 'Portraits' } },
++    // Equal dimensions deliberately make "last source" unreliable; the server shares the large variant.
++    coverSources: hasCover ? ['large', 'small'].map((variant) => ({ url: `/portfolio-media/${slug}-owner-cover/${variant}`, width: 480, height: 320 })) : [],
++    photoCount: 0, photos: [],
++  };
++}
++
++const image = () => document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
++const twitterImage = () => document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]')?.content;
++const fallbackImage = new URL(siteProfile.shareImageUrl, siteProfile.seoOrigin ?? undefined).href;
++
++beforeAll(() => installPublicResources(i18n));
++beforeEach(() => { localStorage.clear(); document.head.innerHTML = '<title>Home</title>'; });
++afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
++
++function mount(path: string, language: string) {
++  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
++  return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}>
++    <nav><Link to={`/${language}/portfolio/second/`}>Second collection</Link>
++      <Link to={`/${language}/`}>Home test</Link><Link to="/admin/login?demo=1">Login test</Link></nav>
++    <Routes>
++      <Route path="/:language/portfolio/:slug" element={<PortfolioDetailPage />} />
++      <Route path="/:language" element={<PublicLayout><h1>Home test</h1></PublicLayout>} />
++      <Route path="/admin/login" element={<AdminLoginPage requestTurnstileToken={() => Promise.resolve('')} />} />
++    </Routes>
++  </MemoryRouter></QueryClientProvider>);
++}
++
++describe('page metadata ownership', () => {
++  it.each(['fr', 'en'])('retains the server cover while loading and follows collection/home/login navigation in %s', async (language) => {
++    await i18n.changeLanguage(language);
++    const initialImage = 'https://cadrora.com/portfolio-media/first-owner-cover/large';
++    document.head.innerHTML += `<meta name="description" content="Home"><link rel="canonical" href="https://cadrora.com/${language}/portfolio/first/">
++      <meta property="og:image" content="${initialImage}"><meta name="twitter:image" content="${initialImage}">`;
++    let resolveFirst: (value: Response) => void = () => { throw new Error('Request not started'); };
++    const firstResponse = new Promise<Response>((resolve) => { resolveFirst = resolve; });
++    vi.stubGlobal('fetch', vi.fn((url: string) => url === '/api/v1/site' ? Promise.resolve(Response.json({ ...settings, defaultLanguage: language }))
++      : url === '/api/v1/portfolio/first' ? firstResponse
++      : Promise.resolve(Response.json(url === '/api/v1/portfolio/second' ? collection('second') : []))));
++    mount(`/${language}/portfolio/first/`, language);
++    await waitFor(() => expect(document.title).toContain('Studio Boréal'));
++    expect(image()).toBe(initialImage);
++    expect(twitterImage()).toBe(initialImage);
++    resolveFirst(Response.json(collection('first')));
++    await screen.findByRole('heading', { name: language === 'fr' ? 'Famille' : 'Family' });
++    expect(image()).toBe(initialImage);
++    expect(twitterImage()).toBe(initialImage);
++    const organization: unknown = JSON.parse(document.querySelector('#site-organization')?.textContent ?? 'null');
++    expect(organization).toMatchObject({ image: fallbackImage });
++    fireEvent.click(screen.getByRole('link', { name: 'Second collection' }));
++    await waitFor(() => expect(image()).toBe('https://cadrora.com/portfolio-media/second-owner-cover/large'));
++    expect(twitterImage()).toBe(image());
++    fireEvent.click(screen.getByRole('link', { name: 'Home test' }));
++    await waitFor(() => expect(image()).toBe(fallbackImage));
++    fireEvent.click(screen.getByRole('link', { name: 'Login test' }));
++    await waitFor(() => expect(document.title).toBe(`${language === 'fr' ? 'Connexion photographe' : 'Photographer sign in'} | Studio Boréal`));
++    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex,nofollow');
++    expect(document.querySelector('link[rel="canonical"], link[hreflang], meta[property^="og:"], meta[name^="twitter:"], #site-organization')).toBeNull();
++    fireEvent.click(screen.getByRole('link', { name: 'Home test' }));
++    await waitFor(() => expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('index,follow'));
++    expect(image()).toBe(fallbackImage);
++  });
++
++  it.each([false, true])('uses the fallback for an empty collection, preserves initial cover on API failure=%s', async (failed) => {
++    await i18n.changeLanguage('fr');
++    const initialImage = 'https://cadrora.com/portfolio-media/first-owner-cover/large';
++    document.head.innerHTML += `<link rel="canonical" href="https://cadrora.com/fr/portfolio/first/"><meta property="og:image" content="${initialImage}">`;
++    vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve(url === '/api/v1/site' ? Response.json(settings)
++      : url === '/api/v1/portfolio/first' ? failed ? new Response(null, { status: 503 }) : Response.json(collection('first', false))
++      : Response.json([]))));
++    mount('/fr/portfolio/first/', 'fr');
++    if (failed) await screen.findByRole('alert');
++    else await screen.findByRole('heading', { name: 'Famille' });
++    expect(image()).toBe(failed ? initialImage : fallbackImage);
++  });
++});
+--- a/src/app/public/PublicLayout.tsx
++++ b/src/app/public/PublicLayout.tsx
+@@ -18,8 +18,10 @@
+ 
+ const fallbackLanguages: ('fr' | 'en')[] = ['fr', 'en'];
+ 
+-export function PublicLayout({ children, compactHeader = false, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, wide = false }: {
+-  children: ReactNode; compactHeader?: boolean; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
++export function PublicLayout({ children, compactHeader = false, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, pageShareImage, wide = false }: {
++  children: ReactNode; compactHeader?: boolean; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string;
++  /** null keeps this document's server image while page data resolves; undefined uses the profile fallback. */
++  pageShareImage?: string | null | undefined; wide?: boolean;
+ }) {
+   const { i18n, t } = useTranslation();
+   const [menuOpen, setMenuOpen] = useState(false);
+@@ -180,6 +182,10 @@
+     }
+     if (siteProfile.seoOrigin) {
+       const image = new URL(siteProfile.shareImageUrl, siteProfile.seoOrigin).href;
++      const currentCanonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
++      const preserveServerImage = pageShareImage === null && currentCanonical
++        && new URL(currentCanonical.href).pathname.replace(/\/$/u, '') === pathname.replace(/\/$/u, '');
++      const shareImage = new URL(pageShareImage || siteProfile.shareImageUrl, siteProfile.seoOrigin).href;
+       const organization = document.querySelector<HTMLScriptElement>('#site-organization') ?? document.createElement('script');
+       organization.id = 'site-organization';
+       organization.type = 'application/ld+json';
+@@ -189,11 +195,11 @@
+         ...(serviceArea ? { areaServed: serviceArea } : {}),
+       }).replaceAll('<', '\\u003c');
+       if (!organization.parentNode) document.head.append(organization);
+-      meta('meta[property="og:image"]', 'property', 'og:image', image);
++      if (!preserveServerImage) meta('meta[property="og:image"]', 'property', 'og:image', shareImage);
+       meta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+       meta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
+       meta('meta[name="twitter:description"]', 'name', 'twitter:description', summary);
+-      meta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
++      if (!preserveServerImage) meta('meta[name="twitter:image"]', 'name', 'twitter:image', shareImage);
+       if (pageKey) {
+         const path = marketingPath === '/' ? '' : `${marketingPath.slice(1)}/`;
+         const url = `${siteProfile.seoOrigin}/${language}/${path}`;
+@@ -219,7 +225,7 @@
+         document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.remove();
+       }
+     }
+-  }, [description, enabledLanguages, language, marketingPath, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
++  }, [description, enabledLanguages, language, marketingPath, pageDescription, pageKey, pageTitle, pageShareImage, pathname, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
+ 
+   useEffect(() => {
+     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
+--- a/src/app/public/PortfolioPage.tsx
++++ b/src/app/public/PortfolioPage.tsx
+@@ -85,6 +85,8 @@
+   const selected = photos.find((photo) => photo.id === searchParams.get('photo'));
+   const category = categories.data?.find((candidate) => candidate.id === collection.data?.categoryId);
+   return <PublicLayout
++    pageShareImage={collection.isPending || collection.isError ? null
++      : collection.data?.coverSources.find((source) => source.url.endsWith('/large'))?.url}
+     {...(collection.data ? {
+       pageDescription: collection.data.copy[language].description,
+       pageTitle: collection.data.copy[language].title,
+--- a/src/server/routes/portfolioSeo.ts
++++ b/src/server/routes/portfolioSeo.ts
+@@ -44,7 +44,7 @@
+ 
+ function collectionDocument(template: string, options: {
+   language: 'fr' | 'en'; slug: string; origin: string; defaultLanguage: 'fr' | 'en';
+-  siteName: string; title: string; description: string; image: string; areaServed: string | null;
++  siteName: string; title: string; description: string; image: string; organizationImage: string; areaServed: string | null;
+ }): string {
+   const { language, slug, origin, defaultLanguage, siteName } = options;
+   const title = escapeHtml(`${options.title} | ${siteName}`);
+@@ -62,7 +62,7 @@
+ <meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${image}">
+ <script id="site-organization" type="application/ld+json">${JSON.stringify({
+   '@context': 'https://schema.org', '@type': 'Organization', name: siteName, url: origin,
+-  image: options.image, ...(options.areaServed ? { areaServed: options.areaServed } : {}),
++  image: options.organizationImage, ...(options.areaServed ? { areaServed: options.areaServed } : {}),
+ }).replaceAll('<', '\\u003c')}</script>`;
+   const fallback = `<main class="site-startup">
+     <section class="site-startup__identity" aria-label="${escapeHtml(startupCopy[language].loading)}">
+@@ -165,7 +165,7 @@
+         return context.html(collectionDocument(template, {
+           language, slug: slug.data, origin, defaultLanguage: defaultLanguage(settings, context.env.SITE_DEFAULT_LANG),
+           siteName: settings?.site_name?.trim() || context.env.SITE_NAME, title: copy.title,
+-          description: summary, image, areaServed,
++          description: summary, image, organizationImage: fallbackImage, areaServed,
+         }));
+       });
+     }
+--- a/tests/unit/server/portfolioSeo.test.ts
++++ b/tests/unit/server/portfolioSeo.test.ts
+@@ -93,6 +93,7 @@
+     expect(html).toContain('<details class="site-startup__fallback">');
+     expect(html).toContain('<summary>Browse pages</summary>');
+     expect(html).toContain('"areaServed":"Montréal"');
++    expect(html).toContain('"image":"https://cadrora.com/home-hero-image/large"');
+     expect(html).not.toContain('rel="canonical" href="https://cadrora.com/fr/portfolio/"');
+   });
+ 
+--- a/sites/cadrora/site.ts
++++ b/sites/cadrora/site.ts
+@@ -51,7 +51,7 @@
+   },
+   copy: {
+     en: { gallery: {
+-      heroEyebrow: 'Your photography, your way',
++      heroEyebrow: 'Photo website and private galleries',
+       heroTitle: 'Your perspective. A space of your own.',
+       heroLead: 'A website to present your work. Galleries to share it. Explore Cadrora, then install it in your own Cloudflare account.',
+       heroArtCaption: 'Sample gallery',
+@@ -89,7 +89,7 @@
+       atelierGiulia: 'Portraits, celebrations, and photo galleries on a site shaped around the studio.',
+     } } },
+     fr: { gallery: {
+-      heroEyebrow: 'Votre photographie, à votre façon',
++      heroEyebrow: 'Site photo et galeries privées',
+       heroTitle: 'Votre regard. Un espace à vous.',
+       heroLead: 'Un site pour présenter votre travail. Des galeries pour le partager. Découvrez Cadrora, puis installez-le dans votre propre compte Cloudflare.',
+       heroArtCaption: 'Galerie de démonstration',
+--- a/sites/cadrora/profile.json
++++ b/sites/cadrora/profile.json
+@@ -11,8 +11,8 @@
+     "icon": "/brand/cadrora-logo.png",
+     "pages": {
+       "home": {
+-        "fr": { "title": "Galeries photo privées et site photographe | Cadrora", "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images." },
+-        "en": { "title": "Private photo galleries and photographer website | Cadrora", "description": "Cadrora brings together a photographer website, private photo galleries and optional search to help guests find their pictures." }
++        "fr": { "title": "Site photo et galeries privées auto-hébergées | Cadrora", "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare." },
++        "en": { "title": "Self-hosted photo website and private galleries | Cadrora", "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account." }
+       },
+       "services": {
+         "fr": { "title": "Séances et services photo | Cadrora", "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques." },
+--- a/docs/technical/public-website.md
++++ b/docs/technical/public-website.md
+@@ -1,6 +1,10 @@
+ # Public photographer website
+ 
+ ## Scope
++
++Approved SEO review (SEO-001–004, revision 1): the login document has a localized identity and HTML/HTTP `noindex,nofollow`, without marketing canonicals, alternates or share tags. Only the exact `/admin/login` path and its query variants are crawlable in `robots.txt`; the existing password/Access guard still runs first. Other admin HTML responses also carry the HTTP exclusion. Client navigation to login clears the previous public metadata, and returning to a public page restores that page's metadata. The owner site name and default language remain authoritative; a D1 failure falls back to profile values without blocking login.
++
++Cadrora's default Home eyebrow and FR/EN Home metadata describe the photo website, private galleries and self-hosting. These defaults belong only to `sites/cadrora`; saved `homeHeroCopy` still wins and other profiles are unchanged. Existing showcase description authority (ADR-052) remains unchanged.
+ 
+ Approved quality review (A11Y-001 / MOB-001, revision 1): non-immersive public pages reserve the measured privacy panel height only while it is open. Keyboard focus is scrolled above the panel without changing consent. The compact menu has a scrollable height bounded by the measured masthead and consent panel; the immersive profile retains its separate full-screen menu and slide reservations. Editorial headers wrap the owner-provided brand and controls onto separate rows when enlarged text or a long name needs more room. No owner setting, localized copy, or public image source is replaced by these layout rules.
+ 
+@@ -53,7 +57,9 @@
+ 
+ The admin Website setting can hide Galleries from navigation once every listed public gallery is changed to Unlisted, taken offline, or changed to password-protected access. Unlisted public galleries stay accessible without a password by direct link and do not block the setting. Public drafts and offline galleries do not block it either; they may only be republished as Unlisted while it stays hidden. The Home recent-gallery and showcase sections, public gallery directory API, and `/galleries` page stop promoting galleries; the portfolio remains visible. Direct `/e/*` customer links retain their existing availability and password rules. New galleries start protected. The admin always shows a copyable direct URL for each gallery, including drafts and offline galleries; a copied link only works when the gallery is available. This switch does not delete media or revoke a protected-gallery grant.
+ 
+-The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap contains paired `/fr/` and `/en/` marketing pages and published `/fr/portfolio/:slug` and `/en/portfolio/:slug` collections with reciprocal `hreflang`; `/galleries` and every `/e/*` customer gallery URL are omitted regardless of status. Both paths stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. The customer gallery directory and pages use `noindex,nofollow`; public gallery direct links still provide social preview metadata. A D1 outage leaves the static marketing sitemap available without collection URLs.
++The Worker serves `/robots.txt` as text and `/sitemap.xml` as XML on every site profile. The sitemap uses the owner's validated `enabledLanguages` for both marketing/collection URLs and reciprocal `hreflang`. Its `x-default` uses the configured default when enabled, otherwise the first enabled language. Missing or invalid language settings fall back to both static FR/EN variants; optional pages still require confirmed availability. `/galleries` and every `/e/*` customer gallery URL are omitted regardless of status. Both paths stay in `assets.run_worker_first` so the SPA fallback cannot replace them with HTML. The customer gallery directory and pages use `noindex,nofollow`; public gallery direct links still provide social preview metadata. A D1 outage leaves the core bilingual marketing sitemap available without collection URLs or optional pages. This does not change the existing static bilingual documents or their client-side language enforcement.
++
++Collection share metadata keeps the server's cover during initial API loading or failure, then uses the public API's owner-resolved `coverSources` large variant for both Open Graph and Twitter. An empty cover falls back to the profile's published share route; internal navigation updates the cover and returning Home restores its image. The Organization entity keeps the profile share image independently of the collection cover. No private gallery media or hardcoded demonstration photo is used.
+ 
+ Published collection documents use narrow Worker-first routes because their bilingual copy and cover are edited after build time. The Worker inserts collection-specific title, description, canonical, language alternates, and share tags into the static Portfolio shell. Unpublished or unknown slugs return 404; a D1 outage returns 503 instead of publishing an incorrect Home canonical. Localized Portfolio indexes and the rest of the marketing site remain static. Legacy unprefixed interior pages and collection URLs redirect to the configured default language, preserving query parameters. Customer `/e/*` share URLs stay unprefixed and unindexed.
+ 

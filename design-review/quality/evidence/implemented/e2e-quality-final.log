@@ -1,0 +1,25 @@
+[WebServer] (node:44172) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:56688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9234 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: ADMIN_SECRET_HASH, AUTH_PEPPER, TURNSTILE_SECRET_KEY. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 6 tests using 1 worker
+
+(node:44048) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [desktop-chromium] › tests\e2e\public-header.spec.ts:3:1 › language choice stays visually aligned with navigation at desktop and phone sizes (824ms)
+  ok 2 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics false) (950ms)
+  ok 3 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics true) (1.0s)
+  ok 4 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics false) (915ms)
+  ok 5 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics true) (881ms)
+  ok 6 [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control (704ms)
+
+  6 passed (15.4s)

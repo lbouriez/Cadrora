@@ -1,0 +1,56 @@
+[
+  {
+    "check": "Copie du courriel fictif",
+    "result": "Adresse courriel copiée."
+  },
+  {
+    "check": "Menu : Escape",
+    "expanded": "false",
+    "focus": "Ouvrir le menu"
+  },
+  {
+    "check": "Lien d’évitement",
+    "focus": "public-content"
+  },
+  {
+    "check": "Mouvement réduit accueil",
+    "result": {
+      "transition": "0s",
+      "animation": "none"
+    }
+  },
+  {
+    "check": "Champ mot de passe vide",
+    "result": {
+      "valid": false,
+      "valueMissing": true,
+      "focused": true
+    }
+  },
+  {
+    "check": "Erreur accès (requêtes de mutation bloquées)",
+    "result": "Impossible d'ouvrir la galerie. Vérifiez le mot de passe et réessayez."
+  },
+  {
+    "check": "Boucle de focus dialogue séance",
+    "result": [
+      {
+        "name": "Fermer les détails de la séance",
+        "inside": true
+      },
+      {
+        "name": "Voir la page Contact d’exemple",
+        "inside": true
+      },
+      {
+        "name": "Fermer les détails de la séance",
+        "inside": true
+      },
+      {
+        "name": "Voir la page Contact d’exemple",
+        "inside": true
+      }
+    ],
+    "restored": "Découvrir cette séance"
+  }
+]

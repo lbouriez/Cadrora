@@ -1,0 +1,66 @@
+{
+  "head": "872c91912c50ba797ab84489562b4292a72a98c8",
+  "digest": "25b4e61c23f31ac930a374be62a28856974408838398b06af66b7dd9547fdb8a",
+  "files": [
+    {
+      "file": "src/server/http/adminLoginDocument.ts",
+      "sha256": "6b811e8a2a12c88a81f1770371aab9516479e68782c161f105a182ac427e0d3f"
+    },
+    {
+      "file": "src/server/app.ts",
+      "sha256": "6d14c684e68917aa4947691611f5110d9d213de88131f344d8b806c92b234d16"
+    },
+    {
+      "file": "src/server/routes/searchIndex.ts",
+      "sha256": "977926e5f2488509501de244426793abdfdcd0a9bc79935befec5b7f369a4267"
+    },
+    {
+      "file": "src/app/admin/AdminLoginPage.tsx",
+      "sha256": "127d0820f39dbf8b0ab10d7ae6aa597a0634b8509c77b7586f4d5140572bb67f"
+    },
+    {
+      "file": "src/shared/i18n/adminMetadata.json",
+      "sha256": "4e966a19d8c589da2de048b242fc370d69535dbab3490bd0f483db54e9a09998"
+    },
+    {
+      "file": "tests/unit/server/app.test.ts",
+      "sha256": "f1189f7ec1c688196b0d7a35118e5b58e28f942c5dc060d5817a92f57f37c98f"
+    },
+    {
+      "file": "tests/unit/server/searchIndex.test.ts",
+      "sha256": "6f700f7b247c1a270ec2e5fe87fc6009eedf45202f1c30aeed80059354ea08e2"
+    },
+    {
+      "file": "tests/unit/app/seoMetadata.test.tsx",
+      "sha256": "3f4baba12724509fe6fe2d570aee81e8ba1371d5d8db8956f10d74872fc7c93d"
+    },
+    {
+      "file": "src/app/public/PublicLayout.tsx",
+      "sha256": "e073631bdcacbd6dc764e4cd069bcff8c4416ec482bb48fcb83621ec188a70a8"
+    },
+    {
+      "file": "src/app/public/PortfolioPage.tsx",
+      "sha256": "074e2afde61a3d868baa030f097e6e374cc2d175b3079d130c1808c40b02eebb"
+    },
+    {
+      "file": "src/server/routes/portfolioSeo.ts",
+      "sha256": "dcf261d6053d8d712fc5c15f80d4032d8e5c869ceb49fc20dae7b60dd8420566"
+    },
+    {
+      "file": "tests/unit/server/portfolioSeo.test.ts",
+      "sha256": "d40c10275278280948236b4bfaac4268ddd59d2da84321cd7e2ef1904c174ad4"
+    },
+    {
+      "file": "sites/cadrora/site.ts",
+      "sha256": "46dacbab8c339e771c680eb7262614227f30114e49acd992637cf54b56bde664"
+    },
+    {
+      "file": "sites/cadrora/profile.json",
+      "sha256": "342e4a6958ddb93c8f1ea01aa4cfe699fd49ae145783145de767083621d2c84d"
+    },
+    {
+      "file": "docs/technical/public-website.md",
+      "sha256": "d23b1b4d0f5925c1d478b44e5e0d2355f77dbede98aa9d267f6a4dc45df17951"
+    }
+  ]
+}

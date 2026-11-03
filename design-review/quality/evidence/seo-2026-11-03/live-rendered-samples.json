@@ -1,0 +1,166 @@
+[
+  {
+    "path": "/fr/portfolio/familles/",
+    "metadata": {
+      "lang": "fr",
+      "title": "Instants en famille | Cadrora",
+      "description": "Des scènes naturelles de vie de famille, créées pour la démonstration.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/fr/portfolio/familles/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/portfolio/familles/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/portfolio/familles/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/portfolio/familles/"
+        }
+      ],
+      "og": {
+        "title": "Instants en famille | Cadrora",
+        "description": "Des scènes naturelles de vie de famille, créées pour la démonstration.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/portfolio/familles/"
+      },
+      "twitter": {
+        "title": "Instants en famille | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Instants en famille"
+      ],
+      "links": [
+        {
+          "text": "Aller au contenu",
+          "href": "#public-content"
+        },
+        {
+          "text": "Cadrora",
+          "href": "/fr"
+        },
+        {
+          "text": "Accueil",
+          "href": "/fr"
+        },
+        {
+          "text": "Séances",
+          "href": "/fr/services"
+        },
+        {
+          "text": "Portfolio",
+          "href": "/fr/portfolio"
+        },
+        {
+          "text": "Galeries",
+          "href": "/galleries"
+        },
+        {
+          "text": "À propos",
+          "href": "/fr/about"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "←Retour au portfolio",
+          "href": "/fr/portfolio"
+        },
+        {
+          "text": "",
+          "href": "/fr/portfolio/familles/?photo=demo-portfolio-family-01"
+        },
+        {
+          "text": "",
+          "href": "/fr/portfolio/familles/?photo=demo-portfolio-family-02"
+        },
+        {
+          "text": "Confidentialité",
+          "href": "/fr/privacy"
+        },
+        {
+          "text": "Démo admin",
+          "href": "/admin/login?demo=1"
+        },
+        {
+          "text": "Contact",
+          "href": "/fr/contact"
+        },
+        {
+          "text": "Lire l'avis de confidentialité",
+          "href": "/fr/privacy"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/admin/login",
+    "metadata": {
+      "lang": "fr",
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": null,
+      "canonical": "https://cadrora.com/fr/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/"
+        }
+      ],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Connexion photographe"
+      ],
+      "links": [
+        {
+          "text": "Curieux? Ouvrir la démo en lecture seule",
+          "href": "/admin/login?demo=1"
+        },
+        {
+          "text": "Retour au site",
+          "href": "/"
+        }
+      ]
+    }
+  }
+]

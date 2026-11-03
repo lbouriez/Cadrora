@@ -1,0 +1,11 @@
+{
+  "siteName": "Cadrora",
+  "defaultLanguage": "fr",
+  "enabledLanguages": [
+    "fr",
+    "en"
+  ],
+  "sessionsPageEnabled": true,
+  "aboutEnabled": true,
+  "analyticsConfigured": false
+}

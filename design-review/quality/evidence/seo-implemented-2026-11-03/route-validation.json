@@ -1,0 +1,200 @@
+[
+  {
+    "path": "/fr/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/services/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/services/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/about/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/about/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/contact/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/contact/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/privacy/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/privacy/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/mariages/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/mariages/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/familles/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/familles/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/marques/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/marques/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/entreprises/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/entreprises/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/fr/portfolio/enfance/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  },
+  {
+    "path": "/en/portfolio/enfance/",
+    "status": 200,
+    "canonicalMatches": true,
+    "languageMatches": true,
+    "reciprocalLanguages": true,
+    "indexable": true,
+    "jsonLdParsed": true
+  }
+]

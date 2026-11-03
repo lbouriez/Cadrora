@@ -93,6 +93,7 @@ describe('localized portfolio documents', () => {
     expect(html).toContain('<details class="site-startup__fallback">');
     expect(html).toContain('<summary>Browse pages</summary>');
     expect(html).toContain('"areaServed":"Montréal"');
+    expect(html).toContain('"image":"https://cadrora.com/home-hero-image/large"');
     expect(html).not.toContain('rel="canonical" href="https://cadrora.com/fr/portfolio/"');
   });
 

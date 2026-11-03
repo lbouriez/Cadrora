@@ -1,0 +1,66 @@
+[WebServer] (node:15092) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:12884) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9230 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 2 tests using 2 workers
+
+(node:54516) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27348) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  2 [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (1.6s)
+  ok 1 [desktop-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés (2.9s)
+
+
+  1) [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 85
+    Received:   109
+
+      397 |
+      398 |     const header = page.locator('.public-header');
+    > 399 |     expect((await header.boundingBox())?.height).toBeLessThan(85);
+          |                                                  ^
+      400 |     const actions = await page.locator('.site-hero .site-actions .button').all();
+      401 |     expect(actions).toHaveLength(2);
+      402 |     const actionRows = await page.locator('.site-hero .site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
+        at C:\GIT\Cadrora\tests\e2e\public-website.spec.ts:399:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone 
+  1 passed (18.2s)

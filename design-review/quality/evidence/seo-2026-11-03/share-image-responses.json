@@ -1,0 +1,6 @@
+{
+  "localFamily": 404,
+  "liveFamily": 200,
+  "previewAssetSource": "demo/seed/portfolio/family-01-large.webp",
+  "note": "Local preview D1 references exist but corresponding R2 portfolio objects are absent. Social mockup uses tracked seed bytes, not a repaired application."
+}

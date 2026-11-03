@@ -1,0 +1,475 @@
+[
+  {
+    "path": "/contact?source=review",
+    "status": 302,
+    "location": "/fr/contact/?source=review",
+    "robotsHeader": null,
+    "initial": {
+      "lang": "",
+      "title": "",
+      "description": null,
+      "robots": null,
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [],
+      "links": []
+    }
+  },
+  {
+    "path": "/fr/contact",
+    "status": 307,
+    "location": "/fr/contact/",
+    "robotsHeader": null,
+    "initial": {
+      "lang": "",
+      "title": "",
+      "description": null,
+      "robots": null,
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [],
+      "links": []
+    }
+  },
+  {
+    "path": "/fr/not-a-cadrora-page-20261103",
+    "status": 404,
+    "location": null,
+    "robotsHeader": null,
+    "initial": {
+      "lang": "fr",
+      "title": "Page introuvable | Cadrora",
+      "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+      "robots": "noindex,nofollow",
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [
+        "Page introuvable"
+      ],
+      "links": [
+        {
+          "text": "Accueil",
+          "href": "/fr/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/fr/portfolio/not-a-collection-20261103/",
+    "status": 404,
+    "location": null,
+    "robotsHeader": "noindex, nofollow",
+    "initial": {
+      "lang": "",
+      "title": "",
+      "description": null,
+      "robots": "noindex,nofollow",
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [],
+      "links": []
+    }
+  },
+  {
+    "path": "/fr/galleries/",
+    "status": 404,
+    "location": null,
+    "robotsHeader": null,
+    "initial": {
+      "lang": "fr",
+      "title": "Page introuvable | Cadrora",
+      "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+      "robots": "noindex,nofollow",
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [
+        "Page introuvable"
+      ],
+      "links": [
+        {
+          "text": "Accueil",
+          "href": "/fr/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/galleries",
+    "status": 200,
+    "location": null,
+    "robotsHeader": "noindex, nofollow",
+    "initial": {
+      "lang": "fr",
+      "title": "Galeries | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": "noindex,nofollow",
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Galeries photo privées et site photographe | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Galeries photo privées et site photographe | Cadrora",
+          "href": "/fr/"
+        },
+        {
+          "text": "Séances et services photo | Cadrora",
+          "href": "/fr/services/"
+        },
+        {
+          "text": "Portfolio photo | Cadrora",
+          "href": "/fr/portfolio/"
+        },
+        {
+          "text": "À propos | Cadrora",
+          "href": "/fr/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/fr/contact/"
+        },
+        {
+          "text": "Confidentialité | Cadrora",
+          "href": "/fr/privacy/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/admin",
+    "status": 302,
+    "location": "/admin/login",
+    "robotsHeader": null,
+    "initial": {
+      "lang": "",
+      "title": "",
+      "description": null,
+      "robots": null,
+      "canonical": null,
+      "hreflang": [],
+      "og": {
+        "title": null,
+        "description": null,
+        "image": null,
+        "url": null
+      },
+      "twitter": {
+        "title": null,
+        "image": null
+      },
+      "jsonld": [],
+      "h1": [],
+      "links": []
+    }
+  },
+  {
+    "path": "/admin/login",
+    "status": 200,
+    "location": null,
+    "robotsHeader": null,
+    "initial": {
+      "lang": "fr",
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": null,
+      "canonical": "https://cadrora.com/fr/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/"
+        }
+      ],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Galeries photo privées et site photographe | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Galeries photo privées et site photographe | Cadrora",
+          "href": "/fr/"
+        },
+        {
+          "text": "Séances et services photo | Cadrora",
+          "href": "/fr/services/"
+        },
+        {
+          "text": "Portfolio photo | Cadrora",
+          "href": "/fr/portfolio/"
+        },
+        {
+          "text": "À propos | Cadrora",
+          "href": "/fr/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/fr/contact/"
+        },
+        {
+          "text": "Confidentialité | Cadrora",
+          "href": "/fr/privacy/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/e/instants-en-famille",
+    "status": 200,
+    "location": null,
+    "robotsHeader": "noindex, nofollow",
+    "initial": {
+      "lang": "fr",
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": null,
+      "canonical": "https://cadrora.com/fr/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/"
+        }
+      ],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Galeries photo privées et site photographe | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Galeries photo privées et site photographe | Cadrora",
+          "href": "/fr/"
+        },
+        {
+          "text": "Séances et services photo | Cadrora",
+          "href": "/fr/services/"
+        },
+        {
+          "text": "Portfolio photo | Cadrora",
+          "href": "/fr/portfolio/"
+        },
+        {
+          "text": "À propos | Cadrora",
+          "href": "/fr/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/fr/contact/"
+        },
+        {
+          "text": "Confidentialité | Cadrora",
+          "href": "/fr/privacy/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "/e/lumiere-et-promesses",
+    "status": 200,
+    "location": null,
+    "robotsHeader": "noindex, nofollow",
+    "initial": {
+      "lang": "fr",
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "robots": null,
+      "canonical": "https://cadrora.com/fr/",
+      "hreflang": [
+        {
+          "lang": "fr",
+          "url": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "url": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "url": "https://cadrora.com/fr/"
+        }
+      ],
+      "og": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "image": "https://cadrora.com/home-hero-image/large",
+        "url": "https://cadrora.com/fr/"
+      },
+      "twitter": {
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "image": "https://cadrora.com/home-hero-image/large"
+      },
+      "jsonld": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ],
+      "h1": [
+        "Galeries photo privées et site photographe | Cadrora"
+      ],
+      "links": [
+        {
+          "text": "Galeries photo privées et site photographe | Cadrora",
+          "href": "/fr/"
+        },
+        {
+          "text": "Séances et services photo | Cadrora",
+          "href": "/fr/services/"
+        },
+        {
+          "text": "Portfolio photo | Cadrora",
+          "href": "/fr/portfolio/"
+        },
+        {
+          "text": "À propos | Cadrora",
+          "href": "/fr/about/"
+        },
+        {
+          "text": "Contact | Cadrora",
+          "href": "/fr/contact/"
+        },
+        {
+          "text": "Confidentialité | Cadrora",
+          "href": "/fr/privacy/"
+        }
+      ]
+    }
+  },
+  {
+    "path": "http://cadrora.com",
+    "status": 301,
+    "location": "https://cadrora.com/"
+  },
+  {
+    "path": "https://www.cadrora.com",
+    "status": 301,
+    "location": "https://cadrora.com/"
+  }
+]

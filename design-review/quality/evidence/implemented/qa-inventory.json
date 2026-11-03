@@ -1,0 +1,33 @@
+{
+  "mode": "implement-approved",
+  "revision": "872c91912c50ba797ab84489562b4292a72a98c8",
+  "approved": [
+    {
+      "id": "A11Y-001",
+      "proposalRevision": 1
+    },
+    {
+      "id": "MOB-001",
+      "proposalRevision": 1
+    },
+    {
+      "id": "PERF-001",
+      "proposalRevision": 1
+    }
+  ],
+  "checks": [
+    "Cadrora FR/EN footer keyboard focus with consent",
+    "667x375 menu all links reachable with and without analytics",
+    "320/390 px header at 200%, long owner name",
+    "consent close/reopen removes/restores spacing",
+    "Atelier immersive layout and interior-page smoke check",
+    "public gallery, 401/403/404 reads without retry; one retry for 503/network",
+    "wrong password and stale session remain protected",
+    "compare implemented screenshots to immutable approved mockups",
+    "check, test, both profile builds"
+  ],
+  "gaps": [
+    "Physical iOS/Android, software keyboard and screen readers unavailable",
+    "Firefox/WebKit binaries previously unavailable; verify availability"
+  ]
+}

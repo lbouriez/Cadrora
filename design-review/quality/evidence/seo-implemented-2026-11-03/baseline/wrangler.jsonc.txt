@@ -1,0 +1,116 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cadrora",
+  "main": "./src/server/app.ts",
+  "compatibility_date": "2026-09-25",
+  "cache": { "enabled": false },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "PublicMediaCache": { "type": "worker", "cache": { "enabled": true } },
+    "ServiceMediaCache": { "type": "worker", "cache": { "enabled": true } }
+  },
+  "keep_vars": true,
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*", "/media/*", "/service-media/*", "/portfolio-media/*", "/home-hero-image/*", "/about-hero-image/*", "/e/*", "/admin", "/admin/*", "/models/*", "/robots.txt", "/sitemap.xml", "/llms.txt", "/services", "/services/", "/fr/services", "/fr/services/", "/en/services", "/en/services/", "/portfolio", "/portfolio/*", "/about", "/about/", "/contact", "/contact/", "/privacy", "/privacy/", "/fr/portfolio/*", "/en/portfolio/*", "!/fr/portfolio/", "!/en/portfolio/"]
+  },
+  "vars": {
+    "ADMIN_AUTH_MODE": "password",
+    "DEMO_SHOWCASE_ENABLED": "false",
+    "FEATURE_PUBLIC_MEDIA_CACHE": "true",
+    "DEMO_ADMIN_USERNAME": "demo",
+    "DEMO_ADMIN_PASSWORD": "cadrora-demo",
+    "SESSION_TTL_H": "8",
+    "MAX_PHOTOS_PER_EVENT": "2000",
+    "MAX_STORAGE_BYTES": "9900000000",
+    "MAX_FACES_PER_EVENT": "10000",
+    "MAX_TOTAL_FACES": "39000",
+    "SITE_DEFAULT_LANG": "fr",
+    "SITE_NAME": "Cadrora",
+    "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
+    "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp",
+    "SITE_ORIGIN": "https://cadrora.com"
+  },
+  "secrets": {
+    "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "ratelimits": [
+    { "name": "AUTH_RATE_LIMITER", "namespace_id": "2970101", "simple": { "limit": 20, "period": 60 } },
+    { "name": "FACE_RATE_LIMITER", "namespace_id": "2970102", "simple": { "limit": 30, "period": 60 } }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cadrora",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_BUCKET"
+    },
+    {
+      "binding": "MODELS_BUCKET"
+    }
+  ],
+  "vectorize": [
+    {
+      "binding": "FACE_INDEX",
+      "index_name": "cadrora-face-index"
+    }
+  ],
+  "env": {
+    "preview": {
+      "ratelimits": [
+        { "name": "AUTH_RATE_LIMITER", "namespace_id": "2970201", "simple": { "limit": 20, "period": 60 } },
+        { "name": "FACE_RATE_LIMITER", "namespace_id": "2970202", "simple": { "limit": 30, "period": 60 } }
+      ],
+      "vars": {
+        "ADMIN_AUTH_MODE": "password",
+        "DEMO_SHOWCASE_ENABLED": "false",
+        "FEATURE_PUBLIC_MEDIA_CACHE": "true",
+        "DEMO_ADMIN_USERNAME": "demo",
+        "DEMO_ADMIN_PASSWORD": "cadrora-demo",
+        "SESSION_TTL_H": "8",
+        "MAX_PHOTOS_PER_EVENT": "2000",
+        "MAX_STORAGE_BYTES": "9900000000",
+        "MAX_FACES_PER_EVENT": "10000",
+        "MAX_TOTAL_FACES": "39000",
+        "SITE_DEFAULT_LANG": "fr",
+        "SITE_NAME": "Cadrora",
+        "SITE_DESCRIPTION": "Cadrora, photographie d'événements et galeries privées élégantes.",
+        "SITE_HERO_IMAGE_URL": "/brand/demo-hero.webp",
+        "SITE_ORIGIN": "https://cadrora.com"
+      },
+      "secrets": {
+        "required": ["ADMIN_SECRET_HASH", "AUTH_PEPPER", "TURNSTILE_SECRET_KEY"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cadrora-preview",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA_BUCKET"
+        },
+        {
+          "binding": "MODELS_BUCKET"
+        }
+      ],
+      "vectorize": [
+        {
+          "binding": "FACE_INDEX",
+          "index_name": "cadrora-preview-face-index"
+        }
+      ]
+    }
+  }
+}

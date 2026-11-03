@@ -1,0 +1,30 @@
+[
+  {
+    "lang": "fr",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "eyebrow": "Site photo et galeries privées"
+  },
+  {
+    "lang": "fr",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "eyebrow": "Site photo et galeries privées"
+  },
+  {
+    "lang": "en",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "eyebrow": "Photo website and private galleries"
+  },
+  {
+    "lang": "en",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "eyebrow": "Photo website and private galleries"
+  }
+]

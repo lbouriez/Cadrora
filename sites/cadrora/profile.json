@@ -11,8 +11,8 @@
     "icon": "/brand/cadrora-logo.png",
     "pages": {
       "home": {
-        "fr": { "title": "Galeries photo privées et site photographe | Cadrora", "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images." },
-        "en": { "title": "Private photo galleries and photographer website | Cadrora", "description": "Cadrora brings together a photographer website, private photo galleries and optional search to help guests find their pictures." }
+        "fr": { "title": "Site photo et galeries privées auto-hébergées | Cadrora", "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare." },
+        "en": { "title": "Self-hosted photo website and private galleries | Cadrora", "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account." }
       },
       "services": {
         "fr": { "title": "Séances et services photo | Cadrora", "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques." },

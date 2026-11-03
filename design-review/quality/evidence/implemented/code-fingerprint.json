@@ -1,0 +1,43 @@
+{
+  "head": "872c91912c50ba797ab84489562b4292a72a98c8",
+  "filesSha256": "cc61525019c0827985636a874e0e1044267a74533e3845b1e1ea1ba42ff7ffdb",
+  "files": [
+    {
+      "file": "src/app/public/GalleryPage.tsx",
+      "sha256": "4fd73f511d9a00958f8001670dc90acf974244f1135667ecea04e1bcc039d7b8"
+    },
+    {
+      "file": "src/app/public/PublicLayout.tsx",
+      "sha256": "83f3a758e1a5f8cbd776fa0bf89f6750a741dd75fcb7c53ecdad0349eadc8402"
+    },
+    {
+      "file": "src/app/public/editorial.css",
+      "sha256": "5d8e868576be8824c030709ddaca56746acc740563eb815114e2f4b27f063768"
+    },
+    {
+      "file": "src/app/public/galleryErrors.ts",
+      "sha256": "07fb42d3171e415a44c40888dde5ac29172d7775828419636dda245bd9bc2e0f"
+    },
+    {
+      "file": "src/app/public/public.css",
+      "sha256": "be05ed130efcce999db8b361ab127782e01582b7c5d271dced372d6c1b5e84f7"
+    },
+    {
+      "file": "tests/unit/app/galleryPage.test.ts",
+      "sha256": "1768b89a4bcd40e9945840fb9c9e25f03a7f0dc8c158cd789fabfd3143be304e"
+    },
+    {
+      "file": "tests/e2e/public-quality.spec.ts",
+      "sha256": "4987dd9f7d32693a9a1d097343b8d0a84473d8e88586c442882aca97a747e2b2"
+    },
+    {
+      "file": "docs/technical/public-gallery.md",
+      "sha256": "bcce9e54476f9ddb19f5c710fe0b25faa693d2e814a18c11f61fffdeefb000ff"
+    },
+    {
+      "file": "docs/technical/public-website.md",
+      "sha256": "655a0bc9a157cdef3067b9353ddc6d55062c3d918598a26e15925495491c113d"
+    }
+  ],
+  "uncommitted": true
+}

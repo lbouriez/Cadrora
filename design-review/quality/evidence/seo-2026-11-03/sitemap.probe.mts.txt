@@ -1,0 +1,28 @@
+import { writeFileSync } from 'node:fs';
+import { Hono } from 'hono';
+import { expect, it } from 'vitest';
+import { registerSearchIndexRoutes } from '../../../../src/server/routes/searchIndex';
+import type { AppEnv } from '../../../../src/server/types';
+
+// Review-only reproducer: confirms the current discrepancy, not a proposed repair.
+it.each(['fr', 'en'])('records sitemap output with only %s enabled by the owner', async (language) => {
+  const app = new Hono<AppEnv>();
+  registerSearchIndexRoutes(app);
+  const queries: string[] = [];
+  const db = { prepare: (sql: string) => {
+    queries.push(sql);
+    return { all: async () => ({ results: [] }), first: async () => ({
+      about_enabled: 1, sessions_page_enabled: 1, default_language: language,
+      enabled_languages: JSON.stringify([language]),
+    }) };
+  } } as unknown as D1Database;
+  const response = await app.request('https://example.test/sitemap.xml', undefined, {
+    DB: db, SITE_ORIGIN: 'https://example.test', SITE_DEFAULT_LANG: language,
+  });
+  const xml = await response.text();
+  expect(response.status).toBe(200);
+  expect(xml).toContain('<loc>https://example.test/fr/contact/</loc>');
+  expect(xml).toContain('<loc>https://example.test/en/contact/</loc>');
+  writeFileSync(`design-review/quality/evidence/seo-2026-11-03/sitemap-${language}-only.json`,
+    JSON.stringify({ kind: 'Current behavior reproducer', enabledLanguages: [language], queries, xml }, null, 2));
+});

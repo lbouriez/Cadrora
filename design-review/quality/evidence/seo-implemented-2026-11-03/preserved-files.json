@@ -1,0 +1,50 @@
+[
+  {
+    "file": "src/app/public/GalleryPage.tsx",
+    "unchanged": true
+  },
+  {
+    "file": "src/app/public/editorial.css",
+    "unchanged": true
+  },
+  {
+    "file": "src/app/public/galleryErrors.ts",
+    "unchanged": true
+  },
+  {
+    "file": "src/app/public/public.css",
+    "unchanged": true
+  },
+  {
+    "file": "tests/unit/app/galleryPage.test.ts",
+    "unchanged": true
+  },
+  {
+    "file": "tests/e2e/public-quality.spec.ts",
+    "unchanged": true
+  },
+  {
+    "file": "docs/technical/public-gallery.md",
+    "unchanged": true
+  },
+  {
+    "file": "scripts/build/generateLocalizedPages.mjs",
+    "unchanged": true
+  },
+  {
+    "file": "src/server/middleware/adminPageGuard.ts",
+    "unchanged": true
+  },
+  {
+    "file": "src/app/public/GoogleAnalytics.tsx",
+    "unchanged": true
+  },
+  {
+    "file": "src/app/public/AboutPage.tsx",
+    "unchanged": true
+  },
+  {
+    "file": "wrangler.jsonc",
+    "unchanged": true
+  }
+]

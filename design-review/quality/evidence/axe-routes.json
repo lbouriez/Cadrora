@@ -1,0 +1,147 @@
+[
+  {
+    "route": "/fr",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 11
+      }
+    ],
+    "overflow": false,
+    "heading": "Votre regard. Un espace à vous."
+  },
+  {
+    "route": "/en",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "aria-prohibited-attr",
+        "nodes": 1
+      },
+      {
+        "id": "color-contrast",
+        "nodes": 11
+      }
+    ],
+    "overflow": false,
+    "heading": "Your perspective. A space of your own."
+  },
+  {
+    "route": "/fr/services",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 4
+      }
+    ],
+    "overflow": false,
+    "heading": "Un exemple de page Séances."
+  },
+  {
+    "route": "/fr/about",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 2
+      }
+    ],
+    "overflow": false,
+    "heading": "Un exemple de présentation du studio"
+  },
+  {
+    "route": "/fr/contact",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 3
+      }
+    ],
+    "overflow": false,
+    "heading": "Un exemple de page Contact."
+  },
+  {
+    "route": "/fr/portfolio",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 5
+      }
+    ],
+    "overflow": false,
+    "heading": "Un exemple de portfolio."
+  },
+  {
+    "route": "/galleries",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 6
+      }
+    ],
+    "overflow": false,
+    "heading": "Galeries photo de démonstration."
+  },
+  {
+    "route": "/e/instants-en-famille",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 2
+      }
+    ],
+    "overflow": false
+  },
+  {
+    "route": "/e/find-your-photos/find",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 5
+      }
+    ],
+    "overflow": false,
+    "heading": "Retrouvez les photos où vous apparaissez peut-être"
+  },
+  {
+    "route": "/fr/privacy",
+    "width": 390,
+    "violations": [],
+    "incomplete": [
+      {
+        "id": "color-contrast",
+        "nodes": 2
+      }
+    ],
+    "overflow": false,
+    "heading": "Politique de confidentialité"
+  },
+  {
+    "route": "/admin/login?demo=1",
+    "width": 390,
+    "violations": [],
+    "incomplete": [],
+    "overflow": false,
+    "heading": "Explorez la gestion des galeries."
+  }
+]

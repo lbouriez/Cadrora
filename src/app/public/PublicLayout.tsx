@@ -18,16 +18,38 @@ import type { NavigationItem } from '../site/types';
 
 const fallbackLanguages: ('fr' | 'en')[] = ['fr', 'en'];
 
-export function PublicLayout({ children, compactHeader = false, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, wide = false }: {
-  children: ReactNode; compactHeader?: boolean; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string; wide?: boolean;
+export function PublicLayout({ children, compactHeader = false, fullBleed = false, immersiveFooterVisible = false, noIndex = false, pageDescription, pageTitle, pageShareImage, wide = false }: {
+  children: ReactNode; compactHeader?: boolean; fullBleed?: boolean; immersiveFooterVisible?: boolean; noIndex?: boolean; pageDescription?: string; pageTitle?: string;
+  /** null keeps this document's server image while page data resolves; undefined uses the profile fallback. */
+  pageShareImage?: string | null | undefined; wide?: boolean;
 }) {
   const { i18n, t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const shell = useRef<HTMLDivElement>(null);
+  const focusFrame = useRef(0);
+  const revealFocus = useCallback(() => {
+    window.cancelAnimationFrame(focusFrame.current);
+    focusFrame.current = window.requestAnimationFrame(() => {
+      const element = shell.current;
+      const focused = document.activeElement;
+      const privacy = element?.querySelector<HTMLElement>('.privacy-consent');
+      // Dialogs and immersive slides own their scrolling; never move their background.
+      if (!element || element.classList.contains('public-shell--immersive') || !privacy
+        || !(focused instanceof HTMLElement) || !element.contains(focused) || privacy.contains(focused)) return;
+      const target = focused.getBoundingClientRect();
+      const panel = privacy.getBoundingClientRect();
+      if (target.right > panel.left && target.left < panel.right && target.bottom > panel.top && target.top < panel.bottom) {
+        const gap = Number.parseFloat(getComputedStyle(privacy).bottom) || 0;
+        window.scrollBy({ top: target.bottom - panel.top + gap, behavior: 'instant' });
+      }
+    });
+  }, []);
+  useEffect(() => () => window.cancelAnimationFrame(focusFrame.current), []);
   const measurePrivacy = useCallback((height: number) => {
     shell.current?.style.setProperty('--story-privacy-height', `${height}px`);
-  }, []);
+    revealFocus();
+  }, [revealFocus]);
   const menuButton = useRef<HTMLButtonElement>(null);
   const { pathname, search, hash } = useLocation();
   const navigate = useNavigate();
@@ -35,6 +57,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
   const isPortfolioDetail = /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
   const immersiveHome = siteProfile.home.presentation === 'session-slides' && marketingPath === '/';
+  const overlayMenu = siteProfile.home.presentation === 'session-slides';
   const editorial = siteProfile.home.presentation === 'editorial';
   useEffect(() => {
     if (immersiveHome || siteProfile.home.presentation !== 'session-slides') return;
@@ -44,21 +67,28 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
     return () => window.removeEventListener('scroll', update);
   }, [immersiveHome, pathname]);
   useLayoutEffect(() => {
-    if (!immersiveHome || !shell.current) return;
+    if (!shell.current) return;
     const element = shell.current;
     const masthead = element.querySelector<HTMLElement>('.public-masthead');
     const footer = element.querySelector<HTMLElement>('.public-footer');
     const measure = () => {
+      element.style.setProperty('--public-header-bottom', `${Math.max(0, masthead?.getBoundingClientRect().bottom ?? 0)}px`);
+      if (!immersiveHome) return;
       element.style.setProperty('--story-header-height', `${masthead?.offsetHeight ?? 0}px`);
       element.style.setProperty('--story-footer-height', `${footer?.offsetHeight ?? 0}px`);
     };
     measure();
-    if (typeof ResizeObserver !== 'function') return;
-    const observer = new ResizeObserver(measure);
-    if (masthead) observer.observe(masthead);
-    if (footer) observer.observe(footer);
-    return () => observer.disconnect();
-  }, [immersiveHome]);
+    window.addEventListener('resize', measure);
+    if (menuOpen) window.addEventListener('scroll', measure, { passive: true });
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
+    if (masthead) observer?.observe(masthead);
+    if (footer && immersiveHome) observer?.observe(footer);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure);
+    };
+  }, [immersiveHome, menuOpen]);
   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
   const settings = useQuery({
     queryFn: getPublicSiteSettings,
@@ -152,6 +182,10 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
     }
     if (siteProfile.seoOrigin) {
       const image = new URL(siteProfile.shareImageUrl, siteProfile.seoOrigin).href;
+      const currentCanonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+      const preserveServerImage = pageShareImage === null && currentCanonical
+        && new URL(currentCanonical.href).pathname.replace(/\/$/u, '') === pathname.replace(/\/$/u, '');
+      const shareImage = new URL(pageShareImage || siteProfile.shareImageUrl, siteProfile.seoOrigin).href;
       const organization = document.querySelector<HTMLScriptElement>('#site-organization') ?? document.createElement('script');
       organization.id = 'site-organization';
       organization.type = 'application/ld+json';
@@ -161,11 +195,11 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
         ...(serviceArea ? { areaServed: serviceArea } : {}),
       }).replaceAll('<', '\\u003c');
       if (!organization.parentNode) document.head.append(organization);
-      meta('meta[property="og:image"]', 'property', 'og:image', image);
+      if (!preserveServerImage) meta('meta[property="og:image"]', 'property', 'og:image', shareImage);
       meta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
       meta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
       meta('meta[name="twitter:description"]', 'name', 'twitter:description', summary);
-      meta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
+      if (!preserveServerImage) meta('meta[name="twitter:image"]', 'name', 'twitter:image', shareImage);
       if (pageKey) {
         const path = marketingPath === '/' ? '' : `${marketingPath.slice(1)}/`;
         const url = `${siteProfile.seoOrigin}/${language}/${path}`;
@@ -191,7 +225,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
         document.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.remove();
       }
     }
-  }, [description, enabledLanguages, language, marketingPath, pageDescription, pageKey, pageTitle, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
+  }, [description, enabledLanguages, language, marketingPath, pageDescription, pageKey, pageTitle, pageShareImage, pathname, serviceArea, settings.data?.defaultLanguage, settings.data?.siteCopy, siteName, seoCopy, t]);
 
   useEffect(() => {
     const robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]') ?? document.createElement('meta');
@@ -235,7 +269,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
   }, [menuOpen]);
 
   return (
-    <div ref={shell} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${marketingPath === '/about' ? ' public-shell--about' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+    <div ref={shell} onFocusCapture={revealFocus} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${overlayMenu ? ' public-shell--overlay-menu' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${marketingPath === '/about' ? ' public-shell--about' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
       <a className="public-skip-link" href="#public-content" onClick={() => setMenuOpen(false)}>{t('gallery.skipContent')}</a>
       <div className="public-masthead">
         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}

@@ -11,7 +11,7 @@ import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicP
 import { localizedMarketingPath } from './localizedMarketingPath';
 import { galleryText } from './galleryText';
 import { getPublicGalleryConfiguration } from './config';
-import { galleryUnlockErrorKey } from './galleryErrors';
+import { galleryUnlockErrorKey, retryPublicGalleryRead } from './galleryErrors';
 import { readFaceSearchResults } from './faceSearchSession';
 import {
   choosePhotoDirectory,
@@ -126,10 +126,12 @@ export function GalleryPage() {
   const backDestination = siteSettings.data?.galleryDirectoryEnabled === false
     ? localizedMarketingPath('/portfolio', i18n.language) : '/galleries';
   const backLabel = t(siteSettings.data?.galleryDirectoryEnabled === false ? 'gallery.backPortfolio' : 'gallery.backGalleries');
-  const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
+  const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0,
+    retry: retryPublicGalleryRead });
   const lockedGalleryPreview = useQuery({
     queryKey: ['protected-gallery-preview', slug], queryFn: () => getProtectedGalleryPreview(slug),
     enabled: event.error instanceof GalleryApiError && event.error.status === 401,
+    retry: retryPublicGalleryRead,
   });
   const photos = useInfiniteQuery({
     queryKey: ['public-photos', slug],
@@ -137,6 +139,7 @@ export function GalleryPage() {
     initialPageParam: null as string | null,
     getNextPageParam: (page) => page.nextCursor,
     enabled: slug.length > 0,
+    retry: retryPublicGalleryRead,
   });
   useEffect(() => {
     const loadedRevision = photos.data?.pages[0]?.eventRevision;

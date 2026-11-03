@@ -1,0 +1,57 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "url": "https://cadrora.com/",
+    "headers": {
+      "type": "text/html",
+      "robots": null
+    },
+    "bytes": 3868,
+    "text": null
+  },
+  {
+    "path": "/fr/",
+    "status": 200,
+    "url": "https://cadrora.com/fr/",
+    "headers": {
+      "type": "text/html",
+      "robots": null
+    },
+    "bytes": 3868,
+    "text": null
+  },
+  {
+    "path": "/en/",
+    "status": 200,
+    "url": "https://cadrora.com/en/",
+    "headers": {
+      "type": "text/html",
+      "robots": null
+    },
+    "bytes": 3840,
+    "text": null
+  },
+  {
+    "path": "/robots.txt",
+    "status": 200,
+    "url": "https://cadrora.com/robots.txt",
+    "headers": {
+      "type": "text/plain; charset=utf-8",
+      "robots": null
+    },
+    "bytes": 116,
+    "text": "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: https://cadrora.com/sitemap.xml\n"
+  },
+  {
+    "path": "/sitemap.xml",
+    "status": 200,
+    "url": "https://cadrora.com/sitemap.xml",
+    "headers": {
+      "type": "application/xml; charset=utf-8",
+      "robots": null
+    },
+    "bytes": 7343,
+    "text": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n  <url><loc>https://cadrora.com/fr/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/en/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel"
+  }
+]

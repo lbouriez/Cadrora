@@ -1,0 +1,354 @@
+[
+  {
+    "language": "fr",
+    "width": 390,
+    "label": "Site photo et galeries privées",
+    "initial": {
+      "lang": "fr",
+      "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+      "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+      "canonical": "https://cadrora.com/fr/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "fr",
+      "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+      "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/fr/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "bounds": {
+      "width": 390,
+      "scrollWidth": 390,
+      "copy": {
+        "x": 24,
+        "y": 116,
+        "width": 342,
+        "height": 510.421875
+      },
+      "actions": [
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "bottom": 548.421875
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "bottom": 548.421875
+        }
+      ]
+    }
+  },
+  {
+    "language": "fr",
+    "width": 1440,
+    "label": "Site photo et galeries privées",
+    "initial": {
+      "lang": "fr",
+      "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+      "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+      "canonical": "https://cadrora.com/fr/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "fr",
+      "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+      "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/fr/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "bounds": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "copy": {
+        "x": 96,
+        "y": 193.40625,
+        "width": 704,
+        "height": 547.5625
+      },
+      "actions": [
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "bottom": 691.96875
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "bottom": 691.96875
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "width": 390,
+    "label": "Photo website and private galleries",
+    "initial": {
+      "lang": "en",
+      "title": "Self-hosted photo website and private galleries | Cadrora",
+      "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account.",
+      "canonical": "https://cadrora.com/en/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "en",
+      "title": "Self-hosted photo website and private galleries | Cadrora",
+      "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/en/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "bounds": {
+      "width": 390,
+      "scrollWidth": 390,
+      "copy": {
+        "x": 24,
+        "y": 116,
+        "width": 342,
+        "height": 558.984375
+      },
+      "actions": [
+        {
+          "text": "Try the demoTry the demo",
+          "bottom": 596.984375
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "bottom": 596.984375
+        }
+      ]
+    }
+  },
+  {
+    "language": "en",
+    "width": 1440,
+    "label": "Photo website and private galleries",
+    "initial": {
+      "lang": "en",
+      "title": "Self-hosted photo website and private galleries | Cadrora",
+      "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account.",
+      "canonical": "https://cadrora.com/en/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "en",
+      "title": "Self-hosted photo website and private galleries | Cadrora",
+      "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account.",
+      "robots": "index,follow",
+      "canonical": "https://cadrora.com/en/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://cadrora.com/fr/"
+        },
+        {
+          "lang": "en",
+          "href": "https://cadrora.com/en/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://cadrora.com/fr/"
+        }
+      ],
+      "ogImage": "https://cadrora.com/home-hero-image/large",
+      "twitterImage": "https://cadrora.com/home-hero-image/large",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Cadrora",
+          "url": "https://cadrora.com",
+          "image": "https://cadrora.com/home-hero-image/large"
+        }
+      ]
+    },
+    "bounds": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "copy": {
+        "x": 96,
+        "y": 174.390625,
+        "width": 704,
+        "height": 640.40625
+      },
+      "actions": [
+        {
+          "text": "Try the demoTry the demo",
+          "bottom": 765.796875
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "bottom": 765.796875
+        }
+      ]
+    }
+  }
+]

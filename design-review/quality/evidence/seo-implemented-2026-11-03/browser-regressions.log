@@ -1,0 +1,115 @@
+
+Running 23 tests using 2 workers
+
+(node:35552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:59352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  2 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics false) (1.5s)
+  ok  1 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (fr, analytics true) (1.6s)
+  ok  3 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics false) (1.3s)
+  ok  4 [desktop-chromium] › tests\e2e\public-quality.spec.ts:27:5 › consent leaves footer and compact navigation usable (en, analytics true) (1.3s)
+  ok  5 [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control (903ms)
+  ok  6 [desktop-chromium] › tests\e2e\public-website.spec.ts:25:3 › site vitrine statique › editorial Home exposes owner-resolved copy while its selected photo loads (1.1s)
+  ok  7 [desktop-chromium] › tests\e2e\public-website.spec.ts:46:3 › site vitrine statique › the Home copy remains available when its photo fails (1.1s)
+  ok  8 [desktop-chromium] › tests\e2e\public-website.spec.ts:53:3 › site vitrine statique › reste utile lorsque les galeries sont indisponibles (2.3s)
+  ok 10 [desktop-chromium] › tests\e2e\public-website.spec.ts:146:3 › site vitrine statique › ne référence pas la page Galeries et rétablit le référencement du Portfolio (654ms)
+  ok 11 [desktop-chromium] › tests\e2e\public-website.spec.ts:160:3 › site vitrine statique › présente les sites créés avec Cadrora dans les deux langues (1.2s)
+  ok  9 [desktop-chromium] › tests\e2e\public-website.spec.ts:64:3 › site vitrine statique › présente les tarifs du service et le portfolio sans annuaire de galeries (3.6s)
+  ok 13 [desktop-chromium] › tests\e2e\public-website.spec.ts:199:3 › site vitrine statique › publie les coordonnees sans formulaire ni dependance distante (1.0s)
+  ok 12 [desktop-chromium] › tests\e2e\public-website.spec.ts:178:3 › site vitrine statique › ouvre les nouvelles pages en haut après une navigation depuis le bas (1.3s)
+  ok 15 [desktop-chromium] › tests\e2e\public-website.spec.ts:281:3 › site vitrine statique › ne montre pas de carte si le rayon est absent des reglages (761ms)
+  ok 14 [desktop-chromium] › tests\e2e\public-website.spec.ts:251:3 › site vitrine statique › charge GA4 avec un identifiant D1 fictif seulement après consentement (1.2s)
+  ok 16 [desktop-chromium] › tests\e2e\public-website.spec.ts:296:3 › site vitrine statique › Contact ends near its footer and uses the logo to return Home (961ms)
+  ok 18 [desktop-chromium] › tests\e2e\public-website.spec.ts:346:3 › site vitrine statique › reveals landing cards with motion unless the visitor requests reduced motion (1.3s)
+  ok 19 [desktop-chromium] › tests\e2e\public-website.spec.ts:364:3 › site vitrine statique › relie les services, les demonstrations et la confidentialite (1.1s)
+  ok 20 [desktop-chromium] › tests\e2e\public-website.spec.ts:386:3 › site vitrine statique › ne conserve pas de redirection depuis l ancienne route events (629ms)
+  x  21 [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone (927ms)
+(node:65448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  17 [desktop-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés (5.9s)
+(node:59768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 22 [desktop-chromium] › tests\e2e\public-website.spec.ts:415:3 › site vitrine statique › garde la legende photo lisible en theme sombre (1.2s)
+  ok 23 [desktop-chromium] › tests\e2e\public-website.spec.ts:430:1 › presente les galeries publiees avec une couverture plein cadre et les visages visibles (2.6s)
+
+
+  1) [desktop-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('link', { name: 'bonjour@example.test' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('link', { name: 'bonjour@example.test' }) with timeout 5000ms
+      - waiting for getByRole('link', { name: 'bonjour@example.test' })
+
+
+      326 |     });
+      327 |     await page.goto('/contact');
+    > 328 |     await expect(page.getByRole('link', { name: 'bonjour@example.test' })).toBeVisible();
+          |                                                                            ^
+      329 |
+      330 |     await page.unroute('**/api/v1/site');
+      331 |     await page.route('**/api/v1/site', async (route) => {
+        at C:\GIT\Cadrora\tests\e2e\public-website.spec.ts:328:76
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-28990-especte-les-champs-D1-vidés-desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-28990-especte-les-champs-D1-vidés-desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-website-site-vitrin-28990-especte-les-champs-D1-vidés-desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-28990-especte-les-champs-D1-vidés-desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-website-site-vitrin-28990-especte-les-champs-D1-vidés-desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone 
+
+    Error: expect(received).toBeLessThan(expected)
+
+    Expected: < 85
+    Received:   109
+
+      397 |
+      398 |     const header = page.locator('.public-header');
+    > 399 |     expect((await header.boundingBox())?.height).toBeLessThan(85);
+          |                                                  ^
+      400 |     const actions = await page.locator('.site-hero .site-actions .button').all();
+      401 |     expect(actions).toHaveLength(2);
+      402 |     const actionRows = await page.locator('.site-hero .site-actions .button').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().y));
+        at C:\GIT\Cadrora\tests\e2e\public-website.spec.ts:399:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-website-site-vitrin-b7736-les-compactes-sur-telephone-desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [desktop-chromium] › tests\e2e\public-website.spec.ts:319:3 › site vitrine statique › garde le repli compilé si D1 est indisponible, mais respecte les champs D1 vidés 
+    [desktop-chromium] › tests\e2e\public-website.spec.ts:393:3 › site vitrine statique › garde la navigation et les actions principales compactes sur telephone 
+  21 passed (21.3s)

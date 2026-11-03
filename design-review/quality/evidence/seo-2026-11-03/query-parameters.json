@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/admin/login?demo=1",
+    "status": 200,
+    "robotsHeader": null,
+    "title": "Galeries photo privées et site photographe | Cadrora",
+    "robots": null,
+    "canonical": "https://cadrora.com/fr/",
+    "og": {
+      "title": "Galeries photo privées et site photographe | Cadrora",
+      "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+      "image": "https://cadrora.com/home-hero-image/large",
+      "url": "https://cadrora.com/fr/"
+    }
+  },
+  {
+    "path": "/fr/portfolio/familles/?photo=demo-portfolio-family-01",
+    "status": 200,
+    "robotsHeader": null,
+    "title": "Instants en famille | Cadrora",
+    "robots": null,
+    "canonical": "https://cadrora.com/fr/portfolio/familles/",
+    "og": {
+      "title": "Instants en famille | Cadrora",
+      "description": "Des scènes naturelles de vie de famille, créées pour la démonstration. Région desservie : Grand Montréal, Laurentides et Estrie.",
+      "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+      "url": "https://cadrora.com/fr/portfolio/familles/"
+    }
+  }
+]

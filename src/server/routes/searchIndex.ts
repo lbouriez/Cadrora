@@ -1,5 +1,6 @@
 import type { Hono } from 'hono';
 import { PortfolioSitemapRowsSchema } from '../../shared/schemas/portfolio';
+import { SiteSettingsSchema } from '../../shared/schemas/site';
 
 import type { AppEnv } from '../types';
 import { SITE_SETTINGS_SELECT, siteSettingsFromRow } from './siteSettings';
@@ -50,7 +51,7 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
   app.get('/robots.txt', (context) => {
     const origin = context.env?.SITE_ORIGIN || new URL(context.req.url).origin;
     context.header('Cache-Control', 'public, max-age=3600');
-    return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return context.text(`User-agent: *\nAllow: /\nDisallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/\nDisallow: /media/\nSitemap: ${origin}/sitemap.xml\n`, 200, { 'Content-Type': 'text/plain; charset=utf-8' });
   });
 
   app.get('/sitemap.xml', async (context) => {
@@ -59,6 +60,8 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
     let aboutEnabled = false;
     let sessionsPageEnabled = false;
     let defaultLanguage: 'fr' | 'en' = context.env.SITE_DEFAULT_LANG === 'en' ? 'en' : 'fr';
+    // Match the static bilingual documents if settings are missing or invalid.
+    let enabledLanguages: ('fr' | 'en')[] = ['fr', 'en'];
     try {
       const rows = await context.env.DB.prepare(`SELECT c.slug FROM portfolio_collections c
         WHERE c.published = 1
@@ -66,21 +69,24 @@ export function registerSearchIndexRoutes(app: Hono<AppEnv>): void {
       portfolioPaths = PortfolioSitemapRowsSchema.parse(rows.results).map(({ slug }) => `/portfolio/${encodeURIComponent(slug)}`);
     } catch { /* Keep the marketing sitemap available during a D1 outage. */ }
     try {
-      const row = await context.env.DB.prepare('SELECT about_enabled, sessions_page_enabled, default_language FROM site_settings WHERE id = 1')
-        .first<{ about_enabled: number; sessions_page_enabled: number; default_language: string }>();
+      const row = await context.env.DB.prepare('SELECT about_enabled, sessions_page_enabled, default_language, enabled_languages FROM site_settings WHERE id = 1')
+        .first<{ about_enabled: number; sessions_page_enabled: number; default_language: string; enabled_languages: string }>();
       aboutEnabled = row?.about_enabled === 1;
       sessionsPageEnabled = row?.sessions_page_enabled === 1;
       if (row?.default_language === 'fr' || row?.default_language === 'en') defaultLanguage = row.default_language;
-    } catch { /* Keep optional pages hidden while their availability is unknown. */ }
+      const languages = SiteSettingsSchema.shape.enabledLanguages.safeParse(JSON.parse(row?.enabled_languages ?? '["fr","en"]') as unknown);
+      if (languages.success) enabledLanguages = languages.data;
+    } catch { /* Keep bilingual fallback; optional pages require confirmed availability. */ }
+    if (!enabledLanguages.includes(defaultLanguage)) defaultLanguage = enabledLanguages[0]!;
     context.header('Cache-Control', 'no-store');
     const paths = [
       ...publicPages.filter((page) => (page.path !== '/about' || aboutEnabled)
         && (page.path !== '/services' || sessionsPageEnabled)).map((page) => page.path),
       ...portfolioPaths,
     ];
-    const marketingUrls = paths.flatMap((path) => (['fr', 'en'] as const).map((language) => {
+    const marketingUrls = paths.flatMap((path) => enabledLanguages.map((language) => {
       const localized = (lang: 'fr' | 'en') => `${origin}/${lang}${path === '/' ? '/' : `${path}/`}`;
-      const alternates = (['fr', 'en', 'x-default'] as const).map((lang) =>
+      const alternates = ([...enabledLanguages, 'x-default'] as const).map((lang) =>
         `<xhtml:link rel="alternate" hreflang="${lang}" href="${escapeXml(localized(lang === 'x-default'
           ? defaultLanguage : lang))}"/>`).join('');
       return `  <url><loc>${escapeXml(localized(language))}</loc>${alternates}</url>`;

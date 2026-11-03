@@ -1,0 +1,11 @@
+{
+  "route": "/fr",
+  "viewport": [
+    390,
+    844
+  ],
+  "consent": "necessary only; closes banner",
+  "dialogOpened": true,
+  "escapeClosesDialog": true,
+  "focusReturned": true
+}

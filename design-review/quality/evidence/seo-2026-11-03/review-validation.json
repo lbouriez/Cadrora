@@ -1,0 +1,609 @@
+{
+  "at": "2026-11-03T13:36:48.803Z",
+  "url": "http://127.0.0.1:4189/",
+  "boardChecks": [
+    {
+      "section": "issues",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "routes",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "previews",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "actions",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "seo-coverage",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "quality",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "coverage",
+      "violations": [],
+      "visible": 2
+    },
+    {
+      "section": "measurements",
+      "violations": [],
+      "visible": 2
+    }
+  ],
+  "mobileChecks": [
+    {
+      "w": 320,
+      "view": "issues",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 320,
+      "view": "routes",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 320,
+      "view": "previews",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 320,
+      "view": "actions",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 320,
+      "view": "seo-coverage",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 320,
+      "view": "quality",
+      "viewport": 320,
+      "scroll": 320
+    },
+    {
+      "w": 390,
+      "view": "issues",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 390,
+      "view": "routes",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 390,
+      "view": "previews",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 390,
+      "view": "actions",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 390,
+      "view": "seo-coverage",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 390,
+      "view": "quality",
+      "viewport": 390,
+      "scroll": 390
+    },
+    {
+      "w": 768,
+      "view": "issues",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 768,
+      "view": "routes",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 768,
+      "view": "previews",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 768,
+      "view": "actions",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 768,
+      "view": "seo-coverage",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 768,
+      "view": "quality",
+      "viewport": 768,
+      "scroll": 768
+    },
+    {
+      "w": 1440,
+      "view": "issues",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "w": 1440,
+      "view": "routes",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "w": 1440,
+      "view": "previews",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "w": 1440,
+      "view": "actions",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "w": 1440,
+      "view": "seo-coverage",
+      "viewport": 1440,
+      "scroll": 1440
+    },
+    {
+      "w": 1440,
+      "view": "quality",
+      "viewport": 1440,
+      "scroll": 1440
+    }
+  ],
+  "localLinks": [
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-extra-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-rendered-samples.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/source-excerpts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/portfolio-initial-rendered.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/share-image-responses.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-fr-only.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-en-only.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/owner-scenarios.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-probe.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-current-mobile.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-proposed-fr-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=fr",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=en",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-current-desktop.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-proposed-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/mockup-fit.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-quality-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/enlarged-consent.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/viewport-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/axe-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/PERF-001-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-gallery.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/axe-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/check.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-cadrora-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/application.patch",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/review-data.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-access-trace.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/performance-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/home-share.webp",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/family-share.webp",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/route-audit.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/local-rendered-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/build.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/check-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/tests-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/source-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/starting-worktree.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-footer.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-menu.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-dialog.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/public-quality.spec.ts.txt",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-menu-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-landscape-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001-landscape",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/text-200-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/MOB-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=MOB-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/MOB-001-header-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-current.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-proposed.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-ready.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/manual-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/lab-run-2.png",
+      "status": 200
+    }
+  ],
+  "keyboard": {
+    "skip": "Aller aux résultats",
+    "skipTarget": "main",
+    "spaceSelect": true
+  },
+  "selection": {
+    "seoOnlyInstruction": "J’approuve les propositions SEO-001 révision 1, SEO-003 révision 1 de la revue cadrora-seo-2026-11-03. Exécute C:\\GIT\\AIPrompts\\website\\shared\\04-seo-and-search-visibility.md en mode implement-approved pour ces identifiants uniquement, dans C:\\GIT\\Cadrora. Recontrôle leur applicabilité et conserve les réglages personnalisables dans l’administration.",
+    "mixedSelectionSeparatedByPrompt": "J’approuve les propositions SEO-001 révision 1, SEO-003 révision 1 de la revue cadrora-seo-2026-11-03. Exécute C:\\GIT\\AIPrompts\\website\\shared\\04-seo-and-search-visibility.md en mode implement-approved pour ces identifiants uniquement, dans C:\\GIT\\Cadrora. Recontrôle leur applicabilité et conserve les réglages personnalisables dans l’administration.\n\nJ’approuve les propositions PERF-002 révision 1 de la revue cadrora-quality-2026-11-02. Exécute C:\\GIT\\AIPrompts\\website\\shared\\03-mobile-accessibility-performance.md en mode implement-approved pour ces identifiants uniquement, dans C:\\GIT\\Cadrora. Recontrôle leur applicabilité et conserve les réglages personnalisables dans l’administration.",
+    "previousQualityIssues": [
+      {
+        "id": "A11Y-001",
+        "selectable": false
+      },
+      {
+        "id": "MOB-001",
+        "selectable": false
+      },
+      {
+        "id": "PERF-001",
+        "selectable": false
+      },
+      {
+        "id": "PERF-002",
+        "selectable": true
+      }
+    ],
+    "selectionCleared": true
+  },
+  "mockups": [
+    {
+      "lang": "fr",
+      "size": "320,568",
+      "frames": [
+        {
+          "id": "current",
+          "width": 320,
+          "scroll": 320,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 320,
+          "scroll": 320,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        }
+      ]
+    },
+    {
+      "lang": "fr",
+      "size": "390,844",
+      "frames": [
+        {
+          "id": "current",
+          "width": 390,
+          "scroll": 390,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 390,
+          "scroll": 390,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        }
+      ]
+    },
+    {
+      "lang": "fr",
+      "size": "1440,900",
+      "frames": [
+        {
+          "id": "current",
+          "width": 1440,
+          "scroll": 1440,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 1440,
+          "scroll": 1440,
+          "text": "Votre regard. Un espace à vous.",
+          "brokenImages": 0
+        }
+      ]
+    },
+    {
+      "lang": "en",
+      "size": "320,568",
+      "frames": [
+        {
+          "id": "current",
+          "width": 320,
+          "scroll": 320,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 320,
+          "scroll": 320,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        }
+      ]
+    },
+    {
+      "lang": "en",
+      "size": "390,844",
+      "frames": [
+        {
+          "id": "current",
+          "width": 390,
+          "scroll": 390,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 390,
+          "scroll": 390,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        }
+      ]
+    },
+    {
+      "lang": "en",
+      "size": "1440,900",
+      "frames": [
+        {
+          "id": "current",
+          "width": 1440,
+          "scroll": 1440,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        },
+        {
+          "id": "proposed",
+          "width": 1440,
+          "scroll": 1440,
+          "text": "Your perspective. A space of your own.",
+          "brokenImages": 0
+        }
+      ]
+    }
+  ],
+  "consoleErrors": [],
+  "limits": [
+    "Automated accessibility checks plus targeted keyboard checks do not establish full WCAG compliance.",
+    "Prototype controls are deliberately frozen; this is a copy proposal, not an implemented application."
+  ]
+}

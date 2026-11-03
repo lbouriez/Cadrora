@@ -85,6 +85,8 @@ export function PortfolioDetailPage() {
   const selected = photos.find((photo) => photo.id === searchParams.get('photo'));
   const category = categories.data?.find((candidate) => candidate.id === collection.data?.categoryId);
   return <PublicLayout
+    pageShareImage={collection.isPending || collection.isError ? null
+      : collection.data?.coverSources.find((source) => source.url.endsWith('/large'))?.url}
     {...(collection.data ? {
       pageDescription: collection.data.copy[language].description,
       pageTitle: collection.data.copy[language].title,

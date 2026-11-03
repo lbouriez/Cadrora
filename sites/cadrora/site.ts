@@ -51,7 +51,7 @@ export const cadroraSite = {
   },
   copy: {
     en: { gallery: {
-      heroEyebrow: 'Your photography, your way',
+      heroEyebrow: 'Photo website and private galleries',
       heroTitle: 'Your perspective. A space of your own.',
       heroLead: 'A website to present your work. Galleries to share it. Explore Cadrora, then install it in your own Cloudflare account.',
       heroArtCaption: 'Sample gallery',
@@ -89,7 +89,7 @@ export const cadroraSite = {
       atelierGiulia: 'Portraits, celebrations, and photo galleries on a site shaped around the studio.',
     } } },
     fr: { gallery: {
-      heroEyebrow: 'Votre photographie, à votre façon',
+      heroEyebrow: 'Site photo et galeries privées',
       heroTitle: 'Votre regard. Un espace à vous.',
       heroLead: 'Un site pour présenter votre travail. Des galeries pour le partager. Découvrez Cadrora, puis installez-le dans votre propre compte Cloudflare.',
       heroArtCaption: 'Galerie de démonstration',

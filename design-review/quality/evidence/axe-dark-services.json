@@ -1,0 +1,102 @@
+{
+  "violations": [
+    {
+      "id": "color-contrast",
+      "impact": "serious",
+      "tags": [
+        "cat.color",
+        "wcag2aa",
+        "wcag143",
+        "TTv5",
+        "TT13.c",
+        "EN-301-549",
+        "EN-9.1.4.3",
+        "ACT",
+        "RGAAv4",
+        "RGAA-3.2.1"
+      ],
+      "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "help": "Elements must meet minimum color contrast ratio thresholds",
+      "helpUrl": "https://dequeuniversity.com/rules/axe/4.13/color-contrast?application=axeAPI",
+      "nodes": [
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#251923",
+                "bgColor": "#241822",
+                "contrastRatio": 1.01,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "messageKey": null,
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<article class=\"motion-reveal motion-reveal--rise motion-reveal--delay-1 motion-reveal--visible service-detail-card\">",
+                  "target": [
+                    ".motion-reveal--delay-1.motion-reveal--visible"
+                  ]
+                },
+                {
+                  "html": "<div class=\"public-shell public-shell--editorial\">",
+                  "target": [
+                    ".public-shell"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has insufficient color contrast of 1.01 (foreground color: #251923, background color: #241822, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<p>Une séance détendue pour saisir les rires, la complicité et les petits gestes qui racontent votre famille.</p>",
+          "target": [
+            ".motion-reveal--delay-1.motion-reveal--visible > .service-detail-card__copy > p"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.01 (foreground color: #251923, background color: #241822, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "fgColor": "#261a24",
+                "bgColor": "#251923",
+                "contrastRatio": 1.01,
+                "fontSize": "12.0pt (16px)",
+                "fontWeight": "normal",
+                "messageKey": null,
+                "expectedContrastRatio": "4.5:1"
+              },
+              "relatedNodes": [
+                {
+                  "html": "<button class=\"button button--secondary\" type=\"button\" aria-haspopup=\"dialog\">Découvrir cette séance</button>",
+                  "target": [
+                    ".motion-reveal--delay-1.motion-reveal--visible > .service-detail-card__copy > .button--secondary.button[aria-haspopup=\"dialog\"]"
+                  ]
+                }
+              ],
+              "impact": "serious",
+              "message": "Element has insufficient color contrast of 1.01 (foreground color: #261a24, background color: #251923, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<button class=\"button button--secondary\" type=\"button\" aria-haspopup=\"dialog\">Découvrir cette séance</button>",
+          "target": [
+            ".motion-reveal--delay-1.motion-reveal--visible > .service-detail-card__copy > .button--secondary.button[aria-haspopup=\"dialog\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 1.01 (foreground color: #261a24, background color: #251923, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+        }
+      ]
+    }
+  ],
+  "incomplete": [
+    "color-contrast"
+  ]
+}

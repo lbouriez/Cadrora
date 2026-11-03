@@ -1,0 +1,22 @@
+[WebServer] (node:49612) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:49740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9233 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: ADMIN_SECRET_HASH, AUTH_PEPPER, TURNSTILE_SECRET_KEY. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 3 tests using 1 worker
+
+(node:35532) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [desktop-chromium] › tests\e2e\gallery.spec.ts:124:1 › ouvre une galerie publique et sa visionneuse (2.4s)
+  ok 2 [desktop-chromium] › tests\e2e\gallery.spec.ts:205:1 › selectionne des photos et cree le ZIP de secours avec un bouton retour entier (1.2s)
+  ok 3 [desktop-chromium] › tests\e2e\gallery.spec.ts:396:1 › demande puis echange le mot de passe d une galerie protegee (878ms)
+
+  3 passed (14.7s)

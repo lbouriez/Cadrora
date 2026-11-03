@@ -1,0 +1,46 @@
+{
+  "revision": "872c91912c50ba797ab84489562b4292a72a98c8",
+  "prompt": "website.shared.03@2.1",
+  "startedAt": "2026-11-02T23:09:39.772Z",
+  "routes": [
+    "/fr",
+    "/en",
+    "/fr/services",
+    "/fr/about",
+    "/fr/contact",
+    "/fr/portfolio",
+    "/galleries",
+    "/e/find-your-photos",
+    "/e/find-your-photos/find",
+    "/e/family-stories",
+    "/fr/privacy",
+    "/admin/login?demo=1"
+  ],
+  "widths": [
+    320,
+    375,
+    390,
+    430,
+    768,
+    1024,
+    1440,
+    1920
+  ],
+  "states": [
+    "navigation ouverte",
+    "consentement",
+    "dialogue séance",
+    "zoom texte 200%",
+    "FR/EN",
+    "erreur accès galerie",
+    "portfolio vide",
+    "réseau indisponible"
+  ],
+  "conditions": "Build optimisé local, profil Cadrora. Métadonnées site substituées en mémoire : nom Cadrora, courriel example.com ; données galerie de démonstration locales. Aucun appel de mutation au serveur.",
+  "boundaries": [
+    "Pas de Safari/Firefox installé",
+    "Pas de lecteur d’écran ou appareil physique",
+    "Pas de mesure terrain",
+    "Pas de modification source"
+  ]
+}

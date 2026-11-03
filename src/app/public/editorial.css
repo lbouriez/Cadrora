@@ -74,8 +74,8 @@
   .product-workflow ol,.product-installation,.product-faq,.public-shell--editorial .featured-sites { grid-template-columns: 1fr; gap: var(--space-6); }
   .product-workflow li { display: flex; gap: var(--space-5); }
   .product-workflow h3 { margin-top: 0; }
-  .public-shell--editorial .public-header { min-height: 4.75rem; padding-inline: var(--space-4); }
-  .public-shell--editorial .public-brand { min-width: 0; gap: var(--space-2); font-size: .9rem; letter-spacing: .08em; }
+  .public-shell--editorial .public-header { min-height: 4.75rem; padding-inline: var(--space-4); flex-wrap: wrap; row-gap: var(--space-2); }
+  .public-shell--editorial .public-brand { min-width: 0; flex: 1 1 auto; gap: var(--space-2); font-size: .9rem; letter-spacing: .08em; }
   .public-shell--editorial .public-brand__logo { width: 2rem; height: 2rem; flex-shrink: 0; }
   .public-shell--editorial .public-brand__name { display: block; overflow-wrap: anywhere; }
   .public-shell--editorial .public-header__actions { flex-shrink: 0; }

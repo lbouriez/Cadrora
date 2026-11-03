@@ -1,0 +1,1465 @@
+{
+  "timestamp": "2026-11-03T13:10:40.455Z",
+  "routes": [
+    {
+      "url": "https://cadrora.com/fr/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Galeries photo privées et site photographe | Cadrora",
+        "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/"
+          }
+        ],
+        "og": {
+          "title": "Galeries photo privées et site photographe | Cadrora",
+          "description": "Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/"
+        },
+        "twitter": {
+          "title": "Galeries photo privées et site photographe | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Galeries photo privées et site photographe | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Private photo galleries and photographer website | Cadrora",
+        "description": "Cadrora brings together a photographer website, private photo galleries and optional search to help guests find their pictures.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/"
+          }
+        ],
+        "og": {
+          "title": "Private photo galleries and photographer website | Cadrora",
+          "description": "Cadrora brings together a photographer website, private photo galleries and optional search to help guests find their pictures.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/"
+        },
+        "twitter": {
+          "title": "Private photo galleries and photographer website | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Private photo galleries and photographer website | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/services/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/services/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Séances et services photo | Cadrora",
+        "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/services/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/services/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/services/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/services/"
+          }
+        ],
+        "og": {
+          "title": "Séances et services photo | Cadrora",
+          "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/services/"
+        },
+        "twitter": {
+          "title": "Séances et services photo | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Séances et services photo | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/services/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/services/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Photography sessions and services | Cadrora",
+        "description": "Explore example photo sessions and services for families, portraits, events and brands.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/services/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/services/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/services/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/services/"
+          }
+        ],
+        "og": {
+          "title": "Photography sessions and services | Cadrora",
+          "description": "Explore example photo sessions and services for families, portraits, events and brands.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/services/"
+        },
+        "twitter": {
+          "title": "Photography sessions and services | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Photography sessions and services | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Portfolio photo | Cadrora",
+        "description": "Parcourez des collections de démonstration pour découvrir le portfolio photo de Cadrora.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/"
+          }
+        ],
+        "og": {
+          "title": "Portfolio photo | Cadrora",
+          "description": "Parcourez des collections de démonstration pour découvrir le portfolio photo de Cadrora.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/portfolio/"
+        },
+        "twitter": {
+          "title": "Portfolio photo | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Portfolio photo | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Photography portfolio | Cadrora",
+        "description": "Browse sample collections in the Cadrora photography portfolio.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/"
+          }
+        ],
+        "og": {
+          "title": "Photography portfolio | Cadrora",
+          "description": "Browse sample collections in the Cadrora photography portfolio.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/portfolio/"
+        },
+        "twitter": {
+          "title": "Photography portfolio | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Photography portfolio | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/about/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/about/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "À propos | Cadrora",
+        "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/about/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/about/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/about/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/about/"
+          }
+        ],
+        "og": {
+          "title": "À propos | Cadrora",
+          "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/about/"
+        },
+        "twitter": {
+          "title": "À propos | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "À propos | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/about/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/about/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "About | Cadrora",
+        "description": "Discover the photography approach presented on the Cadrora demonstration website.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/about/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/about/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/about/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/about/"
+          }
+        ],
+        "og": {
+          "title": "About | Cadrora",
+          "description": "Discover the photography approach presented on the Cadrora demonstration website.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/about/"
+        },
+        "twitter": {
+          "title": "About | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "About | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/contact/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/contact/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Contact | Cadrora",
+        "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/contact/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/contact/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/contact/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/contact/"
+          }
+        ],
+        "og": {
+          "title": "Contact | Cadrora",
+          "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/contact/"
+        },
+        "twitter": {
+          "title": "Contact | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Contact | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/contact/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/contact/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Contact | Cadrora",
+        "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/contact/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/contact/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/contact/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/contact/"
+          }
+        ],
+        "og": {
+          "title": "Contact | Cadrora",
+          "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/contact/"
+        },
+        "twitter": {
+          "title": "Contact | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Contact | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/privacy/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/privacy/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Confidentialité | Cadrora",
+        "description": "Comprenez le traitement des données lors d’une visite, dans une galerie photo et avec la recherche facultative.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/privacy/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/privacy/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/privacy/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/privacy/"
+          }
+        ],
+        "og": {
+          "title": "Confidentialité | Cadrora",
+          "description": "Comprenez le traitement des données lors d’une visite, dans une galerie photo et avec la recherche facultative.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/fr/privacy/"
+        },
+        "twitter": {
+          "title": "Confidentialité | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Confidentialité | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Galeries photo privées et site photographe | Cadrora",
+            "href": "/fr/"
+          },
+          {
+            "text": "Séances et services photo | Cadrora",
+            "href": "/fr/services/"
+          },
+          {
+            "text": "Portfolio photo | Cadrora",
+            "href": "/fr/portfolio/"
+          },
+          {
+            "text": "À propos | Cadrora",
+            "href": "/fr/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/fr/contact/"
+          },
+          {
+            "text": "Confidentialité | Cadrora",
+            "href": "/fr/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/privacy/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/privacy/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Privacy | Cadrora",
+        "description": "Learn how data is handled during a site visit, in a photo gallery and with optional photo search.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/privacy/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/privacy/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/privacy/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/privacy/"
+          }
+        ],
+        "og": {
+          "title": "Privacy | Cadrora",
+          "description": "Learn how data is handled during a site visit, in a photo gallery and with optional photo search.",
+          "image": "https://cadrora.com/home-hero-image/large",
+          "url": "https://cadrora.com/en/privacy/"
+        },
+        "twitter": {
+          "title": "Privacy | Cadrora",
+          "image": "https://cadrora.com/home-hero-image/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ],
+        "h1": [
+          "Privacy | Cadrora"
+        ],
+        "links": [
+          {
+            "text": "Private photo galleries and photographer website | Cadrora",
+            "href": "/en/"
+          },
+          {
+            "text": "Photography sessions and services | Cadrora",
+            "href": "/en/services/"
+          },
+          {
+            "text": "Photography portfolio | Cadrora",
+            "href": "/en/portfolio/"
+          },
+          {
+            "text": "About | Cadrora",
+            "href": "/en/about/"
+          },
+          {
+            "text": "Contact | Cadrora",
+            "href": "/en/contact/"
+          },
+          {
+            "text": "Privacy | Cadrora",
+            "href": "/en/privacy/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/mariages/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/mariages/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Moments de mariage | Cadrora",
+        "description": "Deux histoires fictives pour découvrir les collections du portfolio. Région desservie : Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/mariages/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/mariages/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/mariages/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/mariages/"
+          }
+        ],
+        "og": {
+          "title": "Moments de mariage | Cadrora",
+          "description": "Deux histoires fictives pour découvrir les collections du portfolio. Région desservie : Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+          "url": "https://cadrora.com/fr/portfolio/mariages/"
+        },
+        "twitter": {
+          "title": "Moments de mariage | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Moments de mariage"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/fr/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/mariages/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/mariages/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Wedding moments | Cadrora",
+        "description": "Two fictional stories introducing the portfolio collections. Service area: Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/mariages/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/mariages/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/mariages/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/mariages/"
+          }
+        ],
+        "og": {
+          "title": "Wedding moments | Cadrora",
+          "description": "Two fictional stories introducing the portfolio collections. Service area: Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+          "url": "https://cadrora.com/en/portfolio/mariages/"
+        },
+        "twitter": {
+          "title": "Wedding moments | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Wedding moments"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/en/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/familles/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/familles/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Instants en famille | Cadrora",
+        "description": "Des scènes naturelles de vie de famille, créées pour la démonstration. Région desservie : Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/familles/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/familles/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/familles/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/familles/"
+          }
+        ],
+        "og": {
+          "title": "Instants en famille | Cadrora",
+          "description": "Des scènes naturelles de vie de famille, créées pour la démonstration. Région desservie : Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+          "url": "https://cadrora.com/fr/portfolio/familles/"
+        },
+        "twitter": {
+          "title": "Instants en famille | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Instants en famille"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/fr/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/familles/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/familles/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Family moments | Cadrora",
+        "description": "Natural family scenes created for the demonstration. Service area: Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/familles/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/familles/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/familles/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/familles/"
+          }
+        ],
+        "og": {
+          "title": "Family moments | Cadrora",
+          "description": "Natural family scenes created for the demonstration. Service area: Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+          "url": "https://cadrora.com/en/portfolio/familles/"
+        },
+        "twitter": {
+          "title": "Family moments | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Family moments"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/en/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/marques/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/marques/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Portraits de marque | Cadrora",
+        "description": "Des portraits d’entrepreneurs fictifs dans leur univers. Région desservie : Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/marques/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/marques/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/marques/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/marques/"
+          }
+        ],
+        "og": {
+          "title": "Portraits de marque | Cadrora",
+          "description": "Des portraits d’entrepreneurs fictifs dans leur univers. Région desservie : Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+          "url": "https://cadrora.com/fr/portfolio/marques/"
+        },
+        "twitter": {
+          "title": "Portraits de marque | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Portraits de marque"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/fr/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/marques/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/marques/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Brand portraits | Cadrora",
+        "description": "Portraits of fictional entrepreneurs in their element. Service area: Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/marques/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/marques/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/marques/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/marques/"
+          }
+        ],
+        "og": {
+          "title": "Brand portraits | Cadrora",
+          "description": "Portraits of fictional entrepreneurs in their element. Service area: Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+          "url": "https://cadrora.com/en/portfolio/marques/"
+        },
+        "twitter": {
+          "title": "Brand portraits | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Brand portraits"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/en/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/entreprises/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/entreprises/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Vie d’équipe | Cadrora",
+        "description": "Des moments professionnels naturels, créés pour la démonstration. Région desservie : Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/entreprises/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/entreprises/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/entreprises/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/entreprises/"
+          }
+        ],
+        "og": {
+          "title": "Vie d’équipe | Cadrora",
+          "description": "Des moments professionnels naturels, créés pour la démonstration. Région desservie : Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+          "url": "https://cadrora.com/fr/portfolio/entreprises/"
+        },
+        "twitter": {
+          "title": "Vie d’équipe | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Vie d’équipe"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/fr/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/entreprises/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/entreprises/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Team life | Cadrora",
+        "description": "Natural professional moments created for the demonstration. Service area: Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/entreprises/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/entreprises/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/entreprises/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/entreprises/"
+          }
+        ],
+        "og": {
+          "title": "Team life | Cadrora",
+          "description": "Natural professional moments created for the demonstration. Service area: Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+          "url": "https://cadrora.com/en/portfolio/entreprises/"
+        },
+        "twitter": {
+          "title": "Team life | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Team life"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/en/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/fr/portfolio/enfance/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/fr/portfolio/enfance/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "fr",
+        "title": "Enfance en lumière | Cadrora",
+        "description": "Des instants de jeu et de découverte entièrement fictifs. Région desservie : Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/fr/portfolio/enfance/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/enfance/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/enfance/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/enfance/"
+          }
+        ],
+        "og": {
+          "title": "Enfance en lumière | Cadrora",
+          "description": "Des instants de jeu et de découverte entièrement fictifs. Région desservie : Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+          "url": "https://cadrora.com/fr/portfolio/enfance/"
+        },
+        "twitter": {
+          "title": "Enfance en lumière | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Enfance en lumière"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/fr/portfolio/"
+          }
+        ]
+      }
+    },
+    {
+      "url": "https://cadrora.com/en/portfolio/enfance/",
+      "status": 200,
+      "finalUrl": "https://cadrora.com/en/portfolio/enfance/",
+      "robotsHeader": null,
+      "initial": {
+        "lang": "en",
+        "title": "Childhood in light | Cadrora",
+        "description": "Entirely fictional moments of play and discovery. Service area: Grand Montréal, Laurentides et Estrie.",
+        "robots": null,
+        "canonical": "https://cadrora.com/en/portfolio/enfance/",
+        "hreflang": [
+          {
+            "lang": "fr",
+            "url": "https://cadrora.com/fr/portfolio/enfance/"
+          },
+          {
+            "lang": "en",
+            "url": "https://cadrora.com/en/portfolio/enfance/"
+          },
+          {
+            "lang": "x-default",
+            "url": "https://cadrora.com/fr/portfolio/enfance/"
+          }
+        ],
+        "og": {
+          "title": "Childhood in light | Cadrora",
+          "description": "Entirely fictional moments of play and discovery. Service area: Grand Montréal, Laurentides et Estrie.",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+          "url": "https://cadrora.com/en/portfolio/enfance/"
+        },
+        "twitter": {
+          "title": "Childhood in light | Cadrora",
+          "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large"
+        },
+        "jsonld": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+            "areaServed": "Grand Montréal, Laurentides et Estrie"
+          }
+        ],
+        "h1": [
+          "Childhood in light"
+        ],
+        "links": [
+          {
+            "text": "Portfolio",
+            "href": "/en/portfolio/"
+          }
+        ]
+      }
+    }
+  ]
+}

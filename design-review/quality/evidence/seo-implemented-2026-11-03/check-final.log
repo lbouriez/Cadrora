@@ -1,0 +1,26 @@
+
+> cadrora@0.1.0 check
+> npm run typecheck && npm run lint
+
+
+> cadrora@0.1.0 typecheck
+> tsc -b
+
+
+> cadrora@0.1.0 lint
+> eslint . --max-warnings 0
+
+
+C:\GIT\Cadrora\tests\unit\app\seoMetadata.test.tsx
+  71:23  error  This assertion is unnecessary since it does not change the type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+  71:83  error  Unsafe member access .image on an `any` value                                      @typescript-eslint/no-unsafe-member-access
+
+C:\GIT\Cadrora\tests\unit\server\app.test.ts
+  43:67  error  This assertion is unnecessary since the receiver accepts the original type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+
+C:\GIT\Cadrora\tests\unit\server\searchIndex.test.ts
+  21:87  error  This assertion is unnecessary since the receiver accepts the original type of the expression  @typescript-eslint/no-unnecessary-type-assertion
+
+✖ 4 problems (4 errors, 0 warnings)
+  3 errors and 0 warnings potentially fixable with the `--fix` option.
+

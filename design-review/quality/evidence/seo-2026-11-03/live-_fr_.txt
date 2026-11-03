@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr" data-site="cadrora">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17111f" />
+    <meta
+      name="description"
+      content="Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images."
+    />
+    <title>Galeries photo privées et site photographe | Cadrora</title>
+    <link rel="icon" href="/brand/cadrora-logo.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/brand/cadrora-logo.png" />
+    <script type="module" crossorigin src="/assets/index-GEcrX3-1.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-W7wSyTde.js">
+    <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-DLyUyuBb.js">
+    <link rel="modulepreload" crossorigin href="/assets/preload-helper-BZ1Pz5am.js">
+    <link rel="modulepreload" crossorigin href="/assets/components-D56sAiOz.js">
+    <link rel="modulepreload" crossorigin href="/assets/portfolio-1-L0KkmA.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-H16hqM_d.css">
+  
+    <link rel="canonical" href="https://cadrora.com/fr/">
+    <link rel="alternate" hreflang="fr" href="https://cadrora.com/fr/">
+<link rel="alternate" hreflang="en" href="https://cadrora.com/en/">
+    <link rel="alternate" hreflang="x-default" href="https://cadrora.com/fr/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Cadrora">
+    <meta property="og:locale" content="fr_CA">
+    <meta property="og:locale:alternate" content="en_CA">
+    <meta property="og:title" content="Galeries photo privées et site photographe | Cadrora">
+    <meta property="og:description" content="Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.">
+    <meta property="og:url" content="https://cadrora.com/fr/">
+    <meta property="og:image" content="https://cadrora.com/home-hero-image/large">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Galeries photo privées et site photographe | Cadrora">
+    <meta name="twitter:description" content="Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.">
+    <meta name="twitter:image" content="https://cadrora.com/home-hero-image/large">
+    <script id="site-organization" type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Cadrora","url":"https://cadrora.com","image":"https://cadrora.com/home-hero-image/large"}</script>
+  </head>
+  <body>
+    <div id="root"><main class="site-startup">
+    <section class="site-startup__identity" aria-label="Chargement du site">
+      <p class="site-startup__brand">Cadrora</p>
+      <span class="site-startup__rule" aria-hidden="true"></span>
+    </section>
+    <details class="site-startup__fallback">
+      <summary>Accéder aux pages</summary>
+      <section class="site-startup__content"><h1>Galeries photo privées et site photographe | Cadrora</h1><p>Cadrora réunit un site photographe, des galeries photo privées et une recherche facultative pour aider les invités à retrouver leurs images.</p><nav aria-label="Accéder aux pages"><a href="/fr/">Galeries photo privées et site photographe | Cadrora</a> <a href="/fr/services/">Séances et services photo | Cadrora</a> <a href="/fr/portfolio/">Portfolio photo | Cadrora</a> <a href="/fr/about/">À propos | Cadrora</a> <a href="/fr/contact/">Contact | Cadrora</a> <a href="/fr/privacy/">Confidentialité | Cadrora</a></nav></section>
+    </details>
+  </main></div>
+    <script async src="/public-requests.js"></script>
+  </body>
+</html>

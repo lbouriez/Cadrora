@@ -1,0 +1,49 @@
+
+> cadrora@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.1 C:/GIT/Cadrora
+
+(node:65208) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:44732) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:56792) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:47356) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Uploading 40 generated portfolio variants.
+(node:46524) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Demo R2 upload failed (attempt 1/3); retrying.
+Demo R2 upload failed (attempt 1/3); retrying.
+Demo R2 upload failed (attempt 2/3); retrying.
+ ❯ tests/unit/scripts/remoteSecrets.test.mjs (11 tests | 1 failed | 1 skipped) 14987ms
+   ❯ remote release secrets (11)
+     × keeps simultaneous preparations and their cleanup independent 5547ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/scripts/remoteSecrets.test.mjs > remote release secrets > keeps simultaneous preparations and their cleanup independent
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/unit/scripts/remoteSecrets.test.mjs:58:3
+     56|   });
+     57|
+     58|   it('keeps simultaneous preparations and their cleanup independent', …
+       |   ^
+     59|     const first = await prepareRemoteSecrets(credentials);
+     60|     const second = await prepareRemoteSecrets(credentials);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 103 passed (104)
+      Tests  1 failed | 547 passed | 1 skipped (549)
+   Start at  18:15:23
+   Duration  27.24s (tests 27%, environment 25%, setup 21%, transform 16%, import 10%)
+
+    Isolate  104 workers spawned · ~1.44s startup each (spawn + environment, per file)
+             at least ~3.39s faster with isolate: false — reuses workers across files instead of one per file
+

@@ -1,0 +1,299 @@
+{
+  "comparisons": [
+    {
+      "language": "fr",
+      "width": 390,
+      "maxDeltaCssPixels": 0,
+      "actual": [
+        {
+          "text": "Site photo et galeries privées",
+          "x": 24,
+          "y": 116,
+          "width": 342,
+          "height": 19
+        },
+        {
+          "text": "Votre regard. Un espace à vous.",
+          "x": 24,
+          "y": 159,
+          "width": 342,
+          "height": 167.859375
+        },
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "x": 28,
+          "y": 504.421875,
+          "width": 159,
+          "height": 44
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "x": 203,
+          "y": 504.421875,
+          "width": 159,
+          "height": 44
+        }
+      ],
+      "proposed": [
+        {
+          "text": "Site photo et galeries privées",
+          "x": 24,
+          "y": 116,
+          "width": 342,
+          "height": 19
+        },
+        {
+          "text": "Votre regard. Un espace à vous.",
+          "x": 24,
+          "y": 159,
+          "width": 342,
+          "height": 167.859375
+        },
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "x": 28,
+          "y": 504.421875,
+          "width": 159,
+          "height": 44
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "x": 203,
+          "y": 504.421875,
+          "width": 159,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "language": "fr",
+      "width": 1440,
+      "maxDeltaCssPixels": 0,
+      "actual": [
+        {
+          "text": "Site photo et galeries privées",
+          "x": 96,
+          "y": 193.40625,
+          "width": 704,
+          "height": 19
+        },
+        {
+          "text": "Votre regard. Un espace à vous.",
+          "x": 96,
+          "y": 236.40625,
+          "width": 602.765625,
+          "height": 278.53125
+        },
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "x": 100,
+          "y": 644.96875,
+          "width": 164.0625,
+          "height": 47
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "x": 284.0625,
+          "y": 644.96875,
+          "width": 171.6875,
+          "height": 47
+        }
+      ],
+      "proposed": [
+        {
+          "text": "Site photo et galeries privées",
+          "x": 96,
+          "y": 193.40625,
+          "width": 704,
+          "height": 19
+        },
+        {
+          "text": "Votre regard. Un espace à vous.",
+          "x": 96,
+          "y": 236.40625,
+          "width": 602.765625,
+          "height": 278.53125
+        },
+        {
+          "text": "Essayer la démoEssayer la démo",
+          "x": 100,
+          "y": 644.96875,
+          "width": 164.0625,
+          "height": 47
+        },
+        {
+          "text": "Voir l’installationVoir l’installation",
+          "x": 284.0625,
+          "y": 644.96875,
+          "width": 171.6875,
+          "height": 47
+        }
+      ]
+    },
+    {
+      "language": "en",
+      "width": 390,
+      "maxDeltaCssPixels": 0,
+      "actual": [
+        {
+          "text": "Photo website and private galleries",
+          "x": 24,
+          "y": 116,
+          "width": 342,
+          "height": 38
+        },
+        {
+          "text": "Your perspective. A space of your own.",
+          "x": 24,
+          "y": 178,
+          "width": 342,
+          "height": 223.8125
+        },
+        {
+          "text": "Try the demoTry the demo",
+          "x": 28,
+          "y": 552.984375,
+          "width": 159,
+          "height": 44
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "x": 203,
+          "y": 552.984375,
+          "width": 159,
+          "height": 44
+        }
+      ],
+      "proposed": [
+        {
+          "text": "Photo website and private galleries",
+          "x": 24,
+          "y": 116,
+          "width": 342,
+          "height": 38
+        },
+        {
+          "text": "Your perspective. A space of your own.",
+          "x": 24,
+          "y": 178,
+          "width": 342,
+          "height": 223.8125
+        },
+        {
+          "text": "Try the demoTry the demo",
+          "x": 28,
+          "y": 552.984375,
+          "width": 159,
+          "height": 44
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "x": 203,
+          "y": 552.984375,
+          "width": 159,
+          "height": 44
+        }
+      ]
+    },
+    {
+      "language": "en",
+      "width": 1440,
+      "maxDeltaCssPixels": 0,
+      "actual": [
+        {
+          "text": "Photo website and private galleries",
+          "x": 96,
+          "y": 174.390625,
+          "width": 704,
+          "height": 19
+        },
+        {
+          "text": "Your perspective. A space of your own.",
+          "x": 96,
+          "y": 217.390625,
+          "width": 602.765625,
+          "height": 371.375
+        },
+        {
+          "text": "Try the demoTry the demo",
+          "x": 100,
+          "y": 718.796875,
+          "width": 144.484375,
+          "height": 47
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "x": 264.484375,
+          "y": 718.796875,
+          "width": 148.515625,
+          "height": 47
+        }
+      ],
+      "proposed": [
+        {
+          "text": "Photo website and private galleries",
+          "x": 96,
+          "y": 174.390625,
+          "width": 704,
+          "height": 19
+        },
+        {
+          "text": "Your perspective. A space of your own.",
+          "x": 96,
+          "y": 217.390625,
+          "width": 602.765625,
+          "height": 371.375
+        },
+        {
+          "text": "Try the demoTry the demo",
+          "x": 100,
+          "y": 718.796875,
+          "width": 144.484375,
+          "height": 47
+        },
+        {
+          "text": "Explore setupExplore setup",
+          "x": 264.484375,
+          "y": 718.796875,
+          "width": 148.515625,
+          "height": 47
+        }
+      ]
+    }
+  ],
+  "smallScreen": {
+    "width": 320,
+    "overflow": false,
+    "bounds": [
+      {
+        "text": "Photo website and private galleries",
+        "x": 24,
+        "y": 116,
+        "width": 272,
+        "height": 38
+      },
+      {
+        "text": "Your perspective. A space of your own.",
+        "x": 24,
+        "y": 178,
+        "width": 272,
+        "height": 183.6875
+      },
+      {
+        "text": "Try the demoTry the demo",
+        "x": 28,
+        "y": 539.25,
+        "width": 124,
+        "height": 44
+      },
+      {
+        "text": "Explore setupExplore setup",
+        "x": 168,
+        "y": 539.25,
+        "width": 124,
+        "height": 44
+      }
+    ]
+  },
+  "scope": "Hero eyebrow, heading and buttons; same viewport/locale; isolated reference excludes later sections"
+}

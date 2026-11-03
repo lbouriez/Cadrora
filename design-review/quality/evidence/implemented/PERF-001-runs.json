@@ -1,0 +1,65 @@
+{
+  "environment": "Optimized Cadrora; Chromium 153.0.8010.12; 390x844; DPR1; cold context, no throttle, server warm; site metadata fixture, real local gallery GET; no mutation.",
+  "runs": [
+    {
+      "duration": 1045,
+      "requests": [
+        {
+          "ms": 538,
+          "path": "/api/v1/galleries/instants-en-famille",
+          "status": 401
+        },
+        {
+          "ms": 546,
+          "path": "/api/v1/galleries/instants-en-famille/photos",
+          "status": 401
+        },
+        {
+          "ms": 555,
+          "path": "/api/v1/galleries/instants-en-famille/preview",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "duration": 503,
+      "requests": [
+        {
+          "ms": 490,
+          "path": "/api/v1/galleries/instants-en-famille",
+          "status": 401
+        },
+        {
+          "ms": 500,
+          "path": "/api/v1/galleries/instants-en-famille/photos",
+          "status": 401
+        },
+        {
+          "ms": 503,
+          "path": "/api/v1/galleries/instants-en-famille/preview",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "duration": 996,
+      "requests": [
+        {
+          "ms": 485,
+          "path": "/api/v1/galleries/instants-en-famille",
+          "status": 401
+        },
+        {
+          "ms": 491,
+          "path": "/api/v1/galleries/instants-en-famille/photos",
+          "status": 401
+        },
+        {
+          "ms": 497,
+          "path": "/api/v1/galleries/instants-en-famille/preview",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}

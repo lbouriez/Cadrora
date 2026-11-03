@@ -1,0 +1,21 @@
+
+> cadrora@0.1.0 check
+> npm run typecheck && npm run lint
+
+
+> cadrora@0.1.0 typecheck
+> tsc -b
+
+
+> cadrora@0.1.0 lint
+> eslint . --max-warnings 0
+
+
+C:\GIT\Cadrora\design-review\quality\evidence\seo-2026-11-03\probe.config.mts
+  0:0  error  Parsing error: C:\GIT\Cadrora\design-review\quality\evidence\seo-2026-11-03\probe.config.mts was not found by the project service. Consider either including it in the tsconfig.json or including it in allowDefaultProject
+
+C:\GIT\Cadrora\design-review\quality\evidence\seo-2026-11-03\sitemap.probe.mts
+  0:0  error  Parsing error: C:\GIT\Cadrora\design-review\quality\evidence\seo-2026-11-03\sitemap.probe.mts was not found by the project service. Consider either including it in the tsconfig.json or including it in allowDefaultProject
+
+✖ 2 problems (2 errors, 0 warnings)
+

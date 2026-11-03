@@ -1,0 +1,56 @@
+
+> cadrora@0.1.0 build
+> node scripts/build/checkBrandAssets.mjs && node scripts/build/generateBrandPhotoVariants.mjs && tsc -b && vite build && node scripts/build/stripLocalSecrets.mjs && node scripts/build/generateLocalizedPages.mjs
+
+vite v8.3.0 building cadrora environment for production...
+transforming...
+✓ 215 modules transformed.
+rendering chunks...
+Using secrets defined in .dev.vars
+▲ [WARNING] Missing required secrets: AUTH_PEPPER. Add them to .dev.vars, .env, or set as environment variables.
+
+
+computing gzip size...
+dist/cadrora/.vite/manifest.json    0.15 kB │ gzip:   0.11 kB
+dist/cadrora/.dev.vars              0.16 kB
+dist/cadrora/wrangler.json          2.97 kB │ gzip:   1.43 kB
+dist/cadrora/index.js             545.55 kB │ gzip: 117.89 kB │ map: 1,223.17 kB
+
+✓ built in 268ms
+vite v8.3.0 building client environment for production...
+transforming...
+✓ 455 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/client/.assetsignore                                          0.02 kB
+dist/client/index.html                                             1.25 kB │ gzip:     0.55 kB
+dist/client/assets/imageEncoder.worker-BtkK6Krk.js                 5.71 kB
+dist/client/assets/ort-wasm-simd-threaded-DcHrbrbl.wasm       14,239.89 kB │ gzip: 3,736.91 kB
+dist/client/assets/ort-wasm-simd-threaded.jspi-CZzFqCHi.wasm  16,758.54 kB │ gzip: 4,242.55 kB
+dist/client/assets/VerticalStorySlider-Bdbi0viN.css                4.82 kB │ gzip:     1.13 kB
+dist/client/assets/FindPage-DG62cRSW.css                           5.55 kB │ gzip:     1.40 kB
+dist/client/assets/AdminRoutes-BONNjgG8.css                       20.24 kB │ gzip:     3.54 kB
+dist/client/assets/index-BzesU9D6.css                             88.97 kB │ gzip:    15.31 kB
+dist/client/assets/zip-reader-CHd9H03N.js                          0.06 kB │ gzip:     0.07 kB
+dist/client/assets/rolldown-runtime-W7wSyTde.js                    0.97 kB │ gzip:     0.56 kB
+dist/client/assets/preload-helper-BZ1Pz5am.js                      1.21 kB │ gzip:     0.69 kB
+dist/client/assets/faceSearchSession-Bh1vKEF4.js                   1.33 kB │ gzip:     0.66 kB │ map:     5.26 kB
+dist/client/assets/PhotoViewer-fusVBgXT.js                         4.95 kB │ gzip:     1.81 kB │ map:    13.58 kB
+dist/client/assets/faces-DxZN1AAD.js                               7.02 kB │ gzip:     3.40 kB │ map:    23.72 kB
+dist/client/assets/schemas-BH6sGOaO.js                             7.70 kB │ gzip:     2.51 kB │ map:    28.71 kB
+dist/client/assets/downloadPhotos-lOJr20_Z.js                      8.27 kB │ gzip:     3.26 kB │ map:    34.54 kB
+dist/client/assets/jsx-runtime-DLyUyuBb.js                         8.29 kB │ gzip:     3.15 kB │ map:    30.30 kB
+dist/client/assets/FindPage-CHr6ga6c.js                           12.97 kB │ gzip:     4.23 kB │ map:    35.06 kB
+dist/client/assets/GalleryPage-BgI-od6-.js                        19.07 kB │ gzip:     5.95 kB │ map:    56.03 kB
+dist/client/assets/embla-carousel-react.esm-C-IDp-qX.js           19.30 kB │ gzip:     7.72 kB │ map:    82.15 kB
+dist/client/assets/components-D56sAiOz.js                         62.18 kB │ gzip:    21.89 kB │ map:   518.57 kB
+dist/client/assets/ort.wasm.bundle.min-CclXlMwK.js                70.83 kB │ gzip:    23.49 kB │ map:   163.26 kB
+dist/client/assets/VerticalStorySlider-BK5PqOTD.js                90.54 kB │ gzip:    28.01 kB │ map:   336.28 kB
+dist/client/assets/ort.jspi.bundle.min-DmEG2Upm.js               113.34 kB │ gzip:    36.89 kB │ map:   247.93 kB
+dist/client/assets/portfolio-BzjsYIw5.js                         139.83 kB │ gzip:    41.00 kB │ map:   692.73 kB
+dist/client/assets/zip.js-MPA_8vVV.js                            158.12 kB │ gzip:    67.03 kB │ map:   595.24 kB
+dist/client/assets/AdminRoutes-C65ghbtg.js                       220.00 kB │ gzip:    57.62 kB │ map:   537.29 kB
+dist/client/assets/index-Dddalr-b.js                             388.95 kB │ gzip:   119.05 kB │ map: 1,396.30 kB
+
+✓ built in 1.36s
+Removed local development variables from dist/cadrora.

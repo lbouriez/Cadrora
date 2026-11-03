@@ -1,0 +1,49 @@
+{
+  "viewport": [
+    390,
+    844
+  ],
+  "rootFont": "200%",
+  "checks": [
+    {
+      "lang": "fr",
+      "analytics": false,
+      "bottom": 341.03125,
+      "top": 253.03125,
+      "bannerTop": 357.25,
+      "centerVisible": true,
+      "consentButtons": 1,
+      "overflow": false
+    },
+    {
+      "lang": "fr",
+      "analytics": true,
+      "bottom": 98.03125,
+      "top": 10.03125,
+      "bannerTop": 114.265625,
+      "centerVisible": true,
+      "consentButtons": 2,
+      "overflow": false
+    },
+    {
+      "lang": "en",
+      "analytics": false,
+      "bottom": 377.359375,
+      "top": 289.359375,
+      "bannerTop": 393.640625,
+      "centerVisible": true,
+      "consentButtons": 1,
+      "overflow": false
+    },
+    {
+      "lang": "en",
+      "analytics": true,
+      "bottom": 141.359375,
+      "top": 53.359375,
+      "bannerTop": 157.65625,
+      "centerVisible": true,
+      "consentButtons": 2,
+      "overflow": false
+    }
+  ]
+}

@@ -1,0 +1,386 @@
+{
+  "reviewChecks": [
+    {
+      "view": "issues",
+      "violations": []
+    },
+    {
+      "view": "quality",
+      "violations": []
+    },
+    {
+      "view": "routes",
+      "violations": []
+    },
+    {
+      "view": "previews",
+      "violations": []
+    },
+    {
+      "view": "actions",
+      "violations": []
+    },
+    {
+      "view": "seo-coverage",
+      "violations": []
+    },
+    {
+      "view": "coverage",
+      "violations": []
+    },
+    {
+      "view": "measurements",
+      "violations": []
+    }
+  ],
+  "proofLinkResults": [
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/http-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/login-browser.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/tests-bounded.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/check-passed.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/preserved-files.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/application.patch",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-extra-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-rendered-samples.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/source-excerpts.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/collection-browser.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/portfolio-initial-rendered.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/share-image-responses.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-fr-only.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-en-only.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/owner-scenarios.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/sitemap-probe.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-current-mobile.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-proposed-fr-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=fr",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/SEO-004-fr-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/mockup-comparison.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/owner-overrides.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/atelier-browser.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/SEO-004-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/SEO-004-en-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/SEO-004-en-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/SEO-004-en-320.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/home-browser.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/home-a11y.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/seo-2026-11-03/preview.html?lang=en",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-current-desktop.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/SEO-004-proposed-fr-1440.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/mockup-fit.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-quality-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/enlarged-consent.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/viewport-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/axe-after.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/PERF-001-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/targeted-tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/e2e-gallery.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/axe-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/check.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-cadrora-final.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/application.patch",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/review-data.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-access-trace.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/performance-runs.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/live-routes.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/home-share.webp",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/family-share.webp",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/browser-regressions.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/approved-review.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/tests.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/build-atelier.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/build-cadrora.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-implemented-2026-11-03/browser-fixture-recheck.log",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/seo-2026-11-03/starting-worktree.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-footer.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/A11Y-001-menu.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/atelier-dialog.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/code-fingerprint.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/public-quality.spec.ts.txt",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-menu-current.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/A11Y-001-landscape-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=A11Y-001-landscape",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/text-200-home.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/MOB-001-proposed.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/preview.html?case=MOB-001",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/implemented/MOB-001-header-390.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-current.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/mockups/MOB-001-proposed.html",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/protected-ready.png",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/manual-checks.json",
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:4189/evidence/lab-run-2.png",
+      "status": 200
+    }
+  ],
+  "fit": [
+    {
+      "width": 320,
+      "scrollWidth": 320
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390
+    },
+    {
+      "width": 1440,
+      "scrollWidth": 1440
+    }
+  ],
+  "reviewErrors": [],
+  "qualityIssuesPreserved": true
+}

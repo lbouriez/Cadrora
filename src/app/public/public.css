@@ -1,6 +1,16 @@
 .public-shell {
   min-height: 100vh;
   overflow: hidden;
+  --public-privacy-inset: 0px;
+}
+
+.public-shell:has(.privacy-consent) {
+  --public-privacy-inset: calc(var(--story-privacy-height, 0px) + var(--space-4));
+}
+
+/* Immersive slides already reserve their measured consent/footer space. */
+.public-shell:not(.public-shell--immersive):has(.privacy-consent) {
+  padding-bottom: var(--public-privacy-inset);
 }
 
 .public-masthead {
@@ -2076,6 +2086,13 @@
   .public-header__menu { display: grid; width: var(--control-min-size); height: var(--control-min-size); min-width: var(--control-min-size); place-items: center; border: 0.0625rem solid var(--color-border); border-radius: var(--radius-round); background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 1.3rem; }
   .public-nav { position: absolute; top: calc(100% + var(--space-2)); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: var(--space-2); border: 0.0625rem solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-float); }
   .public-nav--open { display: flex; }
+  .public-shell:not(.public-shell--overlay-menu) .public-nav--open {
+    max-height: calc(100dvh - var(--public-header-bottom, 5rem) - var(--public-privacy-inset) - var(--space-4));
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
   .public-nav a { padding: 0 var(--space-4); border-radius: var(--radius-sm); }
   .public-nav a:hover, .public-nav a.active { background: var(--color-surface-raised); }
   .product-stack { grid-template-columns: 1fr; }

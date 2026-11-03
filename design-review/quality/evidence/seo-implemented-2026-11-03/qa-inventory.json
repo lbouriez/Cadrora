@@ -1,0 +1,20 @@
+{
+  "scope": [
+    "SEO-001 R1",
+    "SEO-002 R1",
+    "SEO-003 R1",
+    "SEO-004 R1"
+  ],
+  "checks": [
+    "Login initial and SPA metadata, FR/EN, password/Access guard unchanged",
+    "Collection initial/rendered image and pending/error/empty, FR/EN, internal navigation",
+    "Sitemap FR/EN/both/default inconsistency/invalid data/D1 outage and optional pages",
+    "Cadrora label + initial/rendered metadata FR/EN 390/1440; custom owner copy retained; other profile build",
+    "Existing quality fixes and pending PERF-002 preserved",
+    "Check, full tests, both profile builds, review UI and links"
+  ],
+  "limits": [
+    "No deploy or external account changes",
+    "Actual search indexing and traffic not measured"
+  ]
+}

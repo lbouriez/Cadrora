@@ -1,0 +1,1004 @@
+{
+  "environment": "Built local Cadrora; existing local D1; anonymous GET only",
+  "sitemap": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n  <url><loc>https://cadrora.com/fr/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/en/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/\"/></url>\n  <url><loc>https://cadrora.com/fr/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/en/services/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/services/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/services/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/\"/></url>\n  <url><loc>https://cadrora.com/fr/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/en/about/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/about/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/about/\"/></url>\n  <url><loc>https://cadrora.com/fr/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/en/contact/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/contact/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/contact/\"/></url>\n  <url><loc>https://cadrora.com/fr/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/en/privacy/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/privacy/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/privacy/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/mariages/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/mariages/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/mariages/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/familles/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/familles/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/familles/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/marques/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/marques/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/marques/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/entreprises/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/entreprises/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/entreprises/\"/></url>\n  <url><loc>https://cadrora.com/fr/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n  <url><loc>https://cadrora.com/en/portfolio/enfance/</loc><xhtml:link rel=\"alternate\" hreflang=\"fr\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"en\" href=\"https://cadrora.com/en/portfolio/enfance/\"/><xhtml:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://cadrora.com/fr/portfolio/enfance/\"/></url>\n</urlset>\n",
+  "robots": "User-agent: *\nAllow: /\nDisallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/\nDisallow: /media/\nSitemap: https://cadrora.com/sitemap.xml\n",
+  "routes": [
+    {
+      "path": "/fr/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Site photo et galeries privées auto-hébergées | Cadrora",
+        "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+        "canonical": "https://cadrora.com/fr/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Self-hosted photo website and private galleries | Cadrora",
+        "description": "Create your photo website and share public or password-protected galleries. Install Cadrora in your own Cloudflare account.",
+        "canonical": "https://cadrora.com/en/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/services/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Séances et services photo | Cadrora",
+        "description": "Découvrez des exemples de séances photo et de prestations pour les familles, les portraits, les événements et les marques.",
+        "canonical": "https://cadrora.com/fr/services/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/services/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/services/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/services/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/services/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Photography sessions and services | Cadrora",
+        "description": "Explore example photo sessions and services for families, portraits, events and brands.",
+        "canonical": "https://cadrora.com/en/services/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/services/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/services/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/services/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Portfolio photo | Cadrora",
+        "description": "Parcourez des collections de démonstration pour découvrir le portfolio photo de Cadrora.",
+        "canonical": "https://cadrora.com/fr/portfolio/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Photography portfolio | Cadrora",
+        "description": "Browse sample collections in the Cadrora photography portfolio.",
+        "canonical": "https://cadrora.com/en/portfolio/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/about/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "À propos | Cadrora",
+        "description": "Découvrez l’approche photographique présentée dans le site de démonstration Cadrora.",
+        "canonical": "https://cadrora.com/fr/about/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/about/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/about/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/about/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/about/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "About | Cadrora",
+        "description": "Discover the photography approach presented on the Cadrora demonstration website.",
+        "canonical": "https://cadrora.com/en/about/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/about/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/about/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/about/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/contact/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Contact | Cadrora",
+        "description": "Retrouvez les coordonnées et la région desservie dans cette démonstration du site photographe Cadrora.",
+        "canonical": "https://cadrora.com/fr/contact/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/contact/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/contact/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/contact/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/contact/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Contact | Cadrora",
+        "description": "Find the contact details and service area in this demonstration of the Cadrora photographer website.",
+        "canonical": "https://cadrora.com/en/contact/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/contact/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/contact/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/contact/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/privacy/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Confidentialité | Cadrora",
+        "description": "Comprenez le traitement des données lors d’une visite, dans une galerie photo et avec la recherche facultative.",
+        "canonical": "https://cadrora.com/fr/privacy/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/privacy/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/privacy/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/privacy/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/privacy/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Privacy | Cadrora",
+        "description": "Learn how data is handled during a site visit, in a photo gallery and with optional photo search.",
+        "canonical": "https://cadrora.com/en/privacy/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/privacy/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/privacy/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/privacy/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/mariages/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Moments de mariage | Atelier Giulia",
+        "description": "Deux histoires fictives pour découvrir les collections du portfolio.",
+        "canonical": "https://cadrora.com/fr/portfolio/mariages/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/mariages/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/mariages/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/mariages/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/mariages/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Wedding moments | Atelier Giulia",
+        "description": "Two fictional stories introducing the portfolio collections.",
+        "canonical": "https://cadrora.com/en/portfolio/mariages/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/mariages/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/mariages/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/mariages/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-wedding-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/familles/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Instants en famille | Atelier Giulia",
+        "description": "Des scènes naturelles de vie de famille, créées pour la démonstration.",
+        "canonical": "https://cadrora.com/fr/portfolio/familles/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/familles/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/familles/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Family moments | Atelier Giulia",
+        "description": "Natural family scenes created for the demonstration.",
+        "canonical": "https://cadrora.com/en/portfolio/familles/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/familles/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/marques/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Portraits de marque | Atelier Giulia",
+        "description": "Des portraits d’entrepreneurs fictifs dans leur univers.",
+        "canonical": "https://cadrora.com/fr/portfolio/marques/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/marques/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/marques/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/marques/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/marques/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Brand portraits | Atelier Giulia",
+        "description": "Portraits of fictional entrepreneurs in their element.",
+        "canonical": "https://cadrora.com/en/portfolio/marques/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/marques/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/marques/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/marques/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-brand-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/entreprises/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Vie d’équipe | Atelier Giulia",
+        "description": "Des moments professionnels naturels, créés pour la démonstration.",
+        "canonical": "https://cadrora.com/fr/portfolio/entreprises/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/entreprises/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/entreprises/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/entreprises/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/entreprises/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Team life | Atelier Giulia",
+        "description": "Natural professional moments created for the demonstration.",
+        "canonical": "https://cadrora.com/en/portfolio/entreprises/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/entreprises/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/entreprises/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/entreprises/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-corporate-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/portfolio/enfance/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Enfance en lumière | Atelier Giulia",
+        "description": "Des instants de jeu et de découverte entièrement fictifs.",
+        "canonical": "https://cadrora.com/fr/portfolio/enfance/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/enfance/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/enfance/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/enfance/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/en/portfolio/enfance/",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Childhood in light | Atelier Giulia",
+        "description": "Entirely fictional moments of play and discovery.",
+        "canonical": "https://cadrora.com/en/portfolio/enfance/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/enfance/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/enfance/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/enfance/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-children-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/admin/login",
+      "status": 200,
+      "headers": {
+        "robots": "noindex, nofollow",
+        "cache": "no-store"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Connexion photographe | Atelier Giulia",
+        "description": "Connectez-vous à l’administration de votre site photo.",
+        "robots": "noindex,nofollow",
+        "alternates": [],
+        "organization": []
+      }
+    },
+    {
+      "path": "/admin/login?demo=1",
+      "status": 200,
+      "headers": {
+        "robots": "noindex, nofollow",
+        "cache": "no-store"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Connexion photographe | Atelier Giulia",
+        "description": "Connectez-vous à l’administration de votre site photo.",
+        "robots": "noindex,nofollow",
+        "alternates": [],
+        "organization": []
+      }
+    },
+    {
+      "path": "/admin/settings",
+      "status": 302,
+      "headers": {
+        "robots": null,
+        "cache": "no-store",
+        "location": "/admin/login"
+      },
+      "metadata": null
+    },
+    {
+      "path": "/galleries",
+      "status": 200,
+      "headers": {
+        "robots": "noindex, nofollow",
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Galeries | Cadrora",
+        "description": "Créez votre site photo et partagez des galeries publiques ou protégées par mot de passe. Installez Cadrora dans votre propre compte Cloudflare.",
+        "robots": "noindex,nofollow",
+        "alternates": [],
+        "ogImage": "https://cadrora.com/home-hero-image/large",
+        "twitterImage": "https://cadrora.com/home-hero-image/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Cadrora",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/fr/not-a-page",
+      "status": 404,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Page introuvable | Cadrora",
+        "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+        "robots": "noindex,nofollow",
+        "alternates": [],
+        "organization": []
+      }
+    },
+    {
+      "path": "/en/not-a-page",
+      "status": 404,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=0, must-revalidate, no-transform"
+      },
+      "metadata": {
+        "lang": "en",
+        "title": "Page not found | Cadrora",
+        "description": "Créez votre site photo et partagez vos galeries avec Cadrora, installé dans votre propre compte Cloudflare.",
+        "robots": "noindex,nofollow",
+        "alternates": [],
+        "organization": []
+      }
+    },
+    {
+      "path": "/fr/portfolio/familles/?photo=demo-portfolio-family-01",
+      "status": 200,
+      "headers": {
+        "robots": null,
+        "cache": "public, max-age=60, no-transform"
+      },
+      "metadata": {
+        "lang": "fr",
+        "title": "Instants en famille | Atelier Giulia",
+        "description": "Des scènes naturelles de vie de famille, créées pour la démonstration.",
+        "canonical": "https://cadrora.com/fr/portfolio/familles/",
+        "alternates": [
+          {
+            "lang": "fr",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          },
+          {
+            "lang": "en",
+            "href": "https://cadrora.com/en/portfolio/familles/"
+          },
+          {
+            "lang": "x-default",
+            "href": "https://cadrora.com/fr/portfolio/familles/"
+          }
+        ],
+        "ogImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "twitterImage": "https://cadrora.com/portfolio-media/demo-portfolio-family-01/large",
+        "organization": [
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Atelier Giulia",
+            "url": "https://cadrora.com",
+            "image": "https://cadrora.com/home-hero-image/large"
+          }
+        ]
+      }
+    }
+  ]
+}

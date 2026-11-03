@@ -1,0 +1,13 @@
+
+ RUN  v5.0.1 C:/GIT/Cadrora
+
+
+ Test Files  5 passed (5)
+      Tests  42 passed (42)
+   Start at  08:53:15
+   Duration  7.47s (transform 27%, tests 22%, environment 19%, setup 17%, import 15%)
+
+  Transform  transforming modules took 3.27s · 27% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

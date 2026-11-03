@@ -1,0 +1,271 @@
+diff --git a/docs/technical/public-gallery.md b/docs/technical/public-gallery.md
+index 9dbe70f..2c70c35 100644
+--- a/docs/technical/public-gallery.md
++++ b/docs/technical/public-gallery.md
+@@ -2,6 +2,8 @@
+ 
+ Package PB remains isolated behind central Worker and SPA registration, without coupling event behavior to either application root.
+ 
++Gallery detail, photo-page and protected-preview reads use a targeted retry policy: access refusals (401/403), missing galleries (404), and other permanent client/schema errors surface immediately. Network failures, 408/429 and server errors retain one bounded retry. This avoids delaying the password form after an expected refusal. The global query policy, unlock/write mutations, Turnstile, grant checks and response schemas are unchanged (approved review PERF-001, revision 1).
++
+ ## Worker integration
+ 
+ - Call `registerPublicRoutes(app, services)` from `src/server/routes/public/index.ts` at the feature-route marker in `src/server/app.ts`.
+diff --git a/docs/technical/public-website.md b/docs/technical/public-website.md
+index 5846748..a5d16aa 100644
+--- a/docs/technical/public-website.md
++++ b/docs/technical/public-website.md
+@@ -2,6 +2,8 @@
+ 
+ ## Scope
+ 
++Approved quality review (A11Y-001 / MOB-001, revision 1): non-immersive public pages reserve the measured privacy panel height only while it is open. Keyboard focus is scrolled above the panel without changing consent. The compact menu has a scrollable height bounded by the measured masthead and consent panel; the immersive profile retains its separate full-screen menu and slide reservations. Editorial headers wrap the owner-provided brand and controls onto separate rows when enlarged text or a long name needs more room. No owner setting, localized copy, or public image source is replaced by these layout rules.
++
+ November 2026 editorial implementation: Cadrora's profile selects `home.presentation = 'editorial'` (Direction B), a system-serif display face, semantic cream/plum surfaces, a full-width photo and editorial demo rows. It keeps the existing routes and photographer demo pages. The workflow and real-site example precede the sample sessions; installation links directly to the existing guide, and a short FAQ describes current capabilities. These product guidance sections belong to the build-time showcase profile, not to a photographer's editable content.
+ 
+ Owner settings remain authoritative: hero text, up to six typed actions, photo revision, sessions and their order/framing, page visibility, gallery discovery, languages, theme and analytics configuration still use the existing admin and shared schemas. Every `showOnHome` session is displayed, including Home-only sessions; there is no three-card cap. The editorial Home waits for settings before mounting an image, then exposes the final owner-resolved copy and controls while the photo decodes. Photo failure cannot block the copy. The existing immersive profile's preparation and phone reveal gates are unchanged.
+diff --git a/src/app/public/GalleryPage.tsx b/src/app/public/GalleryPage.tsx
+index 2367c6f..2563ce9 100644
+--- a/src/app/public/GalleryPage.tsx
++++ b/src/app/public/GalleryPage.tsx
+@@ -11,7 +11,7 @@ import { GalleryApiError, getProtectedGalleryPreview, getPublicEvent, getPublicP
+ import { localizedMarketingPath } from './localizedMarketingPath';
+ import { galleryText } from './galleryText';
+ import { getPublicGalleryConfiguration } from './config';
+-import { galleryUnlockErrorKey } from './galleryErrors';
++import { galleryUnlockErrorKey, retryPublicGalleryRead } from './galleryErrors';
+ import { readFaceSearchResults } from './faceSearchSession';
+ import {
+   choosePhotoDirectory,
+@@ -126,10 +126,12 @@ export function GalleryPage() {
+   const backDestination = siteSettings.data?.galleryDirectoryEnabled === false
+     ? localizedMarketingPath('/portfolio', i18n.language) : '/galleries';
+   const backLabel = t(siteSettings.data?.galleryDirectoryEnabled === false ? 'gallery.backPortfolio' : 'gallery.backGalleries');
+-  const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0 });
++  const event = useQuery({ queryKey: ['public-event', slug], queryFn: () => getPublicEvent(slug), enabled: slug.length > 0,
++    retry: retryPublicGalleryRead });
+   const lockedGalleryPreview = useQuery({
+     queryKey: ['protected-gallery-preview', slug], queryFn: () => getProtectedGalleryPreview(slug),
+     enabled: event.error instanceof GalleryApiError && event.error.status === 401,
++    retry: retryPublicGalleryRead,
+   });
+   const photos = useInfiniteQuery({
+     queryKey: ['public-photos', slug],
+@@ -137,6 +139,7 @@ export function GalleryPage() {
+     initialPageParam: null as string | null,
+     getNextPageParam: (page) => page.nextCursor,
+     enabled: slug.length > 0,
++    retry: retryPublicGalleryRead,
+   });
+   useEffect(() => {
+     const loadedRevision = photos.data?.pages[0]?.eventRevision;
+diff --git a/src/app/public/PublicLayout.tsx b/src/app/public/PublicLayout.tsx
+index c5aaf39..b9ca1d8 100644
+--- a/src/app/public/PublicLayout.tsx
++++ b/src/app/public/PublicLayout.tsx
+@@ -25,9 +25,29 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
+   const [menuOpen, setMenuOpen] = useState(false);
+   const [scrolled, setScrolled] = useState(false);
+   const shell = useRef<HTMLDivElement>(null);
++  const focusFrame = useRef(0);
++  const revealFocus = useCallback(() => {
++    window.cancelAnimationFrame(focusFrame.current);
++    focusFrame.current = window.requestAnimationFrame(() => {
++      const element = shell.current;
++      const focused = document.activeElement;
++      const privacy = element?.querySelector<HTMLElement>('.privacy-consent');
++      // Dialogs and immersive slides own their scrolling; never move their background.
++      if (!element || element.classList.contains('public-shell--immersive') || !privacy
++        || !(focused instanceof HTMLElement) || !element.contains(focused) || privacy.contains(focused)) return;
++      const target = focused.getBoundingClientRect();
++      const panel = privacy.getBoundingClientRect();
++      if (target.right > panel.left && target.left < panel.right && target.bottom > panel.top && target.top < panel.bottom) {
++        const gap = Number.parseFloat(getComputedStyle(privacy).bottom) || 0;
++        window.scrollBy({ top: target.bottom - panel.top + gap, behavior: 'instant' });
++      }
++    });
++  }, []);
++  useEffect(() => () => window.cancelAnimationFrame(focusFrame.current), []);
+   const measurePrivacy = useCallback((height: number) => {
+     shell.current?.style.setProperty('--story-privacy-height', `${height}px`);
+-  }, []);
++    revealFocus();
++  }, [revealFocus]);
+   const menuButton = useRef<HTMLButtonElement>(null);
+   const { pathname, search, hash } = useLocation();
+   const navigate = useNavigate();
+@@ -35,6 +55,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
+   const marketingPath = (routeLanguage ? pathname.slice(3) || '/' : pathname).replace(/\/$/u, '') || '/';
+   const isPortfolioDetail = /^\/portfolio\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(marketingPath);
+   const immersiveHome = siteProfile.home.presentation === 'session-slides' && marketingPath === '/';
++  const overlayMenu = siteProfile.home.presentation === 'session-slides';
+   const editorial = siteProfile.home.presentation === 'editorial';
+   useEffect(() => {
+     if (immersiveHome || siteProfile.home.presentation !== 'session-slides') return;
+@@ -44,21 +65,28 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
+     return () => window.removeEventListener('scroll', update);
+   }, [immersiveHome, pathname]);
+   useLayoutEffect(() => {
+-    if (!immersiveHome || !shell.current) return;
++    if (!shell.current) return;
+     const element = shell.current;
+     const masthead = element.querySelector<HTMLElement>('.public-masthead');
+     const footer = element.querySelector<HTMLElement>('.public-footer');
+     const measure = () => {
++      element.style.setProperty('--public-header-bottom', `${Math.max(0, masthead?.getBoundingClientRect().bottom ?? 0)}px`);
++      if (!immersiveHome) return;
+       element.style.setProperty('--story-header-height', `${masthead?.offsetHeight ?? 0}px`);
+       element.style.setProperty('--story-footer-height', `${footer?.offsetHeight ?? 0}px`);
+     };
+     measure();
+-    if (typeof ResizeObserver !== 'function') return;
+-    const observer = new ResizeObserver(measure);
+-    if (masthead) observer.observe(masthead);
+-    if (footer) observer.observe(footer);
+-    return () => observer.disconnect();
+-  }, [immersiveHome]);
++    window.addEventListener('resize', measure);
++    if (menuOpen) window.addEventListener('scroll', measure, { passive: true });
++    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(measure) : null;
++    if (masthead) observer?.observe(masthead);
++    if (footer && immersiveHome) observer?.observe(footer);
++    return () => {
++      observer?.disconnect();
++      window.removeEventListener('resize', measure);
++      window.removeEventListener('scroll', measure);
++    };
++  }, [immersiveHome, menuOpen]);
+   const nextLanguage = i18n.resolvedLanguage?.startsWith('fr') ? 'en' : 'fr';
+   const settings = useQuery({
+     queryFn: getPublicSiteSettings,
+@@ -235,7 +263,7 @@ export function PublicLayout({ children, compactHeader = false, fullBleed = fals
+   }, [menuOpen]);
+ 
+   return (
+-    <div ref={shell} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${marketingPath === '/about' ? ' public-shell--about' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
++    <div ref={shell} onFocusCapture={revealFocus} className={`public-shell${editorial ? ' public-shell--editorial' : ''}${overlayMenu ? ' public-shell--overlay-menu' : ''}${immersiveHome ? ' public-shell--immersive' : ''}${(immersiveHome ? compactHeader : scrolled) ? ' public-shell--compact-header' : ''}${immersiveHome && immersiveFooterVisible ? ' public-shell--footer-visible' : ''}${marketingPath === '/contact' ? ' public-shell--contact' : ''}${marketingPath === '/about' ? ' public-shell--about' : ''}${menuOpen ? ' public-shell--menu-open' : ''}`}>
+       <a className="public-skip-link" href="#public-content" onClick={() => setMenuOpen(false)}>{t('gallery.skipContent')}</a>
+       <div className="public-masthead">
+         {settings.data?.constructionNoticeEnabled ? <PublicConstructionNotice /> : null}
+diff --git a/src/app/public/editorial.css b/src/app/public/editorial.css
+index 9639922..1e19c29 100644
+--- a/src/app/public/editorial.css
++++ b/src/app/public/editorial.css
+@@ -74,8 +74,8 @@
+   .product-workflow ol,.product-installation,.product-faq,.public-shell--editorial .featured-sites { grid-template-columns: 1fr; gap: var(--space-6); }
+   .product-workflow li { display: flex; gap: var(--space-5); }
+   .product-workflow h3 { margin-top: 0; }
+-  .public-shell--editorial .public-header { min-height: 4.75rem; padding-inline: var(--space-4); }
+-  .public-shell--editorial .public-brand { min-width: 0; gap: var(--space-2); font-size: .9rem; letter-spacing: .08em; }
++  .public-shell--editorial .public-header { min-height: 4.75rem; padding-inline: var(--space-4); flex-wrap: wrap; row-gap: var(--space-2); }
++  .public-shell--editorial .public-brand { min-width: 0; flex: 1 1 auto; gap: var(--space-2); font-size: .9rem; letter-spacing: .08em; }
+   .public-shell--editorial .public-brand__logo { width: 2rem; height: 2rem; flex-shrink: 0; }
+   .public-shell--editorial .public-brand__name { display: block; overflow-wrap: anywhere; }
+   .public-shell--editorial .public-header__actions { flex-shrink: 0; }
+diff --git a/src/app/public/galleryErrors.ts b/src/app/public/galleryErrors.ts
+index 9e44a4d..a574253 100644
+--- a/src/app/public/galleryErrors.ts
++++ b/src/app/public/galleryErrors.ts
+@@ -1,5 +1,15 @@
+ import { GalleryApiError } from './api';
+ 
++/** Access decisions are final until the visitor supplies a new grant. Only reads use this policy. */
++export function retryPublicGalleryRead(failureCount: number, error: unknown): boolean {
++  if (failureCount >= 1) return false;
++  if (error instanceof GalleryApiError) {
++    return error.status === 408 || error.status === 429 || error.status >= 500;
++  }
++  // fetch rejects with TypeError for a network failure; schema/programming errors are not transient.
++  return error instanceof TypeError;
++}
++
+ export function galleryUnlockErrorKey(error: unknown): string {
+   if (!(error instanceof GalleryApiError)) return 'gallery.unlockError';
+   if (error.status === 401) return 'gallery.unlockPasswordError';
+diff --git a/src/app/public/public.css b/src/app/public/public.css
+index 055f5bf..d20edc1 100644
+--- a/src/app/public/public.css
++++ b/src/app/public/public.css
+@@ -1,6 +1,16 @@
+ .public-shell {
+   min-height: 100vh;
+   overflow: hidden;
++  --public-privacy-inset: 0px;
++}
++
++.public-shell:has(.privacy-consent) {
++  --public-privacy-inset: calc(var(--story-privacy-height, 0px) + var(--space-4));
++}
++
++/* Immersive slides already reserve their measured consent/footer space. */
++.public-shell:not(.public-shell--immersive):has(.privacy-consent) {
++  padding-bottom: var(--public-privacy-inset);
+ }
+ 
+ .public-masthead {
+@@ -2076,6 +2086,13 @@
+   .public-header__menu { display: grid; width: var(--control-min-size); height: var(--control-min-size); min-width: var(--control-min-size); place-items: center; border: 0.0625rem solid var(--color-border); border-radius: var(--radius-round); background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 1.3rem; }
+   .public-nav { position: absolute; top: calc(100% + var(--space-2)); right: 0; left: 0; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: var(--space-2); border: 0.0625rem solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-float); }
+   .public-nav--open { display: flex; }
++  .public-shell:not(.public-shell--overlay-menu) .public-nav--open {
++    max-height: calc(100dvh - var(--public-header-bottom, 5rem) - var(--public-privacy-inset) - var(--space-4));
++    flex-wrap: nowrap;
++    justify-content: flex-start;
++    overflow-y: auto;
++    overscroll-behavior: contain;
++  }
+   .public-nav a { padding: 0 var(--space-4); border-radius: var(--radius-sm); }
+   .public-nav a:hover, .public-nav a.active { background: var(--color-surface-raised); }
+   .product-stack { grid-template-columns: 1fr; }
+diff --git a/tests/unit/app/galleryPage.test.ts b/tests/unit/app/galleryPage.test.ts
+index ce74faa..718a851 100644
+--- a/tests/unit/app/galleryPage.test.ts
++++ b/tests/unit/app/galleryPage.test.ts
+@@ -1,7 +1,45 @@
+-import { describe, expect, it } from 'vitest';
++import { QueryClient } from '@tanstack/react-query';
++import { describe, expect, it, vi } from 'vitest';
+ 
+ import { GalleryApiError } from '../../../src/app/public/api';
+-import { galleryUnlockErrorKey } from '../../../src/app/public/galleryErrors';
++import { galleryUnlockErrorKey, retryPublicGalleryRead } from '../../../src/app/public/galleryErrors';
++
++describe('public gallery read recovery', () => {
++  it.each([401, 403, 404])('surfaces HTTP %s immediately, without replaying an access decision', async (status) => {
++    const client = new QueryClient();
++    const error = new GalleryApiError(status);
++    const read = vi.fn().mockRejectedValue(error);
++    try {
++      await expect(client.fetchQuery({ queryKey: ['gallery'], queryFn: read,
++        retry: retryPublicGalleryRead, retryDelay: 0 })).rejects.toBe(error);
++      expect(read).toHaveBeenCalledTimes(1);
++    } finally { client.clear(); }
++  });
++
++  it.each([new GalleryApiError(503), new TypeError('Failed to fetch')])('recovers from one transient read failure', async (error) => {
++    const client = new QueryClient();
++    const read = vi.fn().mockRejectedValueOnce(error).mockResolvedValue('published gallery');
++    try {
++      await expect(client.fetchQuery({ queryKey: ['gallery'], queryFn: read,
++        retry: retryPublicGalleryRead, retryDelay: 0 })).resolves.toBe('published gallery');
++      expect(read).toHaveBeenCalledTimes(2);
++    } finally { client.clear(); }
++  });
++
++  it('bounds a persistent outage and does not retry a malformed response', async () => {
++    const client = new QueryClient();
++    const outage = vi.fn().mockRejectedValue(new GalleryApiError(503));
++    const malformed = vi.fn().mockRejectedValue(new Error('Invalid response schema'));
++    try {
++      await expect(client.fetchQuery({ queryKey: ['outage'], queryFn: outage,
++        retry: retryPublicGalleryRead, retryDelay: 0 })).rejects.toBeInstanceOf(GalleryApiError);
++      expect(outage).toHaveBeenCalledTimes(2);
++      await expect(client.fetchQuery({ queryKey: ['malformed'], queryFn: malformed,
++        retry: retryPublicGalleryRead, retryDelay: 0 })).rejects.toThrow('Invalid response schema');
++      expect(malformed).toHaveBeenCalledTimes(1);
++    } finally { client.clear(); }
++  });
++});
+ 
+ describe('gallery unlock error copy', () => {
+   it('distinguishes password, security, service, and rate-limit failures', () => {

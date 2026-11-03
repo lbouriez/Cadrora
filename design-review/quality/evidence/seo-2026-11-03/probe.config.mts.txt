@@ -1,0 +1,6 @@
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({ test: {
+  include: ['design-review/quality/evidence/seo-2026-11-03/sitemap.probe.mts'],
+  environment: 'node',
+} });

@@ -44,7 +44,7 @@ function escapeHtml(value: string): string {
 
 function collectionDocument(template: string, options: {
   language: 'fr' | 'en'; slug: string; origin: string; defaultLanguage: 'fr' | 'en';
-  siteName: string; title: string; description: string; image: string; areaServed: string | null;
+  siteName: string; title: string; description: string; image: string; organizationImage: string; areaServed: string | null;
 }): string {
   const { language, slug, origin, defaultLanguage, siteName } = options;
   const title = escapeHtml(`${options.title} | ${siteName}`);
@@ -62,7 +62,7 @@ ${alternates}
 <meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${image}">
 <script id="site-organization" type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org', '@type': 'Organization', name: siteName, url: origin,
-  image: options.image, ...(options.areaServed ? { areaServed: options.areaServed } : {}),
+  image: options.organizationImage, ...(options.areaServed ? { areaServed: options.areaServed } : {}),
 }).replaceAll('<', '\\u003c')}</script>`;
   const fallback = `<main class="site-startup">
     <section class="site-startup__identity" aria-label="${escapeHtml(startupCopy[language].loading)}">
@@ -165,7 +165,7 @@ export function registerPortfolioSeoRoutes(app: Hono<AppEnv>): void {
         return context.html(collectionDocument(template, {
           language, slug: slug.data, origin, defaultLanguage: defaultLanguage(settings, context.env.SITE_DEFAULT_LANG),
           siteName: settings?.site_name?.trim() || context.env.SITE_NAME, title: copy.title,
-          description: summary, image, areaServed,
+          description: summary, image, organizationImage: fallbackImage, areaServed,
         }));
       });
     }

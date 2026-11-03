@@ -1,0 +1,24 @@
+{
+  "run": "cadrora-seo-2026-11-03",
+  "mode": "review",
+  "scope": [
+    "source and build pipeline",
+    "22 live sitemap URLs and 12 utility/redirect cases",
+    "initial and rendered metadata FR/EN",
+    "owner single-language and disabled-About scenarios in browser fixtures",
+    "portfolio share image before/after rendering",
+    "login robots policy",
+    "structured data syntax and truthful entity",
+    "analytics configuration versus actual delivery",
+    "isolated review board route filters, snippet previews and keyboard/mobile"
+  ],
+  "constraints": [
+    "No application, test or production configuration changes",
+    "No D1 writes, account login, Search Console submission or tracking installation"
+  ],
+  "gaps": [
+    "No Search Console or analytics account access",
+    "Live preview/staging hostname not established",
+    "No live Rich Results Test submission or indexing proof"
+  ]
+}

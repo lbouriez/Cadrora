@@ -1,0 +1,30 @@
+{
+  "duration": 1528,
+  "requests": [
+    {
+      "ms": 502,
+      "path": "/api/v1/galleries/instants-en-famille",
+      "status": 401
+    },
+    {
+      "ms": 507,
+      "path": "/api/v1/galleries/instants-en-famille/photos",
+      "status": 401
+    },
+    {
+      "ms": 1515,
+      "path": "/api/v1/galleries/instants-en-famille",
+      "status": 401
+    },
+    {
+      "ms": 1525,
+      "path": "/api/v1/galleries/instants-en-famille/photos",
+      "status": 401
+    },
+    {
+      "ms": 1528,
+      "path": "/api/v1/galleries/instants-en-famille/preview",
+      "status": 200
+    }
+  ]
+}

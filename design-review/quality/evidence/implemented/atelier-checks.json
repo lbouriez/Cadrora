@@ -1,0 +1,89 @@
+{
+  "environment": "Optimized Atelier Giulia build; Chromium; reduced motion; local public site fixture; read-only API",
+  "checks": [
+    {
+      "lang": "fr",
+      "width": 390,
+      "home": {
+        "padding": "0px",
+        "height": 844,
+        "viewport": 844,
+        "overflow": false,
+        "brand": "Atelier Giulia"
+      },
+      "menu": {
+        "mode": "fullscreen mobile",
+        "height": 844,
+        "maxHeight": "none"
+      },
+      "escapeReturnsFocus": true,
+      "footer": {
+        "bottom": 660.375,
+        "bannerTop": 684.21875,
+        "padding": "168px"
+      }
+    },
+    {
+      "lang": "fr",
+      "width": 1440,
+      "home": {
+        "padding": "0px",
+        "height": 844,
+        "viewport": 844,
+        "overflow": false,
+        "brand": "Atelier Giulia"
+      },
+      "menu": {
+        "mode": "inline desktop"
+      },
+      "escapeReturnsFocus": null,
+      "footer": {
+        "bottom": 696.1875,
+        "bannerTop": 711.625,
+        "padding": "132px"
+      }
+    },
+    {
+      "lang": "en",
+      "width": 390,
+      "home": {
+        "padding": "0px",
+        "height": 844,
+        "viewport": 844,
+        "overflow": false,
+        "brand": "Atelier Giulia"
+      },
+      "menu": {
+        "mode": "fullscreen mobile",
+        "height": 844,
+        "maxHeight": "none"
+      },
+      "escapeReturnsFocus": true,
+      "footer": {
+        "bottom": 660.375,
+        "bannerTop": 684.21875,
+        "padding": "168px"
+      }
+    },
+    {
+      "lang": "en",
+      "width": 1440,
+      "home": {
+        "padding": "0px",
+        "height": 844,
+        "viewport": 844,
+        "overflow": false,
+        "brand": "Atelier Giulia"
+      },
+      "menu": {
+        "mode": "inline desktop"
+      },
+      "escapeReturnsFocus": null,
+      "footer": {
+        "bottom": 717.375,
+        "bannerTop": 733.3125,
+        "padding": "111px"
+      }
+    }
+  ]
+}

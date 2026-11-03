@@ -1,0 +1,233 @@
+[WebServer] (node:8936) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:60056) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] Default inspector port 9229 not available, using 9232 instead
+[WebServer] 
+[WebServer] ▲ [WARNING] Missing required secrets: ADMIN_SECRET_HASH, AUTH_PEPPER, TURNSTILE_SECRET_KEY. Add them to .dev.vars, .env, or set as environment variables.
+[WebServer] 
+[WebServer] 
+[WebServer] ▲ [WARNING] Vectorize Index bindings do not support local development, and so parts of your Worker may not work correctly. You can set `remote: true` for the binding definition in your configuration file to access a remote version of the resource.
+[WebServer] 
+[WebServer] 
+
+Running 6 tests using 1 worker
+
+(node:66532) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 [desktop-chromium] › tests\e2e\public-header.spec.ts:3:1 › language choice stays visually aligned with navigation at desktop and phone sizes (890ms)
+  x  2 [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics false) (5.9s)
+(node:60212) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  3 [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics true) (5.9s)
+(node:61240) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  4 [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics false) (5.9s)
+(node:20096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  5 [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics true) (6.0s)
+(node:60520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  6 [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control (5.6s)
+
+
+  1) [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics false) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      21 |     const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      22 |     return rect.top >= 0 && rect.bottom <= innerHeight && (hit === element || element.contains(hit));
+    > 23 |   })).toBe(true);
+         |       ^
+      24 | }
+      25 |
+      26 | for (const language of ['fr', 'en']) {
+        at expectUncovered (C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:23:7)
+        at C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:47:15
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-ddd81--usable-fr-analytics-false--desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-ddd81--usable-fr-analytics-false--desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-quality-consent-lea-ddd81--usable-fr-analytics-false--desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-ddd81--usable-fr-analytics-false--desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-quality-consent-lea-ddd81--usable-fr-analytics-false--desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics true) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      21 |     const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      22 |     return rect.top >= 0 && rect.bottom <= innerHeight && (hit === element || element.contains(hit));
+    > 23 |   })).toBe(true);
+         |       ^
+      24 | }
+      25 |
+      26 | for (const language of ['fr', 'en']) {
+        at expectUncovered (C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:23:7)
+        at C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:47:15
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-a64ae-n-usable-fr-analytics-true--desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-a64ae-n-usable-fr-analytics-true--desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-quality-consent-lea-a64ae-n-usable-fr-analytics-true--desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-a64ae-n-usable-fr-analytics-true--desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-quality-consent-lea-a64ae-n-usable-fr-analytics-true--desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics false) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      21 |     return rect.top >= 0 && rect.bottom <= innerHeight && (hit === element || element.contains(hit));
+      22 |   })).toBe(true);
+    > 23 | }
+         |  ^
+      24 |
+      25 | for (const language of ['fr', 'en']) {
+      26 |   for (const analytics of [false, true]) {
+        at expectUncovered (C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:23:7)
+        at C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:47:15
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-b7af6--usable-en-analytics-false--desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-b7af6--usable-en-analytics-false--desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-quality-consent-lea-b7af6--usable-en-analytics-false--desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-b7af6--usable-en-analytics-false--desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-quality-consent-lea-b7af6--usable-en-analytics-false--desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics true) 
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+    Call Log:
+    - Timeout 5000ms exceeded while waiting on the predicate
+
+      21 |     return rect.top >= 0 && rect.bottom <= innerHeight && (hit === element || element.contains(hit));
+      22 |   })).toBe(true);
+    > 23 | }
+         |  ^
+      24 |
+      25 | for (const language of ['fr', 'en']) {
+      26 |   for (const analytics of [false, true]) {
+        at expectUncovered (C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:23:7)
+        at C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:47:15
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-6d7a1-n-usable-en-analytics-true--desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-6d7a1-n-usable-en-analytics-true--desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-quality-consent-lea-6d7a1-n-usable-en-analytics-true--desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-quality-consent-lea-6d7a1-n-usable-en-analytics-true--desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-quality-consent-lea-6d7a1-n-usable-en-analytics-true--desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: locator('.public-brand__name')
+    Expected: "Studio de photographie et portraits"
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveText" locator('.public-brand__name') with timeout 5000ms
+      - waiting for locator('.public-brand__name')
+
+
+      66 |     await page.goto('/en/contact');
+      67 |     await expect(page.locator('.public-brand__name')).toHaveText('Studio de photographie et portraits');
+    > 68 |     await page.locator('.privacy-consent button').first().click();
+         |                                                       ^
+      69 |     await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+      70 |     const bounds = await page.locator('.public-header').evaluate(element => {
+      71 |       const brand = element.querySelector('.public-brand')!.getBoundingClientRect();
+        at C:\GIT\Cadrora\tests\e2e\public-quality.spec.ts:68:55
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\public-quality-enlarged-he-81803--branding-and-every-control-desktop-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results\public-quality-enlarged-he-81803--branding-and-every-control-desktop-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results\public-quality-enlarged-he-81803--branding-and-every-control-desktop-chromium\error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\public-quality-enlarged-he-81803--branding-and-every-control-desktop-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\public-quality-enlarged-he-81803--branding-and-every-control-desktop-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5 failed
+    [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics false) 
+    [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (fr, analytics true) 
+    [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics false) 
+    [desktop-chromium] › tests\e2e\public-quality.spec.ts:28:5 › consent leaves footer and compact navigation usable (en, analytics true) 
+    [desktop-chromium] › tests\e2e\public-quality.spec.ts:63:1 › enlarged header preserves owner branding and every control 
+  1 passed (45.5s)

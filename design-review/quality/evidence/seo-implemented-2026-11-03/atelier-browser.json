@@ -1,0 +1,278 @@
+[
+  {
+    "lang": "fr",
+    "width": 390,
+    "path": "/fr/contact/",
+    "initial": {
+      "lang": "fr",
+      "title": "Contact et réservation | Atelier Giulia",
+      "description": "Parlez de votre projet photo à Atelier Giulia. Retrouvez les coordonnées et la région desservie sur la page Contact.",
+      "canonical": "https://ateliergiulia.com/fr/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "fr",
+      "title": "Contact et réservation | Atelier Giulia",
+      "description": "Parlez de votre projet photo à Atelier Giulia. Retrouvez les coordonnées et la région desservie sur la page Contact.",
+      "robots": "index,follow",
+      "canonical": "https://ateliergiulia.com/fr/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "overflow": false
+  },
+  {
+    "lang": "fr",
+    "width": 1440,
+    "path": "/fr/contact/",
+    "initial": {
+      "lang": "fr",
+      "title": "Contact et réservation | Atelier Giulia",
+      "description": "Parlez de votre projet photo à Atelier Giulia. Retrouvez les coordonnées et la région desservie sur la page Contact.",
+      "canonical": "https://ateliergiulia.com/fr/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "fr",
+      "title": "Contact et réservation | Atelier Giulia",
+      "description": "Parlez de votre projet photo à Atelier Giulia. Retrouvez les coordonnées et la région desservie sur la page Contact.",
+      "robots": "index,follow",
+      "canonical": "https://ateliergiulia.com/fr/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "overflow": false
+  },
+  {
+    "lang": "en",
+    "width": 390,
+    "path": "/en/contact/",
+    "initial": {
+      "lang": "en",
+      "title": "Contact and bookings | Atelier Giulia",
+      "description": "Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.",
+      "canonical": "https://ateliergiulia.com/en/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "en",
+      "title": "Contact and bookings | Atelier Giulia",
+      "description": "Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.",
+      "robots": "index,follow",
+      "canonical": "https://ateliergiulia.com/en/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "overflow": false
+  },
+  {
+    "lang": "en",
+    "width": 1440,
+    "path": "/en/contact/",
+    "initial": {
+      "lang": "en",
+      "title": "Contact and bookings | Atelier Giulia",
+      "description": "Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.",
+      "canonical": "https://ateliergiulia.com/en/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "rendered": {
+      "lang": "en",
+      "title": "Contact and bookings | Atelier Giulia",
+      "description": "Tell Atelier Giulia about your photography plans. Find contact details and the service area on the Contact page.",
+      "robots": "index,follow",
+      "canonical": "https://ateliergiulia.com/en/contact/",
+      "alternates": [
+        {
+          "lang": "fr",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        },
+        {
+          "lang": "en",
+          "href": "https://ateliergiulia.com/en/contact/"
+        },
+        {
+          "lang": "x-default",
+          "href": "https://ateliergiulia.com/fr/contact/"
+        }
+      ],
+      "ogImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "twitterImage": "https://ateliergiulia.com/home-hero-image/large?source=first-session",
+      "organization": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Atelier Giulia",
+          "url": "https://ateliergiulia.com",
+          "image": "https://ateliergiulia.com/home-hero-image/large?source=first-session"
+        }
+      ]
+    },
+    "overflow": false
+  }
+]

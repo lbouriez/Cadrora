@@ -1,0 +1,7 @@
+{
+  "violations": [],
+  "incomplete": [
+    "aria-prohibited-attr",
+    "color-contrast"
+  ]
+}

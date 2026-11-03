@@ -1,0 +1,19 @@
+{
+  "scope": "Public settings response fixture only; no database update",
+  "checks": [
+    {
+      "language": "fr",
+      "label": "Le regard du studio",
+      "title": "Votre histoire en images.",
+      "action": "/fr/contact",
+      "overflow": false
+    },
+    {
+      "language": "en",
+      "label": "The studio perspective",
+      "title": "Your story in pictures.",
+      "action": "/en/contact",
+      "overflow": false
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "scope": "Real local public site settings; no authentication attempted; Turnstile not exercised",
+  "direct": {
+    "lang": "fr",
+    "title": "Connexion photographe | Atelier Giulia",
+    "description": "Connectez-vous à l’administration de votre site photo.",
+    "robots": "noindex,nofollow",
+    "alternates": [],
+    "organization": []
+  },
+  "spa": {
+    "lang": "en",
+    "title": "Photographer sign in | Cadrora",
+    "description": "Sign in to manage your photography website.",
+    "robots": "noindex,nofollow",
+    "alternates": [],
+    "organization": []
+  }
+}

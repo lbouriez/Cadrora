@@ -1,0 +1,82 @@
+{
+  "revision": "872c91912c50ba797ab84489562b4292a72a98c8",
+  "productionFilesChanged": [],
+  "reviewRoot": "design-review/quality",
+  "vitePublicDirectory": "public",
+  "workerAssetsDirectory": "dist/client",
+  "builtReviewFiles": [],
+  "linkChecks": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "evidence/A11Y-001-current.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/A11Y-001-landscape-proposed.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/A11Y-001-menu-current.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/A11Y-001-proposed.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/MOB-001-proposed.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/lab-run-2.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/manual-checks.json",
+      "status": 200
+    },
+    {
+      "path": "evidence/performance-runs.json",
+      "status": 200
+    },
+    {
+      "path": "evidence/protected-access-trace.json",
+      "status": 200
+    },
+    {
+      "path": "evidence/protected-ready.png",
+      "status": 200
+    },
+    {
+      "path": "evidence/text-200-home.png",
+      "status": 200
+    },
+    {
+      "path": "mockups/MOB-001-current.html",
+      "status": 200
+    },
+    {
+      "path": "mockups/MOB-001-proposed.html",
+      "status": 200
+    },
+    {
+      "path": "mockups/preview.html?case=A11Y-001",
+      "status": 200
+    },
+    {
+      "path": "mockups/preview.html?case=A11Y-001-landscape",
+      "status": 200
+    },
+    {
+      "path": "mockups/preview.html?case=MOB-001",
+      "status": 200
+    },
+    {
+      "path": "review-data.json",
+      "status": 200
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 Package PB remains isolated behind central Worker and SPA registration, without coupling event behavior to either application root.
 
+Gallery detail, photo-page and protected-preview reads use a targeted retry policy: access refusals (401/403), missing galleries (404), and other permanent client/schema errors surface immediately. Network failures, 408/429 and server errors retain one bounded retry. This avoids delaying the password form after an expected refusal. The global query policy, unlock/write mutations, Turnstile, grant checks and response schemas are unchanged (approved review PERF-001, revision 1).
+
 ## Worker integration
 
 - Call `registerPublicRoutes(app, services)` from `src/server/routes/public/index.ts` at the feature-route marker in `src/server/app.ts`.

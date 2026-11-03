@@ -8,6 +8,33 @@ describe('search index routes', () => {
   const app = new Hono<AppEnv>();
   registerSearchIndexRoutes(app);
 
+  it.each([
+    { languages: '["fr"]', defaultLanguage: 'fr', expected: ['fr'], fallback: 'fr' },
+    { languages: '["en"]', defaultLanguage: 'en', expected: ['en'], fallback: 'en' },
+    { languages: '["fr","en"]', defaultLanguage: 'en', expected: ['fr', 'en'], fallback: 'en' },
+    { languages: '["en"]', defaultLanguage: 'fr', expected: ['en'], fallback: 'en' },
+    { languages: '[]', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
+    { languages: '["de"]', defaultLanguage: 'invalid', expected: ['fr', 'en'], fallback: 'fr' },
+    { languages: '["fr","fr"]', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
+    { languages: 'invalid-json', defaultLanguage: 'fr', expected: ['fr', 'en'], fallback: 'fr' },
+  ])('uses validated owner languages: $languages / $defaultLanguage', async ({ languages, defaultLanguage, expected, fallback }) => {
+    const response = await app.request('https://example.test/sitemap.xml', undefined, {
+      SITE_DEFAULT_LANG: 'fr', DB: { prepare: (sql: string) => sql.includes('site_settings')
+        ? { first: () => Promise.resolve({ enabled_languages: languages, default_language: defaultLanguage, about_enabled: 0, sessions_page_enabled: 0 }) }
+        : { all: () => Promise.resolve({ results: [{ slug: 'family' }] }) } },
+    });
+    const body = await response.text();
+    expect(response.status).toBe(200);
+    for (const lang of ['fr', 'en']) {
+      for (const path of ['contact', 'portfolio/family']) {
+        expect(body.includes(`<loc>https://example.test/${lang}/${path}/</loc>`)).toBe(expected.includes(lang));
+        expect(body.includes(`hreflang="${lang}" href="https://example.test/${lang}/${path}/"`)).toBe(expected.includes(lang));
+      }
+    }
+    expect(body).toContain(`hreflang="x-default" href="https://example.test/${fallback}/contact/"`);
+    expect(body).not.toMatch(/\/about\/|\/services\/|\/galleries|\/e\//u);
+  });
+
   it('serves a site-specific Markdown guide without requiring the gallery database', async () => {
     const response = await app.request('https://example.test/llms.txt', undefined, {
       SITE_NAME: 'Atelier Giulia',
@@ -86,7 +113,9 @@ describe('search index routes', () => {
   it('serves a text robots file pointing at this hostname', async () => {
     const response = await app.request('https://example.test/robots.txt');
     expect(response.headers.get('Content-Type')).toContain('text/plain');
-    expect(await response.text()).toContain('Sitemap: https://example.test/sitemap.xml');
+    const body = await response.text();
+    expect(body).toContain('Sitemap: https://example.test/sitemap.xml');
+    expect(body).toContain('Disallow: /admin/\nAllow: /admin/login$\nAllow: /admin/login?\nDisallow: /api/');
   });
 
   it('lists portfolio collections without exposing any customer gallery', async () => {

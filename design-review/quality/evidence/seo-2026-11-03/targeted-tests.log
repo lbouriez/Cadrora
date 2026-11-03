@@ -1,0 +1,9 @@
+
+ RUN  v5.0.1 C:/GIT/Cadrora
+
+
+ Test Files  3 passed (3)
+      Tests  32 passed | 1 skipped (33)
+   Start at  08:20:28
+   Duration  7.34s (tests 84%, setup 7%, transform 5%, import 4%)
+
