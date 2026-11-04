@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { availableProfiles, createStudioProfile, profileFiles } from './siteProfile.mjs';
@@ -58,8 +58,10 @@ export function createGitHubSetup({ root, directory, run = nativeRunner, env = p
     return result.stdout.trim() ? JSON.parse(result.stdout) : null;
   }
   function inspect() {
-    const checkout = resolve(git('rev-parse', '--show-toplevel'));
-    const expected = resolve(root);
+    // Git expands Windows short names (e.g. RUNNER~1). Compare actual directories,
+    // including junction aliases, while still rejecting a different checkout.
+    const checkout = realpathSync.native(resolve(git('rev-parse', '--show-toplevel')));
+    const expected = realpathSync.native(resolve(root));
     if ((process.platform === 'win32' ? checkout.toLowerCase() !== expected.toLowerCase() : checkout !== expected)) throw new Error('githubCheckoutRequired');
     const repository = githubRepository(git('remote', 'get-url', 'origin'));
     const info = JSON.parse(gh('repo', 'view', repository, '--json', 'nameWithOwner,isFork,viewerPermission,defaultBranchRef'));

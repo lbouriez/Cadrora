@@ -90,6 +90,20 @@ function fixture() {
 }
 
 describe('profile and GitHub deployment setup', () => {
+  it('recognizes a checkout alias but still rejects a different directory', () => {
+    const f = fixture();
+    const alias = join(f.root, 'checkout-alias');
+    symlinkSync(f.root, alias, process.platform === 'win32' ? 'junction' : 'dir');
+    const inspectAt = (checkout) => createGitHubSetup({ root: f.root, directory: f.directory, env: f.env,
+      run(command, args, options) {
+        if (command === 'fake-git' && args[0] === 'rev-parse' && args[1] === '--show-toplevel') {
+          return { code: 0, stdout: checkout, stderr: '' };
+        }
+        return f.run(command, args, options);
+      } });
+    expect(inspectAt(alias).inspect().repository).toBe(f.config.repository);
+    expect(() => inspectAt(join(f.root, 'sites')).inspect()).toThrow('githubCheckoutRequired');
+  });
   it('creates a portable bilingual studio, escapes SQL names and preserves owner edits on resume', () => {
     const f = fixture();
     expect(readFileSync(join(f.root, 'sites/my-studio/initial-settings.sql'), 'utf8')).toContain("site_name = 'L''Atelier', default_language = 'en'");

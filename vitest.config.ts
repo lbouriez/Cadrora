@@ -12,6 +12,8 @@ export default defineConfig({
     __CADRORA_SITE_DEFAULT_LANG__: JSON.stringify('fr'),
   },
   test: {
+    // Unit fixtures use the Cadrora profile above, even in a studio deploy job.
+    env: { VITE_APP_NAME: 'Cadrora' },
     exclude: [...configDefaults.exclude, 'tests/e2e/**', '.artifacts/**'],
     environment: 'node',
     setupFiles: ['./tests/setup.ts'],

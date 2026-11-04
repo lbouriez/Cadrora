@@ -3,6 +3,12 @@
 **Installing for the first time? Start with the short [installation guide](deployment.md).**
 This page covers configuration, recovery and validation details for maintainers.
 
+The unit suite always uses Cadrora branding, even inside a studio publication job;
+the selected studio is verified by its own build and browser checks. Checkout
+identity uses resolved filesystem paths so Windows short names and junction aliases
+match the same repository. Windows secret-permission tests retain real ACL checks
+with a 60-second budget for tests that start PowerShell processes.
+
 The checked-in `.gitignore` protects `.artifacts/` in every fork, including saved
 answers, encrypted keys, credentials, logs and backups. Local environment files
 and copied credential files are also ignored. Keep these rules in your fork.

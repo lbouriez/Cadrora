@@ -41,9 +41,11 @@ afterEach(async () => {
     expect(directory).toMatch(/cadrora-(release|secrets-test)-[^\\/]+$/);
     await realFs.rm(directory, { recursive: true, force: true });
   }
-});
+}, process.platform === 'win32' ? 30_000 : 10_000);
 
-describe('remote release secrets', () => {
+// These tests start real Windows PowerShell processes and check real ACLs.
+// Hosted Windows runners can take several seconds per process; retain all checks.
+describe('remote release secrets', { timeout: process.platform === 'win32' ? 60_000 : 5_000 }, () => {
   it('preserves the three-secret format and removes its temporary directory on cleanup', async () => {
     const release = await prepareRemoteSecrets(credentials);
     expect(await readFile(release.secretsPath, 'utf8')).toBe(
