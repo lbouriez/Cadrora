@@ -6,10 +6,20 @@ playwright-report/
 test-results/
 test-results-*/
 .wrangler/
+# Installer progress, encrypted keys, credentials, backups, logs and local tools.
+# Keep this rule in forks: only public profiles and .cadrora/deployments belong in Git.
 .artifacts/
+
+# Local secrets, including environment-specific files and editor backups.
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 .env
-.env.local
+.env.*
+!.env.example
+admin-credentials.env*
+deploy-secrets.env*
+secrets.dpapi.json*
 .cadrora.remote.wrangler.json
 .cadrora.remote.secrets.env
 *.log

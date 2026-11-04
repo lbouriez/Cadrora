@@ -1,0 +1,42 @@
+name: Publication des sites
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to publish (empty: all configured sites on this branch)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    if: vars.CADRORA_DEPLOY_ENABLED == 'true' && github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+      count: ${{ steps.targets.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.23.4'
+      - id: targets
+        run: node scripts/setup/deploymentConfig.mjs matrix
+        env:
+          CADRORA_SELECTED_ENVIRONMENT: ${{ inputs.environment }}
+
+  publish:
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    uses: ./.github/workflows/publish-site.yml
+    with:
+      environment: ${{ matrix.environment }}
+    secrets: inherit

@@ -20,6 +20,10 @@ const wranglerPath = 'node_modules/wrangler/bin/wrangler.js';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const workspace = resolve(scriptDirectory, '..', '..');
 
+function setupProgress(code) {
+  if (process.env.CADRORA_SETUP_PROGRESS === '1') process.stdout.write(`CADRORA_PROGRESS:${code}\n`);
+}
+
 function run(command, argumentsList, options = {}) {
   const result = spawnSync(command, argumentsList, {
     cwd: workspace,
@@ -175,6 +179,7 @@ try {
   const credentials = await ensureCredentials(instanceDirectory);
 
   process.stdout.write(`Provisioning isolated instance ${target.instance} for ${target.hostname}.\n`);
+  setupProgress('resources');
   const resources = await ensureResources(names);
   const baseConfig = JSON.parse(await readFile(resolve(workspace, 'wrangler.jsonc'), 'utf8'));
   const configPath = join(instanceDirectory, 'wrangler.json');
@@ -190,12 +195,21 @@ try {
   try { await chmod(secretsPath, 0o600); } catch { /* Windows uses the ignored private directory boundary. */ }
 
   try {
-    run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { env: { CADRORA_SITE: siteId } });
+    // Invoke npm through Node on Windows: spawnSync cannot execute .cmd shims
+    // without a shell. The guided installer also supports a portable Node copy.
+    const npmCli = process.env.npm_execpath || join(dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js');
+    setupProgress('build');
+    run(process.platform === 'win32' ? process.execPath : 'npm',
+      process.platform === 'win32' ? [npmCli, 'run', 'build'] : ['run', 'build'],
+      { env: { CADRORA_SITE: siteId, VITE_APP_NAME: site.name } });
+    setupProgress('database');
     wrangler(['d1', 'migrations', 'apply', 'DB', '--remote', '--config', configPath, '--env=']);
     if (site.deployment?.initialSettingsSql) {
       wrangler(['d1', 'execute', 'DB', '--remote', '--file', site.deployment.initialSettingsSql, '--config', configPath, '--env=']);
     }
+    setupProgress('models');
     await syncModels(names.modelsBucket, configPath);
+    setupProgress('publish');
     wrangler(['deploy', '--config', configPath, '--secrets-file', secretsPath, '--env=']);
   } finally {
     await rm(secretsPath, { force: true });

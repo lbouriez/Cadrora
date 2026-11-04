@@ -39,7 +39,7 @@ describe('site profiles', () => {
     expect(studioSite.name).toBe('Studio photo');
     expect(studioSite.description.fr).toContain('Studio photo');
     expect(studioSite.demo).toBeNull();
-    expect(studioSite.home.sections).toEqual(['services', 'approach', 'galleries', 'contact']);
+    expect(studioSite.home.sections).toEqual(['services', 'approach', 'contact']);
   });
 
   it('keeps each compiled name and French description aligned with its static metadata', () => {

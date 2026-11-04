@@ -28,7 +28,7 @@ The approved contracts cannot be changed merely because current code differs. Co
 | Browser image import | [`../implementation-plan.md`](../implementation-plan.md) package PC | check, tests, fixture-based metadata tests |
 | Facial search | [`security.md`](security.md), package PE | check, tests, real-device WASM validation before release |
 | Dependency | [`../decisions/ADR-001-stack.md`](../decisions/ADR-001-stack.md) | new/updated ADR, check, tests, build, audit |
-| Setup or deployment | [`../deployment.md`](../deployment.md), `wrangler.jsonc`, setup script | diagnostic mode, idempotence, check, tests, build |
+| Setup or deployment | [`../deployment.md`](../deployment.md), [`../guided-windows-setup.md`](../guided-windows-setup.md), [`../decisions/ADR-057-guided-fork-publication.md`](../decisions/ADR-057-guided-fork-publication.md), `wrangler.jsonc`, `setup.ps1`, `scripts/setup/` | diagnostic mode, Git/GitHub resume, idempotence, check, tests, profile builds |
 
 Owner maintenance and structured logging: [`maintenance.md`](maintenance.md).
 

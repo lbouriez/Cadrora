@@ -1,6 +1,6 @@
 -- Seed a new standalone site only while the migration-002 singleton is untouched.
 UPDATE site_settings
-SET site_name = 'Studio photo', updated_at = '2026-09-26T00:00:00.000Z'
+SET site_name = 'Studio photo', default_language = 'fr', updated_at = '2026-09-26T00:00:00.000Z'
 WHERE id = 1 AND site_name = 'Cadrora' AND updated_at = '2026-09-20T00:00:00.000Z';
 
 UPDATE site_settings

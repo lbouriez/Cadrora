@@ -9,6 +9,7 @@ import { assertNoHorizontalOverflow } from './fixtures';
 test.skip(process.env.CADRORA_E2E_BUILD !== 'true', 'Requires npm run build and CADRORA_E2E_BUILD=true.');
 
 const siteId = process.env.CADRORA_SITE || 'cadrora';
+test.skip(!['cadrora', 'atelier-giulia'].includes(siteId), 'Maintained showcase/Atelier regressions; other profiles use selected-site-profile.spec.ts.');
 const atelier = siteId === 'atelier-giulia';
 
 test('unknown documents are real localized 404s and marketing stays static', async ({ request }) => {

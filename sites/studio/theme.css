@@ -1,1 +1,43 @@
-/* New non-demo instances start with the shared semantic theme. */
+/* A quiet studio identity. Shared components own layout, focus and photo loading. */
+:root[data-site='studio'] {
+  --font-display: Georgia, 'Times New Roman', serif;
+  --color-background: #f8f5ef;
+  --color-surface: #fffdf9;
+  --color-surface-raised: #ece8de;
+  --color-text: #252b29;
+  --color-text-muted: #5c655f;
+  --color-border: #d6d9ce;
+  --color-primary: #38594d;
+  --color-primary-hover: #274438;
+  --color-primary-contrast: #ffffff;
+  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  --color-focus: #38594d;
+  --focus-ring: 0 0 0 0.2rem rgb(56 89 77 / 35%);
+  --color-photo-canvas: #252b29;
+  --color-photo-accent: #dfd9c5;
+  --radius-sm: 0.25rem;
+  --content-max-width: 78rem;
+}
+[data-site='studio'][data-theme='dark'] {
+  --color-background: #1c2420;
+  --color-surface: #242e28;
+  --color-surface-raised: #303d34;
+  --color-text: #f4f2e9;
+  --color-text-muted: #c2cdbf;
+  --color-border: #526354;
+  --color-primary: #c1d3b9;
+  --color-primary-hover: #d8e5d2;
+  --color-primary-contrast: #1c2420;
+  --color-focus: #c1d3b9;
+  --focus-ring: 0 0 0 0.2rem rgb(193 211 185 / 45%);
+}
+
+:root[data-site='studio'] .site-contact-callout {
+  background: var(--color-photo-canvas);
+  border-radius: var(--radius-sm);
+}
+:root[data-site='studio'] .site-contact-callout h2,
+:root[data-site='studio'] .site-statement h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
