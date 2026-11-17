@@ -31,7 +31,7 @@ export const cadroraSite = {
     presentation: 'editorial',
     primaryAction: { href: '#demo', labelKey: 'gallery.tryDemo', shortLabelKey: 'gallery.tryDemo' },
     secondaryAction: { href: '#installation', labelKey: 'gallery.installCadrora', shortLabelKey: 'gallery.installCadrora' },
-    sections: ['demo', 'workflow', 'featuredSites', 'services', 'galleries', 'stack', 'faq'],
+    sections: ['demo', 'workflow', 'featuredSites', 'services', 'galleries', 'hosting', 'stack', 'faq'],
     showProof: true,
     featuredSites: [
       {

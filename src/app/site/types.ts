@@ -4,7 +4,7 @@ import type { ServiceKey } from '../../shared/schemas/site';
 
 export type MarketingPage = 'home' | 'services' | 'galleries' | 'contact' | 'privacy';
 export type NavigationItem = 'home' | 'portfolio' | 'services' | 'galleries' | 'about' | 'contact';
-export type HomeSection = 'demo' | 'stack' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact' | 'workflow' | 'faq';
+export type HomeSection = 'demo' | 'stack' | 'hosting' | 'services' | 'approach' | 'galleries' | 'featuredSites' | 'contact' | 'workflow' | 'faq';
 
 export interface FeaturedSite {
   name: string;

@@ -18,7 +18,7 @@ import { siteProfile } from './siteProfile';
 import { usePublicServiceCatalog } from './usePublicServiceCatalog';
 import { BrandPhoto } from './BrandPhoto';
 import { localizedMarketingPath } from './localizedMarketingPath';
-import { ProductFaq, ProductInstallation, ProductWorkflow } from './ProductSections';
+import { ProductFaq, ProductHosting, ProductInstallation, ProductWorkflow } from './ProductSections';
 import type { HomeSection, SiteAction } from '../site/types';
 import { HOME_HERO_RESPONSIVE_SIZES, homeHeroSources } from '../../shared/homeHeroPhoto';
 
@@ -117,6 +117,7 @@ export function DefaultHomePage() {
             <DemoExperienceCards />
           </MotionReveal> : null}
 
+          {section === 'hosting' ? <ProductHosting /> : null}
           {section === 'stack' ? <ProductInstallation /> : null}
           {section === 'workflow' ? <ProductWorkflow /> : null}
           {section === 'faq' ? <ProductFaq /> : null}

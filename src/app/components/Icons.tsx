@@ -57,3 +57,15 @@ export function RetouchIcon(props: IconProps) {
 export function LockIcon(props: IconProps) {
   return <svg {...iconProps(props)}><rect x="5" y="10" width="14" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>;
 }
+
+export function CloudIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><path d="M7 18a5 5 0 1 1 1-9.9A7 7 0 0 1 21 11a3.5 3.5 0 0 1-1.5 7H7Z" /></svg>;
+}
+
+export function CheckIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><path d="m5 12 4 4L19 6" /></svg>;
+}
+
+export function KeyIcon(props: IconProps) {
+  return <svg {...iconProps(props)}><circle cx="16" cy="8" r="5" /><path d="m12.5 11.5-9 9H7v-3h3v-3" /></svg>;
+}
